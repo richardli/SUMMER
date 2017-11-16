@@ -4,7 +4,7 @@ Title: Spatio-Temporal Under-Five Mortality Methods of Estimation in R
 Version: 0.1.0
 Authors@R: c(
     person(given = "Bryan D", family = "Martin", email= "bmartin6@uw.edu", role = c("cre","aut")), 
-    person(given = "Richard", family = "Li", email= "lizehang@uw.edu", role = "aut")
+    person(given = "Zehang R", family = "Li", email= "lizehang@uw.edu", role = "aut")
   )
 Description: Methods for estimating, projecting, and plotting spatio-temporal under-five mortality rates. 
 URL: https://github.com/martinbryan/SUMMER
