@@ -14,7 +14,7 @@ fit_RW(data, inla_mod, years, geo, newyear = "15-19", quantiles = c(0.025,
 
 \item{years}{years string vector}
 
-\item{geo}{geopolygon object}
+\item{geo}{geographic polygon object}
 
 \item{newyear}{string of years for projection, defaults to \code{'15-19'}}
 

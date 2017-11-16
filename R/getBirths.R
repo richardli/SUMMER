@@ -1,10 +1,10 @@
-#' Function to get Births file from DHS Stata
+#' Function to get Births file from DHS .dta files
 #' 
 #'
-#' @param filepath filepath of raw .dta file from DHA
+#' @param filepath file path of raw .dta file from DHS
 #' @param surveyyear year of survey
 #' 
-#' @return A list of birthmonth data
+#' @return A list of birth-month data
 #' 
 #' @examples 
 #' \dontrun{

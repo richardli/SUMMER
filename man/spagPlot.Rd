@@ -11,7 +11,7 @@ spagPlot(countryname, results, geo, countrysum, inlamod)
 
 \item{results}{output from \code{\link{fit_RW}}}
 
-\item{geo}{geo output from \code{\link{read_shape}}}
+\item{geo}{\code{geo} output from \code{\link{read_shape}}}
 
 \item{countrysum}{output from \code{\link{countrySummary_mult}}}
 

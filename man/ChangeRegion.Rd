@@ -2,7 +2,7 @@
 % Please edit documentation in R/ChangeRegion.R
 \name{ChangeRegion}
 \alias{ChangeRegion}
-\title{Function to map region names to a commen set.}
+\title{Function to map region names to a common set.}
 \usage{
 ChangeRegion(data, Bmat, regionVar = "region")
 }
@@ -17,7 +17,7 @@ ChangeRegion(data, Bmat, regionVar = "region")
 Data after changing region names
 }
 \description{
-Function to map region names to a commen set.
+Function to map region names to a common set.
 }
 \examples{
 

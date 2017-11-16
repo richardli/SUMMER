@@ -15,7 +15,7 @@ countrySummary_mult(births, years, idVar = "v002", regionVar = "region",
 
 \item{idVar}{Variable name for ID, typically 'v002'}
 
-\item{regionVar}{Variable name for region, typically 'v024', for older surveys might ve 'v101'}
+\item{regionVar}{Variable name for region, typically 'v024', for older surveys might be 'v101'}
 
 \item{timeVar}{Variable name for time, typically 'per5'}
 

@@ -4,7 +4,7 @@
 #' @param births A matrix child-month data from \code{\link{getBirths}}.
 #' @param years String vector of the year intervals used.
 #' @param idVar Variable name for ID, typically 'v002'
-#' @param regionVar Variable name for region, typically 'v024', for older surveys might ve 'v101'
+#' @param regionVar Variable name for region, typically 'v024', for older surveys might be 'v101'
 #' @param timeVar Variable name for time, typically 'per5'
 #' @param ageVar Variable name for age group, default assumes the variable is called 'ageGrpD'
 #' @param weightsVar Variable name for sampling weights, typically 'v005'

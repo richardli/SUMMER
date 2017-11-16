@@ -1,4 +1,4 @@
-#' Function to map region names to a commen set.
+#' Function to map region names to a common set.
 #' 
 #' @author Richard Li
 #'

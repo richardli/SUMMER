@@ -7,7 +7,7 @@
 read_shape(filepath, regionnames, data = NULL)
 }
 \arguments{
-\item{filepath}{filepath for shp files}
+\item{filepath}{file path for .shp files}
 
 \item{regionnames}{vector of strings of final region names}
 

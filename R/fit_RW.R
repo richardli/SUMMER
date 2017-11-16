@@ -6,7 +6,7 @@
 #' @param data country summary data from \code{\link{countrySummary_mult}}
 #' @param inla_mod output from \code{\link{fitINLA}}
 #' @param years years string vector
-#' @param geo geopolygon object
+#' @param geo geographic polygon object
 #' @param newyear string of years for projection, defaults to \code{'15-19'}
 #' @param quantiles quantiles desired, defaults to \code{c(0.025,0.5,0.975)}
 #' 

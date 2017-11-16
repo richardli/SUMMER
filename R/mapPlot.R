@@ -5,7 +5,7 @@
 #'
 #' @param countryname Country name as a string
 #' @param results output from \code{\link{fit_RW}}
-#' @param geo geo output from \code{\link{read_shape}}
+#' @param geo \code{geo} output from \code{\link{read_shape}}
 #' @param countrysum output from \code{\link{countrySummary_mult}}
 #' @param inlamod output from \code{\link{fitINLA}}
 #' 

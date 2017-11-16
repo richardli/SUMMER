@@ -1,7 +1,7 @@
 #' Function to read shape files
 #' 
 #'
-#' @param filepath filepath for shp files
+#' @param filepath file path for .shp files
 #' @param regionnames vector of strings of final region names
 #' @param data optional country summary data, for checking
 #' 

@@ -2,20 +2,20 @@
 % Please edit documentation in R/getBirths.R
 \name{getBirths}
 \alias{getBirths}
-\title{Function to get Births file from DHS Stata}
+\title{Function to get Births file from DHS .dta files}
 \usage{
 getBirths(filepath, surveyyear)
 }
 \arguments{
-\item{filepath}{filepath of raw .dta file from DHA}
+\item{filepath}{file path of raw .dta file from DHS}
 
 \item{surveyyear}{year of survey}
 }
 \value{
-A list of birthmonth data
+A list of birth-month data
 }
 \description{
-Function to get Births file from DHS Stata
+Function to get Births file from DHS .dta files
 }
 \examples{
 \dontrun{

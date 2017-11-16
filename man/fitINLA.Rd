@@ -10,7 +10,7 @@ fitINLA(data, Amat, geo, formula = NULL, year_names, na.rm = TRUE,
   b.rw2 = NULL, a.icar = NULL, b.icar = NULL)
 }
 \arguments{
-\item{data}{Combiend dataset.}
+\item{data}{Combined dataset.}
 
 \item{Amat}{Adj matrix for the regions.}
 
@@ -22,27 +22,27 @@ fitINLA(data, Amat, geo, formula = NULL, year_names, na.rm = TRUE,
 
 \item{na.rm}{Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.}
 
-\item{redo.prior}{Logical indicator of whether to reestimate hyper parameters.}
+\item{redo.prior}{Logical indicator of whether to re-estimate hyper parameters.}
 
 \item{priors}{priors from simhyper}
 
 \item{useHyper}{option to manually set all hyper priors}
 
-\item{a.iid}{hyper parameter for i.i.d random effects, only need if useHyper = TRUE}
+\item{a.iid}{hyper parameter for i.i.d random effects, only need if \code{useHyper = TRUE}}
 
-\item{b.iid}{hyper parameter for i.i.d random effects, only need if useHyper = TRUE}
+\item{b.iid}{hyper parameter for i.i.d random effects, only need if \code{useHyper = TRUE}}
 
-\item{a.rw1}{hyper parameter for RW1 random effects, only need if useHyper = TRUE}
+\item{a.rw1}{hyper parameter for RW1 random effects, only need if \code{useHyper = TRUE}}
 
-\item{b.rw1}{hyper parameter for RW1 random effects, only need if useHyper = TRUE}
+\item{b.rw1}{hyper parameter for RW1 random effects, only need if \code{useHyper = TRUE}}
 
-\item{a.rw2}{hyper parameter for RW2 random effects, only need if useHyper = TRUE}
+\item{a.rw2}{hyper parameter for RW2 random effects, only need if \code{useHyper = TRUE}}
 
-\item{b.rw2}{hyper parameter for RW2 random effects, only need if useHyper = TRUE}
+\item{b.rw2}{hyper parameter for RW2 random effects, only need if \code{useHyper = TRUE}}
 
-\item{a.icar}{hyper parameter for ICAR random effects, only need if useHyper = TRUE}
+\item{a.icar}{hyper parameter for ICAR random effects, only need if \code{useHyper = TRUE}}
 
-\item{b.icar}{hyper parameter for ICAR random effects, only need if useHyper = TRUE}
+\item{b.icar}{hyper parameter for ICAR random effects, only need if \code{useHyper = TRUE}}
 }
 \value{
 INLA model fit using the provided formula, country summary data, and geographic data
