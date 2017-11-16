@@ -26,3 +26,15 @@ I can remove this NOTE by adding README.md file to .Rbuildignore, but I don't th
   spatio (9:63)
   
 The word spatio is not misspelled. It is part of the hyphenated word spatio-temporal.
+
+## Round 1 Response
+
+* Thanks, please omit the redundant 'in R' in your title.
+
+* Please add a reference for this method in the 'Description' field of your DESCRIPTION file in the form
+  authors (year) <doi:...>
+  authors (year) <arXiv:...>
+  authors (year, ISBN:...)
+  with no space after 'doi:', 'arXiv:' and angle brackets for auto-linking.
+  
+* Please add more small executable examples in your Rd-files.
