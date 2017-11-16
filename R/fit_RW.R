@@ -34,13 +34,13 @@
 #' 
 #' # Projection
 #' surveylabel <- paste0("DHS ", unique(data$surveyYears)) 
-#' results_rw2 <- fit_RW(data = data, inla_mod = inla_model, years = years, geo = geo, 
+#' results_rw2 <- projINLA(data = data, inla_mod = inla_model, years = years, geo = geo, 
 #'                      newyear = "15-19", quantiles = c(0.025,0.5,0.975))
 #' }
 #' 
 #' 
 #' @export
-fit_RW <- function(data, inla_mod, years, geo, newyear = "15-19", quantiles = c(0.025, 0.5, 0.975)) {
+projINLA <- function(data, inla_mod, years, geo, newyear = "15-19", quantiles = c(0.025, 0.5, 0.975)) {
     # surveylabel <- paste0('DHS ', unique(data$surveyYears)) timelabel <- years countrylabel <- countryname
     
     pdata <- data.frame(data)

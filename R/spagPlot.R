@@ -4,7 +4,7 @@
 #' See package vignette for usage details.
 #'
 #' @param countryname Country name as a string
-#' @param results output from \code{\link{fit_RW}}
+#' @param results output from \code{\link{projINLA}}
 #' @param geo \code{geo} output from \code{\link{read_shape}}
 #' @param countrysum output from \code{\link{countrySummary_mult}}
 #' @param inlamod output from \code{\link{fitINLA}}
@@ -29,7 +29,7 @@
 #' 
 #' # Projection
 #' surveylabel <- paste0("DHS ", unique(data$surveyYears)) 
-#' results_rw2 <- fit_RW(data = data, inla_mod = inla_model, years = years, geo = geo, 
+#' results_rw2 <- projINLA(data = data, inla_mod = inla_model, years = years, geo = geo, 
 #'                      newyear = "15-19", quantiles = c(0.025,0.5,0.975))
 #' 
 #' # Plot results

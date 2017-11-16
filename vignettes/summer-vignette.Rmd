@@ -69,12 +69,12 @@ inla_model <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years, pr
 
 ## Do Projection
 
-With our model fit, we can now get our smoothed output and project into a future period with `fit_RW`. 
+With our model fit, we can now get our smoothed output and project into a future period with `projINLA`. 
 
 ```{r, message = FALSE}
 surveylabel <- paste0("DHS ", unique(data$surveyYears))
     
-results_rw2 <- fit_RW(data = data, inla_mod = inla_model, years = years, geo = geo, 
+results_rw2 <- projINLA(data = data, inla_mod = inla_model, years = years, geo = geo, 
                       newyear = "15-19", quantiles = c(0.025,0.5,0.975))
 ```
 
