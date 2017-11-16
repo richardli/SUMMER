@@ -12,6 +12,33 @@
 #' 
 #' @return Results from RW2 model fit, including projection.
 #' 
+#' @examples
+#' \dontrun{
+#' data(Uganda)
+#' data(UgandaMap)
+#' geo <- UgandaMap$geo
+#' mat <- UgandaMap$Amat
+#' years <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14")
+#' 
+#' # Get direct estimates
+#' u5m <- countrySummary_mult(births = Uganda, years = years, idVar = "id", 
+#' regionVar = "region", timeVar = "time", clusterVar = "~clustid+id", 
+#' ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+#' 
+#' # Get hyper priors
+#' priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat)
+#' 
+#' # Fit INLA models
+#' data <- data[data$region %in% c("central","eastern","northern","western"),]
+#' inla_model <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years, priors = priors)
+#' 
+#' # Projection
+#' surveylabel <- paste0("DHS ", unique(data$surveyYears)) 
+#' results_rw2 <- fit_RW(data = data, inla_mod = inla_model, years = years, geo = geo, 
+#'                      newyear = "15-19", quantiles = c(0.025,0.5,0.975))
+#' }
+#' 
+#' 
 #' @export
 fit_RW <- function(data, inla_mod, years, geo, newyear = "15-19", quantiles = c(0.025, 0.5, 0.975)) {
     # surveylabel <- paste0('DHS ', unique(data$surveyYears)) timelabel <- years countrylabel <- countryname

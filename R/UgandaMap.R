@@ -6,6 +6,7 @@
 #'  \item geo. Geographic map files
 #'  \item Amat. Adjacency matrix for regions
 #' }
-#' 
+#' @examples 
+#' data(UgandaMap)
 #' @source \url{https://spatialdata.dhsprogram.com/boundaries/#view=table&countryId=UG}
 "UgandaMap"

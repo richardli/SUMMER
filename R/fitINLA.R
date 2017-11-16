@@ -24,6 +24,27 @@
 #' @param b.icar hyper parameter for ICAR random effects, only need if \code{useHyper = TRUE}
 #' @seealso \code{\link{countrySummary}}
 #' @return INLA model fit using the provided formula, country summary data, and geographic data
+#' @examples
+#' #' \dontrun{
+#' data(Uganda)
+#' data(UgandaMap)
+#' geo <- UgandaMap$geo
+#' mat <- UgandaMap$Amat
+#' years <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14")
+#' 
+#' # Get direct estimates
+#' u5m <- countrySummary_mult(births = Uganda, years = years, idVar = "id", 
+#' regionVar = "region", timeVar = "time", clusterVar = "~clustid+id", 
+#' ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+#' 
+#' # Get hyper priors
+#' priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat)
+#' 
+#' # Fit INLA models
+#' data <- data[data$region %in% c("central","eastern","northern","western"),]
+#' inla_model <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years, priors = priors)
+#' }
+#' 
 #' @export
 fitINLA <- function(data, Amat, geo, formula = NULL, year_names, na.rm = TRUE, redo.prior = FALSE, priors = NULL, useHyper = FALSE, a.iid = NULL, b.iid = NULL, a.rw1 = NULL, b.rw1 = NULL, a.rw2 = NULL, b.rw2 = NULL, a.icar = NULL, b.icar = NULL) {
     

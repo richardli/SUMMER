@@ -5,6 +5,7 @@
 #' provided by DHS.
 #'
 #' @format A list of with five components, named by survey year.
-#'  
+#' @examples 
+#' data(Uganda) 
 #' @source \url{https://dhsprogram.com/data/model-datasets.cfm}
 "Uganda"
