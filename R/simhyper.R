@@ -6,8 +6,7 @@
 #' @param nsamp.check Sample to simulate for checking range
 #' @param Amat Adjacency matrix of the areas in the data.
 #' @param nperiod numerical value of how many time periods in the data
-#' @references Wakefield, J. (2009). \emph{Multi-level modelling, the ecologic fallacy, and hybrid study designs.} Int. J. Epidemiol. 38 330–336.
-#' @return Hyperprior simulations
+#' @references Wakefield, J. Multi-level modelling, the ecologic fallacy, and hybrid study designs. \emph{International Journal of Epidemiology}, 2009, vol. 38 (pg. 330-336).
 #' @export
 simhyper <- function(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat, nperiod = 6) {
     #################################################################### (R,1/R) is the range of the residual odds ratios gives a=d/2 where d = degrees of freedom of marginal Student’s t
