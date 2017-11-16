@@ -13,6 +13,6 @@ There were no ERRORs or WARNINGs. There was 1 NOTE:
 * Suggests or Enhances not in mainstream repositories:
   INLA
   
-  The word spatio is not misspelled. It is part of the hyphenated word spatio-temporal.
+The word spatio is not misspelled. It is part of the hyphenated word spatio-temporal.
   
-  The INLA repository is listed under Additional_repositories.
+The INLA repository is listed under Additional_repositories.
