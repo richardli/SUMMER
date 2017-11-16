@@ -10,7 +10,7 @@ There were no ERRORs or WARNINGs. There was 1 NOTE:
   Spatio (3:8)
   spatio (9:63)
 
-Suggests or Enhances not in mainstream repositories:
+* Suggests or Enhances not in mainstream repositories:
   INLA
   
   The word spatio is not misspelled. It is part of the hyphenated word spatio-temporal.
