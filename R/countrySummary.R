@@ -17,8 +17,9 @@
 #' 
 #' data(Uganda)
 #' years <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14")
-#' u5m <- countrySummary(births = Uganda[[1]],  years = years, idVar = "id", regionVar = "region",
-#' timeVar = "time", clusterVar = "~clustid+id", ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+#' u5m <- countrySummary(births = Uganda[[1]],  years = years, idVar = "id", 
+#' regionVar = "region", timeVar = "time", clusterVar = "~clustid+id", 
+#' ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 #' @export
 countrySummary <- function(births, years, idVar = "v002", regionVar = "region", timeVar = "per5", clusterVar = "~v001+v002",
                            ageVar = "ageGrpD", weightsVar = "v005", geo.recode = NULL) {
