@@ -1,15 +1,16 @@
 Package: SUMMER
 Type: Package
-Title: Spatio-temporal Under-five Mortality Methods of Estimation in R
-Version: 0.0.05
-Authors@R: as.person(c(
-    "Bryan D. Martin <bmartin6@uw.edu> [aut, cre]", 
-    "Richard Li <lizehang@uw.edu> [aut]"
-  ))
-Description: This package estimates provides methods for estimating, projecting, and plotting spatio-temporal under-five mortality rates. 
+Title: Spatiotemporal Under-Five Mortality Methods of Estimation in R
+Version: 0.1
+Authors@R: c(
+    person(given = "Bryan D", family = "Martin", email= "bmartin6@uw.edu", role = c("cre","aut")), 
+    person(given = "Richard", family = "Li", email= "lizehang@uw.edu", role = "aut")
+  )
+Description: Methods for estimating, projecting, and plotting spatiotemporal under-five mortality rates. 
+URL: https://github.com/martinbryan/SUMMER
+BugReports: https://github.com/martinbryan/SUMMER/issues
 Depends: R (>= 3.4.2)
 License: GPL (>= 2)
-BugReports: https://github.com/martinbryan/SUMMER/issues
 Imports: RColorBrewer, classInt, maptools, survey, grDevices, graphics, stats, spdep, survival, ggplot2, sp, utils
 Encoding: UTF-8
 LazyData: true

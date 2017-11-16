@@ -12,10 +12,13 @@ vignette: >
 
 `Uganda` contains model survey data provided by DHS. Data similar to the `Uganda` data used in this vignette can be obtained by using  `getBirths`. `UgandaMap` contains geographic data from the 1995 Uganda Admin 1 regions defined by DHS. Data similar to the `UgandaMap` data used in this vignette can be obtained by using `read_shape`.
 
-First, we load the package and load the necessary data.
+First, we load the package and load the necessary data. INLA is not in a standard repository, so we check if it is available and install it if it is not.
 
 ```{r, message = FALSE}
 library(SUMMER)
+if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+  install.packages('INLA', repos = 'https://www.math.ntnu.no/inla/R/stable')
+}
 
 data(Uganda)
 data(UgandaMap)
