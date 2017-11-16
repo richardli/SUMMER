@@ -20,4 +20,7 @@ Shapefiles are from 1995 Uganda Admin 1 regions provided by DHS.
  \item Amat. Adjacency matrix for regions
 }
 }
+\examples{
+data(UgandaMap)
+}
 \keyword{datasets}

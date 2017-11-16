@@ -16,4 +16,7 @@ A small fake dataset with 4 regions and 5 survey years. These numbers do not rep
 any real country's data and are based on a subset of the model dataset
 provided by DHS.
 }
+\examples{
+data(Uganda) 
+}
 \keyword{datasets}

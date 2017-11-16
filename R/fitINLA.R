@@ -25,7 +25,7 @@
 #' @seealso \code{\link{countrySummary}}
 #' @return INLA model fit using the provided formula, country summary data, and geographic data
 #' @examples
-#' #' \dontrun{
+#' \dontrun{
 #' data(Uganda)
 #' data(UgandaMap)
 #' geo <- UgandaMap$geo
