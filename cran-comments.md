@@ -4,7 +4,7 @@
 * win-builder (devel and release)
 
 ## R CMD check results
-There were no ERRORs or WARNINGs. There was 3 NOTEs:
+There were no ERRORs or WARNINGs. There were 3 NOTEs:
 
 * Maintainer: ‘Bryan D Martin <bmartin6@uw.edu>’
 
