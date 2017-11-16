@@ -1,4 +1,4 @@
-#' Function to get RW2 output
+#' Function to obtain projected estimates from INLA for each time and region.
 #' 
 #' See package vignette for usage details.
 #' 
