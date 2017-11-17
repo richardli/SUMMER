@@ -7,9 +7,9 @@ vignette: >
   %\usepackage[utf8]{inputenc}
 ---
 
-## DEBUG MODE
-```{r}
-knitr::opts_chunk$set(eval = FALSE)
+```{r, echo = FALSE}
+# Uncomment to enter DEBUG mode. The package vignette will compile, but code will not be evaluated for speed purposes.
+# knitr::opts_chunk$set(eval = FALSE)
 ```
 
 ## Load Package and Data
