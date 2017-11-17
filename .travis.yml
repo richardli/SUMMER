@@ -9,7 +9,3 @@ cache: packages
 
 before_install:
   - Rscript -e 'install.packages("INLA", repos = c("http://www.math.ntnu.no/inla/R/stable", "http://cran.rstudio.com"))'
-  
-
-after_success:
-  - Rscript -e 'covr::codecov()'
