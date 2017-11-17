@@ -8,12 +8,12 @@ There were no ERRORs or WARNINGs. There were 3 NOTEs:
 
 * Maintainer: ‘Bryan D Martin <bmartin6@uw.edu>’
 
-New submission
+  New submission
 
-Suggests or Enhances not in mainstream repositories:
-  INLA 
- Availability using Additional_repositories specification:
-  INLA   yes   https://www.math.ntnu.no/inla/R/stable
+  Suggests or Enhances not in mainstream repositories:
+    INLA 
+  Availability using Additional_repositories specification:
+    INLA   yes   https://www.math.ntnu.no/inla/R/stable
   
 **Response:** The first part does not seem to be an issue. For the latter, the INLA repository is included in Additional_repositories.
 
