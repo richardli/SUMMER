@@ -16,7 +16,7 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
 Additional_repositories: https://www.math.ntnu.no/inla/R/stable
-Suggests: INLA, knitr, rmarkdown, readstata13
+Suggests: INLA, knitr, rmarkdown, readstata13, covr
 VignetteBuilder: knitr
 NeedsCompilation: no
 Packaged: 2017-11-10 21:35:54 UTC; Bryan
