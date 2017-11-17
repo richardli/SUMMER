@@ -8,6 +8,7 @@
 #' @param geo \code{geo} output from \code{\link{read_shape}}
 #' @param countrysum output from \code{\link{countrySummary_mult}}
 #' @param inlamod output from \code{\link{fitINLA}}
+#' @examples
 #' \dontrun{
 #' data(Uganda)
 #' data(UgandaMap)

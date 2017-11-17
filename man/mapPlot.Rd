@@ -15,8 +15,12 @@ mapPlot(countryname, results, geo, countrysum, inlamod)
 
 \item{countrysum}{output from \code{\link{countrySummary_mult}}}
 
-\item{inlamod}{output from \code{\link{fitINLA}}
-
+\item{inlamod}{output from \code{\link{fitINLA}}}
+}
+\description{
+See package vignette for usage details.
+}
+\examples{
 \dontrun{
 data(Uganda)
 data(UgandaMap)
@@ -33,7 +37,7 @@ ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat)
 
 # Fit INLA models
-data <- data[data$region %in% c("central","eastern","northern","western"),]
+data <- data[data$region \%in\% c("central","eastern","northern","western"),]
 inla_model <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years, priors = priors)
 
 # Projection
@@ -43,8 +47,5 @@ results_rw2 <- projINLA(data = data, inla_mod = inla_model, years = years, geo =
 
 # Plot results
 mapPlot(countryname = "Uganda", results = results_rw2, geo = geo, countrysum = data, inlamod = inla_model)
-}}
 }
-\description{
-See package vignette for usage details.
 }

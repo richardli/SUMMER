@@ -7,6 +7,11 @@ vignette: >
   %\usepackage[utf8]{inputenc}
 ---
 
+## DEBUG MODE
+```{r}
+opts_chunk$set(eval = FALSE)
+```
+
 ## Load Package and Data
 
 
