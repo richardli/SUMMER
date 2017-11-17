@@ -4,7 +4,9 @@
 language: r
 warnings_are_errors: true
 sudo: required
-pandoc: false
+
+r_build_args: --no-build-vignettes --no-manual --no-resave-data
+r_check_args: --no-build-vignettes --no-manual
 
 before_install:
   - Rscript -e 'install.packages("INLA", repos = c("http://www.math.ntnu.no/inla/R/stable", "http://cran.rstudio.com"))'
