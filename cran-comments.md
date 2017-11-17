@@ -15,21 +15,23 @@ Suggests or Enhances not in mainstream repositories:
  Availability using Additional_repositories specification:
   INLA   yes   https://www.math.ntnu.no/inla/R/stable
   
-The first part does not seem to be an issue. For the latter, the INLA repository is included in Additional_repositories.
+**Response:** The first part does not seem to be an issue. For the latter, the INLA repository is included in Additional_repositories.
 
 * Files ‘README.md’ or ‘NEWS.md’ cannot be checked without ‘pandoc’ being installed.
 
-I can remove this NOTE by adding README.md file to .Rbuildignore, but I don't think I should do this.
+**Response:** I can remove this NOTE by adding README.md file to .Rbuildignore, but I don't think I should do this.
 
 * Possibly mis-spelled words in DESCRIPTION:
   Spatio (3:8)
   spatio (9:63)
   
-The word spatio is not misspelled. It is part of the hyphenated word spatio-temporal.
+**Response:** The word spatio is not misspelled. It is part of the hyphenated word spatio-temporal.
 
 ## Round 1 Response
 
 * Thanks, please omit the redundant 'in R' in your title.
+
+**Response:** Done
 
 * Please add a reference for this method in the 'Description' field of your DESCRIPTION file in the form
   authors (year) <doi:...>
@@ -37,4 +39,8 @@ The word spatio is not misspelled. It is part of the hyphenated word spatio-temp
   authors (year, ISBN:...)
   with no space after 'doi:', 'arXiv:' and angle brackets for auto-linking.
   
+**Response:** Waiting for paper to be ready before resubmission.
+  
 * Please add more small executable examples in your Rd-files.
+
+**Response:** Partially done. TODO: Check that every function either has an example or is not exported.
