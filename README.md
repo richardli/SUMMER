@@ -5,7 +5,7 @@ Spatio-temporal Under-five Mortality Models of Estimation in R
 
 ## Installation
 
-Currently, the package is only available through Github. CRAN submission is the completion and publication of a manuscript. To install, use the code below.
+Currently, the package is only available through Github. CRAN submission is waiting on the completion and publication of a manuscript. For now, use the code below to install SUMMER.
 
 ``` r
 # install.packages("devtools")
