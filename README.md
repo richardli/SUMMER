@@ -8,7 +8,7 @@ Spatio-temporal Under-five Mortality Models of Estimation in R
 The package is now available on CRAN. The easiest way to downlaod is to install directly using the code below.
 
 ``` r 
-install.packages("dplyr")
+install.packages("SUMMER")
 ```
 
 ## Installation - Development Version
