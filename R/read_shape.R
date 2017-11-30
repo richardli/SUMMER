@@ -1,4 +1,4 @@
-#' Function to read shape files
+#' Function to read shape files.
 #' 
 #'
 #' @param filepath file path for .shp files

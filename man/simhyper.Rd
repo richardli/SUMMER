@@ -2,7 +2,7 @@
 % Please edit documentation in R/simhyper.R
 \name{simhyper}
 \alias{simhyper}
-\title{Function to simulate hyperpriors from an adjacency matrix}
+\title{Function to simulate hyperpriors from an adjacency matrix.}
 \usage{
 simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat, nperiod = 6)
 }
@@ -18,7 +18,7 @@ simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat, nperiod = 6)
 \item{nperiod}{numerical value of how many time periods in the data}
 }
 \description{
-Function to simulate hyperpriors from an adjacency matrix
+Function to simulate hyperpriors from an adjacency matrix.
 }
 \examples{
 \dontrun{

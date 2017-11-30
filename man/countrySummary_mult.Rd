@@ -11,7 +11,7 @@ countrySummary_mult(births, years, idVar = "v002", regionVar = "region",
 \arguments{
 \item{births}{A list of child-month data from multiple surveys from \code{\link{getBirths}}. The name of the list is used as the identifier in the output.}
 
-\item{years}{String vector of the year intervals used.}
+\item{years}{String vector of the year intervals used}
 
 \item{idVar}{Variable name for ID, typically 'v002'}
 

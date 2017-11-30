@@ -1,4 +1,4 @@
-#' Function to get Births file from DHS .dta files
+#' Function to get Births file from DHS .dta files.
 #' 
 #'
 #' @param filepath file path of raw .dta file from DHS

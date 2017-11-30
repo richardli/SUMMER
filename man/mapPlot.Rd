@@ -2,7 +2,7 @@
 % Please edit documentation in R/mapPlot.R
 \name{mapPlot}
 \alias{mapPlot}
-\title{Makes map plot}
+\title{Makes map plot.}
 \usage{
 mapPlot(countryname, results, geo, countrysum, inlamod)
 }
@@ -18,7 +18,7 @@ mapPlot(countryname, results, geo, countrysum, inlamod)
 \item{inlamod}{output from \code{\link{fitINLA}}}
 }
 \description{
-See package vignette for usage details.
+Makes map plot.
 }
 \examples{
 \dontrun{

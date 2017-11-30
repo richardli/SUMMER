@@ -1,17 +1,15 @@
-#' Fit INLA models to the direct estimators
-#' 
-#' See package vignette for usage details
+#' Fit INLA models to direct estimators.
 #' 
 #' 
 #' 
 #'
-#' @param data Combined dataset.
-#' @param geo Geo file.
-#' @param Amat Adj matrix for the regions.
-#' @param formula INLA formula, defaults to RW2, ICAR, IID time, IID, region, IID survey effect, IID time-region interaction, IID survey-region interaction, and IID survey-time-region interaction. 
+#' @param data Combined dataset
+#' @param geo Geo file
+#' @param Amat Adjacency matrix for the regions
+#' @param formula INLA formula. Defaults to RW2, ICAR, IID time, IID, region, IID survey effect, IID time-region interaction, IID survey-region interaction, and IID survey-time-region interaction. 
 #' @param year_names string vector of year names
 #' @param na.rm Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.
-#' @param redo.prior Logical indicator of whether to re-estimate hyper parameters.
+#' @param redo.prior Logical indicator of whether to re-estimate hyper parameters
 #' @param priors priors from simhyper
 #' @param useHyper option to manually set all hyper priors
 #' @param a.iid hyper parameter for i.i.d random effects, only need if \code{useHyper = TRUE}

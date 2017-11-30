@@ -1,6 +1,5 @@
 #' Function to obtain projected estimates from INLA for each time and region.
 #' 
-#' See package vignette for usage details.
 #' 
 #'
 #' @param data country summary data from \code{\link{countrySummary_mult}}

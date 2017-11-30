@@ -2,7 +2,7 @@
 % Please edit documentation in R/fitINLA.R
 \name{fitINLA}
 \alias{fitINLA}
-\title{Fit INLA models to the direct estimators}
+\title{Fit INLA models to direct estimators.}
 \usage{
 fitINLA(data, Amat, geo, formula = NULL, year_names, na.rm = TRUE,
   redo.prior = FALSE, priors = NULL, useHyper = FALSE, a.iid = NULL,
@@ -10,19 +10,19 @@ fitINLA(data, Amat, geo, formula = NULL, year_names, na.rm = TRUE,
   b.rw2 = NULL, a.icar = NULL, b.icar = NULL)
 }
 \arguments{
-\item{data}{Combined dataset.}
+\item{data}{Combined dataset}
 
-\item{Amat}{Adj matrix for the regions.}
+\item{Amat}{Adjacency matrix for the regions}
 
-\item{geo}{Geo file.}
+\item{geo}{Geo file}
 
-\item{formula}{INLA formula, defaults to RW2, ICAR, IID time, IID, region, IID survey effect, IID time-region interaction, IID survey-region interaction, and IID survey-time-region interaction.}
+\item{formula}{INLA formula. Defaults to RW2, ICAR, IID time, IID, region, IID survey effect, IID time-region interaction, IID survey-region interaction, and IID survey-time-region interaction.}
 
 \item{year_names}{string vector of year names}
 
 \item{na.rm}{Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.}
 
-\item{redo.prior}{Logical indicator of whether to re-estimate hyper parameters.}
+\item{redo.prior}{Logical indicator of whether to re-estimate hyper parameters}
 
 \item{priors}{priors from simhyper}
 
@@ -48,7 +48,7 @@ fitINLA(data, Amat, geo, formula = NULL, year_names, na.rm = TRUE,
 INLA model fit using the provided formula, country summary data, and geographic data
 }
 \description{
-See package vignette for usage details
+Fit INLA models to direct estimators.
 }
 \examples{
 \dontrun{

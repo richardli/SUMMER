@@ -2,7 +2,7 @@
 % Please edit documentation in R/projINLA_multi.R
 \name{projINLA_multi}
 \alias{projINLA_multi}
-\title{Function to obtain smoothed estimates from fitted INLA object}
+\title{Function to obtain smoothed estimates from fitted INLA object.}
 \usage{
 projINLA_multi(fitted, proj.time, ntime, which.area, quantiles,
   return_raw = FALSE)
@@ -24,7 +24,7 @@ projINLA_multi(fitted, proj.time, ntime, which.area, quantiles,
 Smoothed model estimates from the provided INLA fit
 }
 \description{
-See package vignette for usage details
+Function to obtain smoothed estimates from fitted INLA object.
 }
 \seealso{
 \code{\link{countrySummary}}

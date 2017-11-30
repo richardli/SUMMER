@@ -1,6 +1,4 @@
 #' Function to map region names to a common set.
-#' 
-#' @author Richard Li
 #'
 #' @param data Pre-processed data
 #' @param Bmat Matrix of changes. Each row corresponds to a region name possibly in the data files, and each column corresponds to a region after mapping. The values in the matrix are binary. The row names and column names need to be specified to the region names. 

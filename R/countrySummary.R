@@ -1,8 +1,8 @@
 #' Obtain the Horvitz-Thompson direct estimates and standard errors using delta method for a single survey.
 #'
 #' 
-#' @param births A matrix child-month data from \code{\link{getBirths}}.
-#' @param years String vector of the year intervals used.
+#' @param births A matrix child-month data from \code{\link{getBirths}}
+#' @param years String vector of the year intervals used
 #' @param idVar Variable name for ID, typically 'v002'
 #' @param regionVar Variable name for region, typically 'v024', for older surveys might be 'v101'
 #' @param timeVar Variable name for time, typically 'per5'

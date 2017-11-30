@@ -9,9 +9,9 @@ countrySummary(births, years, idVar = "v002", regionVar = "region",
   weightsVar = "v005", geo.recode = NULL)
 }
 \arguments{
-\item{births}{A matrix child-month data from \code{\link{getBirths}}.}
+\item{births}{A matrix child-month data from \code{\link{getBirths}}}
 
-\item{years}{String vector of the year intervals used.}
+\item{years}{String vector of the year intervals used}
 
 \item{idVar}{Variable name for ID, typically 'v002'}
 

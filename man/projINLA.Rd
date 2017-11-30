@@ -24,7 +24,7 @@ projINLA(data, inla_mod, years, geo, newyear = "15-19", quantiles = c(0.025,
 Results from RW2 model fit, including projection.
 }
 \description{
-See package vignette for usage details.
+Function to obtain projected estimates from INLA for each time and region.
 }
 \examples{
 \dontrun{

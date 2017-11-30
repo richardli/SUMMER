@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_shape.R
 \name{read_shape}
 \alias{read_shape}
-\title{Function to read shape files}
+\title{Function to read shape files.}
 \usage{
 read_shape(filepath, regionnames, data = NULL)
 }
@@ -17,7 +17,7 @@ read_shape(filepath, regionnames, data = NULL)
 A list including shape files and the adjacency matrix.
 }
 \description{
-Function to read shape files
+Function to read shape files.
 }
 \examples{
 \dontrun{

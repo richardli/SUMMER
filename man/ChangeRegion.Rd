@@ -35,6 +35,3 @@ print(Bmat)
 test <- ChangeRegion(testdata, Bmat, "region")
 print(test)
 }
-\author{
-Richard Li
-}

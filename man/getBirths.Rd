@@ -2,7 +2,7 @@
 % Please edit documentation in R/getBirths.R
 \name{getBirths}
 \alias{getBirths}
-\title{Function to get Births file from DHS .dta files}
+\title{Function to get Births file from DHS .dta files.}
 \usage{
 getBirths(filepath, surveyyear)
 }
@@ -15,7 +15,7 @@ getBirths(filepath, surveyyear)
 A list of birth-month data
 }
 \description{
-Function to get Births file from DHS .dta files
+Function to get Births file from DHS .dta files.
 }
 \examples{
 \dontrun{

@@ -1,4 +1,4 @@
-#' Function to simulate hyperpriors from an adjacency matrix
+#' Function to simulate hyperpriors from an adjacency matrix.
 #' 
 #'
 #' @param R Desired prior odds ratio. Default to 2, i.e., a 95\% prior interval for the residual odds ratios lies in the interval (R, 1/R).

@@ -1,7 +1,4 @@
-#' Makes spaghetti plot
-#' 
-#' 
-#' See package vignette for usage details.
+#' Makes spaghetti plot.
 #'
 #' @param countryname Country name as a string
 #' @param results output from \code{\link{projINLA}}

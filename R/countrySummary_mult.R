@@ -2,7 +2,7 @@
 #'
 #' 
 #' @param births A list of child-month data from multiple surveys from \code{\link{getBirths}}. The name of the list is used as the identifier in the output.
-#' @param years String vector of the year intervals used.
+#' @param years String vector of the year intervals used
 #' @param idVar Variable name for ID, typically 'v002'
 #' @param regionVar Variable name for region, typically 'v024', for older surveys might be 'v101'
 #' @param timeVar Variable name for time, typically 'per5'

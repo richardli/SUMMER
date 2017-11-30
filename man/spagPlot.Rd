@@ -2,7 +2,7 @@
 % Please edit documentation in R/spagPlot.R
 \name{spagPlot}
 \alias{spagPlot}
-\title{Makes spaghetti plot}
+\title{Makes spaghetti plot.}
 \usage{
 spagPlot(countryname, results, geo, countrysum, inlamod)
 }
@@ -18,7 +18,7 @@ spagPlot(countryname, results, geo, countrysum, inlamod)
 \item{inlamod}{output from \code{\link{fitINLA}}}
 }
 \description{
-See package vignette for usage details.
+Makes spaghetti plot.
 }
 \examples{
 \dontrun{

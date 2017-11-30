@@ -1,7 +1,6 @@
-#' Makes map plot
+#' Makes map plot.
 #' 
 #' 
-#' See package vignette for usage details.
 #'
 #' @param countryname Country name as a string
 #' @param results output from \code{\link{projINLA}}

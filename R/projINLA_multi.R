@@ -1,6 +1,5 @@
-#' Function to obtain smoothed estimates from fitted INLA object
+#' Function to obtain smoothed estimates from fitted INLA object.
 #' 
-#' See package vignette for usage details
 #' 
 #' 
 #' @param fitted Fitted object from \code{\link{fitINLA}}.
