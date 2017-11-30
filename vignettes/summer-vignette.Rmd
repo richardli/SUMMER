@@ -1,9 +1,9 @@
 ---
-title: "Spatio-temporal Under-five Mortality Methods for Estimation in R"
+title: "Spatio-temporal Under-five Mortality Methods for Estimation"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteIndexEntry{Spatio-temporal Under-five Mortality Methods for Estimation in R}
+  %\VignetteIndexEntry{Spatio-temporal Under-five Mortality Methods for Estimation}
   %\usepackage[utf8]{inputenc}
 ---
 
@@ -15,7 +15,7 @@ vignette: >
 ## Load Package and Data
 
 
-`Uganda` contains model survey data provided by DHS. Data similar to the `Uganda` data used in this vignette can be obtained by using  `getBirths`. `UgandaMap` contains geographic data from the 1995 Uganda Admin 1 regions defined by DHS. Data similar to the `UgandaMap` data used in this vignette can be obtained by using `read_shape`.
+`Uganda` contains model survey data provided by DHS. Note that this data is fake, and does not represent any real country's data. Data similar to the `Uganda` data used in this vignette can be obtained by using  `getBirths`. `UgandaMap` contains geographic data from the 1995 Uganda Admin 1 regions defined by DHS. Data similar to the `UgandaMap` data used in this vignette can be obtained by using `read_shape`.
 
 First, we load the package and load the necessary data. INLA is not in a standard repository, so we check if it is available and install it if it is not.
 

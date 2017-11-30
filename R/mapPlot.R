@@ -34,7 +34,8 @@
 #'                      newyear = "15-19", quantiles = c(0.025,0.5,0.975))
 #' 
 #' # Plot results
-#' mapPlot(countryname = "Uganda", results = results_rw2, geo = geo, countrysum = data, inlamod = inla_model)
+#' mapPlot(countryname = "Uganda", results = results_rw2, geo = geo, 
+#' countrysum = data, inlamod = inla_model)
 #' }
 #' @export
 mapPlot <- function(countryname, results, geo, countrysum, inlamod) {

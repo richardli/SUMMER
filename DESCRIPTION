@@ -6,7 +6,8 @@ Authors@R: c(
     person(given = "Bryan D", family = "Martin", email= "bmartin6@uw.edu", role = c("cre","aut")), 
     person(given = "Zehang R", family = "Li", email= "lizehang@uw.edu", role = "aut")
   )
-Description: Methods for estimating, projecting, and plotting spatio-temporal under-five mortality rates. 
+Description: Provides methods for estimating, projecting, and plotting spatio-temporal 
+under-five mortality rates, described in Mercer et al. (2015) <DOI:10.1214/15-AOAS872>.
 URL: https://github.com/martinbryan/SUMMER
 BugReports: https://github.com/martinbryan/SUMMER/issues
 Depends: R (>= 3.4.2)
