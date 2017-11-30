@@ -48,3 +48,13 @@ This is due to the "." from "Mercer et al.". All sentences are complete.
 * Please add more small executable examples in your Rd-files.
 
 **Response:** All exported functions now include examples.
+
+## Round 2 Response
+
+* Thanks, but descriptions longer than one line should start with a space or tab. Otherwise a new description line is identified as a new DESCRIPTION field.
+
+**Response:** Thanks for pointing this out. It has been fixed.
+
+* Please also omit the blank in <doi: 10.1214/15-AOAS872>.
+
+**Response:** We have searched for this blank in all files by checking every occurrence of "doi", and it does not occur.
