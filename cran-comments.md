@@ -39,7 +39,11 @@ There were no ERRORs or WARNINGs. There were 3 NOTEs:
   authors (year, ISBN:...)
   with no space after 'doi:', 'arXiv:' and angle brackets for auto-linking.
   
-**Response:** The citation has been added.
+**Response:** The citation has been added. This added 1 NOTE:
+checking DESCRIPTION meta-information ... NOTE
+Malformed Description field: should contain one or more complete sentences.
+
+This is due to the "." from "Mercer et al.". All sentences are complete.
   
 * Please add more small executable examples in your Rd-files.
 
