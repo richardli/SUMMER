@@ -5,7 +5,7 @@
 \alias{SUMMER}
 \title{SUMMER package documentation.}
 \description{
-SUMMER provides implementation for Spatio-temporal Under-five Mortality Methods for Estimation.
+SUMMER provides methods for estimating, projecting, and plotting spatio-temporal under-five mortality rates.
 }
 \details{
 For details on the model implemented in this package, see Mercer et al. (2015) <doi:10.1214/15-AOAS872>.

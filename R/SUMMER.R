@@ -1,6 +1,6 @@
 #' SUMMER package documentation.
 #'
-#' SUMMER provides implementation for Spatio-temporal Under-five Mortality Methods for Estimation.
+#' SUMMER provides methods for estimating, projecting, and plotting spatio-temporal under-five mortality rates.
 #'
 #'
 #' @name SUMMER-package
