@@ -57,4 +57,4 @@ This is due to the "." from "Mercer et al.". All sentences are complete.
 
 * Please also omit the blank in <doi: 10.1214/15-AOAS872>.
 
-**Response:** We have searched for this blank in all files by checking every occurrence of "doi", and it does not occur.
+**Response:** We have searched for this blank in all files by checking every occurrence of "doi", and it does not occur. Just in case, we have manually re-typed  "doi:1" in each occurence of the reference.
