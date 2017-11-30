@@ -31,7 +31,7 @@ There were no ERRORs or WARNINGs. There were 3 NOTEs:
 
 * Thanks, please omit the redundant 'in R' in your title.
 
-**Response:** Done
+**Response:** Done.
 
 * Please add a reference for this method in the 'Description' field of your DESCRIPTION file in the form
   authors (year) <doi:...>
@@ -39,8 +39,8 @@ There were no ERRORs or WARNINGs. There were 3 NOTEs:
   authors (year, ISBN:...)
   with no space after 'doi:', 'arXiv:' and angle brackets for auto-linking.
   
-**Response:** Waiting for paper to be ready before resubmission.
+**Response:** The citation has been added.
   
 * Please add more small executable examples in your Rd-files.
 
-**Response:** Partially done. TODO: Check that every function either has an example or is not exported.
+**Response:** All exported functions now include examples.
