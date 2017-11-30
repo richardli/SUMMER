@@ -11,7 +11,6 @@
 #' @param return_raw Logical indicator of whether raw posterior draws or summary statistics is returned. Default to FALSE.
 #' @seealso \code{\link{countrySummary}}
 #' @return Smoothed model estimates from the provided INLA fit
-#' @export
 projINLA_multi <- function(fitted, proj.time, ntime, which.area, quantiles, return_raw = FALSE) {
     quantlabel <- paste0(quantiles, "quant")
     model <- fitted$model
