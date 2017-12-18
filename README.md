@@ -1,7 +1,7 @@
 # SUMMER
 Spatio-temporal Under-five Mortality Models of Estimation in R
 
-[![Build Status](https://travis-ci.org/martinbryan/SUMMER.svg?branch=master)](https://travis-ci.org/martinbryan/SUMMER)
+[![Build Status](https://travis-ci.org/bryandmartin/SUMMER.svg?branch=master)](https://travis-ci.org/bryandmartin/SUMMER)
 
 ## Installation - CRAN
 
