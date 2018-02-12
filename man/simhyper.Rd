@@ -4,7 +4,8 @@
 \alias{simhyper}
 \title{Function to simulate hyperpriors from an adjacency matrix.}
 \usage{
-simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat, nperiod = 6)
+simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat, nperiod = 6,
+  only.iid = TRUE)
 }
 \arguments{
 \item{R}{Desired prior odds ratio. Default to 2, i.e., a 95\% prior interval for the residual odds ratios lies in the interval (R, 1/R).}
@@ -16,6 +17,8 @@ simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat, nperiod = 6)
 \item{Amat}{Adjacency matrix of the areas in the data.}
 
 \item{nperiod}{numerical value of how many time periods in the data}
+
+\item{only.iid}{Indicator for whether or not only IID hyper priors are simulated}
 }
 \description{
 Function to simulate hyperpriors from an adjacency matrix.
