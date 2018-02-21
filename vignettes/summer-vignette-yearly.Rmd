@@ -24,7 +24,7 @@ This document is modified from the main vignette, to highlight the differences i
 #' 
 #' 
 #'
-  fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE, redo.prior = FALSE, priors = NULL, useHyper = FALSE, a.iid = NULL, b.iid = NULL, a.rw1 = NULL, b.rw1 = NULL, a.rw2 = NULL, b.rw2 = NULL, a.icar = NULL, b.icar = NULL) {
+  fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE, redo.prior = FALSE, priors = NULL, type.st = 1, useHyper = FALSE, a.iid = NULL, b.iid = NULL, a.rw1 = NULL, b.rw1 = NULL, a.rw2 = NULL, b.rw2 = NULL, a.icar = NULL, b.icar = NULL){
     
       ## ---------------------------------------------------------
       ## New definition of the yearly + multi-year Q structure
@@ -98,7 +98,7 @@ This document is modified from the main vignette, to highlight the differences i
       p = interpret.theta()
       val = do.call(match.arg(cmd), args = list())
       return(val)
-    }  
+     }  
 
      ## ---------------------------------------------------------
       ## New definition of the yearly + multi-year Q structure
@@ -134,13 +134,6 @@ This document is modified from the main vignette, to highlight the differences i
         QQ = rBind(cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
                          -tau * t(my.cache$A)),
                    cBind(-tau * my.cache$A, tau * my.cache$D))
-        if(S > 1){
-          for(s in 1:(S-1)){
-            QQ = bdiag(QQ, rBind(cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
-                           -tau * t(my.cache$A)),
-                     cBind(-tau * my.cache$A, tau * my.cache$D)))
-          }          
-        }
         return(QQ)
       }
       
@@ -149,7 +142,7 @@ This document is modified from the main vignette, to highlight the differences i
       }
       
       log.norm.const = function() {
-        val = S * (n * (-0.5 * log(2 * pi) + 0.5 * log(p$kappa)) +
+        val = (n * (-0.5 * log(2 * pi) + 0.5 * log(p$kappa)) +
           (my.cache$nn * (-0.5 * log(2 * pi) + 0.5 * log(tau))))
         return(val)
       }
@@ -178,6 +171,113 @@ This document is modified from the main vignette, to highlight the differences i
     }  
 
     ## ---------------------------------------------------------
+    ## New definition of the yearly + multi-year structured Q
+    ## ---------------------------------------------------------
+    st.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL){
+    
+    envir = environment(sys.call()[[1]]) 
+    # The new structure takes the following order
+    # (x_11, ..., x_1T, ..., x_S1, ..., x_ST, xx_11, ..., xx_1t, ..., xx_S1, ..., xx_St)
+    #  x_ij : random effect of region i, year j 
+    # xx_ik : random effect of region i, period k
+
+    if (!exists("my.cache", envir = envir, mode = "list")) {
+      nn = n %/% m
+      stopifnot (nn == as.integer(n/m))
+      R1 = Diagonal(n, x = rep(1, n))
+      R2 = INLA:::inla.rw(n, order = order, scale.model=TRUE, sparse=TRUE)
+      R3 = Diagonal(S, x = rep(1, S))
+      R4 = Amat
+      diag(R4) <- 0
+      diag <- apply(R4, 1, sum)
+      R4[R4 != 0] <- -1
+      diag(R4) <- diag
+      R4 <- INLA:::inla.scale.model(R4, constr = list(A=matrix(1,1,dim(R4)[1]), e=0))
+      # both independent
+      if(type == 1){
+          R <- R3 %x% R1
+      # AR * independent    
+      }else if(type == 2){
+          R <- R3 %x% R2
+      # independent * besag    
+      }else if(type == 3){
+          R <- R4 %x% R1
+      # AR * besag
+      }else if(type == 4){
+          R <- R4 %x% R2
+      }
+
+      A = matrix(0, nn*S, n*S)
+      j = 1
+      for(i in 1:(nn*S)) {
+        A[i, j:(j+m-1)] = 1/m
+        j = j + m
+      }
+      A = inla.as.sparse(A)
+      D = Diagonal(nn*S, x=1)
+      assign("my.cache", list(R=INLA:::inla.as.sparse(R), A=A, D=D, nn=nn), envir = envir)
+    } 
+    
+    interpret.theta = function() {
+      return(list(kappa = exp(theta[1L])))
+    }
+    
+    graph = function() {
+      return (Q())
+    }
+    
+    Q = function() {
+      QQ = rBind(cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
+                         -tau * t(my.cache$A)),
+                   cBind(-tau * my.cache$A, tau * my.cache$D))
+      return(QQ)
+    }
+    
+    mu = function() {
+      return(numeric(0))
+    }
+    ## Type I   : S * n
+    ## Type II  : S * (n - order)
+    ## Type III : (S-1) * n 
+    ## Type IV  : (S-1) * (n - order)
+    log.norm.const = function() {
+      df <- S * n
+      if(type == 2){
+        df <- S * (n - order)
+      }else if(type == 3){
+        df <- (S-1) * n
+      }else if(type == 4){
+        df <- (S-1) * (n - order)
+      }
+      val = (df * (-0.5 * log(2 * pi) + 0.5 * log(p$kappa)) +
+        (S * my.cache$nn * (-0.5 * log(2 * pi) + 0.5 * log(tau))))
+      return(val)
+    }
+    
+    log.prior = function() {
+      val = dgamma(p$kappa, shape = shape0, rate = rate0, log = TRUE) + theta[1]
+      return(val)
+    }
+    
+    initial = function() {
+      return(4)
+    }
+    
+    quit = function() {
+      return(invisible())
+    }
+    
+    ## as some calls to this function does not define 'theta',  its convenient to have to
+    ## defined still (like in the graph-function)
+    if (is.null(theta))
+      theta = initial()
+    
+    p = interpret.theta()
+    val = do.call(match.arg(cmd), args = list())
+    return(val)
+  }  
+
+    ## ---------------------------------------------------------
     ## Common Setup
     ## --------------------------------------------------------- 
     if(is.null(geo)){
@@ -197,15 +297,12 @@ This document is modified from the main vignette, to highlight the differences i
    
     a.iid <- priors$a.iid
     b.iid <- priors$b.iid
-    a.rw1 <- priors$a.rw1
-    b.rw1 <- priors$b.rw1
-    a.rw2 <- priors$a.rw2
-    b.rw2 <- priors$b.rw2
-    a.icar <- priors$a.icar
-    b.icar <- priors$b.icar
-
-    # unit scale?
-    b.rw2 <- b.rw1 <- b.icar <- b.iid
+    a.rw1 <- priors$a.iid
+    b.rw1 <- priors$a.iid
+    a.rw2 <- priors$a.iid
+    b.rw2 <- priors$a.iid
+    a.icar <- priors$a.iid
+    b.icar <- priors$a.iid
   
     #################################################################### # remove NA rows? e.g. if no 10-14 available
     if (na.rm) {
@@ -219,11 +316,11 @@ This document is modified from the main vignette, to highlight the differences i
     #################################################################### get the list of region and numeric index in one data frame
     if(is.null(geo)){
       region_names <- regions <- "All"
-      region_count <- 1
+      region_count <- S <- 1
       dat <- cbind(data, region_number = 0)
     }else{
       region_names <- colnames(Amat) 
-      region_count <- length(region_names)
+      region_count <- S <- length(region_names)
       regions <- data.frame(region = region_names, region_number = seq(1, region_count))      
           # -- merging in the alphabetical region number -- #
       dat <- merge(data, regions, by = "region")
@@ -247,14 +344,16 @@ This document is modified from the main vignette, to highlight the differences i
       iid.model.time <- inla.rgeneric.define(model = iid.new,
                                       n = n, 
                                       m = m,
-                                      S = 1,
                                       tau = exp(10),
                                       shape0 = a.iid,
                                       rate0 = b.iid)
-      iid.model.timespace <- inla.rgeneric.define(model = iid.new,
+      st.model <- inla.rgeneric.define(model = st.new,
                                       n = n, 
                                       m = m,
+                                      order = rw,
                                       S = region_count,
+                                      Amat = Amat,
+                                      type = type.st,
                                       tau = exp(10),
                                       shape0 = a.iid,
                                       rate0 = b.iid)
@@ -268,12 +367,43 @@ This document is modified from the main vignette, to highlight the differences i
          constr = list(A = matrix(c(rep(1, n), rep(0, nn)), 1, N), e = 0)
       }
 
-      year_count <- N
-      years <- data.frame(year = year_names_new[1:N], year_number = seq(1, year_count))
+      # AR2 constraints
+      if(type.st %in% c(2, 4) && rw == 2){
+          tmp <- matrix(0, S * 2, N * S)
+          for(i in 1:S){
+            tmp[i*2-1, ((i-1)*n + 1) : (i*n)] <- 1
+            tmp[i*2, ((i-1)*n + 1) : (i*n)] <- (1:n)  
+          }
+      # AR1 constraints
+      }else if(type.st %in% c(2, 4) && rw == 1){
+        tmp <- matrix(0, S, N * S)
+        for(i in 1:S){
+          tmp[i, ((i-1)*n + 1) : (i*n)] <- 1
+        }
+      }else{
+        tmp <- NULL
+      }
+      
+      # ICAR constraints
+      if(type.st %in% c(3, 4)){
+        tmp2 <- matrix(0, n, N*S)
+        for(i in 1:n){
+            tmp2[i , (1:(n*S)) %% n == i-1] <- 1
+          }
+      }else{
+        tmp2 <- NULL
+      }
+      tmp <- rbind(tmp, tmp2)
+      if(is.null(tmp)){
+        constr.st <- NULL
+      }else{
+        constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
+      }
+      years <- data.frame(year = year_names_new[1:N], year_number = seq(1, N))
     }else{
       n <- 0
-      N <- nn <- year_count <- length(year_names)
-      years <- data.frame(year = year_names, year_number = seq(1, year_count))      
+      N <- nn <- length(year_names)
+      years <- data.frame(year = year_names, year_number = seq(1, N))      
     }
     
     # -- creating IDs for the temporal REs -- #
@@ -292,7 +422,7 @@ This document is modified from the main vignette, to highlight the differences i
     }
     survey_count <- length(table(data$survey))
     ################################################################## -- these are the time X survey options -- #
-    x <- expand.grid(1:year_count, 1:survey_count)
+    x <- expand.grid(1:nn, 1:survey_count)
     survey.time <- data.frame(time.unstruct = x[, 1], survey = x[, 2], survey.time = c(1:nrow(x)))
     
     # -- these are the area X survey options -- #
@@ -300,13 +430,20 @@ This document is modified from the main vignette, to highlight the differences i
     survey.area <- data.frame(region_number = x[, 1], survey = x[, 2], survey.area = c(1:nrow(x)))
     
     # -- these are the area X time options -- #
-    # Warning: this needs to be expanded in this order!
-    # (t1,s1), (t2, s1), ..., (tT, s1), (t1, s2), ...
-    x <- expand.grid(1:year_count, 1:region_count)
+    # The new structure takes the following order
+    # (x_11, ..., x_1T, ..., x_S1, ..., x_ST, xx_11, ..., xx_1t, ..., xx_S1, ..., xx_St)
+    #  x_ij : random effect of region i, year j 
+    # xx_ik : random effect of region i, period k
+    if(is.yearly){
+      x <- rbind(expand.grid(1:n, 1:region_count), 
+                 expand.grid((n+1):N, 1:region_count))
+    }else{
+      x <- expand.grid(1:N, 1:region_count)
+    }
     time.area <- data.frame(region_number = x[, 2], time.unstruct = x[, 1], time.area = c(1:nrow(x)))
     
     # -- these are the area X time X survey options -- #
-    x <- expand.grid(1:region_count, 1:year_count, 1:survey_count)
+    x <- expand.grid(1:region_count, 1:N, 1:survey_count)
     survey.time.area <- data.frame(region_number = x[, 1], time.unstruct = x[, 2], survey = x[, 3], survey.time.area = c(1:nrow(x)))
     
     # -- merge these all into the data sets -- #
@@ -321,32 +458,39 @@ This document is modified from the main vignette, to highlight the differences i
     }else{
       newdata$time.area <- NA
     }
+
     
     ########################## Model Selection ######
     
     # -- subset of not missing and not direct estimate of 0 -- #
     exdat <- newdata
-    exdat <- exdat[!is.na(exdat$logit.est) & exdat$logit.est > (-20), ]
+    exdat <- exdat[!is.na(exdat$logit.est) && exdat$logit.est > (-20), ]
     
     
    ## ---------------------------------------------------------
    ## Setup yearly model
    ## ---------------------------------------------------------
-   if(is.yearly & (!is.null(geo))){   
+   if(is.yearly && (!is.null(geo))){   
       if (is.null(formula)) {
         if(rw == 1){
-          formula <- logit.est ~ f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + f(time.unstruct,model=iid.model.time) + f(time.area,model=iid.model.timespace)
+          formula <- logit.est ~ f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + f(time.unstruct,model=iid.model.time) + f(time.area,model=st.model, diagonal = 1e-6, extraconstr = constr.st, values = 1:(N*S))
+        }else if(rw == 2 && type.st %in% c(2, 4)){
+          formula <- paste('logit.est ~ time.fix+f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + f(time.unstruct,model=iid.model.time) + f(time.area,model=st.model, diagonal = 1e-6, extraconstr = constr.st, values = 1:(N*S))', 
+            paste0("+ time.fix_", 1:S, collapse=" "))
+          formula <- as.formula(formula)
+
         }else if(rw == 2){
-          formula <- logit.est ~ time.fix+f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + f(time.unstruct,model=iid.model.time) + f(time.area,model=iid.model.timespace)
+          formula <- logit.est ~ time.fix+f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + f(time.unstruct,model=iid.model.time) + f(time.area,model=st.model, diagonal = 1e-6, extraconstr = constr.st, values = 1:(N*S))
+
         }else{
           stop("Random walk order should be 1 or 2.")
         }
-      }
+    }
    
    ## ---------------------------------------------------------
    ## Setup non-yearly model
    ## ---------------------------------------------------------
-   }else if((!is.yearly) & (!is.null(geo))){
+   }else if((!is.yearly) && (!is.null(geo))){
       if (is.null(formula)) {
         if(rw == 1){
           formula <- logit.est ~ f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + f(time.struct,model="rw1",param=c(a.rw1,b.rw1))  + f(time.unstruct,model="iid",param=c(a.iid,b.iid)) + f(time.area,model="iid", param=c(a.iid,b.iid))
@@ -361,7 +505,7 @@ This document is modified from the main vignette, to highlight the differences i
   ## ---------------------------------------------------------
    ## Setup yearly national model
    ## --------------------------------------------------------- 
-   }else if(is.yearly & is.null(geo)){   
+   }else if(is.yearly && is.null(geo)){   
       if (is.null(formula)) {
         if(rw == 1){
           formula <- logit.est ~ f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + f(time.unstruct,model=iid.model.time) 
@@ -375,7 +519,7 @@ This document is modified from the main vignette, to highlight the differences i
    ## ---------------------------------------------------------
    ## Setup non-yearly national model
    ## ---------------------------------------------------------
-   }else if((!is.yearly) & (is.null(geo))){
+   }else if((!is.yearly) && (is.null(geo))){
       if (is.null(formula)) {
         if(rw == 1){
           formula <- logit.est ~ f(time.struct,model="rw1",param=c(a.rw1,b.rw1))  + f(time.unstruct,model="iid",param=c(a.iid,b.iid), scale.model = TRUE) 
@@ -412,21 +556,12 @@ This document is modified from the main vignette, to highlight the differences i
           area[j] <- 1
           time.unstruct <- time
           if(i <= n){
-            # # i2 is the corresponding time for the period point
-            # # i=1:m -> i2 = n+1
-            # # i=(m+1):2m -> i2 = n+2
-            # # ...
-            # i2 <- n + trunc((i-1) / m) + 1
-            # space.time.id2 <- unique(time.area$time.area[time.area$time.unstruct == i2 & time.area$region_number == j])
-            # spacetime[space.time.id2] <- 1
-
-            # fixed time effect: e.g., 1, 2, 3, ..., 35 -> -17, -16, ..., 16, 17 
-            timefix <- i - (1 + n)/2
+            timefix <- i 
           }else{
-            # fixed time effect: e.g., 36, ..., 42 -> -15, -10, ..., 10, 15
-            timefix <- ((m+1)/2) + m * (i-n-1) - (1+n)/2
+            # fixed time effect: e.g., 36, ..., 42 -> (36-35-1)*5+2.5, ..., (42-35-1)*5+2.5
+            timefix <- (i-n-1)*m + m/2
           }
-          if(n == 0) timefix <- i - (1+nn)/2
+          if(n == 0) timefix <- i  
 
           object.name <- paste("lc", index, sep = "")
           
@@ -438,8 +573,18 @@ This document is modified from the main vignette, to highlight the differences i
                                                 time.unstruct= time,
                                                 region.struct = area,
                                                 region.unstruct = area))          
-          }else{
+          }else if(is.yearly && type.st %in% c(2, 4) && rw == 2){
+              # the name of the third argument is changed later
               assign(object.name, inla.make.lincomb("(Intercept)" = 1,
+                                          time.fix = timefix,
+                                          time.fix_temp = timefix,
+                                          time.area = spacetime,
+                                          time.struct= time ,
+                                          time.unstruct= time,
+                                          region.struct = area,
+                                          region.unstruct = area))
+          }else{
+            assign(object.name, inla.make.lincomb("(Intercept)" = 1,
                                           time.fix = timefix,
                                           time.area = spacetime,
                                           time.struct= time ,
@@ -450,9 +595,17 @@ This document is modified from the main vignette, to highlight the differences i
           
           if(index == 1){
             lincombs.yearly <- get(object.name)
+            if(is.yearly && type.st %in% c(2, 4) && rw == 2){
+              # correct name of the area time effect
+              names(lincombs.yearly$lc[[3]]) <- paste0("time.fix_", j)
+            }
             names(lincombs.yearly)[index] <- object.name
           }else{
-            lincombs.yearly <- c(lincombs.yearly, get(object.name))
+            tmp <- get(object.name)
+            if(is.yearly && type.st %in% c(2, 4) && rw == 2){
+              names(tmp$lc[[3]]) <- paste0("time.fix_", j)
+            }
+            lincombs.yearly <- c(lincombs.yearly, tmp)
             names(lincombs.yearly)[index] <- object.name
           }
         }
@@ -470,21 +623,11 @@ This document is modified from the main vignette, to highlight the differences i
           time[i] <- 1
           time.unstruct <- time
           if(i <= n){
-            # # i2 is the corresponding time for the period point
-            # # i=1:m -> i2 = n+1
-            # # i=(m+1):2m -> i2 = n+2
-            # # ...
-            # i2 <- n + trunc((i-1) / m) + 1
-            # space.time.id2 <- unique(time.area$time.area[time.area$time.unstruct == i2 & time.area$region_number == j])
-            # spacetime[space.time.id2] <- 1
-
-            # fixed time effect: e.g., 1, 2, 3, ..., 35 -> -17, -16, ..., 16, 17 
-            timefix <- i - (1 + n)/2
+            timefix <- i  
           }else{
-            # fixed time effect: e.g., 36, ..., 42 -> -15, -10, ..., 10, 15
-            timefix <- ((m+1)/2) + m * (i-n-1) - (1+n)/2
+            timefix <- (i-n-1)*m + m/2
           }
-          if(n == 0) timefix <- i - (1+nn)/2
+          if(n == 0) timefix <- i  
 
           object.name <- paste("lc", index, sep = "")
           
@@ -514,7 +657,7 @@ This document is modified from the main vignette, to highlight the differences i
       # rbind yearly data with NA for the lincombs
       for(i in 1:N){
         tmp<-exdat[match(unique(data$region), data$region), ]
-        tmp$time.unstruct<-tmp$time.struct<-i
+        tmp$time.unstruct<-tmp$time.struct<- i
         tmp$logit.est<-tmp$logit.prec<-tmp$survey<-NA
         # tmp$survey.time<-tmp$survey.area<-tmp$survey.time.area<-NA
         tmp$time.area<-lincombs.info[lincombs.info[3] == i, 1]
@@ -529,11 +672,18 @@ This document is modified from the main vignette, to highlight the differences i
 
     # (n + 1), ..., (n + nn) -> 
     if(n > 0){
-      exdat$time.fix <- exdat$time.unstruct - (1 + n)/2
+      exdat$time.fix <- exdat$time.unstruct  
       post <- which(exdat$time.unstruct > n)
-      exdat$time.fix[post] <- ((m+1)/2) + m * (exdat$time.unstruct[post]-n-1) - (1+n)/2
+      exdat$time.fix[post] <- (exdat$time.fix[post]-n-1)*m + m/2
     }else{
-      exdat$time.fix <- exdat$time.unstruct - (1+nn)/2
+      exdat$time.fix <- exdat$time.unstruct 
+    }
+    if(is.yearly && rw == 2){
+      for(i in 1:S){
+          name <- paste0("time.fix_", i)
+          exdat[, name] <- exdat$time.fix
+          exdat[exdat$region_number != i, name] <- 0
+      }
     }
 
     # -- fitting the model in INLA -- #
@@ -550,7 +700,7 @@ This document is modified from the main vignette, to highlight the differences i
         lincomb = lincombs.yearly)
     }
     
-    return(list(model = mod, fit = inla11, Amat = Amat, newdata = exdat, time = seq(0, year_count - 1), area = seq(0, region_count - 
+    return(list(model = mod, fit = inla11, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 
         1), survey.time = survey.time, survey.area = survey.area, time.area = time.area, survey.time.area = survey.time.area, 
         a.iid = a.iid, b.iid = b.iid, a.rw1 = a.rw1, b.rw1 = b.rw1, a.rw2 = a.rw2, b.rw2 = b.rw2, a.icar = a.icar, b.icar = b.icar, lincombs.info = lincombs.info))
     
@@ -963,9 +1113,9 @@ fit1 <- fitINLA_yearly(data = data, geo = geo, Amat = mat, year_names = years.al
 out1 <- projINLA_yearly(fit1, Amat = mat, is.yearly = FALSE)
 ```
 
-### Yearly model
+### Yearly model with type IV interaction
 ```{r, message = FALSE}
-fit2 <- fitINLA_yearly(data = data, geo = geo, Amat = mat, year_names = years.all, year_range = c(1985, 2019), priors = priors, rw = 2, is.yearly=TRUE, m = 5)
+fit2 <- fitINLA_yearly(data = data, geo = geo, Amat = mat, year_names = years.all, year_range = c(1985, 2019), priors = priors, rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
 out2 <- projINLA_yearly(fit2, Amat = mat, is.yearly = TRUE)
 ```
 
@@ -976,6 +1126,7 @@ g2[[1]] <- plotINLA(out1, is.yearly=FALSE, is.subnational=TRUE) + ggtitle("Subna
 g2[[2]] <- plotINLA(out2, is.yearly=TRUE, is.subnational=TRUE) + ggtitle("Subnational yearly model")
 grid.arrange(grobs=g2, ncol = 2)
 ```
+
 
 ## Appendix
 ```{r, ref.label='yearlymodel', eval = FALSE}
