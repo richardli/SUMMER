@@ -360,22 +360,9 @@ This document is modified from the main vignette, to highlight the differences i
 
       year_names_new <- c(as.character(c(year_range[1]:year_range[2])), year_names)
       time.index <- cbind.data.frame(idx = 1:N, Year = year_names_new)
-      if(rw == 2){
-        constr = list(A = matrix(c(rep(1, n), rep(0, nn), 
-                                  1:n, rep(0, nn)), 2, N, byrow=TRUE), e = c(0,0))
-      }else{
-         constr = list(A = matrix(c(rep(1, n), rep(0, nn)), 1, N), e = 0)
-      }
+      constr = list(A = matrix(c(rep(1, n), rep(0, nn)), 1, N), e = 0)
 
-      # AR2 constraints
-      if(type.st %in% c(2, 4) && rw == 2){
-          tmp <- matrix(0, S * 2, N * S)
-          for(i in 1:S){
-            tmp[i*2-1, ((i-1)*n + 1) : (i*n)] <- 1
-            tmp[i*2, ((i-1)*n + 1) : (i*n)] <- (1:n)  
-          }
-      # AR1 constraints
-      }else if(type.st %in% c(2, 4) && rw == 1){
+      if(type.st %in% c(2, 4)){
         tmp <- matrix(0, S, N * S)
         for(i in 1:S){
           tmp[i, ((i-1)*n + 1) : (i*n)] <- 1
@@ -467,7 +454,7 @@ This document is modified from the main vignette, to highlight the differences i
     exdat <- exdat[!is.na(exdat$logit.est) && exdat$logit.est > (-20), ]
     
     
-   ## ---------------------------------------------------------
+    ## ---------------------------------------------------------
    ## Setup yearly model
    ## ---------------------------------------------------------
    if(is.yearly && (!is.null(geo))){   
@@ -475,17 +462,15 @@ This document is modified from the main vignette, to highlight the differences i
         if(rw == 1){
           formula <- logit.est ~ f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + f(time.unstruct,model=iid.model.time) + f(time.area,model=st.model, diagonal = 1e-6, extraconstr = constr.st, values = 1:(N*S))
         }else if(rw == 2 && type.st %in% c(2, 4)){
-          formula <- paste('logit.est ~ time.fix+f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + f(time.unstruct,model=iid.model.time) + f(time.area,model=st.model, diagonal = 1e-6, extraconstr = constr.st, values = 1:(N*S))', 
-            paste0("+ time.fix_", 1:S, collapse=" "))
-          formula <- as.formula(formula)
-
+          formula <- logit.est ~ f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + f(time.unstruct,model=iid.model.time) + f(time.area,model=st.model, diagonal = 1e-6, extraconstr = constr.st, values = 1:(N*S))
         }else if(rw == 2){
-          formula <- logit.est ~ time.fix+f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + f(time.unstruct,model=iid.model.time) + f(time.area,model=st.model, diagonal = 1e-6, extraconstr = constr.st, values = 1:(N*S))
+          formula <- logit.est ~ f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + f(time.unstruct,model=iid.model.time) + f(time.area,model=st.model, diagonal = 1e-6, extraconstr = constr.st, values = 1:(N*S))
 
         }else{
           stop("Random walk order should be 1 or 2.")
         }
     }
+   
    
    ## ---------------------------------------------------------
    ## Setup non-yearly model
@@ -495,8 +480,7 @@ This document is modified from the main vignette, to highlight the differences i
         if(rw == 1){
           formula <- logit.est ~ f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + f(time.struct,model="rw1",param=c(a.rw1,b.rw1))  + f(time.unstruct,model="iid",param=c(a.iid,b.iid)) + f(time.area,model="iid", param=c(a.iid,b.iid))
         }else if(rw == 2){
-          constr = list(A = matrix(1:nn, 1, nn), e = 0)
-          formula <- logit.est ~ time.fix+f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + f(time.struct,model="rw2",param=c(a.rw2,b.rw2), extraconstr = constr, values = 1:N)  +
+          formula <- logit.est ~ f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + f(time.struct,model="rw2",param=c(a.rw2,b.rw2))  +
               f(time.unstruct,model="iid",param=c(a.iid,b.iid)) + f(time.area,model="iid", param=c(a.iid,b.iid))
         }else{
           stop("Random walk order should be 1 or 2.")
@@ -510,7 +494,7 @@ This document is modified from the main vignette, to highlight the differences i
         if(rw == 1){
           formula <- logit.est ~ f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + f(time.unstruct,model=iid.model.time) 
         }else if(rw == 2){
-          formula <- logit.est ~ time.fix+f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + f(time.unstruct,model=iid.model.time)
+          formula <- logit.est ~ f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + f(time.unstruct,model=iid.model.time)
         }else{
           stop("Random walk order should be 1 or 2.")
         }
@@ -524,8 +508,7 @@ This document is modified from the main vignette, to highlight the differences i
         if(rw == 1){
           formula <- logit.est ~ f(time.struct,model="rw1",param=c(a.rw1,b.rw1))  + f(time.unstruct,model="iid",param=c(a.iid,b.iid), scale.model = TRUE) 
         }else if(rw == 2){
-          constr = list(A = matrix(1:nn, 1, nn), e = 0)
-          formula <- logit.est ~ time.fix+f(time.struct,model="rw2",param=c(a.rw2,b.rw2), extraconstr = constr, values = 1:N)  +
+          formula <- logit.est ~ f(time.struct,model="rw2",param=c(a.rw2,b.rw2))  +
               f(time.unstruct,model="iid",param=c(a.iid,b.iid)) 
         }else{
           stop("Random walk order should be 1 or 2.")
@@ -555,14 +538,7 @@ This document is modified from the main vignette, to highlight the differences i
           time[i] <- 1
           area[j] <- 1
           time.unstruct <- time
-          if(i <= n){
-            timefix <- i 
-          }else{
-            # fixed time effect: e.g., 36, ..., 42 -> (36-35-1)*5+2.5, ..., (42-35-1)*5+2.5
-            timefix <- (i-n-1)*m + m/2
-          }
-          if(n == 0) timefix <- i  
-
+      
           object.name <- paste("lc", index, sep = "")
           
           lincombs.info[index, c("District", "Year")] <- c(j,i)
@@ -576,8 +552,6 @@ This document is modified from the main vignette, to highlight the differences i
           }else if(is.yearly && type.st %in% c(2, 4) && rw == 2){
               # the name of the third argument is changed later
               assign(object.name, inla.make.lincomb("(Intercept)" = 1,
-                                          time.fix = timefix,
-                                          time.fix_temp = timefix,
                                           time.area = spacetime,
                                           time.struct= time ,
                                           time.unstruct= time,
@@ -585,7 +559,6 @@ This document is modified from the main vignette, to highlight the differences i
                                           region.unstruct = area))
           }else{
             assign(object.name, inla.make.lincomb("(Intercept)" = 1,
-                                          time.fix = timefix,
                                           time.area = spacetime,
                                           time.struct= time ,
                                           time.unstruct= time,
@@ -595,16 +568,9 @@ This document is modified from the main vignette, to highlight the differences i
           
           if(index == 1){
             lincombs.yearly <- get(object.name)
-            if(is.yearly && type.st %in% c(2, 4) && rw == 2){
-              # correct name of the area time effect
-              names(lincombs.yearly$lc[[3]]) <- paste0("time.fix_", j)
-            }
             names(lincombs.yearly)[index] <- object.name
           }else{
             tmp <- get(object.name)
-            if(is.yearly && type.st %in% c(2, 4) && rw == 2){
-              names(tmp$lc[[3]]) <- paste0("time.fix_", j)
-            }
             lincombs.yearly <- c(lincombs.yearly, tmp)
             names(lincombs.yearly)[index] <- object.name
           }
@@ -622,12 +588,6 @@ This document is modified from the main vignette, to highlight the differences i
           time <- rep(NA, N)
           time[i] <- 1
           time.unstruct <- time
-          if(i <= n){
-            timefix <- i  
-          }else{
-            timefix <- (i-n-1)*m + m/2
-          }
-          if(n == 0) timefix <- i  
 
           object.name <- paste("lc", index, sep = "")
           
@@ -638,7 +598,6 @@ This document is modified from the main vignette, to highlight the differences i
                                                 time.unstruct= time))          
           }else{
               assign(object.name, inla.make.lincomb("(Intercept)" = 1,
-                                          time.fix = timefix,
                                           time.struct= time ,
                                           time.unstruct= time))
           }
@@ -670,21 +629,8 @@ This document is modified from the main vignette, to highlight the differences i
       }
     # }
 
-    # (n + 1), ..., (n + nn) -> 
-    if(n > 0){
-      exdat$time.fix <- exdat$time.unstruct  
-      post <- which(exdat$time.unstruct > n)
-      exdat$time.fix[post] <- (exdat$time.fix[post]-n-1)*m + m/2
-    }else{
-      exdat$time.fix <- exdat$time.unstruct 
-    }
-    if(is.yearly && rw == 2){
-      for(i in 1:S){
-          name <- paste0("time.fix_", i)
-          exdat[, name] <- exdat$time.fix
-          exdat[exdat$region_number != i, name] <- 0
-      }
-    }
+  
+
 
     # -- fitting the model in INLA -- #
     
