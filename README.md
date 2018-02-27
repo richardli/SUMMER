@@ -17,7 +17,7 @@ To download the development version of the SUMMER package, use the code below.
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("martinbryan/SUMMER")
+devtools::install_github("bryandmartin/SUMMER")
 ```
 
 **Development Version Updates**
