@@ -3,6 +3,11 @@ title: "Developing vignette: Estimate yearly models"
 output: pdf_document
 ---
 
+```{r, echo = FALSE}
+# Uncomment to enter DEBUG mode. The package vignette will compile, but code will not be evaluated for speed purposes.
+knitr::opts_chunk$set(eval = FALSE)
+```
+
 This document is modified from the main vignette, to highlight the differences in fitting the model with yearly random effects.
 
 ```{r yearlymodel, echo=FALSE}
