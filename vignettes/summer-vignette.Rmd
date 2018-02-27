@@ -9,10 +9,12 @@ vignette: >
 
 ```{r, echo = FALSE}
 # Uncomment to enter DEBUG mode. The package vignette will compile, but code will not be evaluated for speed purposes.
-# knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(eval = FALSE)
 ```
 
 ## Load Package and Data
+
+TODO: Fix, no longer Uganda.
 
 
 `Uganda` contains model survey data provided by DHS. Note that this data is fake, and does not represent any real country's data. Data similar to the `Uganda` data used in this vignette can be obtained by using  `getBirths`. `UgandaMap` contains geographic data from the 1995 Uganda Admin 1 regions defined by DHS. Data similar to the `UgandaMap` data used in this vignette can be obtained by using `read_shape`.
