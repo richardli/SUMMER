@@ -45,6 +45,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
     }
     ### FUNCTION HERE
     inla.rw = utils::getFromNamespace("inla.rw", "INLA")
+    tau = exp(10)
     ## ---------------------------------------------------------
     ## New definition of the yearly + multi-year Q structure
     ## ---------------------------------------------------------
@@ -198,7 +199,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
     ## ---------------------------------------------------------
     ## New definition of the yearly + multi-year structured Q
     ## ---------------------------------------------------------
-    st.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL, rate0, shape0){
+    st.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL, rate0, shape0, type){
       
       envir = environment(sys.call()[[1]]) 
       # The new structure takes the following order
