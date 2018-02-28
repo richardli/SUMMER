@@ -48,7 +48,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
     ## ---------------------------------------------------------
     ## New definition of the yearly + multi-year Q structure
     ## ---------------------------------------------------------
-    rw.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL){
+    rw.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL, shape0, rate0){
       
       
       ## assume 'tau', 'order', 'n' and 'm' 'n' is the dim of RW and 'm' is the aggregated length,
@@ -127,7 +127,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
     ## ---------------------------------------------------------
     ## New definition of the yearly + multi-year Q structure
     ## ---------------------------------------------------------
-    iid.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL){
+    iid.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL, shape0, rate0){
       
       envir = environment(sys.call()[[1]]) 
       
@@ -198,7 +198,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
     ## ---------------------------------------------------------
     ## New definition of the yearly + multi-year structured Q
     ## ---------------------------------------------------------
-    st.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL){
+    st.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL, rate0, shape0){
       
       envir = environment(sys.call()[[1]]) 
       # The new structure takes the following order
