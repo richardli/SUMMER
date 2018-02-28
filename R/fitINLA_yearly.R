@@ -158,7 +158,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
       Q = function() {
         QQ = Matrix::rBind(Matrix::cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
                          -tau * t(my.cache$A)),
-                   cBind(-tau * my.cache$A, tau * my.cache$D))
+                   Matrix::cBind(-tau * my.cache$A, tau * my.cache$D))
         return(QQ)
       }
       
@@ -262,7 +262,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
       Q = function() {
         QQ = Matrix::rBind(Matrix::cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
                          -tau * t(my.cache$A)),
-                   cBind(-tau * my.cache$A, tau * my.cache$D))
+                   Matrix::cBind(-tau * my.cache$A, tau * my.cache$D))
         return(QQ)
       }
       
