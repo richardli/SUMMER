@@ -34,7 +34,7 @@
 #' 
 #' @export
 fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE, redo.prior = FALSE, priors = NULL, type.st = 1, useHyper = FALSE, a.iid = NULL, b.iid = NULL, a.rw1 = NULL, b.rw1 = NULL, a.rw2 = NULL, b.rw2 = NULL, a.icar = NULL, b.icar = NULL){
-  inla.rw = utils::getFromNamespace("inla.rw", "INLA")
+
   if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
     stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
   }
@@ -44,7 +44,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
       attachNamespace("INLA")
     }
     ### FUNCTION HERE
-    
+    inla.rw = utils::getFromNamespace("inla.rw", "INLA")
     ## ---------------------------------------------------------
     ## New definition of the yearly + multi-year Q structure
     ## ---------------------------------------------------------
@@ -60,7 +60,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
       
       if (!exists("my.cache", envir = envir, mode = "list")) {
         nn = n %/% m
-        stopifnot (nn == as.integer(n/m))
+        stopifnot(nn == as.integer(n/m))
           R = inla.rw(n, order = order,  scale.model=TRUE, sparse=TRUE)
         
         
@@ -72,7 +72,8 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
         }
         A = INLA::inla.as.sparse(A)
         D = Matrix::Diagonal(nn, x=1)
-        assign("my.cache", list(R=R, A=A, D=D, nn=nn), envir = envir)
+        # assign("my.cache", list(R=R, A=A, D=D, nn=nn), envir = envir)
+        my.cache <- list(R=R, A=A, D=D, nn=nn)
       } 
       
       interpret.theta = function() {
@@ -86,7 +87,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
       Q = function() {
         QQ = Matrix::rBind(Matrix::cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
                          -tau * t(my.cache$A)),
-                   cBind(-tau * my.cache$A, tau * my.cache$D))
+                   Matrix::cBind(-tau * my.cache$A, tau * my.cache$D))
         return(QQ)
       }
       
@@ -142,7 +143,8 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
         }
         A = INLA::inla.as.sparse(A)
         D = Matrix::Diagonal(nn, x=1)
-        assign("my.cache", list(R=R, A=A, D=D, nn=nn), envir = envir)
+        #assign("my.cache", list(R=R, A=A, D=D, nn=nn), envir = envir)
+        my.cache <- list(R=R, A=A, D=D, nn=nn)
       } 
       
       interpret.theta = function() {
@@ -245,8 +247,8 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
         A = INLA::inla.as.sparse(A)
         D = Matrix::Diagonal(nn*S, x=1)
 
-          assign("my.cache", list(R=INLA::inla.as.sparse(R), A=A, D=D, nn=nn), envir = envir)
-        
+          #assign("my.cache", list(R=INLA::inla.as.sparse(R), A=A, D=D, nn=nn), envir = envir)
+        my.cache <- list(R=INLA::inla.as.sparse(R), A=A, D=D, nn=nn)
       } 
       
       interpret.theta = function() {
