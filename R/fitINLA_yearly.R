@@ -61,7 +61,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
       if (!exists("my.cache", envir = envir, mode = "list")) {
         nn = n %/% m
         stopifnot (nn == as.integer(n/m))
-          R = INLA::inla.rw(n, order = order,  scale.model=TRUE, sparse=TRUE)
+          R = INLA:::inla.rw(n, order = order,  scale.model=TRUE, sparse=TRUE)
         
         
         A = matrix(0, nn, n)
@@ -101,7 +101,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
       }
       
       log.prior = function() {
-        val = dgamma(p$kappa, shape = shape0, rate = rate0, log = TRUE) + theta[1]
+        val = stats::dgamma(p$kappa, shape = shape0, rate = rate0, log = TRUE) + theta[1]
         return(val)
       }
       
@@ -171,7 +171,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
       }
       
       log.prior = function() {
-        val = dgamma(p$kappa, shape = shape0, rate = rate0, log = TRUE) + theta[1]
+        val = stats::dgamma(p$kappa, shape = shape0, rate = rate0, log = TRUE) + theta[1]
         return(val)
       }
       
@@ -209,7 +209,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
         stopifnot (nn == as.integer(n/m))
         R1 = Matrix::Diagonal(n, x = rep(1, n))
 
-          R2 = INLA::inla.rw(n, order = order, scale.model=TRUE, sparse=TRUE)
+          R2 = INLA:::inla.rw(n, order = order, scale.model=TRUE, sparse=TRUE)
         
         
         R3 = Matrix::Diagonal(S, x = rep(1, S))
@@ -286,7 +286,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
       }
       
       log.prior = function() {
-        val = dgamma(p$kappa, shape = shape0, rate = rate0, log = TRUE) + theta[1]
+        val = stats::dgamma(p$kappa, shape = shape0, rate = rate0, log = TRUE) + theta[1]
         return(val)
       }
       
