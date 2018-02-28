@@ -34,7 +34,7 @@
 #' 
 #' @export
 fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE, redo.prior = FALSE, priors = NULL, type.st = 1, useHyper = FALSE, a.iid = NULL, b.iid = NULL, a.rw1 = NULL, b.rw1 = NULL, a.rw2 = NULL, b.rw2 = NULL, a.icar = NULL, b.icar = NULL){
-  
+  inla.rw = utils::getFromNamespace("inla.rw", "INLA")
   if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
     stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
   }
@@ -61,7 +61,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
       if (!exists("my.cache", envir = envir, mode = "list")) {
         nn = n %/% m
         stopifnot (nn == as.integer(n/m))
-          R = INLA:::inla.rw(n, order = order,  scale.model=TRUE, sparse=TRUE)
+          R = inla.rw(n, order = order,  scale.model=TRUE, sparse=TRUE)
         
         
         A = matrix(0, nn, n)
@@ -209,7 +209,7 @@ fitINLA_yearly <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = 
         stopifnot (nn == as.integer(n/m))
         R1 = Matrix::Diagonal(n, x = rep(1, n))
 
-          R2 = INLA:::inla.rw(n, order = order, scale.model=TRUE, sparse=TRUE)
+          R2 = inla.rw(n, order = order, scale.model=TRUE, sparse=TRUE)
         
         
         R3 = Matrix::Diagonal(S, x = rep(1, S))
