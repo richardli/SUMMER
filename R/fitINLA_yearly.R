@@ -16,6 +16,7 @@
 #' @param is.yearly Logical indicator for fitting yearly or period model.
 #' @param year_range Entire range of the years (inclusive) defined in year_names.
 #' @param m Number of years in each period.
+#' @param type.st TODO
 #' @param a.iid hyper parameter for i.i.d random effects, only need if \code{useHyper = TRUE}
 #' @param b.iid hyper parameter for i.i.d random effects, only need if \code{useHyper = TRUE}
 #' @param a.rw1 hyper parameter for RW1 random effects, only need if \code{useHyper = TRUE}

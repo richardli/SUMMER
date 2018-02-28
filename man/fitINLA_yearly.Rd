@@ -35,6 +35,8 @@ fitINLA_yearly(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
 
 \item{priors}{priors from simhyper}
 
+\item{type.st}{TODO}
+
 \item{useHyper}{option to manually set all hyper priors}
 
 \item{a.iid}{hyper parameter for i.i.d random effects, only need if \code{useHyper = TRUE}}
