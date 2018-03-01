@@ -1,6 +1,10 @@
 ---
-title: "Developing vignette: Estimate yearly models"
-output: pdf_document
+title: "Spatio-temporal Under-five Mortality Methods for Estimation Yearly"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Spatio-temporal Under-five Mortality Methods for Estimation Yearly}
+  %\usepackage[utf8]{inputenc}
 ---
 
 ```{r, echo = FALSE}
@@ -23,24 +27,21 @@ This document is modified from the main vignette, to highlight the differences i
 # 
 # data(DemoData)
 # data(DemoMap)
-# ```
-# 
-# 
-# 
-# 
-# ## Make Country Summary
-# 
-# ```{r, warning=FALSE}
+```
+
+## Make Country Summary
+
+```{r, warning=FALSE}
 # years <- levels(DemoData[[1]]$time)
 # 
 # data0 <- countrySummary_mult(births = DemoData, years = years, idVar = "id", regionVar = "region",
 #                            timeVar = "time", clusterVar = "~clustid+id", ageVar = "age",
 #                            weightsVar = "weights", geo.recode = NULL)
-# ```
-# 
-# ## Read Maps
-# 
-# ```{r, message = FALSE}
+```
+ 
+## Read Maps
+
+```{r, message = FALSE}
 #     geo <- UgandaMap$geo
 #     mat <- UgandaMap$Amat
 ```
@@ -57,34 +58,10 @@ Using our adjacency matrix, we simulate hyperpriors using `simhyper`. For the ne
 
 ## Prepare data for meta analysis
 First, we aggregate estimators from different surveys. 
-```{r}
-# data0$logit.prec <- 1/data0$var.est
-# time_region <- unique(data0[, c("region", "years")])
-# 
-# data <- data.frame(region = time_region$region, years = time_region$years, u5m = NA, lower=NA, upper=NA, logit.est=NA, var.est=NA, region_num = NA, survey = NA, logit.prec = NA)
-# expit<-function(x){
-#     exp(x)/(1+exp(x))
-# }
-# for(i in 1:dim(data)[1]){
-#   tmp <- intersect(which(data0$region == data$region[i]), 
-#            which(data0$years == data$years[i]))
-#   # Version adjusting for HIV
-#   data[i, "logit.prec"] <- sum(data0[tmp, "logit.prec"], na.rm = TRUE)
-#   if(data[i, "logit.prec"] == 0){
-#     data[i, "var.est"] <- NA
-#     data[i, "logit.prec"] <- NA
-#   }else{
-#     data[i, "var.est"] <- 1 / data[i, "logit.prec"]
-#     weights <- data0[tmp, "logit.prec"] / data[i, "logit.prec"]
-#     data[i, "logit.est"] <- sum(weights * data0[tmp, "logit.est"], na.rm = TRUE)
-#     data[i, "u5m"] <- expit(data[i, "logit.est"])
-# 
-#     data[i, "lower"] <- expit(data[i, "logit.est"] + qnorm(0.975)*sqrt(data[i, "var.est"]))
-#     data[i, "upper"] <- expit(data[i, "logit.est"] + qnorm(0.025)*sqrt(data[i, "var.est"]))
-#   }
-#   data[i, "region_num"] <- data0[tmp, "region_num"][1]
-#  } 
 
+TODO: please use aggregateSurvey here
+```{r}
+# use aggregateSurvey
 ```
 
 
@@ -112,53 +89,7 @@ Similarly as before
 The marginal posteriors are already stored in the fitted object. We use the following function to extract and re-arrange them.
 
 ```{r}
-# projINLA_yearly <- function(fit, is.yearly=TRUE, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), Amat = NULL, nsim = 1000){
-# 
-#   expit<-function(x){
-#       exp(x)/(1+exp(x))
-#   }
-# 
-#   if(is.null(Amat)){
-#     region_names <- "All"
-#     region_nums <- 0
-#   }else{
-#     region_names <- colnames(Amat)
-#     region_nums <- 1:length(region_names)
-#   }
-#   if(is.yearly){
-#     timelabel.yearly <- c(year_range[1] : year_range[2], year_label)
-#   }else{
-#     timelabel.yearly <- year_label
-#   }
-#   results <- expand.grid(District = region_nums, Year = timelabel.yearly)
-#   results$med <- results$q025 <- results$q975 <- results$logit.med <- results$logit.q025 <- results$logit.q975 <- NA
-#   mod <- fit$fit
-#   lincombs.info <- fit$lincombs.info
-# 
-#   for(i in 1:length(timelabel.yearly)){
-#     for(j in 1:length(region_names)){
-#         index <- lincombs.info$Index[lincombs.info$District == region_nums[j] & lincombs.info$Year == i]
-#         tmp.logit <- inla.rmarginal(nsim, mod$marginals.lincomb.derived[[index]])
-#         marg <- inla.tmarginal(expit, mod$marginals.lincomb.derived[[index]])
-#         tmp <- inla.rmarginal(nsim, marg)
-# 
-#         results$med[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- median(tmp)
-#         results$q975[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- quantile(tmp, .975)
-#         results$q025[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- quantile(tmp, .025)
-#         results$logit.med[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- median(tmp.logit)
-#         results$logit.q975[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- quantile(tmp.logit, .975)
-#         results$logit.q025[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- quantile(tmp.logit, .025)
-# 
-#     }
-#   }
-#   results$is.yearly <- !(results$Year %in% year_label)
-#   results$Year.num <- suppressWarnings(as.numeric(as.character(results$Year)))
-#   if(region_names[1] != "All"){
-#     results$District <- region_names[results$District]
-#   }
-# 
-#   return(results)
-# }
+# use projInla
 ```
 
 Now we can get the smoothed estimates for both models
@@ -171,45 +102,7 @@ Now we can get the smoothed estimates for both models
 We can compare the results visually using the function below.
 
 ```{r}
-# plotINLA <- function(out, years_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19") , proj_year = 2015, years_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.yearly = TRUE, is.subnational = FALSE){
-# 
-# is.periods <- out$Year %in% years_label
-# out$Year.num[is.periods] <- years_med[match(out$Year[is.periods], years_label)]
-# out$project <- FALSE
-# out$project[out$Year.num > proj_year] <- TRUE
-# 
-# 
-# if(is.subnational){
-#   g <- ggplot(aes(x = Year.num, y = med, ymin = q025, ymax = q975, color = District), data = out)  
-#   my.dodge <- position_dodge(width = 1)
-# }else{
-#   g <- ggplot(aes(x = Year.num, y = med, ymin = q025, ymax = q975), data = out)
-#   my.dodge <- position_dodge(width = 0.2)
-# }
-# 
-# if(!is.yearly){
-#   g <- g + geom_point(position = my.dodge)
-#   g <- g + geom_line(position = my.dodge)
-#   g <- g + geom_errorbar(aes(linetype=project), size = .7, width = .05, position = my.dodge)
-#   g <- g + theme_bw() + xlab("Year") + ylab("U5MR")
-#   g <- g + scale_x_continuous(breaks=years_med, labels=years_label)
-# }else if(!is.subnational){
-#   g <- g + geom_point(position = my.dodge, data=subset(out, is.periods==FALSE), alpha = 0.3, color = 1)
-#   g <- g + geom_line(position = my.dodge, data=subset(out, is.periods==FALSE), alpha = 0.3, color = 1)
-#   g <- g + geom_errorbar(aes(linetype=project), size = .5, width = .05, position = my.dodge, data=subset(out, is.periods==FALSE), alpha = 0.1, color = 1)
-#   g <- g + geom_point(shape = 17, size = 2.5, position = my.dodge, data=subset(out, is.periods==TRUE), color = 2)
-#   g <- g + geom_errorbar(aes(linetype=project), size = .7, width = .05, position = my.dodge, data=subset(out, is.periods==TRUE), color = 2)
-#   g <- g + theme_bw() + xlab("Year") + ylab("U5MR")
-# }else if(is.subnational){
-#   g <- g + geom_point(position = my.dodge, data=subset(out, is.periods==FALSE), alpha = 0.3)
-#   g <- g + geom_line(position = my.dodge, data=subset(out, is.periods==FALSE), alpha = 0.3)
-#   g <- g + geom_point(shape = 17, size = 2.5, position = my.dodge, data=subset(out, is.periods==TRUE))
-#   g <- g + geom_errorbar(aes(linetype=project), size = .7, width = .05, position = my.dodge, data=subset(out, is.periods==TRUE))
-#   g <- g + theme_bw() + xlab("Year") + ylab("U5MR")
-# }
-# 
-# return(g)
-# }
+# please just use "plot"
 ```
 
 ```{r}

@@ -21,7 +21,14 @@
 projINLA <- function(inla_mod, is.yearly=TRUE, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), 
                             Amat = NULL, nsim = 1000){
 
-
+  if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
+  }
+  # If INLA is installed, then attach the Namespace (so that all the relevant functions are available)
+  if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+    if (!is.element("INLA", (.packages()))) {
+      attachNamespace("INLA")
+    }
   if(is.null(Amat)){
     region_names <- "All"
     region_nums <- 0
@@ -42,16 +49,16 @@ projINLA <- function(inla_mod, is.yearly=TRUE, year_range = c(1985, 2019), year_
   for(i in 1:length(timelabel.yearly)){
     for(j in 1:length(region_names)){
         index <- lincombs.info$Index[lincombs.info$District == region_nums[j] & lincombs.info$Year == i]
-        tmp.logit <- inla.rmarginal(nsim, mod$marginals.lincomb.derived[[index]])
-        marg <- inla.tmarginal(expit, mod$marginals.lincomb.derived[[index]])
-        tmp <- inla.rmarginal(nsim, marg)
+        tmp.logit <- INLA::inla.rmarginal(nsim, mod$marginals.lincomb.derived[[index]])
+        marg <- INLA::inla.tmarginal(expit, mod$marginals.lincomb.derived[[index]])
+        tmp <- INLA::inla.rmarginal(nsim, marg)
 
-        results$med[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- median(tmp)
-        results$q975[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- quantile(tmp, .975)
-        results$q025[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- quantile(tmp, .025)
-        results$logit.med[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- median(tmp.logit)
-        results$logit.q975[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- quantile(tmp.logit, .975)
-        results$logit.q025[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- quantile(tmp.logit, .025)
+        results$med[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::median(tmp)
+        results$q975[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp, .975)
+        results$q025[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp, .025)
+        results$logit.med[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::median(tmp.logit)
+        results$logit.q975[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp.logit, .975)
+        results$logit.q025[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp.logit, .025)
 
     }
   }
@@ -60,8 +67,10 @@ projINLA <- function(inla_mod, is.yearly=TRUE, year_range = c(1985, 2019), year_
   if(region_names[1] != "All"){
     results$District <- region_names[results$District]
   }
-
+  # Add S3 method
+  class(results) <- append(class(results), "projINLA")
   return(results)
+  }
 }
 
 
