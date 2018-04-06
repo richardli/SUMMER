@@ -247,7 +247,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       }
       A = inla.as.sparse(A)
       D = Diagonal(nn*S, x=1)
-      assign("my.cache", list(R=INLA:::inla.as.sparse(R), A=A, D=D, nn=nn), envir = envir)
+      assign("my.cache", list(R=INLA::inla.as.sparse(R), A=A, D=D, nn=nn), envir = envir)
     } 
     
     interpret.theta = function() {
