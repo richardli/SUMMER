@@ -50,6 +50,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       attachNamespace("INLA")
     }
 
+
     tau = exp(10)
 
     ## ---------------------------------------------------------
@@ -62,11 +63,13 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       ## the environment of this function which holds the variables and we can store 'my.cache'
       ## there.
       envir = environment(sys.call()[[1]]) 
+      inla.rw = utils::getFromNamespace("inla.rw", "INLA")
+      inla.ginv = utils::getFromNamespace("inla.ginv", "INLA")
       
       if (!exists("my.cache", envir = envir, mode = "list")) {
         nn = n %/% m
         stopifnot (nn == as.integer(n/m))
-        R = INLA:::inla.rw(n, order = order,  scale.model=TRUE, sparse=TRUE)
+        R = inla.rw(n, order = order,  scale.model=TRUE, sparse=TRUE)
         A = matrix(0, nn, n)
         j = 1
         for(i in 1:nn) {
@@ -203,6 +206,8 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     st.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL){
     
     envir = environment(sys.call()[[1]]) 
+    inla.rw = utils::getFromNamespace("inla.rw", "INLA")
+    inla.ginv = utils::getFromNamespace("inla.ginv", "INLA")
     # The new structure takes the following order
     # (x_11, ..., x_1T, ..., x_S1, ..., x_ST, xx_11, ..., xx_1t, ..., xx_S1, ..., xx_St)
     #  x_ij : random effect of region i, year j 
@@ -212,7 +217,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       nn = n %/% m
       stopifnot (nn == as.integer(n/m))
       R1 = Diagonal(n, x = rep(1, n))
-      R2 = INLA:::inla.rw(n, order = order, scale.model=TRUE, sparse=TRUE)
+      R2 = inla.rw(n, order = order, scale.model=TRUE, sparse=TRUE)
       R3 = Diagonal(S, x = rep(1, S))
       R4 = Amat
       diag(R4) <- 0
@@ -320,7 +325,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     # Todo: make it work with the new Q matrix!!
     
     if (redo.prior) {
-      priors <- simhyper(R = 2my, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, nperiod = length(year_names))
+      priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, nperiod = length(year_names))
     }
     
     a.iid <- priors$a.iid
@@ -466,7 +471,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     
     # -- merge these all into the data sets -- #
     newdata <- dat
-    if (sum(!is.na(dat$survey)) > 0) {
+    if (!nosurvey) {
       newdata <- merge(newdata, survey.time, by = c("time.unstruct", "survey"))
       newdata <- merge(newdata, survey.area, by = c("region_number", "survey"))
       newdata <- merge(newdata, survey.time.area, by = c("region_number", "time.unstruct", "survey"))
