@@ -26,6 +26,9 @@
 #' @param a.icar hyper parameter for ICAR random effects, only need if \code{useHyper = TRUE}
 #' @param b.icar hyper parameter for ICAR random effects, only need if \code{useHyper = TRUE}
 #' @seealso \code{\link{countrySummary}}
+#' @importFrom stats dgamma
+#' @importFrom Matrix Diagonal cBind rBind
+#' 
 #' @return INLA model fit using the provided formula, country summary data, and geographic data
 #' @examples
 #' \dontrun{
@@ -35,6 +38,9 @@
 #' @export
 fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE, redo.prior = FALSE, priors = NULL, type.st = 1, useHyper = FALSE, a.iid = NULL, b.iid = NULL, a.rw1 = NULL, b.rw1 = NULL, a.rw2 = NULL, b.rw2 = NULL, a.icar = NULL, b.icar = NULL){
 
+  # get around CRAN check of using un-exported INLA functions
+  rate0 <- shape0 <- my.cache <- inla.as.sparse <- type <- NULL
+
   if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
     stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
   }
@@ -43,15 +49,13 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     if (!is.element("INLA", (.packages()))) {
       attachNamespace("INLA")
     }
-    ### FUNCTION HERE
-    inla.rw = utils::getFromNamespace("inla.rw", "INLA")
+
     tau = exp(10)
+
     ## ---------------------------------------------------------
     ## New definition of the yearly + multi-year Q structure
     ## ---------------------------------------------------------
-    rw.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL, shape0, rate0){
-      
-      
+     rw.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL){
       ## assume 'tau', 'order', 'n' and 'm' 'n' is the dim of RW and 'm' is the aggregated length,
       ## averaging over n/m variables, non-overlapping
       
@@ -61,20 +65,17 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       
       if (!exists("my.cache", envir = envir, mode = "list")) {
         nn = n %/% m
-        stopifnot(nn == as.integer(n/m))
-          R = inla.rw(n, order = order,  scale.model=TRUE, sparse=TRUE)
-        
-        
+        stopifnot (nn == as.integer(n/m))
+        R = INLA:::inla.rw(n, order = order,  scale.model=TRUE, sparse=TRUE)
         A = matrix(0, nn, n)
         j = 1
         for(i in 1:nn) {
           A[i, j:(j+m-1)] = 1/m
           j = j + m
         }
-        A = INLA::inla.as.sparse(A)
+        A = inla.as.sparse(A)
         D = Matrix::Diagonal(nn, x=1)
-        # assign("my.cache", list(R=R, A=A, D=D, nn=nn), envir = envir)
-        my.cache <- list(R=R, A=A, D=D, nn=nn)
+        assign("my.cache", list(R=R, A=A, D=D, nn=nn), envir = envir)
       } 
       
       interpret.theta = function() {
@@ -86,9 +87,9 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       }
       
       Q = function() {
-        QQ = Matrix::rBind(Matrix::cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
+        QQ = rBind(cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
                          -tau * t(my.cache$A)),
-                   Matrix::cBind(-tau * my.cache$A, tau * my.cache$D))
+                   cBind(-tau * my.cache$A, tau * my.cache$D))
         return(QQ)
       }
       
@@ -103,7 +104,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       }
       
       log.prior = function() {
-        val = stats::dgamma(p$kappa, shape = shape0, rate = rate0, log = TRUE) + theta[1]
+        val = dgamma(p$kappa, shape = shape0, rate = rate0, log = TRUE) + theta[1]
         return(val)
       }
       
@@ -123,29 +124,28 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       p = interpret.theta()
       val = do.call(match.arg(cmd), args = list())
       return(val)
-    }  
+     }   
     
     ## ---------------------------------------------------------
     ## New definition of the yearly + multi-year Q structure
     ## ---------------------------------------------------------
-    iid.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL, shape0, rate0){
+      iid.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL){
       
       envir = environment(sys.call()[[1]]) 
       
       if (!exists("my.cache", envir = envir, mode = "list")) {
         nn = n %/% m
         stopifnot (nn == as.integer(n/m))
-        R = Matrix::Diagonal(n, x = rep(1, n))
+        R = Diagonal(n, x = rep(1, n))
         A = matrix(0, nn, n)
         j = 1
         for(i in 1:nn) {
           A[i, j:(j+m-1)] = 1/m
           j = j + m
         }
-        A = INLA::inla.as.sparse(A)
+        A = inla.as.sparse(A)
         D = Matrix::Diagonal(nn, x=1)
-        #assign("my.cache", list(R=R, A=A, D=D, nn=nn), envir = envir)
-        my.cache <- list(R=R, A=A, D=D, nn=nn)
+        assign("my.cache", list(R=R, A=A, D=D, nn=nn), envir = envir)
       } 
       
       interpret.theta = function() {
@@ -157,9 +157,9 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       }
       
       Q = function() {
-        QQ = Matrix::rBind(Matrix::cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
+        QQ = rBind(cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
                          -tau * t(my.cache$A)),
-                   Matrix::cBind(-tau * my.cache$A, tau * my.cache$D))
+                   cBind(-tau * my.cache$A, tau * my.cache$D))
         return(QQ)
       }
       
@@ -169,12 +169,12 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       
       log.norm.const = function() {
         val = (n * (-0.5 * log(2 * pi) + 0.5 * log(p$kappa)) +
-                 (my.cache$nn * (-0.5 * log(2 * pi) + 0.5 * log(tau))))
+          (my.cache$nn * (-0.5 * log(2 * pi) + 0.5 * log(tau))))
         return(val)
       }
       
       log.prior = function() {
-        val = stats::dgamma(p$kappa, shape = shape0, rate = rate0, log = TRUE) + theta[1]
+        val = dgamma(p$kappa, shape = shape0, rate = rate0, log = TRUE) + theta[1]
         return(val)
       }
       
@@ -195,121 +195,115 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       val = do.call(match.arg(cmd), args = list())
       return(val)
     }  
+
     
     ## ---------------------------------------------------------
     ## New definition of the yearly + multi-year structured Q
     ## ---------------------------------------------------------
-    st.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL, rate0, shape0, type){
-      
-      envir = environment(sys.call()[[1]]) 
-      # The new structure takes the following order
-      # (x_11, ..., x_1T, ..., x_S1, ..., x_ST, xx_11, ..., xx_1t, ..., xx_S1, ..., xx_St)
-      #  x_ij : random effect of region i, year j 
-      # xx_ik : random effect of region i, period k
-      
-      if (!exists("my.cache", envir = envir, mode = "list")) {
-        nn = n %/% m
-        stopifnot (nn == as.integer(n/m))
-        R1 = Matrix::Diagonal(n, x = rep(1, n))
+    st.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL){
+    
+    envir = environment(sys.call()[[1]]) 
+    # The new structure takes the following order
+    # (x_11, ..., x_1T, ..., x_S1, ..., x_ST, xx_11, ..., xx_1t, ..., xx_S1, ..., xx_St)
+    #  x_ij : random effect of region i, year j 
+    # xx_ik : random effect of region i, period k
 
-          R2 = inla.rw(n, order = order, scale.model=TRUE, sparse=TRUE)
-        
-        
-        R3 = Matrix::Diagonal(S, x = rep(1, S))
-        R4 = Amat
-        diag(R4) <- 0
-        diag <- apply(R4, 1, sum)
-        R4[R4 != 0] <- -1
-        diag(R4) <- diag
-
-          R4 <- INLA::inla.scale.model(R4, constr = list(A=matrix(1,1,dim(R4)[1]), e=0))
-        
-        
-        # both independent
-        if(type == 1){
+    if (!exists("my.cache", envir = envir, mode = "list")) {
+      nn = n %/% m
+      stopifnot (nn == as.integer(n/m))
+      R1 = Diagonal(n, x = rep(1, n))
+      R2 = INLA:::inla.rw(n, order = order, scale.model=TRUE, sparse=TRUE)
+      R3 = Diagonal(S, x = rep(1, S))
+      R4 = Amat
+      diag(R4) <- 0
+      diag <- apply(R4, 1, sum)
+      R4[R4 != 0] <- -1
+      diag(R4) <- diag
+      R4 <- INLA::inla.scale.model(R4, constr = list(A=matrix(1,1,dim(R4)[1]), e=0))
+      # both independent
+      if(type == 1){
           R <- R3 %x% R1
-          # AR * independent    
-        }else if(type == 2){
+      # AR * independent    
+      }else if(type == 2){
           R <- R3 %x% R2
-          # independent * besag    
-        }else if(type == 3){
+      # independent * besag    
+      }else if(type == 3){
           R <- R4 %x% R1
-          # AR * besag
-        }else if(type == 4){
+      # AR * besag
+      }else if(type == 4){
           R <- R4 %x% R2
-        }
-        
-        A = matrix(0, nn*S, n*S)
-        j = 1
-        for(i in 1:(nn*S)) {
-          A[i, j:(j+m-1)] = 1/m
-          j = j + m
-        }
-        A = INLA::inla.as.sparse(A)
-        D = Matrix::Diagonal(nn*S, x=1)
+      }
 
-          #assign("my.cache", list(R=INLA::inla.as.sparse(R), A=A, D=D, nn=nn), envir = envir)
-        my.cache <- list(R=INLA::inla.as.sparse(R), A=A, D=D, nn=nn)
-      } 
-      
-      interpret.theta = function() {
-        return(list(kappa = exp(theta[1L])))
+      A = matrix(0, nn*S, n*S)
+      j = 1
+      for(i in 1:(nn*S)) {
+        A[i, j:(j+m-1)] = 1/m
+        j = j + m
       }
-      
-      graph = function() {
-        return (Q())
-      }
-      
-      Q = function() {
-        QQ = Matrix::rBind(Matrix::cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
+      A = inla.as.sparse(A)
+      D = Diagonal(nn*S, x=1)
+      assign("my.cache", list(R=INLA:::inla.as.sparse(R), A=A, D=D, nn=nn), envir = envir)
+    } 
+    
+    interpret.theta = function() {
+      return(list(kappa = exp(theta[1L])))
+    }
+    
+    graph = function() {
+      return (Q())
+    }
+    
+    Q = function() {
+      QQ = rBind(cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
                          -tau * t(my.cache$A)),
-                   Matrix::cBind(-tau * my.cache$A, tau * my.cache$D))
-        return(QQ)
+                   cBind(-tau * my.cache$A, tau * my.cache$D))
+      return(QQ)
+    }
+    
+    mu = function() {
+      return(numeric(0))
+    }
+    ## Type I   : S * n
+    ## Type II  : S * (n - order)
+    ## Type III : (S-1) * n 
+    ## Type IV  : (S-1) * (n - order)
+    log.norm.const = function() {
+      df <- S * n
+      if(type == 2){
+        df <- S * (n - order)
+      }else if(type == 3){
+        df <- (S-1) * n
+      }else if(type == 4){
+        df <- (S-1) * (n - order)
       }
-      
-      mu = function() {
-        return(numeric(0))
-      }
-      ## Type I   : S * n
-      ## Type II  : S * (n - order)
-      ## Type III : (S-1) * n 
-      ## Type IV  : (S-1) * (n - order)
-      log.norm.const = function() {
-        df <- S * n
-        if(type == 2){
-          df <- S * (n - order)
-        }else if(type == 3){
-          df <- (S-1) * n
-        }else if(type == 4){
-          df <- (S-1) * (n - order)
-        }
-        val = (df * (-0.5 * log(2 * pi) + 0.5 * log(p$kappa)) +
-                 (S * my.cache$nn * (-0.5 * log(2 * pi) + 0.5 * log(tau))))
-        return(val)
-      }
-      
-      log.prior = function() {
-        val = stats::dgamma(p$kappa, shape = shape0, rate = rate0, log = TRUE) + theta[1]
-        return(val)
-      }
-      
-      initial = function() {
-        return(4)
-      }
-      
-      quit = function() {
-        return(invisible())
-      }
-      
-      ## as some calls to this function does not define 'theta',  its convenient to have to
-      ## defined still (like in the graph-function)
-      if (is.null(theta))
-        theta = initial()
-      
-      p = interpret.theta()
-      val = do.call(match.arg(cmd), args = list())
+      val = (df * (-0.5 * log(2 * pi) + 0.5 * log(p$kappa)) +
+        (S * my.cache$nn * (-0.5 * log(2 * pi) + 0.5 * log(tau))))
       return(val)
-    }  
+    }
+    
+    log.prior = function() {
+      val = dgamma(p$kappa, shape = shape0, rate = rate0, log = TRUE) + theta[1]
+      return(val)
+    }
+    
+    initial = function() {
+      return(4)
+    }
+    
+    quit = function() {
+      return(invisible())
+    }
+    
+    ## as some calls to this function does not define 'theta',  its convenient to have to
+    ## defined still (like in the graph-function)
+    if (is.null(theta))
+      theta = initial()
+    
+    p = interpret.theta()
+    val = do.call(match.arg(cmd), args = list())
+    return(val)
+  }  
+
     
     ## ---------------------------------------------------------
     ## Common Setup
@@ -326,7 +320,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     # Todo: make it work with the new Q matrix!!
     
     if (redo.prior) {
-      priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, nperiod = length(year_names))
+      priors <- simhyper(R = 2my, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, nperiod = length(year_names))
     }
     
     a.iid <- priors$a.iid
@@ -462,7 +456,10 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       x <- expand.grid(1:N, 1:region_count)
     }
     time.area <- data.frame(region_number = x[, 2], time.unstruct = x[, 1], time.area = c(1:nrow(x)))
-    
+    # fix for 0 instead of 1 when no geo file provided
+    if(is.null(geo)){
+      time.area$region_number <- 0
+    }
     # -- these are the area X time X survey options -- #
     x <- expand.grid(1:region_count, 1:N, 1:survey_count)
     survey.time.area <- data.frame(region_number = x[, 1], time.unstruct = x[, 2], survey = x[, 3], survey.time.area = c(1:nrow(x)))

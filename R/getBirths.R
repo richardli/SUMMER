@@ -3,6 +3,8 @@
 #'
 #' @param filepath file path of raw .dta file from DHS
 #' @param surveyyear year of survey
+#' @param variables vector of variables to be used in obtaining the person-month files. The variables correspond the the DHS recode manual VI. For early DHS data, the variable names may need to be changed.
+#' @param strata vector of variable names used for strata. If a single variable is specified, then that variable will be used as strata indicator If multiple variables are specified, the interaction of these variables will be used as strata indicator. 
 #' 
 #' @return A list of birth-month data
 #' 
@@ -13,12 +15,13 @@
 #' }
 #' 
 #' @export
-getBirths <- function(filepath,surveyyear) {
+getBirths <- function(filepath,surveyyear, variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022", "v023", "v024", "v025", "v139", "bidx"), strata=c("v024", "v025")) {
   dat <- suppressWarnings(readstata13::read.dta13(filepath, generate.factors = TRUE))
   
   surveyyear <- surveyyear - 1900
   
-  datnew <- dat[,c("caseid", "v001", "v002", "v004", "v005", "v021", "v022", "v023", "v024", "v025", "v139", "bidx")] 
+  variables <- union(variables, strata)
+  datnew <- dat[, variables] 
   
   
   datnew$dob <- dat$b3
@@ -77,6 +80,13 @@ getBirths <- function(filepath,surveyyear) {
   test$per5[test$year > 109] <- "10-14"
   test$per5 <- factor(test$per5, levels = c("80-84","85-89","90-94","95-99","00-04","05-09","10-14"))
   
-  test$strata <- paste0(test$v024,".",test$v025)
+  if(length(strata) == 0){
+    test$strata <- NA
+  }else if(length(strata) == 1){
+    test$strata <- test[, strata]
+  }else{
+    test$strata <- do.call(paste, c(test[strata], sep="."))
+  }
+  test$survey_year <- test$survey_year + 1990
   return(test)
 }

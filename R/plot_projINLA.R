@@ -1,5 +1,10 @@
 #' Plot projection output.
 #' @param x output from \code{\link{projINLA}}
+#' @param years_label labels for the periods
+#' @param years_med labels for the middle years in each period
+#' @param is.yearly logical indicator of whether the data contains yearly estimates
+#' @param is.subnational logical indicator of whether the data contains subnational estimates
+#' @param proj_year The first year where projections are made, i.e., where no data are available. 
 #' @param ... optional arguments, see details
 #' 
 #' @details 
@@ -16,26 +21,16 @@
 #' TODO
 #' }
 #' @export
-plot.projINLA <- function(x, ...){
-  if(is.null(years_label)) {
-    years_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")
-  }
+plot.projINLA <- function(x, years_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), years_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.yearly=TRUE, is.subnational = TRUE, proj_year = 2015, ...){
+
   if(is.null(proj_year)) {
-    proj_year = 2015
+    proj_year = 0
   }
-  if(is.null(years_med)) {
-    years_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017)
-  }
-  if(is.null(is.yearly)) {
-    is.yearly <- TRUE
-  }
-  if(is.null(is.subnational)) {
-    is.subnational <- TRUE
-  }
+  
   is.periods <- x$Year %in% years_label
   x$Year.num[is.periods] <- years_med[match(x$Year[is.periods], years_label)]
   x$project <- FALSE
-  x$project[x$Year.num > proj_year] <- TRUE
+  x$project[x$Year.num >= proj_year] <- TRUE
   # fix for global variable issue
   Year.num <- NULL; District <- NULL; med <- NULL; q025 <- NULL; q975 <- NULL; project <- NULL
   
@@ -54,15 +49,15 @@ plot.projINLA <- function(x, ...){
     g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("U5MR")
     g <- g + ggplot2::scale_x_continuous(breaks=years_med, labels=years_label)
   }else if(!is.subnational){
-    g <- g + ggplot2::geom_point(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.3, color = 1)
-    g <- g + ggplot2::geom_line(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.3, color = 1)
-    g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .5, width = .05, position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.1, color = 1)
+    g <- g + ggplot2::geom_point(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5, color = 1)
+    g <- g + ggplot2::geom_line(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5, color = 1)
+    g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .5, width = .05, position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.3, color = 1)
     g <- g + ggplot2::geom_point(shape = 17, size = 2.5, position = my.dodge, data=subset(x, is.periods==TRUE), color = 2)
     g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), color = 2)
     g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("U5MR")
   }else if(is.subnational){
-    g <- g + ggplot2::geom_point(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.3)
-    g <- g + ggplot2::geom_line(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.3)
+    g <- g + ggplot2::geom_point(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5)
+    g <- g + ggplot2::geom_line(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5)
     g <- g + ggplot2::geom_point(shape = 17, size = 2.5, position = my.dodge, data=subset(x, is.periods==TRUE))
     g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE))
     g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("U5MR")

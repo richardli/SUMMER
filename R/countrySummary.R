@@ -73,18 +73,16 @@ countrySummary <- function(births, years, idVar = "v002", regionVar = "region", 
     }
     
     
-    # setting up survey design object @todo remove this hard-coded ~v001 + v002 by evaluating a string
-    # if (is.null(births$cluster)) {
-    #     births$cluster <- "v001 + v002"
-    #     warning("Cluster not specified. Using v001 + v002", immediate. = TRUE)
-    # }
-
-    
     if (is.null(births$strata)) {
         stop("Strata not defined.")
     }
+    if (is.null(clusterVar)){
+        clusterVar <- paste0("~", idVar)
+        warning(paste("Cluster not specified, use", clusterVar, "instead"), immediate. = TRUE)
+    }
+
     options(survey.lonely.psu = "adjust")
-    my.svydesign <- survey::svydesign(ids = ~id0, cluster = stats::formula(clusterVar), strata = ~strata, nest = T, weights = ~weights0, 
+    my.svydesign <- survey::svydesign(ids = stats::formula(clusterVar), strata = ~strata, nest = T, weights = ~weights0, 
         data = births)
     
     # get region list, sorted alphabetically

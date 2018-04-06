@@ -4,10 +4,23 @@
 \alias{plot.projINLA}
 \title{Plot projection output.}
 \usage{
-\method{plot}{projINLA}(x, ...)
+\method{plot}{projINLA}(x, years_label = c("85-89", "90-94", "95-99", "00-04",
+  "05-09", "10-14", "15-19"), years_med = c(1987, 1992, 1997, 2002, 2007,
+  2012, 2017), is.yearly = TRUE, is.subnational = TRUE, proj_year = 2015,
+  ...)
 }
 \arguments{
 \item{x}{output from \code{\link{projINLA}}}
+
+\item{years_label}{labels for the periods}
+
+\item{years_med}{labels for the middle years in each period}
+
+\item{is.yearly}{logical indicator of whether the data contains yearly estimates}
+
+\item{is.subnational}{logical indicator of whether the data contains subnational estimates}
+
+\item{proj_year}{The first year where projections are made, i.e., where no data are available.}
 
 \item{...}{optional arguments, see details}
 }

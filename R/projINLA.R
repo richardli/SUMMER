@@ -68,7 +68,7 @@ projINLA <- function(inla_mod, is.yearly=TRUE, year_range = c(1985, 2019), year_
     results$District <- region_names[results$District]
   }
   # Add S3 method
-  class(results) <- append(class(results), "projINLA")
+  class(results) <- c("projINLA", "data.frame")
   return(results)
   }
 }
