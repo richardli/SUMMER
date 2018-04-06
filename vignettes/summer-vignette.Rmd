@@ -9,12 +9,12 @@ vignette: >
 
 ```{r, echo = FALSE}
 # Uncomment to enter DEBUG mode. The package vignette will compile, but code will not be evaluated for speed purposes.
-knitr::opts_chunk$set(eval = FALSE)
+# knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(fig.width=9, fig.height=5, out.width = '100%') 
+
 ```
 
 ## Load Package and Data
-
-TODO: Fix, no longer Uganda.
 
 
 `DemoData` contains model survey data provided by DHS. Note that this data is fake, and does not represent any real country's data. Data similar to the `DemoData` data used in this vignette can be obtained by using  `getBirths`. `DemoMap` contains geographic data from the 1995 Uganda Admin 1 regions defined by DHS. Data similar to the `DemoMap` data used in this vignette can be obtained by using `read_shape`.
@@ -85,7 +85,6 @@ priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat, only.ii
 ## Prepare data for meta analysis
 Before fitting the model, we first aggregate estimators from different surveys. 
 
-TODO: please use aggregateSurvey here
 ```{r}
 dim(data)
 data <- aggregateSurvey(data)
