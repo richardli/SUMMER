@@ -158,7 +158,7 @@ grid.arrange(grobs=g2, ncol = 2)
 
 ### Map visualization of changes across time
 
-```{r}
+```{r, fig.width=9, fig.height=9}
 mapPlot(data = subset(out4, is.yearly==F), geo = DemoMap$geo, variables=c("Year"), values = c("med"), by.data = "District", by.geo = "NAME_final", is.long=TRUE)
 ```
 
