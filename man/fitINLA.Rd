@@ -63,7 +63,36 @@ Fit INLA models to direct estimators with a yearly model.
 }
 \examples{
 \dontrun{
-TODO
+
+data(DemoData)
+data(DemoMap)
+years <- levels(DemoData[[1]]$time)
+
+# obtain direct estimates
+data <- countrySummary_mult(births = DemoData, 
+years = years, idVar = "id", 
+regionVar = "region", timeVar = "time", 
+clusterVar = "~clustid+id", 
+ageVar = "age", weightsVar = "weights", 
+geo.recode = NULL)
+
+# obtain maps
+geo <- DemoMap$geo
+mat <- DemoMap$Amat
+
+# Simulate hyper priors
+priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat, only.iid = TRUE)
+
+# combine data from multiple surveys
+data <- aggregateSurvey(data)
+
+# Model fitting with INLA
+years.all <- c(years, "15-19")
+fit <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years.all, year_range = c(1985, 2019), priors = priors, rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
+# Projection
+out <- projINLA(fit, Amat = mat, is.yearly = TRUE)
+plot(out4, is.yearly=TRUE, is.subnational=TRUE) + ggtitle("Subnational yearly model")
+
 }
 
 }

@@ -156,5 +156,72 @@ g2[[2]] <- plot(out4, is.yearly=TRUE, is.subnational=TRUE) + ggtitle("Subnationa
 grid.arrange(grobs=g2, ncol = 2)
 ```
 
+### Map visualization of changes across time
 
+```{r}
+mapPlot(data = subset(out4, is.yearly==F), geo = DemoMap$geo, variables=c("Year"), values = c("med"), by.data = "District", by.geo = "NAME_final", is.long=TRUE)
+```
+
+
+
+## A simple spatial smoothing example
+Here is another simple spatial smoothing example using data created from the model survey data, and a Kenya Admin 1 map with 8 regions.
+```{r}
+data(DemoData2)
+data(DemoMap2)
+```
+
+The `DemoData2` dataset contains the survey information and two response variables, age and tobacco usage. 
+```{r}
+head(DemoData2)
+```
+
+Suppose we denote the tobacco usage of observation $k$ in area $i$ to be $y_{ik}$, and the associated design weight to be $w_{ik}$. Under the design-based approach to inference, we can calculate the weighted estimator of prevalence to be 
+\[
+  \hat p_i = \frac{\sum_k w_{ik}y_{ik}}{\sum_k w_{ik}}
+\]
+and the associated variance $\widehat{var}(\hat{p_i})$. By delta method, if we denote $\hat\theta_{i} = \log(\frac{\hat p_i}{1-\hat p_i})$, the asymptotic distribution of $\hat\theta_{i}$ is 
+\[
+  \hat\theta_i \sim \mbox{Normal}(\log(\frac{p_i}{1-p_i}), \hat V_i), \;\;\;\; \hat V_i = \frac{\widehat{var}(\hat{p_i})}{(\hat p_i (1 - \hat p_i))^2}
+\]
+We then use INLA to fit the following Bayesian hierarchical model:
+\begin{eqnarray*}
+\hat\theta_i &=& \log\left( \dfrac{\hat{p_i}}{1-\hat{p_i}} \right) \sim \mbox{Normal}( \theta_i,\hat{V}_i )\\
+\theta_i &=& \beta + \epsilon_i+\delta_i,\\
+\epsilon_i &\sim & \mbox{Normal}(0,\sigma_\epsilon^2)\\
+\delta_i &\sim & \mbox{ICAR}(\sigma_\delta^2)
+\end{eqnarray*}
+
+We use the `fitspace()` function to obtain the weighted direct estimates and the smoothed estimates from INLA.
+
+```{r}
+fit <- fitSpace(data=DemoData2, geo=DemoMap2$geo, Amat=DemoMap2$Amat, family="binomial", responseVar="tobacco.use", strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~clustid+id", hyper=NULL, CI = 0.95)
+```
+
+The direct estimates of the prevalence of tobacco usage, i.e., $\hat p_i$ accounting for survey design are 
+```{r}
+fit$HT[, c("HT.est.original", "HT.variance.original", "region")]
+```
+
+The logit transformed direct estimates, $\hat\theta_i$ and the associated asymptotic standard deviations are 
+```{r}
+fit$HT[, c("HT.est", "HT.sd", "region")]
+```
+
+The posterior summaries of $\theta_i|\hat\theta_i$ can be obtained by 
+```{r}
+fit$smooth[, c("mean", "sd", "median", "lower", "upper", "region")]
+```
+
+The posterior summaries of  $p_i|\hat\theta_i$ can be obtained by 
+
+```{r}
+fit$smooth[, c("mean.trans", "sd.trans", "median.trans", "lower.trans", "upper.trans", "region")]
+```
+
+We can now compare the direct and smoothed variables on the map.
+```{r}
+combined <- merge(fit$HT, fit$smooth, by = "region")
+mapPlot(data = combined, geo = DemoMap2$geo, variables=c("HT.est", "median"), labels = c("Direct Estimates", "Posterior Median"), by.data = "region", by.geo = "NAME_final", is.long=FALSE)
+```
 

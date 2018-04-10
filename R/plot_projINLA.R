@@ -18,7 +18,38 @@
 #' }
 #' @examples
 #' \dontrun{
-#' TODO
+#' data(DemoData)
+#' deta(DemoMap)
+#' years <- levels(DemoData[[1]]$time)
+#' 
+#' # obtain direct estimates
+#' data <- countrySummary_mult(births = DemoData, 
+#' years = years, idVar = "id", 
+#' regionVar = "region", timeVar = "time", 
+#' clusterVar = "~clustid+id", 
+#' ageVar = "age", weightsVar = "weights", 
+#' geo.recode = NULL)
+#' 
+#' # obtain maps
+#' geo <- DemoMap$geo
+#' mat <- DemoMap$Amat
+#' 
+#' # Simulate hyper priors
+#' priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat, only.iid = TRUE)
+#' 
+#' # combine data from multiple surveys
+#' data <- aggregateSurvey(data)
+#' 
+#' # Model fitting with INLA
+#' years.all <- c(years, "15-19")
+#' fit <- fitINLA(data = data, geo = geo, Amat = mat, 
+#' year_names = years.all, year_range = c(1985, 2019), 
+#' priors = priors, rw = 2, is.yearly=TRUE, 
+#' m = 5, type.st = 4)
+#' # Projection
+#' out <- projINLA(fit, Amat = mat, is.yearly = TRUE)
+#' plot(out4, is.yearly=TRUE, is.subnational=TRUE) + ggtitle("Subnational yearly model")
+#' 
 #' }
 #' @export
 plot.projINLA <- function(x, years_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), years_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.yearly=TRUE, is.subnational = TRUE, proj_year = 2015, ...){

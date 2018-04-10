@@ -4,49 +4,49 @@
 \alias{mapPlot}
 \title{Makes map plot.}
 \usage{
-mapPlot(countryname, results, geo, countrysum, inlamod)
+mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo,
+  is.long = FALSE)
 }
 \arguments{
-\item{countryname}{Country name as a string}
+\item{data}{a data frame with variables to be plotted}
 
-\item{results}{output from \code{\link{projINLA}}}
+\item{variables}{vector of variables to be plotted. If long format of data is used, only one variable can be selected}
+
+\item{values}{the column corresponding to the values to be plotted, only used when long format of data is used}
+
+\item{labels}{vector of labels to use for each variable, only used when wide format of data is used}
 
 \item{geo}{\code{geo} output from \code{\link{read_shape}}}
 
-\item{countrysum}{output from \code{\link{countrySummary_mult}}}
+\item{by.data}{column name specifying region names in the data}
 
-\item{inlamod}{output from \code{\link{fitINLA}}}
+\item{by.geo}{variable name specifying region names in the data}
+
+\item{is.long}{logical indicator of whether the data is in the long format, default to FALSE}
 }
 \description{
-Makes map plot.
+This function visualizes the map with different variables. The input data frame can be either the long or wide format.
 }
 \examples{
-\dontrun{
-data(Uganda)
-data(UgandaMap)
-geo <- UgandaMap$geo
-mat <- UgandaMap$Amat
-years <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14")
 
-# Get direct estimates
-u5m <- countrySummary_mult(births = Uganda, years = years, idVar = "id", 
-regionVar = "region", timeVar = "time", clusterVar = "~clustid+id", 
-ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+data(DemoMap)
+# Plotting data in the long format
+dat <- data.frame(region = rep(c("central",  "eastern", "northern", "western"), 3), 
+year = rep(c(1980, 1990, 2000), each = 4), 
+values = rnorm(12))
+head(dat)
+mapPlot(dat, variables = "year", values = "values", 
+by.data = "region", geo = DemoMap$geo, 
+by.geo = "NAME_final", is.long = TRUE)
+ 
+# Plotting data in the wide format
+dat <- data.frame(region = c("central",  "eastern", "northern", "western"), 
+Year1 = rnorm(4), Year2 = rnorm(4), 
+Year3 = rnorm(4))
+head(dat)
+mapPlot(dat, variables = c("Year1", "Year2", "Year3"),
+ labels = c(1980, 1990, 2000), 
+by.data = "region", geo = DemoMap$geo, 
+by.geo = "NAME_final", is.long = FALSE)
 
-# Get hyper priors
-priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat)
-
-# Fit INLA models
-data <- data[data$region \%in\% c("central","eastern","northern","western"),]
-inla_model <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years, priors = priors)
-
-# Projection
-surveylabel <- paste0("DHS ", unique(data$surveyYears)) 
-results_rw2 <- projINLA(data = data, inla_mod = inla_model, years = years, geo = geo, 
-                     newyear = "15-19", quantiles = c(0.025,0.5,0.975))
-
-# Plot results
-mapPlot(countryname = "Uganda", results = results_rw2, geo = geo, 
-countrysum = data, inlamod = inla_model)
-}
 }

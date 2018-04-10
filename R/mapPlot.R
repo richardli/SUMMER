@@ -1,110 +1,72 @@
 #' Makes map plot.
 #' 
-#' 
+#' This function visualizes the map with different variables. The input data frame can be either the long or wide format.
 #'
-#' @param countryname Country name as a string
-#' @param results output from \code{\link{projINLA}}
+#' @param data a data frame with variables to be plotted
+#' @param variables vector of variables to be plotted. If long format of data is used, only one variable can be selected
+#' @param values the column corresponding to the values to be plotted, only used when long format of data is used
+#' @param labels vector of labels to use for each variable, only used when wide format of data is used
 #' @param geo \code{geo} output from \code{\link{read_shape}}
-#' @param countrysum output from \code{\link{countrySummary_mult}}
-#' @param inlamod output from \code{\link{fitINLA}}
+#' @param by.data column name specifying region names in the data
+#' @param by.geo variable name specifying region names in the data
+#' @param is.long logical indicator of whether the data is in the long format, default to FALSE
 #' @examples
-#' \dontrun{
-#' data(Uganda)
-#' data(UgandaMap)
-#' geo <- UgandaMap$geo
-#' mat <- UgandaMap$Amat
-#' years <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14")
 #' 
-#' # Get direct estimates
-#' u5m <- countrySummary_mult(births = Uganda, years = years, idVar = "id", 
-#' regionVar = "region", timeVar = "time", clusterVar = "~clustid+id", 
-#' ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+#' data(DemoMap)
+#' # Plotting data in the long format
+#' dat <- data.frame(region = rep(c("central",  "eastern", "northern", "western"), 3), 
+#' year = rep(c(1980, 1990, 2000), each = 4), 
+#' values = rnorm(12))
+#' head(dat)
+#' mapPlot(dat, variables = "year", values = "values", 
+#' by.data = "region", geo = DemoMap$geo, 
+#' by.geo = "NAME_final", is.long = TRUE)
+#'  
+#' # Plotting data in the wide format
+#' dat <- data.frame(region = c("central",  "eastern", "northern", "western"), 
+#' Year1 = rnorm(4), Year2 = rnorm(4), 
+#' Year3 = rnorm(4))
+#' head(dat)
+#' mapPlot(dat, variables = c("Year1", "Year2", "Year3"),
+#'  labels = c(1980, 1990, 2000), 
+#' by.data = "region", geo = DemoMap$geo, 
+#' by.geo = "NAME_final", is.long = FALSE)
 #' 
-#' # Get hyper priors
-#' priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat)
-#' 
-#' # Fit INLA models
-#' data <- data[data$region %in% c("central","eastern","northern","western"),]
-#' inla_model <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years, priors = priors)
-#' 
-#' # Projection
-#' surveylabel <- paste0("DHS ", unique(data$surveyYears)) 
-#' results_rw2 <- projINLA(data = data, inla_mod = inla_model, years = years, geo = geo, 
-#'                      newyear = "15-19", quantiles = c(0.025,0.5,0.975))
-#' 
-#' # Plot results
-#' mapPlot(countryname = "Uganda", results = results_rw2, geo = geo, 
-#' countrysum = data, inlamod = inla_model)
-#' }
 #' @export
-mapPlot <- function(countryname, results, geo, countrysum, inlamod) {
-  out <- list(countryname = countryname, results.rw2 = results, geo = geo, 
-              data.HT = countrysum, model.rw2 = inlamod)
-  surveylabel <- paste0("DHS ", unique(countrysum$surveyYears))
-  out$data.HT$survey.label <- surveylabel[out$data.HT$survey]
-    years <- names(out$results.rw2)
-    n.years <- length(years)
-    n.area <- dim(out$geo)[1]
-    areasCap <- out$geo@data$DHSREGEN
-    if (is.null(areasCap)) {
-        areasCap <- out$geo@data$NAME_final
-    }
-    areas.smooth <- rownames(out$results.rw2[[1]])
+mapPlot <- function(data, variables, values = NULL, labels=NULL, geo, by.data, by.geo, is.long = FALSE){
+    
+    value <- group <- lat <- long <- NULL
 
-    
-    plot.res <- expand.grid(District = areas.smooth, Year = years)
-    plot.res$sd <- plot.res$mean <- plot.res$q90 <- plot.res$q10 <- plot.res$q975 <- plot.res$q025 <- plot.res$med <- NA
-    
-    
-    for (i in 1:(n.years)) {
-        plot.res$med[plot.res$Year == years[i]] <- apply(out$results.rw2[[i]], 1, function(x) {
-            stats::median(expit(x))
-        })
-        plot.res$q025[plot.res$Year == years[i]] <- apply(out$results.rw2[[i]], 1, function(x) {
-            stats::quantile(expit(x), 0.025)
-        })
-        plot.res$q975[plot.res$Year == years[i]] <- apply(out$results.rw2[[i]], 1, function(x) {
-            stats::quantile(expit(x), 0.975)
-        })
-        plot.res$q10[plot.res$Year == years[i]] <- apply(out$results.rw2[[i]], 1, function(x) {
-            stats::quantile(expit(x), 0.1)
-        })
-        plot.res$q90[plot.res$Year == years[i]] <- apply(out$results.rw2[[i]], 1, function(x) {
-            stats::quantile(expit(x), 0.9)
-        })
-        plot.res$mean[plot.res$Year == years[i]] <- apply(out$results.rw2[[i]], 1, function(x) {
-            mean(expit(x))
-        })
-        plot.res$sd[plot.res$Year == years[i]] <- apply(out$results.rw2[[i]], 1, function(x) {
-            stats::sd(expit(x))
-        })
+    if(is.null(labels) & !is.long){
+        labels <- variables
     }
-    
-    
-    plot.res$ratio <- plot.res$q975/plot.res$q025
-    plot.res$unc_ratio <- plot.res$ratio > 3
-    plot.res$unc_ratio0 <- plot.res$ratio >= 2 & plot.res$ratio < 2.25
-    plot.res$unc_ratio1 <- plot.res$ratio >= 2.25 & plot.res$ratio < 2.5
-    plot.res$unc_ratio2 <- plot.res$ratio >= 2.5
-    
-    med.palette <- RColorBrewer::brewer.pal(n = 9, name = "Purples")
-    med.int <- classInt::classIntervals(round(plot.res$med, 3), n = 9, style = "jenks")
-    med.col <- classInt::findColours(med.int, med.palette)
-    plot.res$med.col <- med.col
-    
-    
-    graphics::par(mfrow = c(2, 4), mai = c(0.25, 0.1, 0.3, 0.1), oma = c(0.5, 0.1, 0.1, 0.1))
-    for (i in 1:(length(years) - 1)) {
-        
-        tmp <- plot.res[plot.res$Year == years[i], ]
-        tmp.col <- rep(NA, n.area)
-        for (j in 1:n.area) {
-            tmp.col[j] <- tmp$med.col[tmp$District == areas.smooth[j]]
-        }
-        sp::plot(out$geo, col = tmp.col, border = FALSE, main = years[i])
-        
+    if(is.null(labels) & is.long){
+        labels <- sort(unique(data[, variables]))
     }
-    
-    graphics::plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
-    graphics::legend(x = "center", inset = 0, legend = names(attr(med.col, "table")), fill = med.palette, cex = 1.25, horiz = FALSE, bty = "n")
+    if(is.null(values) & is.long){
+        stop("values need to be specified for long format input.")
+    }
+
+    geo <- ggplot2::fortify(geo, region = by.geo)
+    if(!is.long){
+        data <- data[, c(variables, by.data)]
+        data <- reshape2::melt(data)
+        data$variable <- factor(data$variable, levels = variables)
+        levels(data$variable) <- labels
+    }else{
+        data$value <- data[, values]
+        data$variable <- data[, variables]
+        data$variable <- as.character(data$variable)
+        data$variable <- factor(data$variable, levels=labels)
+    }
+
+    ## ---- read-map5
+    geo2 <- merge(geo, data, by = "id", by.y = by.data)
+
+    ## ---- read-map6
+    g <- ggplot2::ggplot(geo2) 
+    g <- g + ggplot2::geom_polygon(ggplot2::aes(x=long, y=lat, group = group, fill = value), color="black")
+    g <- g + ggplot2::facet_wrap(~variable) 
+    g <- g + ggplot2::scale_fill_distiller(direction=1)
+    return(g)
 }

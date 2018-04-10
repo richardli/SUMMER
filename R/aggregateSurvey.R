@@ -5,7 +5,29 @@
 #' @return Estimators aggregated across surveys.
 #' @examples
 #' \dontrun{
-#' TODO
+#' data(DemoData)
+#' data(DemoMap)
+#' years <- levels(DemoData[[1]]$time)
+#' 
+#' # obtain direct estimates
+#' data <- countrySummary_mult(births = DemoData, 
+#' years = years, idVar = "id", 
+#' regionVar = "region", timeVar = "time", 
+#' clusterVar = "~clustid+id", 
+#' ageVar = "age", weightsVar = "weights", 
+#' geo.recode = NULL)
+#' 
+#' # obtain maps
+#' geo <- DemoMap$geo
+#' mat <- DemoMap$Amat
+#' 
+#' # Simulate hyper priors
+#' priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat, only.iid = TRUE)
+#' 
+#' # combine data from multiple surveys
+#' data <- aggregateSurvey(data)
+#' head(data)
+#' 
 #' }
 #' 
 #' @export
