@@ -63,7 +63,10 @@ data <- aggregateSurvey(data)
 
 # Model fitting with INLA
 years.all <- c(years, "15-19")
-fit <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years.all, year_range = c(1985, 2019), priors = priors, rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
+fit <- fitINLA(data = data, geo = geo, Amat = mat, 
+year_names = years.all, year_range = c(1985, 2019), 
+priors = priors, rw = 2, is.yearly=TRUE, 
+m = 5, type.st = 4)
 # Projection
 out <- projINLA(fit, Amat = mat, is.yearly = TRUE)
 plot(out4, is.yearly=TRUE, is.subnational=TRUE) + ggtitle("Subnational yearly model")

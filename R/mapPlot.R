@@ -34,7 +34,8 @@
 #' 
 #' @export
 mapPlot <- function(data, variables, values = NULL, labels=NULL, geo, by.data, by.geo, is.long = FALSE){
-    
+    maptools::gpclibPermit()
+
     value <- group <- lat <- long <- NULL
 
     if(is.null(labels) & !is.long){
