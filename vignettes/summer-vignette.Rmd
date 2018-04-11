@@ -11,7 +11,6 @@ vignette: >
 # Uncomment to enter DEBUG mode. The package vignette will compile, but code will not be evaluated for speed purposes.
 # knitr::opts_chunk$set(eval = FALSE)
 knitr::opts_chunk$set(fig.width=9, fig.height=5, out.width = '100%') 
-maptools::gpclibPermit()
 
 ```
 
