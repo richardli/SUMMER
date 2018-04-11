@@ -11,7 +11,7 @@
 #' @param by.geo variable name specifying region names in the data
 #' @param is.long logical indicator of whether the data is in the long format, default to FALSE
 #' @examples
-#' 
+#' \dontrun{
 #' data(DemoMap)
 #' # Plotting data in the long format
 #' dat <- data.frame(region = rep(c("central",  "eastern", "northern", "western"), 3), 
@@ -31,6 +31,8 @@
 #'  labels = c(1980, 1990, 2000), 
 #' by.data = "region", geo = DemoMap$geo, 
 #' by.geo = "NAME_final", is.long = FALSE)
+#' 
+#' }
 #' 
 #' @export
 mapPlot <- function(data, variables, values = NULL, labels=NULL, geo, by.data, by.geo, is.long = FALSE){
