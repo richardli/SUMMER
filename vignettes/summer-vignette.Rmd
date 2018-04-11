@@ -38,7 +38,7 @@ summary(DemoData)
 head(DemoData[[1]])
 ```
 
-`DemoData` is obtained by processing the raw DHS birth data (in .dta format) in R. The raw file of birth recodes can be downloaded from the DHS website [https://dhsprogram.com/data/Download-Model-Datasets.cfm](https://dhsprogram.com/data/Download-Model-Datasets.cfm). For this example dataset, no registration is needed. For real DHS survey datasets, permission to access needs to be registered with DHS directly. `DemData` contains a small sample of the observations in this dataset randomly assigned to $5$ example DHS surveys.
+`DemoData` is obtained by processing the raw DHS birth data (in .dta format) in R. The raw file of birth recodes can be downloaded from the DHS website [https://dhsprogram.com/data/Download-Model-Datasets.cfm](https://dhsprogram.com/data/Download-Model-Datasets.cfm). For this example dataset, no registration is needed. For real DHS survey datasets, permission to access needs to be registered with DHS directly. `DemoData` contains a small sample of the observations in this dataset randomly assigned to $5$ example DHS surveys.
 
 Here we demonstrate how to split the raw data into person-month format from. Notice that to read the file from early version of stata, the package `readstata13` is required. The following script is based on the example dataset `ZZBR62FL.DTA` available from the DHS website. We use the interaction of v024 and v025 as the strata indicator for the purpose of demonstration.
 
