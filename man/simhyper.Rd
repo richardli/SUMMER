@@ -25,8 +25,8 @@ Function to simulate hyperpriors from an adjacency matrix.
 }
 \examples{
 \dontrun{
-data(UgandaMap)
-mat <- UgandaMap$Amat
+data(DemoMap)
+mat <- DemoMap$Amat
 priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat)
 }
 }

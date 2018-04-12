@@ -15,9 +15,9 @@
 #' @seealso \code{\link{countrySummary}}
 #' @examples
 #' \dontrun{
-#' data(Uganda)
+#' data(DemoData)
 #' years <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14")
-#' u5m <- countrySummary_mult(births = Uganda, years = years, idVar = "id", 
+#' u5m <- countrySummary_mult(births = DemoData, years = years, idVar = "id", 
 #' regionVar = "region", timeVar = "time", clusterVar = "~clustid+id", 
 #' ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 #' }

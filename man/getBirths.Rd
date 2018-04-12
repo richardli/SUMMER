@@ -26,7 +26,7 @@ Function to get Births file from DHS .dta files.
 \examples{
 \dontrun{
 my_fp <- "/myExampleFilepath/surveyData.DTA"
-Uganda <- getBirths(filepath = my_fp, surveyyear = 2015) 
+DemoData <- getBirths(filepath = my_fp, surveyyear = 2015) 
 }
 
 }

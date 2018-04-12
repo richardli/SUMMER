@@ -10,8 +10,8 @@
 #' @references Wakefield, J. Multi-level modelling, the ecologic fallacy, and hybrid study designs. \emph{International Journal of Epidemiology}, 2009, vol. 38 (pg. 330-336).
 #' @examples
 #' \dontrun{
-#' data(UgandaMap)
-#' mat <- UgandaMap$Amat
+#' data(DemoMap)
+#' mat <- DemoMap$Amat
 #' priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat)
 #' }
 #' @export
