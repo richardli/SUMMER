@@ -41,7 +41,7 @@
 #' m = 5, type.st = 4)
 #' # Projection
 #' out <- projINLA(fit, Amat = mat, is.yearly = TRUE)
-#' plot(out4, is.yearly=TRUE, is.subnational=TRUE) + ggtitle("Subnational yearly model")
+#' plot(out, is.yearly=TRUE, is.subnational=TRUE) + ggplot2::ggtitle("Subnational yearly model")
 #' 
 #' }
 #' 
