@@ -14,12 +14,13 @@
 #' @return a matrix of period-region summary of the Horvitz-Thompson direct estimates, the standard errors using delta method for a single survey, the 95\% confidence interval, and the logit of the estimates.
 #' @seealso \code{\link{countrySummary_mult}}
 #' @examples
-#' 
+#' \dontrun{
 #' data(DemoData)
 #' years <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14")
 #' u5m <- countrySummary(births = DemoData[[1]],  years = years, idVar = "id", 
 #' regionVar = "region", timeVar = "time", clusterVar = "~clustid+id", 
 #' ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+#' }
 #' @export
 countrySummary <- function(births, years, idVar = "v002", regionVar = "region", timeVar = "per5", clusterVar = "~v001+v002",
                            ageVar = "ageGrpD", weightsVar = "v005", geo.recode = NULL) {
