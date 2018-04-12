@@ -26,7 +26,7 @@
 #' 
 #' # combine data from multiple surveys
 #' data <- aggregateSurvey(data)
-#' head(data)
+#' utils::head(data)
 #' 
 #' }
 #' 

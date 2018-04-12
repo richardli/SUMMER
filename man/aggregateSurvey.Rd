@@ -38,7 +38,7 @@ priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat, only.ii
 
 # combine data from multiple surveys
 data <- aggregateSurvey(data)
-head(data)
+utils::head(data)
 
 }
 
