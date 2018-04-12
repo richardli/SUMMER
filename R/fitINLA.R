@@ -70,6 +70,19 @@
 #' @export
 fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE, redo.prior = FALSE, priors = NULL, type.st = 1, useHyper = FALSE, a.iid = NULL, b.iid = NULL, a.rw1 = NULL, b.rw1 = NULL, a.rw2 = NULL, b.rw2 = NULL, a.icar = NULL, b.icar = NULL){
 
+  # check region names in Amat is consistent
+  if(!is.null(Amat)){
+    if(is.null(rownames(Amat))){
+        stop("Row names of Amat needs to be specified to region names.")
+    }
+    if(is.null(colnames(Amat))){
+        stop("Column names of Amat needs to be specified to region names.")
+    }
+    if(sum(rownames(Amat) != colnames(Amat)) > 0){
+        stop("Row and column names of Amat needs to be the same.")
+    }
+  }
+
   # get around CRAN check of using un-exported INLA functions
   rate0 <- shape0 <- my.cache <- inla.as.sparse <- type <- NULL
 

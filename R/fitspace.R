@@ -56,7 +56,16 @@ fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", w
     if(is.null(family)){
     	stop("family not specified")
     }
-
+    if(is.null(rownames(Amat))){
+        stop("Row names of Amat needs to be specified to region names.")
+    }
+    if(is.null(colnames(Amat))){
+        stop("Column names of Amat needs to be specified to region names.")
+    }
+    if(sum(rownames(Amat) != colnames(Amat)) > 0){
+        stop("Row and column names of Amat needs to be the same.")
+    }
+    
     if (is.null(clusterVar)){
         stop("cluster not specified")
     }
@@ -129,22 +138,24 @@ fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", w
         stop("family argument only supports binomial or gaussian at the time.")
     }
 
-    regnames <- as.character(name.i)
-    reg.unstruct <- reg.struct <- 1:length(regnames)
     dat <- data.frame(HT.est = ht, 
                       HT.sd = ht.v ^ 0.5,
                       HT.variance = ht.v,
                       HT.prec = ht.prec,
                       HT.est.original = p.i,
-                      HT.variance.original = var.i,
-                      reg.unstruct = reg.unstruct, 
-                      reg.struct = reg.struct, 
-                      region=regnames)
+                      HT.variance.original = var.i)
+    # make it consistent with map
+    regnames <- as.character(name.i)
+    dat <- dat[match(rownames(Amat), regnames), ]
+    dat$region <- rownames(Amat)
+    dat$reg.unstruct <- 1:length(regnames)
+    dat$reg.struct <- 1:length(regnames)
+
     formula = HT.est ~ 1 + f(reg.unstruct, model = 'iid', param=c(a.iid,b.iid)) + f(reg.struct, graph=Amat, model="besag", param=c(a.iid,b.iid), scale.model = TRUE)
 
-    fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.prec,  lincomb = NULL)
-    proj <- data.frame(region=regnames, mean.trans=NA, sd.trans=NA, median.trans=NA, lower.trans=NA, upper.trans=NA, mean=NA, sd=NA, median=NA, lower=NA, upper=NA)
-    for(i in 1:length(regnames)){
+    fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2))
+    proj <- data.frame(region=rownames(Amat), mean.trans=NA, sd.trans=NA, median.trans=NA, lower.trans=NA, upper.trans=NA, mean=NA, sd=NA, median=NA, lower=NA, upper=NA)
+    for(i in 1:dim(Amat)[1]){
         tmp <- matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[i]]))
         tmp2 <- apply(tmp, 2, FUN)
         proj[i, "mean.trans"] <- mean(tmp2)
@@ -153,11 +164,11 @@ fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", w
         proj[i, "upper.trans"] <- quantile(tmp2, 1-(1-CI)/2)
         proj[i, "median.trans"] <- median(tmp2)
 
-        proj[i, "mean"] <- mean(tmp)
-        proj[i, "sd"] <- sd(tmp)
-        proj[i, "lower"] <- quantile(tmp, (1-CI)/2)
-        proj[i, "upper"] <- quantile(tmp, 1-(1-CI)/2)
-        proj[i, "median"] <- median(tmp)
+        proj[i, "mean"] <- fit$summary.fitted.values[i, "mean"]
+        proj[i, "sd"] <- fit$summary.fitted.values[i, "sd"]
+        proj[i, "lower"] <- fit$summary.fitted.values[i, 3]
+        proj[i, "upper"] <- fit$summary.fitted.values[i, 5]
+        proj[i, "median"] <- fit$summary.fitted.values[i, "0.5quant"]
     }
 
    return(list(HT = dat,
