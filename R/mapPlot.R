@@ -14,22 +14,22 @@
 #' \dontrun{
 #' data(DemoMap)
 #' # Plotting data in the long format
-#' dat <- data.frame(region = rep(c("central",  "eastern", "northern", "western"), 3), 
-#' year = rep(c(1980, 1990, 2000), each = 4), 
-#' values = rnorm(12))
-#' head(dat)
-#' mapPlot(dat, variables = "year", values = "values", 
-#' by.data = "region", geo = DemoMap$geo, 
+#' dat <- data.frame(region = rep(c("central",  "eastern", "northern", "western"), 3),
+#' year = rep(c(1980, 1990, 2000), each = 4),
+#' values = stats::rnorm(12))
+#' utils::head(dat)
+#' mapPlot(dat, variables = "year", values = "values",
+#' by.data = "region", geo = DemoMap$geo,
 #' by.geo = "NAME_final", is.long = TRUE)
-#'  
-#' # Plotting data in the wide format
-#' dat <- data.frame(region = c("central",  "eastern", "northern", "western"), 
-#' Year1 = rnorm(4), Year2 = rnorm(4), 
-#' Year3 = rnorm(4))
-#' head(dat)
+
+# Plotting data in the wide format
+#' dat <- data.frame(region = c("central",  "eastern", "northern", "western"),
+#' Year1 = stats::rnorm(4), Year2 = stats::rnorm(4),
+#' Year3 = stats::rnorm(4))
+#' utils::head(dat)
 #' mapPlot(dat, variables = c("Year1", "Year2", "Year3"),
-#'  labels = c(1980, 1990, 2000), 
-#' by.data = "region", geo = DemoMap$geo, 
+#'  labels = c(1980, 1990, 2000),
+#' by.data = "region", geo = DemoMap$geo,
 #' by.geo = "NAME_final", is.long = FALSE)
 #' 
 #' }
