@@ -71,8 +71,10 @@ fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", w
     }
     if(is.null(FUN)){
         if(family == "binomial"){
+            message("FUN is not specified, default to be expit()")
             FUN <- expit
         }else if(family == "gaussian"){
+            message("FUN is not specified, default to be no transformation")
             FUN <- function(x){x}
         }
     }
@@ -91,13 +93,14 @@ fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", w
     data$weights0 <- data[, weightVar]
     data$strata0 <- data[, strataVar]
     data$region0 <- data[, regionVar]
-    if(is.null(hyper)){
+    if(is.null(hyper) && family == "binomial"){
         hyper <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, only.iid = TRUE)
-        a.iid <- hyper$a.iid
-        b.iid <- hyper$b.iid
+        param <- c(hyper$a.iid, hyper$b.iid)
+    }else if(is.null(hyper) && family == "gaussian"){
+        # default by INLA
+        param <- NULL
     }else{
-        a.iid <- hyper[1]
-        b.iid <- hyper[2]
+        param <- c(hyper[1], hyper[2])
     }
 
     if(is.null(colnames(Amat)) || is.null(rownames(Amat))){
@@ -151,7 +154,7 @@ fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", w
     dat$reg.unstruct <- 1:length(regnames)
     dat$reg.struct <- 1:length(regnames)
 
-    formula = HT.est ~ 1 + f(reg.unstruct, model = 'iid', param=c(a.iid,b.iid)) + f(reg.struct, graph=Amat, model="besag", param=c(a.iid,b.iid), scale.model = TRUE)
+    formula = HT.est ~ 1 + f(reg.unstruct, model = 'iid', param=param) + f(reg.struct, graph=Amat, model="besag", param=param, scale.model = TRUE)
 
     fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2))
     proj <- data.frame(region=rownames(Amat), mean.trans=NA, sd.trans=NA, median.trans=NA, lower.trans=NA, upper.trans=NA, mean=NA, sd=NA, median=NA, lower=NA, upper=NA)

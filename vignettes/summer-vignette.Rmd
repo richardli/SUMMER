@@ -164,8 +164,8 @@ mapPlot(data = subset(out4, is.yearly==F), geo = DemoMap$geo, variables=c("Year"
 
 
 
-## A simple spatial smoothing example
-Here is another simple spatial smoothing example using data created from the model survey data, and a Kenya Admin 1 map with 8 regions.
+## Simple spatial smoothing examples
+In this section we show two simple spatial smoothing example using data created from the model survey data, and a Kenya Admin 1 map with 8 regions.
 ```{r}
 data(DemoData2)
 data(DemoMap2)
@@ -176,9 +176,110 @@ The `DemoData2` dataset contains the survey information and two response variabl
 head(DemoData2)
 ```
 
-Suppose we denote the tobacco usage of observation $k$ in area $i$ to be $y_{ik}$, and the associated design weight to be $w_{ik}$. Under the design-based approach to inference, we can calculate the weighted estimator of prevalence to be 
+### Normal model
+We first generate some synthetic normally distributed variable for height for each observation. Suppose we denote the height of observation $k$ in area $i$ to be $x_{ik}$, and the associated design weight to be $w_{ik}$. Under the design-based approach to inference, we can calculate the weighted estimator of mean height to be 
 \[
-  \hat p_i = \frac{\sum_k w_{ik}y_{ik}}{\sum_k w_{ik}}
+  \hat{\mu_i} = \frac{\sum_k w_{ik}x_{ik}}{\sum_k w_{ik}}
+\]
+and the associated variance $\widehat{var}(\hat{\mu_i})$. We then use INLA to fit the following Bayesian hierarchical model:
+\begin{eqnarray*}
+\hat\mu_i &\sim & \mbox{Normal}( \mu_i, \widehat{var}(\hat{\mu_i}) )\\
+\mu_i &=& \beta + \epsilon_i+\delta_i,\\
+\epsilon_i &\sim & \mbox{Normal}(0,\sigma_\epsilon^2)\\
+\delta_i &\sim & \mbox{ICAR}(\sigma_\delta^2)
+\end{eqnarray*}
+
+To simulate from this generative model, we first simulate from the ICAR random fields as follows
+```{r}
+set.seed(123)
+sim.Q <- function(Q){
+  eigenQ <- eigen(Q)
+  rankQ <- qr(Q)$rank
+  sim <- as.vector(eigenQ$vectors[,1:rankQ] %*% 
+           matrix(
+             rnorm(rep(1, rankQ), rep(0, rankQ), 1/sqrt(eigenQ$values[1:rankQ])),
+           ncol = 1))
+  sim
+}
+Q <- DemoMap2$Amat * -1
+diag(Q) <- 0
+diag(Q) <- -1 * apply(Q, 2, sum)
+struct.error <- sim.Q(Q) 
+```
+We generate the mean height for each region by 
+
+```{r}
+mu <- 70 + struct.error
+regions <- colnames(DemoMap2$Amat)
+```
+
+
+We generate the data by
+```{r}
+DemoData2$height <- rnorm(dim(DemoData2)[1])*8 + mu[match(DemoData2$region, regions)]
+```
+
+
+We can use the `fitspace()` function to obtain both the survey-weighted direct estimates and the smoothed estimates from INLA.
+
+```{r}
+fit <- fitSpace(data=DemoData2, geo=DemoMap2$geo, Amat=DemoMap2$Amat, family="gaussian", responseVar="height", strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~clustid+id", hyper=NULL, CI = 0.95)
+```
+
+
+
+The posterior median of the structured random effects can be obtained from:
+```{r, fig.width=5, fig.height=5, out.width = '50%'}
+fit$fit$summary.random$reg.struct[, "0.5quant"]
+```
+
+We can compare the posterior of the structured random effects with the truth values from the simulation.
+```{r, fig.width=5, fig.height=5, out.width = '50%'}
+lim <- range(c(struct.error, fit$fit$summary.random$reg.struct[, "0.025quant"], 
+               fit$fit$summary.random$reg.struct[, "0.975quant"]))
+plot(struct.error, fit$fit$summary.random$reg.struct[, "0.5quant"],  xlab = "Structured random effects", ylab = "Posterior median", xlim = lim, ylim = lim)
+segments(x0 = struct.error, x1 = struct.error,
+         y0 = fit$fit$summary.random$reg.struct[, "0.025quant"], 
+         y1 = fit$fit$summary.random$reg.struct[, "0.975quant"])
+abline(c(0, 1))
+```
+
+
+The direct estimates of the prevalence of tobacco usage, i.e., $\hat p_i$ accounting for survey design are 
+```{r}
+fit$HT[, c("HT.est", "HT.sd", "region")]
+```
+
+The posterior summaries of $\mu_i|\hat\mu_i$ can be obtained by 
+```{r}
+fit$smooth[, c("mean", "sd", "median", "lower", "upper", "region")]
+```
+
+We can compare the direct and smoothed estimates and their standard errors.
+```{r}
+par(mfrow = c(1, 2))
+lim <- range(c(fit$HT$HT.est, fit$smooth$mean))
+plot(fit$HT$HT.est, fit$smooth$mean, xlim = lim, ylim = lim, xlab = "Direct estimates", ylab = "Posterior mean")
+abline(c(0, 1))
+lim <- range(c(fit$HT$HT.sd, fit$smooth$sd))
+plot(fit$HT$HT.sd, fit$smooth$sd, xlim = lim, ylim = lim, xlab = "Direct SE", ylab = "Posterior SD")
+abline(c(0, 1))
+```
+
+
+
+We can also compare the direct and smoothed estimates on the map.
+```{r, fig.width=15, fig.height=5}
+combined <- merge(fit$HT, fit$smooth, by = "region")
+combined$truth <- mu[match(combined$region, regions)]
+mapPlot(data = combined, geo = DemoMap2$geo, variables=c("truth", "HT.est", "median"), labels = c("True mean", "Direct Estimates", "Posterior Median"), by.data = "region", by.geo = "NAME_final", is.long=FALSE)
+```
+
+
+### Binary model with logistic link
+Similar as in the previous subsection, suppose we denote the tobacco usage of observation $k$ in area $i$ to be $y_{ik}$, and the associated design weight to be $w_{ik}$. Under the design-based approach to inference, we can calculate the weighted estimator of prevalence to be 
+\[
+  \hat{p_i} = \frac{\sum_k w_{ik}y_{ik}}{\sum_k w_{ik}}
 \]
 and the associated variance $\widehat{var}(\hat{p_i})$. By delta method, if we denote $\hat\theta_{i} = \log(\frac{\hat p_i}{1-\hat p_i})$, the asymptotic distribution of $\hat\theta_{i}$ is 
 \[
@@ -192,11 +293,12 @@ We then use INLA to fit the following Bayesian hierarchical model:
 \delta_i &\sim & \mbox{ICAR}(\sigma_\delta^2)
 \end{eqnarray*}
 
-We use the `fitspace()` function to obtain the weighted direct estimates and the smoothed estimates from INLA.
+We can use the `fitspace()` function to obtain both the survey-weighted direct estimates and the smoothed estimates from INLA.
 
 ```{r}
 fit <- fitSpace(data=DemoData2, geo=DemoMap2$geo, Amat=DemoMap2$Amat, family="binomial", responseVar="tobacco.use", strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~clustid+id", hyper=NULL, CI = 0.95)
 ```
+
 
 The direct estimates of the prevalence of tobacco usage, i.e., $\hat p_i$ accounting for survey design are 
 ```{r}
