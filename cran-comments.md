@@ -58,3 +58,15 @@ This is due to the "." from "Mercer et al.". All sentences are complete.
 * Please also omit the blank in <doi: 10.1214/15-AOAS872>.
 
 **Response:** We have searched for this blank in all files by checking every occurrence of "doi", and it does not occur. Just in case, we have manually re-typed  "doi:1" in each occurence of the reference.
+
+## Version 0.2.0 Update
+
+* We expanded authorship of the package.
+* We updated the links for URL and BugReports.
+* We reworked our vignette.
+* We added the capability to use a yearly model. Previously, only 5-year increments were possible.
+* We hchanged the plotting function aesthetics and adjusted for the new yearly model. 
+* We renamed our included data, added another data set, and clarified that the data do not represent any real country.
+* We added the capability to do a simpler model that does uses only binary outcome.
+* We made minor updates to the documentation and examples.
+
