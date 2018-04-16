@@ -15,7 +15,7 @@ fitSpace(data, geo, Amat, family, responseVar, strataVar = "strata",
 
 \item{Amat}{Adjacency matrix for the regions}
 
-\item{family}{‘family’ object currently supports 'binomial' (default with logit link function) or 'gaussian'.}
+\item{family}{Link function specification, currently supports 'binomial' (default with logit link function) or 'gaussian'.}
 
 \item{responseVar}{the response variable}
 
@@ -36,7 +36,7 @@ fitSpace(data, geo, Amat, family, responseVar, strataVar = "strata",
 \value{
 \item{HT}{Direct estimates}
 \item{smooth}{Spatially smoothed estimates}
-\item{fit}{a fitted inla object}
+\item{fit}{a fitted INLA object}
 \item{geo}{input argument}
 \item{Amat}{input argument}
 \item{CI}{input argument}

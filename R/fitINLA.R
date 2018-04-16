@@ -9,22 +9,22 @@
 #' @param formula INLA formula. Defaults to RW2, ICAR, IID time, IID, region, IID survey effect, IID time-region interaction, IID survey-region interaction, and IID survey-time-region interaction. 
 #' @param year_names string vector of year names
 #' @param na.rm Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.
-#' @param redo.prior Logical indicator of whether to re-estimate hyper parameters
-#' @param priors priors from simhyper
-#' @param useHyper option to manually set all hyper priors
+#' @param redo.prior Logical indicator of whether to re-estimate hyperparameters
+#' @param priors priors from \code{\link{simhyper}}
+#' @param useHyper option to manually set all hyperpriors
 #' @param rw Take values 1 or 2, indicating the order of random walk.
 #' @param is.yearly Logical indicator for fitting yearly or period model.
 #' @param year_range Entire range of the years (inclusive) defined in year_names.
 #' @param m Number of years in each period.
 #' @param type.st type for space-time interaction
-#' @param a.iid hyper parameter for i.i.d random effects, only need if \code{useHyper = TRUE}
-#' @param b.iid hyper parameter for i.i.d random effects, only need if \code{useHyper = TRUE}
-#' @param a.rw1 hyper parameter for RW1 random effects, only need if \code{useHyper = TRUE}
-#' @param b.rw1 hyper parameter for RW1 random effects, only need if \code{useHyper = TRUE}
-#' @param a.rw2 hyper parameter for RW2 random effects, only need if \code{useHyper = TRUE}
-#' @param b.rw2 hyper parameter for RW2 random effects, only need if \code{useHyper = TRUE}
-#' @param a.icar hyper parameter for ICAR random effects, only need if \code{useHyper = TRUE}
-#' @param b.icar hyper parameter for ICAR random effects, only need if \code{useHyper = TRUE}
+#' @param a.iid hyperparameter for i.i.d random effects, only need if \code{useHyper = TRUE}
+#' @param b.iid hyperparameter for i.i.d random effects, only need if \code{useHyper = TRUE}
+#' @param a.rw1 hyperparameter for RW1 random effects, only need if \code{useHyper = TRUE}
+#' @param b.rw1 hyperparameter for RW1 random effects, only need if \code{useHyper = TRUE}
+#' @param a.rw2 hyperparameter for RW2 random effects, only need if \code{useHyper = TRUE}
+#' @param b.rw2 hyperparameter for RW2 random effects, only need if \code{useHyper = TRUE}
+#' @param a.icar hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}
+#' @param b.icar hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}
 #' @seealso \code{\link{countrySummary}}
 #' @importFrom stats dgamma
 #' @importFrom Matrix Diagonal cBind rBind
@@ -49,7 +49,7 @@
 #' geo <- DemoMap$geo
 #' mat <- DemoMap$Amat
 #' 
-#' # Simulate hyper priors
+#' # Simulate hyperpriors
 #' priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat, only.iid = TRUE)
 #' 
 #' # combine data from multiple surveys

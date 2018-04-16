@@ -7,7 +7,7 @@
 #' @param data data frame with region and strata information.
 #' @param geo Geo file
 #' @param Amat Adjacency matrix for the regions
-#' @param family ‘family’ object currently supports 'binomial' (default with logit link function) or 'gaussian'. 
+#' @param family Link function specification, currently supports 'binomial' (default with logit link function) or 'gaussian'. 
 #' @param responseVar the response variable
 #' @param strataVar the strata variable
 #' @param weightVar the weights variable
@@ -20,7 +20,7 @@
 #' 
 #' @return \item{HT}{Direct estimates}
 #' \item{smooth}{Spatially smoothed estimates}
-#' \item{fit}{a fitted inla object}
+#' \item{fit}{a fitted INLA object}
 #' \item{geo}{input argument}
 #' \item{Amat}{input argument}
 #' \item{CI}{input argument}

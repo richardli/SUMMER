@@ -18,7 +18,7 @@ simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat, nperiod = 6,
 
 \item{nperiod}{numerical value of how many time periods in the data}
 
-\item{only.iid}{Indicator for whether or not only IID hyper priors are simulated}
+\item{only.iid}{Indicator for whether or not only IID hyperpriors are simulated}
 }
 \description{
 Function to simulate hyperpriors from an adjacency matrix.

@@ -6,7 +6,7 @@
 #' @param nsamp.check Sample to simulate for checking range
 #' @param Amat Adjacency matrix of the areas in the data.
 #' @param nperiod numerical value of how many time periods in the data
-#' @param only.iid Indicator for whether or not only IID hyper priors are simulated
+#' @param only.iid Indicator for whether or not only IID hyperpriors are simulated
 #' @references Wakefield, J. Multi-level modelling, the ecologic fallacy, and hybrid study designs. \emph{International Journal of Epidemiology}, 2009, vol. 38 (pg. 330-336).
 #' @examples
 #' \dontrun{
@@ -23,7 +23,7 @@ simhyper <- function(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat, nperiod = 6
     b <- (log(R))^2 * d/(2 * stats::qt(p, df = d)^2)
     a.iid <- a
     b.iid <- b
-    if(!only.iid){
+    if (!only.iid) {
     ##################################################################### Check range using simulation #
     tausamp <- stats::rgamma(nsamp, a, b)
     Usamp <- stats::rnorm(nsamp, mean = 0, sd = 1/sqrt(tausamp))

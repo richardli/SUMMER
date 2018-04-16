@@ -31,29 +31,29 @@ fitINLA(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
 
 \item{na.rm}{Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.}
 
-\item{redo.prior}{Logical indicator of whether to re-estimate hyper parameters}
+\item{redo.prior}{Logical indicator of whether to re-estimate hyperparameters}
 
-\item{priors}{priors from simhyper}
+\item{priors}{priors from \code{\link{simhyper}}}
 
 \item{type.st}{type for space-time interaction}
 
-\item{useHyper}{option to manually set all hyper priors}
+\item{useHyper}{option to manually set all hyperpriors}
 
-\item{a.iid}{hyper parameter for i.i.d random effects, only need if \code{useHyper = TRUE}}
+\item{a.iid}{hyperparameter for i.i.d random effects, only need if \code{useHyper = TRUE}}
 
-\item{b.iid}{hyper parameter for i.i.d random effects, only need if \code{useHyper = TRUE}}
+\item{b.iid}{hyperparameter for i.i.d random effects, only need if \code{useHyper = TRUE}}
 
-\item{a.rw1}{hyper parameter for RW1 random effects, only need if \code{useHyper = TRUE}}
+\item{a.rw1}{hyperparameter for RW1 random effects, only need if \code{useHyper = TRUE}}
 
-\item{b.rw1}{hyper parameter for RW1 random effects, only need if \code{useHyper = TRUE}}
+\item{b.rw1}{hyperparameter for RW1 random effects, only need if \code{useHyper = TRUE}}
 
-\item{a.rw2}{hyper parameter for RW2 random effects, only need if \code{useHyper = TRUE}}
+\item{a.rw2}{hyperparameter for RW2 random effects, only need if \code{useHyper = TRUE}}
 
-\item{b.rw2}{hyper parameter for RW2 random effects, only need if \code{useHyper = TRUE}}
+\item{b.rw2}{hyperparameter for RW2 random effects, only need if \code{useHyper = TRUE}}
 
-\item{a.icar}{hyper parameter for ICAR random effects, only need if \code{useHyper = TRUE}}
+\item{a.icar}{hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}}
 
-\item{b.icar}{hyper parameter for ICAR random effects, only need if \code{useHyper = TRUE}}
+\item{b.icar}{hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}}
 }
 \value{
 INLA model fit using the provided formula, country summary data, and geographic data
@@ -80,7 +80,7 @@ geo.recode = NULL)
 geo <- DemoMap$geo
 mat <- DemoMap$Amat
 
-# Simulate hyper priors
+# Simulate hyperpriors
 priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat, only.iid = TRUE)
 
 # combine data from multiple surveys
