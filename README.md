@@ -22,7 +22,7 @@ devtools::install_github("bryandmartin/SUMMER")
 
 **Development Version Updates**
 
-We are currently incorporating a new yearly model into the development version of SUMMER, improving the implementation of our the five yearly model, and adding new options to the functions. The development package may be unstable until we finalize this process.
+The CRAN version of the package is currently up to date.
 
 ## Usage
 To see example usage of all main functions, build the package vignette. Note that the vignette will take a few minutes to compile.
