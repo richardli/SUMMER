@@ -65,8 +65,8 @@ This is due to the "." from "Mercer et al.". All sentences are complete.
 * We updated the links for URL and BugReports.
 * We reworked our vignette.
 * We added the capability to use a yearly model. Previously, only 5-year increments were possible.
-* We hchanged the plotting function aesthetics and adjusted for the new yearly model. 
+* We changed the plotting function aesthetics and adjusted for the new yearly model. 
 * We renamed our included data, added another data set, and clarified that the data do not represent any real country.
-* We added the capability to do a simpler model that does uses only binary outcome.
+* We added the capability to do a simpler model that uses only binary outcome.
 * We made minor updates to the documentation and examples.
 
