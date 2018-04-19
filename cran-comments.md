@@ -3,6 +3,23 @@
 * ubuntu 12.04 (on travis-ci), R 3.4.2
 * win-builder (devel and release)
 
+0 errors | 0 warnings | 0 notes
+
+## Version 0.1.0 Checks
+
+Result: NOTE 
+    Package suggested but not available for checking: ‘INLA’ 
+    
+INLA is not held in a common repository so package so cannot be made available for checking.
+
+checking re-building of vignette outputs ... [2s/3s] WARNING
+Error in re-building vignettes:
+  ...
+Installing package into '/home/hornik/tmp/R.check/r-release-gcc/Work/build/Packages'
+(as 'lib' is unspecified)
+
+We added the vignette output to inst/doc.
+
 ## Version 0.2.0 Update
 
 * We expanded authorship of the package.
@@ -13,4 +30,4 @@
 * We renamed our included data, added another data set, and clarified that the data do not represent any real country.
 * We added the capability to do a simpler model that uses only binary outcome.
 * We made minor updates to the documentation and examples.
-* Switch to a static vignette with source code available.
+* Add vignette to inst/doc to prevent WARNINGs.
