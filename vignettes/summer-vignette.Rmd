@@ -102,13 +102,17 @@ In fitting this model, we first define the list of time periods we wish to proje
 
 ```{r, message = FALSE}
 years.all <- c(years, "15-19")
-fit1 <- fitINLA(data = data, geo = NULL, Amat = NULL, year_names = years.all, year_range = c(1985, 2019), priors = priors, rw = 2, is.yearly=FALSE, m = 5)
+fit1 <- fitINLA(data = data, geo = NULL, Amat = NULL, year_names = years.all,
+                year_range = c(1985, 2019), priors = priors, rw = 2,
+                is.yearly=FALSE, m = 5)
 ```
 
 ### Yearly model
 Similarly as before, we can estimate the Random Walk 2 random effects on the yearly scale. 
 ```{r, message = FALSE}
-fit2 <- fitINLA(data = data, geo = NULL, Amat = NULL, year_names = years.all, year_range = c(1985, 2019), priors = priors, rw = 2, is.yearly=TRUE, m = 5)
+fit2 <- fitINLA(data = data, geo = NULL, Amat = NULL, year_names = years.all,
+                year_range = c(1985, 2019), priors = priors, rw = 2,
+                is.yearly=TRUE, m = 5)
 ```
 
 ### Obtain smoothed estimates
@@ -138,13 +142,17 @@ Similarly we can fit the full model on all subnational regions.
 ### Period model
 
 ```{r, message = FALSE}
-fit3 <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years.all, year_range = c(1985, 2019), priors = priors, rw = 2, is.yearly=FALSE, m = 5)
+fit3 <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years.all,
+                year_range = c(1985, 2019), priors = priors, rw = 2,
+                is.yearly=FALSE)
 out3 <- projINLA(fit3, Amat = mat, is.yearly = FALSE)
 ```
 
 ### Yearly model with type IV interaction
 ```{r, message = FALSE}
-fit4 <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years.all, year_range = c(1985, 2019), priors = priors, rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
+fit4 <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years.all,
+                year_range = c(1985, 2019), priors = priors, rw = 2,
+                is.yearly=TRUE, m = 5, type.st = 4)
 out4 <- projINLA(fit4, Amat = mat, is.yearly = TRUE)
 ```
 
@@ -159,7 +167,8 @@ grid.arrange(grobs=g2, ncol = 2)
 ### Map visualization of changes across time
 
 ```{r, fig.width=9, fig.height=9}
-mapPlot(data = subset(out4, is.yearly==F), geo = DemoMap$geo, variables=c("Year"), values = c("med"), by.data = "District", by.geo = "NAME_final", is.long=TRUE)
+mapPlot(data = subset(out4, is.yearly==F), geo = DemoMap$geo,
+        variables=c("Year"), values = c("med"), by.data = "District", by.geo = "NAME_final", is.long=TRUE)
 ```
 
 
@@ -183,7 +192,7 @@ We first generate some synthetic normally distributed variable for height for ea
 \]
 and the associated variance $\widehat{var}(\hat{\mu_i})$. We then use INLA to fit the following Bayesian hierarchical model:
 \begin{eqnarray*}
-\hat\mu_i &\sim & \mbox{Normal}( \mu_i, \widehat{var}(\hat{\mu_i}) )\\
+\hat{\mu}_i &\sim & \mbox{Normal}( \mu_i, \widehat{var}(\hat{\mu_i}) )\\
 \mu_i &=& \beta + \epsilon_i+\delta_i,\\
 \epsilon_i &\sim & \mbox{Normal}(0,\sigma_\epsilon^2)\\
 \delta_i &\sim & \mbox{ICAR}(\sigma_\delta^2)
@@ -223,7 +232,11 @@ DemoData2$height <- rnorm(dim(DemoData2)[1])*8 + mu[match(DemoData2$region, regi
 We can use the `fitspace()` function to obtain both the survey-weighted direct estimates and the smoothed estimates from INLA.
 
 ```{r}
-fit <- fitSpace(data=DemoData2, geo=DemoMap2$geo, Amat=DemoMap2$Amat, family="gaussian", responseVar="height", strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~clustid+id", hyper=NULL, CI = 0.95)
+fit <- fitSpace(data=DemoData2, geo=DemoMap2$geo, Amat=DemoMap2$Amat,
+                family="gaussian", responseVar="height", strataVar="strata",
+                weightVar="weights", regionVar="region", 
+                clusterVar = "~clustid+id", 
+                hyper=NULL, CI = 0.95)
 ```
 
 
@@ -235,7 +248,7 @@ fit$fit$summary.random$reg.struct[, "0.5quant"]
 
 We can compare the posterior of the structured random effects with the truth values from the simulation.
 ```{r, fig.width=5, fig.height=5, out.width = '50%'}
-lim <- range(c(struct.error, fit$fit$summary.random$reg.struct[, "0.025quant"], 
+lim <- range(c(struct.error, fit$fit$summary.random$reg.struct[, "0.025quant"],
                fit$fit$summary.random$reg.struct[, "0.975quant"]))
 plot(struct.error, fit$fit$summary.random$reg.struct[, "0.5quant"],  xlab = "Structured random effects", ylab = "Posterior median", xlim = lim, ylim = lim)
 segments(x0 = struct.error, x1 = struct.error,
@@ -245,12 +258,12 @@ abline(c(0, 1))
 ```
 
 
-The direct estimates of the prevalence of tobacco usage, i.e., $\hat p_i$ accounting for survey design are 
+The direct estimates of the average height, i.e., $\hat{\mu}_i$ accounting for survey design are 
 ```{r}
 fit$HT[, c("HT.est", "HT.sd", "region")]
 ```
 
-The posterior summaries of $\mu_i|\hat\mu_i$ can be obtained by 
+The posterior summaries of $\mu_i|\hat{\mu}_i$ can be obtained by 
 ```{r}
 fit$smooth[, c("mean", "sd", "median", "lower", "upper", "region")]
 ```
@@ -272,7 +285,10 @@ We can also compare the direct and smoothed estimates on the map.
 ```{r, fig.width=15, fig.height=5}
 combined <- merge(fit$HT, fit$smooth, by = "region")
 combined$truth <- mu[match(combined$region, regions)]
-mapPlot(data = combined, geo = DemoMap2$geo, variables=c("truth", "HT.est", "median"), labels = c("True mean", "Direct Estimates", "Posterior Median"), by.data = "region", by.geo = "NAME_final", is.long=FALSE)
+mapPlot(data = combined, geo = DemoMap2$geo, 
+        variables=c("truth", "HT.est", "median"), 
+        labels = c("True mean", "Direct Estimates", "Posterior Median"),
+        by.data = "region", by.geo = "NAME_final", is.long=FALSE)
 ```
 
 
@@ -281,13 +297,13 @@ Similar as in the previous subsection, suppose we denote the tobacco usage of ob
 \[
   \hat{p_i} = \frac{\sum_k w_{ik}y_{ik}}{\sum_k w_{ik}}
 \]
-and the associated variance $\widehat{var}(\hat{p_i})$. By delta method, if we denote $\hat\theta_{i} = \log(\frac{\hat p_i}{1-\hat p_i})$, the asymptotic distribution of $\hat\theta_{i}$ is 
+and the associated variance $\widehat{var}(\hat{p_i})$. By delta method, if we denote $\hat\theta_{i} = \log(\frac{\hat{p}_i}{1-\hat{p}_i})$, the asymptotic distribution of $\hat\theta_{i}$ is 
 \[
-  \hat\theta_i \sim \mbox{Normal}(\log(\frac{p_i}{1-p_i}), \hat V_i), \;\;\;\; \hat V_i = \frac{\widehat{var}(\hat{p_i})}{(\hat p_i (1 - \hat p_i))^2}
+  \hat{\theta}_i \sim \mbox{Normal}(\log(\frac{p_i}{1-p_i}), \hat V_i), \;\;\;\; \hat V_i = \frac{\widehat{var}(\hat{p_i})}{(\hat{p}_i (1 - \hat{p}_i))^2}
 \]
 We then use INLA to fit the following Bayesian hierarchical model:
 \begin{eqnarray*}
-\hat\theta_i &=& \log\left( \dfrac{\hat{p_i}}{1-\hat{p_i}} \right) \sim \mbox{Normal}( \theta_i,\hat{V}_i )\\
+\hat{\theta}_i &=& \log\left( \dfrac{\hat{p_i}}{1-\hat{p_i}} \right) \sim \mbox{Normal}( \theta_i,\hat{V}_i )\\
 \theta_i &=& \beta + \epsilon_i+\delta_i,\\
 \epsilon_i &\sim & \mbox{Normal}(0,\sigma_\epsilon^2)\\
 \delta_i &\sim & \mbox{ICAR}(\sigma_\delta^2)
@@ -296,26 +312,29 @@ We then use INLA to fit the following Bayesian hierarchical model:
 We can use the `fitspace()` function to obtain both the survey-weighted direct estimates and the smoothed estimates from INLA.
 
 ```{r}
-fit <- fitSpace(data=DemoData2, geo=DemoMap2$geo, Amat=DemoMap2$Amat, family="binomial", responseVar="tobacco.use", strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~clustid+id", hyper=NULL, CI = 0.95)
+fit <- fitSpace(data=DemoData2, geo=DemoMap2$geo, Amat=DemoMap2$Amat,
+                family="binomial", responseVar="tobacco.use",
+                strataVar="strata", weightVar="weights", regionVar="region",
+                clusterVar = "~clustid+id", hyper=NULL, CI = 0.95)
 ```
 
 
-The direct estimates of the prevalence of tobacco usage, i.e., $\hat p_i$ accounting for survey design are 
+The direct estimates of the prevalence of tobacco usage, i.e., $\hat{p}_i$ accounting for survey design are 
 ```{r}
 fit$HT[, c("HT.est.original", "HT.variance.original", "region")]
 ```
 
-The logit transformed direct estimates, $\hat\theta_i$ and the associated asymptotic standard deviations are 
+The logit transformed direct estimates, $\hat{\theta}_i$ and the associated asymptotic standard deviations are 
 ```{r}
 fit$HT[, c("HT.est", "HT.sd", "region")]
 ```
 
-The posterior summaries of $\theta_i|\hat\theta_i$ can be obtained by 
+The posterior summaries of $\theta_i|\hat{\theta}_i$ can be obtained by 
 ```{r}
 fit$smooth[, c("mean", "sd", "median", "lower", "upper", "region")]
 ```
 
-The posterior summaries of  $p_i|\hat\theta_i$ can be obtained by 
+The posterior summaries of  $p_i|\hat{\theta}_i$ can be obtained by 
 
 ```{r}
 fit$smooth[, c("mean.trans", "sd.trans", "median.trans", "lower.trans", "upper.trans", "region")]
@@ -324,6 +343,8 @@ fit$smooth[, c("mean.trans", "sd.trans", "median.trans", "lower.trans", "upper.t
 We can now compare the direct and smoothed variables on the map.
 ```{r}
 combined <- merge(fit$HT, fit$smooth, by = "region")
-mapPlot(data = combined, geo = DemoMap2$geo, variables=c("HT.est", "median"), labels = c("Direct Estimates", "Posterior Median"), by.data = "region", by.geo = "NAME_final", is.long=FALSE)
+mapPlot(data = combined, geo = DemoMap2$geo, variables=c("HT.est", "median"),
+        labels = c("Direct Estimates", "Posterior Median"), 
+        by.data = "region", by.geo = "NAME_final", is.long=FALSE)
 ```
 
