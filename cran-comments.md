@@ -18,7 +18,7 @@ Error in re-building vignettes:
 Installing package into '/home/hornik/tmp/R.check/r-release-gcc/Work/build/Packages'
 (as 'lib' is unspecified)
 
-We added the vignette output to inst/doc.
+We added the vignette output to inst/doc. We also have switched to a static vignette, but with source code available and shown.
 
 ## Version 0.2.0 Update
 
@@ -31,4 +31,4 @@ We added the vignette output to inst/doc.
 * We added the capability to do a simpler model that uses only binary outcome.
 * We made minor updates to the documentation and examples.
 * Add vignette to inst/doc to prevent WARNINGs.
-* Switch to static vignette with source code available so that INLA does not need to be installed.
+* Switch to static vignette with source code available and shown so that INLA does not need to be installed.
