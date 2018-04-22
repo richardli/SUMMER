@@ -14,6 +14,8 @@
 #' @param regionVar Variable name for region, typically 'v024', for older surveys might be 'v101'
 #' @param clusterVar Variable name for cluster, typically '~v001 + v002'
 #' @param hyper the vector of two hyper parameters if specified by user
+#' @param hyper.iid the vector of two hyper parameters for the unstructured spatial random effects in Gaussian model, if specified by user
+#' @param hyper.besag the vector of two hyper parameters for the structured spatial random effects in Gaussian model, if specified by user
 #' @param CI the desired posterior credible interval to calculate
 #' @param FUN the function to transform the posterior draws. Default to be identify function for normal variable and inverse logit transformation for binomial variables
 #' 
@@ -42,7 +44,7 @@
 #' @export
 
 
-fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", hyper=NULL, CI = 0.95, FUN=NULL){
+fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", hyper=NULL, hyper.besag = c(0.5, 5E-5), hyper.iid = c(0.5, 5E-5), CI = 0.95, FUN=NULL){
 
 	if(!is.data.frame(data)){
 		stop("Input data needs to be a data frame")
@@ -96,11 +98,13 @@ fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", w
     if(is.null(hyper) && family == "binomial"){
         hyper <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, only.iid = TRUE)
         param <- c(hyper$a.iid, hyper$b.iid)
-    }else if(is.null(hyper) && family == "gaussian"){
+    }else if(family == "gaussian"){
         # default by INLA
-        param <- NULL
+        param1 <- c(hyper.iid[1], hyper.iid[2])
+        param2 <- c(hyper.besag[1], hyper.besag[2])
     }else{
-        param <- c(hyper[1], hyper[2])
+        param1 <- c(hyper[1], hyper[2])
+        param2 <- c(hyper[1], hyper[2])
     }
 
     if(is.null(colnames(Amat)) || is.null(rownames(Amat))){
@@ -154,9 +158,11 @@ fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", w
     dat$reg.unstruct <- 1:length(regnames)
     dat$reg.struct <- 1:length(regnames)
 
-    formula = HT.est ~ 1 + f(reg.unstruct, model = 'iid', param=param) + f(reg.struct, graph=Amat, model="besag", param=param, scale.model = TRUE)
+    formula = HT.est ~ 1 + f(reg.unstruct, model = 'iid', param=param1) + f(reg.struct, graph=Amat, model="besag", param=param2, scale.model = TRUE)
 
-    fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2))
+    fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+    
+
     proj <- data.frame(region=rownames(Amat), mean.trans=NA, sd.trans=NA, median.trans=NA, lower.trans=NA, upper.trans=NA, mean=NA, sd=NA, median=NA, lower=NA, upper=NA)
     for(i in 1:dim(Amat)[1]){
         tmp <- matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[i]]))
