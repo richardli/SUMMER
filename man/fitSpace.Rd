@@ -6,7 +6,8 @@
 \usage{
 fitSpace(data, geo, Amat, family, responseVar, strataVar = "strata",
   weightVar = "weights", regionVar = "region", clusterVar = "~v001+v002",
-  hyper = NULL, CI = 0.95, FUN = NULL)
+  hyper = NULL, hyper.besag = c(0.5, 5e-05), hyper.iid = c(0.5, 5e-05),
+  CI = 0.95, FUN = NULL)
 }
 \arguments{
 \item{data}{data frame with region and strata information.}
@@ -28,6 +29,10 @@ fitSpace(data, geo, Amat, family, responseVar, strataVar = "strata",
 \item{clusterVar}{Variable name for cluster, typically '~v001 + v002'}
 
 \item{hyper}{the vector of two hyper parameters if specified by user}
+
+\item{hyper.besag}{the vector of two hyper parameters for the structured spatial random effects in Gaussian model, if specified by user}
+
+\item{hyper.iid}{the vector of two hyper parameters for the unstructured spatial random effects in Gaussian model, if specified by user}
 
 \item{CI}{the desired posterior credible interval to calculate}
 
