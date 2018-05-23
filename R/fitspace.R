@@ -97,7 +97,8 @@ fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", w
     data$region0 <- data[, regionVar]
     if(is.null(hyper) && family == "binomial"){
         hyper <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, only.iid = TRUE)
-        param <- c(hyper$a.iid, hyper$b.iid)
+        param1 <- c(hyper$a.iid, hyper$b.iid)
+        param2 <- c(hyper$a.iid, hyper$b.iid)
     }else if(family == "gaussian"){
         # default by INLA
         param1 <- c(hyper.iid[1], hyper.iid[2])
