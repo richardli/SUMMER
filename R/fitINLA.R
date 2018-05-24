@@ -696,7 +696,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     # if(is.yearly){
     # rbind yearly data with NA for the lincombs
     for(i in 1:N){
-      tmp<-exdat[match(unique(data$region), data$region), ]
+      tmp<-exdat[match(unique(exdat$region), exdat$region), ]
       tmp$time.unstruct<-tmp$time.struct<- i
       tmp$logit.est<-tmp$logit.prec<-tmp$survey<-NA
       tmp <- tmp[, colnames(tmp) != "time.area"]
