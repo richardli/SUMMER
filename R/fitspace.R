@@ -155,7 +155,7 @@ fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", w
     # make it consistent with map
     regnames <- as.character(name.i)
     dat <- dat[match(rownames(Amat), regnames), ]
-    dat$region <- regnames
+    dat$region <- rownames(Amat)[rownames(Amat) %in% regnames]
     dat$reg.unstruct <- 1:length(regnames)
     dat$reg.struct <- 1:length(regnames)
 
