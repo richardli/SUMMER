@@ -32,3 +32,7 @@ We added the vignette output to inst/doc. We also have switched to a static vign
 * We made minor updates to the documentation and examples.
 * Add vignette to inst/doc to prevent WARNINGs.
 * Switch to static vignette with source code available and shown so that INLA does not need to be installed.
+
+## Version 0.2.1 Update
+* We developed a new function for simulating spatial and temporal random effects.
+* We fixed a problem with fitINLA() function that may arise when user-customized dataset with missing areas.
