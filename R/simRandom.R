@@ -47,7 +47,8 @@
 #' out <- rst(n=1, type = "st", type.t = "RW1", Amat = DemoMap$Amat, n.t = 50)
 #' dimnames(out)
 #' par(mfrow = c(1,1))
-#' plot(1:dim(out)[3], out[1,1,], col = 1, type = "l", ylim = range(out), xlab = "Time", ylab = "Random effects")
+#' plot(1:dim(out)[3], out[1,1,], col = 1,
+#'  type = "l", ylim = range(out), xlab = "Time", ylab = "Random effects")
 #' for(i in 2:4) lines(1:dim(out)[3], out[1,i,], col = i)
 #' legend("bottomright", colnames(DemoMap$Amat), col = c(1:4), lty = rep(1,4))
 #' }
@@ -73,7 +74,7 @@ rst <- function(n = 1, type = c("s", "t", "st")[1], type.s = "ICAR", type.t = c(
 	  rankQ <- qr(Q)$rank
 	  sim <- as.vector(eigenQ$vectors[,1:rankQ] %*% 
 	           matrix(
-	             rnorm(rep(1, rankQ), rep(0, rankQ), 1/sqrt(eigenQ$values[1:rankQ])),
+	             stats::rnorm(rep(1, rankQ), rep(0, rankQ), 1/sqrt(eigenQ$values[1:rankQ])),
 	           ncol = 1))
 	  sim
 	}
