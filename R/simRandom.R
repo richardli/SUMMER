@@ -111,7 +111,7 @@ rst <- function(n = 1, type = c("s", "t", "st")[1], type.s = "ICAR", type.t = c(
 		}else{
 			stop("Need to specify the type of temporal random effects.")
 		}
-		if(scale.model)	Q <- inla.rw(n.t, order = order, sparse=FALSE)
+		Q <- inla.rw(n.t, order = order, sparse=FALSE, scale.model=scale.model)
 		rsample <- matrix(NA, n, n.t)
 		for(i in 1:n) rsample[i, ] <- sim.Q(Q) 
 		id <- 1:n.t
