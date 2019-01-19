@@ -143,7 +143,7 @@ mapPlot(data = toplot, geo = KingCounty, variables=c("mean.original", "newprior"
 
 When data consist of observations from different time periods, we can extend the framework to smooth estimates over both space and time. The space-time interaction terms are modeled by the type I-IV interactions.
 
-```{r, fig.width=10, fig.height=3}
+```{r, fig.width=10, fig.height=4.5}
  svysmoothed.year <- fitSpace(data = BRFSS, geo = KingCounty, Amat = mat, family = "binomial", responseVar="diab2", strataVar="strata", weightVar="rwt_llcp", regionVar="hracode", clusterVar = "~1", timeVar = "year", time.model = "rw1", type.st = 4)
 mapPlot(data = svysmoothed.year$smooth, geo = KingCounty, values = "mean.original", variables = "time", by.data = "region", by.geo = "HRA2010v2_", is.long = TRUE)  
 ```
