@@ -19,7 +19,7 @@ License: GPL (>= 2)
 Imports: maptools, survey, stats, spdep, survival, ggplot2, utils, Matrix, reshape2
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 Additional_repositories: https://inla.r-inla-download.org/R/stable/
 Suggests: INLA, knitr, rmarkdown, readstata13, gridExtra, R.rsp
 VignetteBuilder: R.rsp, knitr

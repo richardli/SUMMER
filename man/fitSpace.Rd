@@ -5,9 +5,11 @@
 \title{Fit INLA models to perform simple space smoothing.}
 \usage{
 fitSpace(data, geo, Amat, family, responseVar, strataVar = "strata",
-  weightVar = "weights", regionVar = "region", clusterVar = "~v001+v002",
-  hyper = NULL, hyper.besag = c(0.5, 5e-05), hyper.iid = c(0.5, 5e-05),
-  CI = 0.95, FUN = NULL)
+  weightVar = "weights", regionVar = "region",
+  clusterVar = "~v001+v002", hyper = NULL, hyper.besag = c(0.5,
+  5e-05), hyper.iid = c(0.5, 5e-05), CI = 0.95, FUN = NULL,
+  newformula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1],
+  hyper.time = NULL, type.st = 0)
 }
 \arguments{
 \item{data}{data frame with region and strata information.}
@@ -37,6 +39,16 @@ fitSpace(data, geo, Amat, family, responseVar, strataVar = "strata",
 \item{CI}{the desired posterior credible interval to calculate}
 
 \item{FUN}{the function to transform the posterior draws. Default to be identify function for normal variable and inverse logit transformation for binomial variables}
+
+\item{newformula}{a string of user-specified random effects model to be used in the INLA call}
+
+\item{timeVar}{The variable indicating time period. If set to NULL then the temporal model and space-time interaction model are ignored.}
+
+\item{time.model}{the model for temporal trends and interactions. It can be either "rw1" or "rw2".}
+
+\item{hyper.time}{the vector of two hyper parameters for the structured temporal random effects in Gaussian model, if specified by user}
+
+\item{type.st}{can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.}
 }
 \value{
 \item{HT}{Direct estimates}

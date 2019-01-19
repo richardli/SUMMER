@@ -4,9 +4,9 @@
 \alias{countrySummary_mult}
 \title{Obtain the Horvitz-Thompson direct estimates and standard errors using delta method for multiple surveys.}
 \usage{
-countrySummary_mult(births, years, idVar = "v002", regionVar = "region",
-  timeVar = "per5", clusterVar = "~v001+v002", ageVar = "ageGrpD",
-  weightsVar = "v005", geo.recode = NULL)
+countrySummary_mult(births, years, idVar = "v002",
+  regionVar = "region", timeVar = "per5", clusterVar = "~v001+v002",
+  ageVar = "ageGrpD", weightsVar = "v005", geo.recode = NULL)
 }
 \arguments{
 \item{births}{A list of child-month data from multiple surveys from \code{\link{getBirths}}. The name of the list is used as the identifier in the output.}

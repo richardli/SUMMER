@@ -4,8 +4,8 @@
 \alias{mapPlot}
 \title{Makes map plot.}
 \usage{
-mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo,
-  is.long = FALSE)
+mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
+  by.geo, is.long = FALSE)
 }
 \arguments{
 \item{data}{a data frame with variables to be plotted}

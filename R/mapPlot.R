@@ -69,6 +69,6 @@ mapPlot <- function(data, variables, values = NULL, labels=NULL, geo, by.data, b
     g <- ggplot2::ggplot(geo2) 
     g <- g + ggplot2::geom_polygon(ggplot2::aes(x=long, y=lat, group = group, fill = value), color="black")
     g <- g + ggplot2::facet_wrap(~variable) 
-    g <- g + ggplot2::scale_fill_distiller(direction=1)
+    g <- g + ggplot2::scale_fill_viridis_c()
     return(g)
 }
