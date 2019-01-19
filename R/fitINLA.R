@@ -27,8 +27,7 @@
 #' @param b.icar hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}
 #' @seealso \code{\link{countrySummary}}
 #' @importFrom stats dgamma
-#' @importFrom Matrix Diagonal cBind rBind
-#' 
+#' @importFrom Matrix Diagonal 
 #' @return INLA model fit using the provided formula, country summary data, and geographic data
 #' @examples
 #' \dontrun{
@@ -108,6 +107,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       ## the environment of this function which holds the variables and we can store 'my.cache'
       ## there.
       envir = environment(sys.call()[[1]]) 
+      if(is.null(envir)) envir <- environment()
       inla.rw = utils::getFromNamespace("inla.rw", "INLA")
       inla.ginv = utils::getFromNamespace("inla.ginv", "INLA")
       
@@ -135,9 +135,9 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       }
       
       Q = function() {
-        QQ = rBind(cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
+        QQ = rbind(cbind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
                          -tau * t(my.cache$A)),
-                   cBind(-tau * my.cache$A, tau * my.cache$D))
+                   cbind(-tau * my.cache$A, tau * my.cache$D))
         return(QQ)
       }
       
@@ -180,7 +180,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       iid.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL){
       
       envir = environment(sys.call()[[1]]) 
-      
+            if(is.null(envir)) envir <- environment()
       if (!exists("my.cache", envir = envir, mode = "list")) {
         nn = n %/% m
         stopifnot (nn == as.integer(n/m))
@@ -205,9 +205,9 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       }
       
       Q = function() {
-        QQ = rBind(cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
+        QQ = rbind(cbind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
                          -tau * t(my.cache$A)),
-                   cBind(-tau * my.cache$A, tau * my.cache$D))
+                   cbind(-tau * my.cache$A, tau * my.cache$D))
         return(QQ)
       }
       
@@ -251,6 +251,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     st.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL){
     
     envir = environment(sys.call()[[1]]) 
+          if(is.null(envir)) envir <- environment()
     inla.rw = utils::getFromNamespace("inla.rw", "INLA")
     inla.ginv = utils::getFromNamespace("inla.ginv", "INLA")
     # The new structure takes the following order
@@ -269,6 +270,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       diag <- apply(R4, 1, sum)
       R4[R4 != 0] <- -1
       diag(R4) <- diag
+
       R4 <- INLA::inla.scale.model(R4, constr = list(A=matrix(1,1,dim(R4)[1]), e=0))
       # both independent
       if(type == 1){
@@ -304,9 +306,9 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     }
     
     Q = function() {
-      QQ = rBind(cBind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
+      QQ = rbind(cbind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
                          -tau * t(my.cache$A)),
-                   cBind(-tau * my.cache$A, tau * my.cache$D))
+                   cbind(-tau * my.cache$A, tau * my.cache$D))
       return(QQ)
     }
     
@@ -425,7 +427,8 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
                                              tau = exp(10),
                                              shape0 = a.iid,
                                              rate0 = b.iid)
-      st.model <- INLA::inla.rgeneric.define(model = st.new,
+      if(!is.null(geo)){
+         st.model <- INLA::inla.rgeneric.define(model = st.new,
                                        n = n, 
                                        m = m,
                                        order = rw,
@@ -435,6 +438,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
                                        tau = exp(10),
                                        shape0 = a.iid,
                                        rate0 = b.iid)
+       }
       
       year_names_new <- c(as.character(c(year_range[1]:year_range[2])), year_names)
       time.index <- cbind.data.frame(idx = 1:N, Year = year_names_new)
