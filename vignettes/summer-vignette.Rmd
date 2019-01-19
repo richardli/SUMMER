@@ -241,6 +241,7 @@ fit1 <- fitINLA(data = data, geo = NULL, Amat = NULL, year_names = years.all,
 
 #### Yearly model
 Similarly as before, we can estimate the Random Walk 2 random effects on the yearly scale. 
+
 ```{r, message = FALSE}
 fit2 <- fitINLA(data = data, geo = NULL, Amat = NULL, year_names = years.all,
                 year_range = c(1985, 2019), priors = priors, rw = 2,

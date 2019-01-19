@@ -34,7 +34,7 @@
 #' \item{family}{input argument}
 #' \item{FUN}{input argument}
 #' @seealso \code{\link{countrySummary_mult}}, \code{\link{fitINLA}}
-#' @importFrom stats median quantile sd
+#' @importFrom stats median quantile sd var aggregate as.formula
 #' @examples
 #' \dontrun{
 #' data(DemoData2)
