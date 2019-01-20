@@ -101,7 +101,7 @@ To account for the survey designs in the smoothing, we instead model the logit o
 
 Again, the design-based direct estimates and the smoothed estimates accounting for design can be obtained by `svysmoothed$smooth` and `svysmoothed$HT`. We can now compare the three types of estimates and their associated variance and it can be seen that smoothing reduces the variance of estimates significantly.
 
-```{r, fig.width=9, fig.height=9, tidy = FALSE}
+```{r, fig.width=6, fig.height=6, out.width = ".5\\textwidth", tidy = FALSE, fig.align='center'}
 est <- data.frame(naive = smoothed$HT$HT.est.original, 
                   weighted = svysmoothed$HT$HT.est.original, 
                   smooth = smoothed$smooth$mean.original, 
