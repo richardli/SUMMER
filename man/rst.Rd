@@ -41,7 +41,7 @@ mean(out[,3] - apply(out[,c(1,2,4)], 1, mean))
 mean(out[,4] - apply(out[,c(1,3)], 1, mean)) 
 
 ## Temporal random effects (RW1)
-out <- rst(n=1, type = "t", type.t = "RW1", n.t = 200)
+out <- rst(n=1, type = "t", type.t = "RW1", n.t = 200, scale.model = FALSE)
 par(mfrow = c(1,2))
 plot(1:dim(out)[2], out, col = 1, type = "l", xlab = "Time", ylab = "Random effects")
 # verify the first order difference is normally distributed
@@ -49,8 +49,8 @@ first_diff <- diff(as.numeric(out[1,]))
 qqnorm(first_diff )	
 abline(c(0,1))
 
-## Temporal random effects (RW1)
-out <- rst(n=1, type = "t", type.t = "RW2", n.t = 200)
+## Temporal random effects (RW2)
+out <- rst(n=1, type = "t", type.t = "RW2", n.t = 200, scale.model = FALSE)
 par(mfrow = c(1,2))
 plot(1:dim(out)[2], out, col = 1, type = "l", xlab = "Time", ylab = "Random effects")
 # verify the second order difference is normally distributed
@@ -68,7 +68,6 @@ plot(1:dim(out)[3], out[1,1,], col = 1,
 for(i in 2:4) lines(1:dim(out)[3], out[1,i,], col = i)
 legend("bottomright", colnames(DemoMap$Amat), col = c(1:4), lty = rep(1,4))
 }
-
 
 }
 \references{
