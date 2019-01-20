@@ -38,3 +38,10 @@ We added the vignette output to inst/doc. We also have switched to a static vign
 * We fixed a problem with fitINLA() function that may arise when user-customized dataset with missing areas.
 * We updated the INLA repository as requested.
 * We removed packages that are no longer needed to remove NOTEs from https://cran.rstudio.com/web/checks/check_results_SUMMER.html.
+
+## Version 0.2.2 Update
+* Remove deprecated calls to cBind() and rBind().
+* Update to vignette.
+* Minor edits to documentation.
+* Add in new data examples.
+* Improve generalizability of some functions.

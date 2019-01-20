@@ -1,7 +1,7 @@
 Package: SUMMER
 Type: Package
 Title: Spatio-Temporal Under-Five Mortality Methods for Estimation
-Version: 0.2.1
+Version: 0.2.2
 Authors@R: c(
     person(given = "Bryan D", family = "Martin", email= "bmartin6@uw.edu", role = c("cre","aut")), 
     person(given = "Zehang R", family = "Li", email= "lizehang@uw.edu", role = "aut"),
