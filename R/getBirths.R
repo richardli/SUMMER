@@ -69,8 +69,10 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("c
   if(month.cut[1] == 0) month.cut <- month.cut[-1]
   bins <- rep(NA, length(month.cut))
   bins[1] <- paste("0", month.cut[1]-1, sep = "-")
-  for(i in 1:(length(month.cut)-1)){
-    bins[i+1] <- paste(month.cut[i], month.cut[i+1]-1, sep = "-")
+  if(length(month.cut) > 1){
+    for(i in 1:(length(month.cut)-1)){
+      bins[i+1] <- paste(month.cut[i], month.cut[i+1]-1, sep = "-")
+    }    
   }
   if(bins[1] == "0-0") bins[1] <- "0"
 
