@@ -10,6 +10,11 @@
 #' @param by.data column name specifying region names in the data
 #' @param by.geo variable name specifying region names in the data
 #' @param is.long logical indicator of whether the data is in the long format, default to FALSE
+#' @param size size of the border
+#' @param removetab logical indicator to not show the tab label, only applicable when only one tab is present.
+#' @param border color of the border
+#' @param ncol number of columns for the output tabs
+#' 
 #' @examples
 #' \dontrun{
 #' data(DemoMap)
@@ -35,40 +40,44 @@
 #' }
 #' 
 #' @export
-mapPlot <- function(data, variables, values = NULL, labels=NULL, geo, by.data, by.geo, is.long = FALSE){
-
+mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE, border = "gray20", ncol = NULL){
     value <- group <- lat <- long <- NULL
-
-    if(is.null(labels) & !is.long){
+    if (is.null(labels) & !is.long) {
         labels <- variables
     }
-    if(is.null(labels) & is.long){
+    if (is.null(labels) & is.long) {
         labels <- sort(unique(data[, variables]))
     }
-    if(is.null(values) & is.long){
+    if (is.null(values) & is.long) {
         stop("values need to be specified for long format input.")
     }
-
     geo <- ggplot2::fortify(geo, region = by.geo)
-    if(!is.long){
+    if (!is.long) {
         data <- data[, c(variables, by.data)]
         data <- reshape2::melt(data)
         data$variable <- factor(data$variable, levels = variables)
         levels(data$variable) <- labels
-    }else{
+    }
+    else {
         data$value <- data[, values]
         data$variable <- data[, variables]
         data$variable <- as.character(data$variable)
-        data$variable <- factor(data$variable, levels=labels)
+        data$variable <- factor(data$variable, levels = labels)
     }
-
-    ## ---- read-map5
     geo2 <- merge(geo, data, by = "id", by.y = by.data)
-
-    ## ---- read-map6
-    g <- ggplot2::ggplot(geo2) 
-    g <- g + ggplot2::geom_polygon(ggplot2::aes(x=long, y=lat, group = group, fill = value), color="black")
-    g <- g + ggplot2::facet_wrap(~variable) 
+    g <- ggplot2::ggplot(geo2)
+    g <- g + ggplot2::geom_polygon(ggplot2::aes(x = long, y = lat, 
+        group = group, fill = value), color = border, size = size)
+    if(length(unique(data$variable)) > 1 || removetab == FALSE){
+        if(is.null(ncol)){
+            g <- g + ggplot2::facet_wrap(~variable)
+        }else{
+            g <- g + ggplot2::facet_wrap(~variable, ncol = ncol)
+        }
+    }
     g <- g + ggplot2::scale_fill_viridis_c()
     return(g)
 }
+
+
+## Visualize covariates (Space-invariant)

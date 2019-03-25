@@ -22,8 +22,8 @@
 #' ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 #' }
 #' @export
-countrySummary <- function(births, years, idVar = "v002", regionVar = "region", timeVar = "per5", clusterVar = "~v001+v002",
-                           ageVar = "ageGrpD", weightsVar = "v005", geo.recode = NULL) {
+countrySummary <- function(births, years, idVar = "v002", regionVar = "region", timeVar = "time", clusterVar = "~v001+v002",
+                           ageVar = "age", weightsVar = "v005", geo.recode = NULL) {
     # check all elements are provided
     if (is.null(births)) {
         stop("No births file specified!")
@@ -64,9 +64,19 @@ countrySummary <- function(births, years, idVar = "v002", regionVar = "region", 
         births$age0[births$age0 == 24] <- "24-35"
         births$age0[births$age0 == 36] <- "36-47"
         births$age0[births$age0 == 48] <- "48-59"
+        ns <- c(1, 11, 12, 12, 12, 12)
     }
-    
-   
+    labels <- as.character(unique(births$age0))
+    ns <- rep(1, length(labels))
+    for(i in 1:length(labels)){
+        if(labels[i] == "0"){
+            ns[i] <- 1
+            next
+        }
+        tmp <- as.numeric(strsplit(as.character(labels[i]), "-")[[1]])
+        ns[i] <- tmp[2] - tmp[1] + 1
+    }
+
     time_inconsistent <- which(!(births$time0 %in% years))
     if (length(time_inconsistent) > 0) {
         warning(paste("Name for time periods are inconsistent. Found the following levels in data:", unique(births$time0[time_inconsistent])), 
@@ -122,7 +132,7 @@ countrySummary <- function(births, years, idVar = "v002", regionVar = "region", 
             return(rep(NA, 5))
         } else {
             glm.ob <- survey::svyglm(died ~ (-1) + factor(age0), design = tmp, family = stats::quasibinomial, maxit = 50)
-            return(get.est.withNA(glm.ob))
+            return(get.est.withNA(glm.ob, labels, ns))
         }
     }
     
@@ -130,11 +140,11 @@ countrySummary <- function(births, years, idVar = "v002", regionVar = "region", 
     # missing, the dimension from covariance matrix will not match the ns vector note: not vary satisfying modification yet since
     # the 'factor(ageGrpD)'
     
-    get.est.withNA <- function(glm.ob) {
+    get.est.withNA <- function(glm.ob, labels, ns) {
         ## initialize with the full covariance matrix
-        V <- matrix(0, 6, 6)
-        betas <- rep(NA, 6)
-        labels <- c("0", "1-11", "12-23", "24-35", "36-47", "48-59")
+        K <- dim(summary(glm.ob)$coef)[1]
+        V <- matrix(0, K, K)
+        betas <- rep(NA, K)
         labels <- paste("factor(age0)", labels, sep = "")
         colnames(V) <- rownames(V) <- labels
         names(betas) <- labels
@@ -154,7 +164,7 @@ countrySummary <- function(births, years, idVar = "v002", regionVar = "region", 
         # (removed) avoid NA by replacing with 0 This is wrong way to handle NA!  messed up the mean estimates
         # betas[which(is.na(betas))] <- 0
         
-        ns <- c(1, 11, 12, 12, 12, 12)
+        # ns <- c(1, 11, 12, 12, 12, 12)
         probs <- expit(betas)
         
         u5m.est <- (1 - prod((1 - probs)^ns, na.rm = TRUE))  #*1000  
