@@ -5,7 +5,7 @@
 \title{Obtain the Horvitz-Thompson direct estimates and standard errors using delta method for a single survey.}
 \usage{
 countrySummary(births, years, idVar = "v002", regionVar = "region",
-  timeVar = "per5", clusterVar = "~v001+v002", ageVar = "ageGrpD",
+  timeVar = "time", clusterVar = "~v001+v002", ageVar = "age",
   weightsVar = "v005", geo.recode = NULL)
 }
 \arguments{

@@ -4,18 +4,35 @@
 \alias{getBirths}
 \title{Function to get Births file from DHS .dta files.}
 \usage{
-getBirths(filepath, surveyyear, variables = c("caseid", "v001", "v002",
-  "v004", "v005", "v021", "v022", "v023", "v024", "v025", "v139", "bidx"),
-  strata = c("v024", "v025"))
+getBirths(filepath = NULL, data = NULL, surveyyear,
+  variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022",
+  "v023", "v024", "v025", "v139", "bidx"), strata = c("v024", "v025"),
+  dob = "b3", alive = "b5", age = "b7", date.interview = "v008",
+  year.range = 1980, month.cut = c(1, 12, 24, 36, 48, 60),
+  year.cut = seq(1980, 2020, by = 5))
 }
 \arguments{
-\item{filepath}{file path of raw .dta file from DHS}
+\item{filepath}{file path of raw .dta file from DHS. Only used when data frame is not provided in the function call.}
+
+\item{data}{data frame of a DHS survey}
 
 \item{surveyyear}{year of survey}
 
 \item{variables}{vector of variables to be used in obtaining the person-month files. The variables correspond the the DHS recode manual VI. For early DHS data, the variable names may need to be changed.}
 
 \item{strata}{vector of variable names used for strata. If a single variable is specified, then that variable will be used as strata indicator If multiple variables are specified, the interaction of these variables will be used as strata indicator.}
+
+\item{dob}{variable name for the date of birth.}
+
+\item{alive}{variable name for the indicator of whether child was alive or dead at the time of interview.}
+
+\item{age}{variable name for the age at death of the child in completed months.}
+
+\item{date.interview}{variable name for the date of interview.}
+
+\item{year.range}{earliest year of the data to consider.}
+
+\item{month.cut}{The cutoff of each bins of age group in the unit of months. Default values are 1, 12, 24, 36, 48, and 60, representing the age groups (0, 1), [1, 12), [12, 24), ..., [48, 60).}
 }
 \value{
 A list of birth-month data

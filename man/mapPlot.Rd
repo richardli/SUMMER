@@ -5,7 +5,8 @@
 \title{Makes map plot.}
 \usage{
 mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
-  by.geo, is.long = FALSE)
+  by.geo, is.long = FALSE, size = 0.5, removetab = FALSE,
+  border = "gray20", ncol = NULL)
 }
 \arguments{
 \item{data}{a data frame with variables to be plotted}
@@ -23,6 +24,14 @@ mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
 \item{by.geo}{variable name specifying region names in the data}
 
 \item{is.long}{logical indicator of whether the data is in the long format, default to FALSE}
+
+\item{size}{size of the border}
+
+\item{removetab}{logical indicator to not show the tab label, only applicable when only one tab is present.}
+
+\item{border}{color of the border}
+
+\item{ncol}{number of columns for the output tabs}
 }
 \description{
 This function visualizes the map with different variables. The input data frame can be either the long or wide format.
