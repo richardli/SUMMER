@@ -130,9 +130,16 @@ countrySummary <- function(births, years, idVar = "v002", regionVar = "region", 
         } else if (sum(tmp$variables$died) == 0) {
             warning(paste0(which.area, " ", which.time, " has no death, set to NA\n"),immediate. = TRUE)
             return(rep(NA, 5))
-        } else {
+        } else if(length(unique(tmp$variables$age0)) > 1){
             glm.ob <- survey::svyglm(died ~ (-1) + factor(age0), design = tmp, family = stats::quasibinomial, maxit = 50)
             return(get.est.withNA(glm.ob, labels, ns))
+        } else {
+            glm.ob <- survey::svyglm(died ~ 1, design = tmp, family = stats::quasibinomial, maxit = 50)
+            var.est <- stats::vcov(glm.ob)
+            mean <- expit(summary(glm.ob)$coefficient[1])
+            lims <- expit(logit(mean) + stats::qnorm(c(0.025, 0.975)) * sqrt(c(var.est)))
+           return(c(mean, lims, logit(mean), var.est))
+
         }
     }
     
