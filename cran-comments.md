@@ -45,3 +45,6 @@ We added the vignette output to inst/doc. We also have switched to a static vign
 * Minor edits to documentation.
 * Add in new data examples.
 * Improve generalizability of some functions.
+
+## Version 0.2.3 Update
+* Improve generalizability of some functions.
