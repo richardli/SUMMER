@@ -33,9 +33,8 @@ getBirths(filepath = NULL, data = NULL, surveyyear,
 \item{year.range}{earliest year of the data to consider.}
 
 \item{month.cut}{The cutoff of each bins of age group in the unit of months. Default values are 1, 12, 24, 36, 48, and 60, representing the age groups (0, 1), [1, 12), [12, 24), ..., [48, 60).}
-}
-\value{
-A list of birth-month data
+
+\item{year.cut}{The cutoff of each bins of time periods, including both boundaries. Default values are 1980, 1985, ..., 2020, representing the time periods 80-84, 85-89, ..., 15-19.}
 }
 \description{
 Function to get Births file from DHS .dta files.

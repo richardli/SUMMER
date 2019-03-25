@@ -12,7 +12,7 @@
 #' @param date.interview variable name for the date of interview.
 #' @param year.range earliest year of the data to consider.
 #' @param month.cut The cutoff of each bins of age group in the unit of months. Default values are 1, 12, 24, 36, 48, and 60, representing the age groups (0, 1), [1, 12), [12, 24), ..., [48, 60).
-#' @return A list of birth-month data
+#' @param year.cut The cutoff of each bins of time periods, including both boundaries. Default values are 1980, 1985, ..., 2020, representing the time periods 80-84, 85-89, ..., 15-19.
 #' 
 #' @examples 
 #' \dontrun{
