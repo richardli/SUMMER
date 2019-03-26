@@ -26,6 +26,7 @@
 #' @param a.icar hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}
 #' @param b.icar hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}
 #' @seealso \code{\link{countrySummary}}
+#' @import Matrix
 #' @importFrom stats dgamma
 #' @importFrom Matrix Diagonal 
 #' @return INLA model fit using the provided formula, country summary data, and geographic data
@@ -87,6 +88,9 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
 
   if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
     stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
+  }
+  if (!is.element("Matrix", (.packages()))) {
+    attachNamespace("Matrix")
   }
   # If INLA is installed, then attach the Namespace (so that all the relevant functions are available)
   if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {
@@ -205,7 +209,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       }
       
       Q = function() {
-        QQ = rbind(cbind(p$kappa * my.cache$R + tau *  t(my.cache$A) %*% my.cache$A,
+        QQ = rbind(cbind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
                          -tau * t(my.cache$A)),
                    cbind(-tau * my.cache$A, tau * my.cache$D))
         return(QQ)
