@@ -6,7 +6,7 @@
 \usage{
 mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
   by.geo, is.long = FALSE, size = 0.5, removetab = FALSE,
-  border = "gray20", ncol = NULL)
+  border = "gray20", ncol = NULL, ylim = NULL)
 }
 \arguments{
 \item{data}{a data frame with variables to be plotted}

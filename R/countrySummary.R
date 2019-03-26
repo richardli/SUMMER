@@ -130,6 +130,9 @@ countrySummary <- function(births, years, idVar = "v002", regionVar = "region", 
         } else if (sum(tmp$variables$died) == 0) {
             warning(paste0(which.area, " ", which.time, " has no death, set to NA\n"),immediate. = TRUE)
             return(rep(NA, 5))
+        # } else if (length(unique(tmp$variables$age0)) < length(levels(tmp$variables$age0))) {
+        #     warning(paste0(which.area, " ", which.time, " has not enough person-months to fit the model, set to NA\n"),immediate. = TRUE)
+        #     return(rep(NA, 5))
         } else if(length(unique(tmp$variables$age0)) > 1){
             glm.ob <- survey::svyglm(died ~ (-1) + factor(age0), design = tmp, family = stats::quasibinomial, maxit = 50)
             return(get.est.withNA(glm.ob, labels, ns))
@@ -138,6 +141,14 @@ countrySummary <- function(births, years, idVar = "v002", regionVar = "region", 
             var.est <- stats::vcov(glm.ob)
             mean <- expit(summary(glm.ob)$coefficient[1])
             lims <- expit(logit(mean) + stats::qnorm(c(0.025, 0.975)) * sqrt(c(var.est)))
+
+            ## Alternative calculation
+            # p.i <- survey::svymean(~died, design = tmp)
+            # var.i <- as.numeric(vcov(p.i)) 
+            # p.i <- as.numeric(p.i)   
+            # ht <- log(p.i/(1-p.i))
+            # ht.v <- var.i/(p.i^2*(1-p.i)^2)
+            # ht.prec <- 1/ht.v
            return(c(mean, lims, logit(mean), var.est))
 
         }
@@ -149,7 +160,8 @@ countrySummary <- function(births, years, idVar = "v002", regionVar = "region", 
     
     get.est.withNA <- function(glm.ob, labels, ns) {
         ## initialize with the full covariance matrix
-        K <- dim(summary(glm.ob)$coef)[1]
+        # K <- dim(summary(glm.ob)$coef)[1]
+        K <- length(labels)
         V <- matrix(0, K, K)
         betas <- rep(NA, K)
         labels <- paste("factor(age0)", labels, sep = "")
@@ -191,6 +203,9 @@ countrySummary <- function(births, years, idVar = "v002", regionVar = "region", 
     # run for all combinations
     x <- mapply(region.time.HT.withNA, which.area = results$region, which.time = results$years)
     results[, 4:8] <- t(x)
+    results$survey <- NA
+    results$logit.prec <- 1/results$var.est
+    results <- results[, c("region", "years", "u5m", "lower", "upper", "logit.est", "var.est", "region_num", "survey", "logit.prec")]
      
     return(results)
 }
