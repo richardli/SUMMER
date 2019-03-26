@@ -1,7 +1,7 @@
 #' Plot projection output.
 #' @param x output from \code{\link{projINLA}}
-#' @param years_label labels for the periods
-#' @param years_med labels for the middle years in each period
+#' @param year_label labels for the periods
+#' @param year_med labels for the middle years in each period
 #' @param is.yearly logical indicator of whether the data contains yearly estimates
 #' @param is.subnational logical indicator of whether the data contains subnational estimates
 #' @param proj_year The first year where projections are made, i.e., where no data are available. 
@@ -10,9 +10,9 @@
 #' @details 
 #' Note that arguments after \code{...} must match exactly.
 #' \itemize{
-#'  \item{\code{years_label}}{string of year labels, defaults to \code{c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")}}
+#'  \item{\code{year_label}}{string of year labels, defaults to \code{c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")}}
 #'  \item{\code{proj_year}}{projection year as numeric, defaults to \code{2015}}
-#'  \item{\code{years_med}}{ median of year intervals, defaults to \code{c(1987, 1992, 1997, 2002, 2007, 2012, 2017)}}
+#'  \item{\code{year_med}}{ median of year intervals, defaults to \code{c(1987, 1992, 1997, 2002, 2007, 2012, 2017)}}
 #'  \item{\code{is.yearly}}{indicator for yearly model, defaults to \code{TRUE}}
 #'  \item{\code{is.subnational}}{indicator for subnational model, defaults to \code{TRUE}}
 #' }
@@ -52,14 +52,14 @@
 #' 
 #' }
 #' @export
-plot.projINLA <- function(x, years_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), years_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.yearly=TRUE, is.subnational = TRUE, proj_year = 2015, ...){
+plot.projINLA <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), year_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.yearly=TRUE, is.subnational = TRUE, proj_year = 2015, ...){
 
   if(is.null(proj_year)) {
     proj_year = 0
   }
   
-  is.periods <- x$Year %in% years_label
-  x$Year.num[is.periods] <- years_med[match(x$Year[is.periods], years_label)]
+  is.periods <- x$Year %in% year_label
+  x$Year.num[is.periods] <- year_med[match(x$Year[is.periods], year_label)]
   x$project <- FALSE
   x$project[x$Year.num >= proj_year] <- TRUE
   # fix for global variable issue
@@ -78,7 +78,7 @@ plot.projINLA <- function(x, years_label = c("85-89", "90-94", "95-99", "00-04",
     g <- g + ggplot2::geom_line(position = my.dodge)
     g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .7, width = .05, position = my.dodge)
     g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("U5MR")
-    g <- g + ggplot2::scale_x_continuous(breaks=years_med, labels=years_label)
+    g <- g + ggplot2::scale_x_continuous(breaks=year_med, labels=year_label)
   }else if(!is.subnational){
     g <- g + ggplot2::geom_point(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5, color = 1)
     g <- g + ggplot2::geom_line(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5, color = 1)

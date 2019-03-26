@@ -4,17 +4,17 @@
 \alias{plot.projINLA}
 \title{Plot projection output.}
 \usage{
-\method{plot}{projINLA}(x, years_label = c("85-89", "90-94", "95-99",
-  "00-04", "05-09", "10-14", "15-19"), years_med = c(1987, 1992, 1997,
+\method{plot}{projINLA}(x, year_label = c("85-89", "90-94", "95-99",
+  "00-04", "05-09", "10-14", "15-19"), year_med = c(1987, 1992, 1997,
   2002, 2007, 2012, 2017), is.yearly = TRUE, is.subnational = TRUE,
   proj_year = 2015, ...)
 }
 \arguments{
 \item{x}{output from \code{\link{projINLA}}}
 
-\item{years_label}{labels for the periods}
+\item{year_label}{labels for the periods}
 
-\item{years_med}{labels for the middle years in each period}
+\item{year_med}{labels for the middle years in each period}
 
 \item{is.yearly}{logical indicator of whether the data contains yearly estimates}
 
@@ -30,9 +30,9 @@ Plot projection output.
 \details{
 Note that arguments after \code{...} must match exactly.
 \itemize{
- \item{\code{years_label}}{string of year labels, defaults to \code{c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")}}
+ \item{\code{year_label}}{string of year labels, defaults to \code{c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")}}
  \item{\code{proj_year}}{projection year as numeric, defaults to \code{2015}}
- \item{\code{years_med}}{ median of year intervals, defaults to \code{c(1987, 1992, 1997, 2002, 2007, 2012, 2017)}}
+ \item{\code{year_med}}{ median of year intervals, defaults to \code{c(1987, 1992, 1997, 2002, 2007, 2012, 2017)}}
  \item{\code{is.yearly}}{indicator for yearly model, defaults to \code{TRUE}}
  \item{\code{is.subnational}}{indicator for subnational model, defaults to \code{TRUE}}
 }
