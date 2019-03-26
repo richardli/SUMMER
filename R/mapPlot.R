@@ -14,6 +14,7 @@
 #' @param removetab logical indicator to not show the tab label, only applicable when only one tab is present.
 #' @param border color of the border
 #' @param ncol number of columns for the output tabs
+#' @param ylim range of the values to be plotted.
 #' 
 #' @examples
 #' \dontrun{

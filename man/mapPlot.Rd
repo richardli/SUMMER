@@ -32,6 +32,8 @@ mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
 \item{border}{color of the border}
 
 \item{ncol}{number of columns for the output tabs}
+
+\item{ylim}{range of the values to be plotted.}
 }
 \description{
 This function visualizes the map with different variables. The input data frame can be either the long or wide format.
