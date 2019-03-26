@@ -10,7 +10,6 @@
 #' @param alive variable name for the indicator of whether child was alive or dead at the time of interview.
 #' @param age variable name for the age at death of the child in completed months.
 #' @param date.interview variable name for the date of interview.
-#' @param year.range earliest year of the data to consider.
 #' @param month.cut The cutoff of each bins of age group in the unit of months. Default values are 1, 12, 24, 36, 48, and 60, representing the age groups (0, 1), [1, 12), [12, 24), ..., [48, 60).
 #' @param year.cut The cutoff of each bins of time periods, including both boundaries. Default values are 1980, 1985, ..., 2020, representing the time periods 80-84, 85-89, ..., 15-19.
 #' 
@@ -21,7 +20,7 @@
 #' }
 #' 
 #' @export
-getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022", "v023", "v024", "v025", "v139", "bidx"), strata=c("v024", "v025"), dob = "b3", alive = "b5", age = "b7", date.interview= "v008", year.range = 1980, month.cut = c(1,12,24,36,48,60), year.cut=seq(1980, 2020, by=5)) {
+getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022", "v023", "v024", "v025", "v139", "bidx"), strata=c("v024", "v025"), dob = "b3", alive = "b5", age = "b7", date.interview= "v008", month.cut = c(1,12,24,36,48,60), year.cut=seq(1980, 2020, by=5)) {
   if(is.null(data)){
       dat <- suppressWarnings(readstata13::read.dta13(filepath, generate.factors = TRUE))    
   }else{
@@ -60,7 +59,7 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("c
   test$year <- floor((test$obsmonth-1)/12)
   
   test <- test[test$agemonth<max(month.cut), ]
-  test <- test[test$year>year.range - 1900, ]
+  test <- test[test$year>year.cut[1] - 1900, ]
   test <- test[test$year<test$survey_year, ]
   
   test$tstop <- NULL

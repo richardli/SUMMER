@@ -8,8 +8,8 @@ getBirths(filepath = NULL, data = NULL, surveyyear,
   variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022",
   "v023", "v024", "v025", "v139", "bidx"), strata = c("v024", "v025"),
   dob = "b3", alive = "b5", age = "b7", date.interview = "v008",
-  year.range = 1980, month.cut = c(1, 12, 24, 36, 48, 60),
-  year.cut = seq(1980, 2020, by = 5))
+  month.cut = c(1, 12, 24, 36, 48, 60), year.cut = seq(1980, 2020, by =
+  5))
 }
 \arguments{
 \item{filepath}{file path of raw .dta file from DHS. Only used when data frame is not provided in the function call.}
@@ -29,8 +29,6 @@ getBirths(filepath = NULL, data = NULL, surveyyear,
 \item{age}{variable name for the age at death of the child in completed months.}
 
 \item{date.interview}{variable name for the date of interview.}
-
-\item{year.range}{earliest year of the data to consider.}
 
 \item{month.cut}{The cutoff of each bins of age group in the unit of months. Default values are 1, 12, 24, 36, 48, and 60, representing the age groups (0, 1), [1, 12), [12, 24), ..., [48, 60).}
 
