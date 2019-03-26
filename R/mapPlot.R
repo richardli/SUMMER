@@ -40,7 +40,7 @@
 #' }
 #' 
 #' @export
-mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE, border = "gray20", ncol = NULL){
+mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE, border = "gray20", ncol = NULL, ylim = NULL){
     value <- group <- lat <- long <- NULL
     if (is.null(labels) & !is.long) {
         labels <- variables
@@ -75,7 +75,12 @@ mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data,
             g <- g + ggplot2::facet_wrap(~variable, ncol = ncol)
         }
     }
-    g <- g + ggplot2::scale_fill_viridis_c()
+    if(!is.null(ylim)){
+        g <- g + ggplot2::scale_fill_viridis_c(lim = ylim)
+    }else{
+        g <- g + ggplot2::scale_fill_viridis_c()
+    } 
+
     return(g)
 }
 
