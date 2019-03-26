@@ -6,6 +6,11 @@ warnings_are_errors: true
 sudo: false
 cache: packages
 
+addons:
+  apt:
+    packages:
+      - libudunits2-dev
+
 
 before_install:
   - Rscript -e 'install.packages("INLA", repos = c("http://www.math.ntnu.no/inla/R/stable", "http://cran.rstudio.com"))'
