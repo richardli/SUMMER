@@ -25,6 +25,8 @@
 #' @param b.rw2 hyperparameter for RW2 random effects, only need if \code{useHyper = TRUE}
 #' @param a.icar hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}
 #' @param b.icar hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}
+#' @param option list of options to be passed to control.compute() in the inla() function.
+#' @param verbose logical indicator to print out detailed inla() intermediate steps.
 #' @seealso \code{\link{countrySummary}}
 #' @import Matrix
 #' @importFrom stats dgamma
@@ -68,7 +70,7 @@
 #' }
 #' 
 #' @export
-fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE, redo.prior = FALSE, priors = NULL, type.st = 1, useHyper = FALSE, a.iid = NULL, b.iid = NULL, a.rw1 = NULL, b.rw1 = NULL, a.rw2 = NULL, b.rw2 = NULL, a.icar = NULL, b.icar = NULL){
+fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE, redo.prior = FALSE, priors = NULL, type.st = 1, useHyper = FALSE, a.iid = NULL, b.iid = NULL, a.rw1 = NULL, b.rw1 = NULL, a.rw2 = NULL, b.rw2 = NULL, a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo = T, openmp.strategy = 'default'), verbose = FALSE){
 
   # check region names in Amat is consistent
   if(!is.null(Amat)){
@@ -723,8 +725,8 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     
     # -- fitting the model in INLA -- #
 
-      inla11 <- INLA::inla(mod, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T), data = exdat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE ))), scale = exdat$logit.prec, 
-                           lincomb = lincombs.yearly)
+      inla11 <- INLA::inla(mod, family = "gaussian", control.compute = options, data = exdat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE ))), scale = exdat$logit.prec, 
+                           lincomb = lincombs.yearly, control.inla = list(int.strategy = "ccd"), verbose = verbose)
     
     return(list(model = mod, fit = inla11, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 
                                                                                                             1), survey.time = survey.time, survey.area = survey.area, time.area = time.area, survey.time.area = survey.time.area, 

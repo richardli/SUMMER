@@ -8,7 +8,9 @@ fitINLA(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
   year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE,
   redo.prior = FALSE, priors = NULL, type.st = 1, useHyper = FALSE,
   a.iid = NULL, b.iid = NULL, a.rw1 = NULL, b.rw1 = NULL,
-  a.rw2 = NULL, b.rw2 = NULL, a.icar = NULL, b.icar = NULL)
+  a.rw2 = NULL, b.rw2 = NULL, a.icar = NULL, b.icar = NULL,
+  options = list(dic = T, mlik = T, cpo = T, openmp.strategy =
+  "default"), verbose = FALSE)
 }
 \arguments{
 \item{data}{Combined dataset}
@@ -54,6 +56,10 @@ fitINLA(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
 \item{a.icar}{hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}}
 
 \item{b.icar}{hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}}
+
+\item{verbose}{logical indicator to print out detailed inla() intermediate steps.}
+
+\item{option}{list of options to be passed to control.compute() in the inla() function.}
 }
 \value{
 INLA model fit using the provided formula, country summary data, and geographic data
