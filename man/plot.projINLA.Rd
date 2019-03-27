@@ -7,7 +7,8 @@
 \method{plot}{projINLA}(x, year_label = c("85-89", "90-94", "95-99",
   "00-04", "05-09", "10-14", "15-19"), year_med = c(1987, 1992, 1997,
   2002, 2007, 2012, 2017), is.yearly = TRUE, is.subnational = TRUE,
-  proj_year = 2015, ...)
+  proj_year = 2015, data.add = NULL, option.add = list(point = NULL,
+  lower = NULL, upper = NULL, by = NULL), color.add = "black", ...)
 }
 \arguments{
 \item{x}{output from \code{\link{projINLA}}}
@@ -20,7 +21,13 @@
 
 \item{is.subnational}{logical indicator of whether the data contains subnational estimates}
 
-\item{proj_year}{The first year where projections are made, i.e., where no data are available.}
+\item{proj_year}{the first year where projections are made, i.e., where no data are available.}
+
+\item{data.add}{data frame for the Comparisons data points to add to the graph. This can be, for example, the raw direct estimates. This data frame is merged to the projections by column 'region' and 'years'. Except for these two columns, this dataset should not have Comparisons columns with names overlapping the projINLA output.}
+
+\item{option.add}{list of options specifying the variable names for the points to plot, lower and upper bounds, and the grouping variable. This is intended to be used to add Comparisons estimates on the same plot as the smoothed estimates. See examples for details.}
+
+\item{color.add}{the color of the Comparisons data points to plot.}
 
 \item{...}{optional arguments, see details}
 }
@@ -43,7 +50,6 @@ data(DemoData)
 deta(DemoMap)
 years <- levels(DemoData[[1]]$time)
 
-# obtain direct estimates
 data <- countrySummary_mult(births = DemoData, 
 years = years, idVar = "id", 
 regionVar = "region", timeVar = "time", 
@@ -55,21 +61,56 @@ geo.recode = NULL)
 geo <- DemoMap$geo
 mat <- DemoMap$Amat
 
-# Simulate hyper priors
-priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat, only.iid = TRUE)
-
 # combine data from multiple surveys
-data <- aggregateSurvey(data)
+data_agg <- aggregateSurvey(data)
 
 # Model fitting with INLA
 years.all <- c(years, "15-19")
-fit <- fitINLA(data = data, geo = geo, Amat = mat, 
-year_names = years.all, year_range = c(1985, 2019), 
-priors = priors, rw = 2, is.yearly=TRUE, 
+
+
+fit <- fitINLA(data = data_agg, geo = NULL, Amat = NULL, 
+year_names = years.all, year_range = c(1985, 2019),  
+rw = 2, is.yearly=TRUE, 
+m = 5, type.st = 4)
+# Projection
+out <- projINLA(fit, is.yearly = TRUE)
+# National smoothed plot
+plot(out, is.yearly=TRUE, is.subnational=FALSE) + ggplot2::ggtitle("National yearly model")
+
+# National smoothed plot with the aggregated direct estimates
+plot(out, is.yearly=TRUE, is.subnational=FALSE,  data.add = data_agg, 
+option.add = list(point = "u5m", lower = "lower", upper = "upper"), 
+color.add = "orange") + ggplot2::ggtitle("National yearly model") 
+
+# National smoothed plot with the survey-specific direct estimates
+plot(out, is.yearly=TRUE, is.subnational=FALSE,  data.add = data, 
+option.add = list(point = "u5m", by = "surveyYears"), 
+color.add = "darkblue") + ggplot2::ggtitle ("National yearly model") 
+
+
+
+fit <- fitINLA(data = data_agg, geo = geo, Amat = mat, 
+year_names = years.all, year_range = c(1985, 2019),  
+rw = 2, is.yearly=TRUE, 
 m = 5, type.st = 4)
 # Projection
 out <- projINLA(fit, Amat = mat, is.yearly = TRUE)
+
+# Subnational estimates
 plot(out, is.yearly=TRUE, is.subnational=TRUE) + ggplot2::ggtitle("Subnational yearly model")
+
+
+# Subnational estimates with the aggregated direct estimates
+plot(out, is.yearly=TRUE, is.subnational=TRUE,  data.add = data_agg, option.add = 
+list(point = "u5m", lower = "lower", upper = "upper")) + 
+ggplot2::ggtitle("Subnational yearly model") + facet_wrap(~region)
+
+
+# Subnational estimates with survey-specific direct estimates
+plot(out, is.yearly=TRUE, is.subnational=TRUE,  data.add = data, option.add = 
+list(point = "u5m", by = "surveyYears")) + 
+ggplot2::ggtitle("Subnational yearly model") + facet_wrap(~region) 
+
 
 }
 }

@@ -4,7 +4,10 @@
 #' @param year_med labels for the middle years in each period
 #' @param is.yearly logical indicator of whether the data contains yearly estimates
 #' @param is.subnational logical indicator of whether the data contains subnational estimates
-#' @param proj_year The first year where projections are made, i.e., where no data are available. 
+#' @param proj_year the first year where projections are made, i.e., where no data are available. 
+#' @param data.add data frame for the Comparisons data points to add to the graph. This can be, for example, the raw direct estimates. This data frame is merged to the projections by column 'region' and 'years'. Except for these two columns, this dataset should not have Comparisons columns with names overlapping the projINLA output.
+#' @param option.add list of options specifying the variable names for the points to plot, lower and upper bounds, and the grouping variable. This is intended to be used to add Comparisons estimates on the same plot as the smoothed estimates. See examples for details.  
+#' @param color.add the color of the Comparisons data points to plot.
 #' @param ... optional arguments, see details
 #' 
 #' @details 
@@ -22,7 +25,6 @@
 #' deta(DemoMap)
 #' years <- levels(DemoData[[1]]$time)
 #' 
-#' # obtain direct estimates
 #' data <- countrySummary_mult(births = DemoData, 
 #' years = years, idVar = "id", 
 #' regionVar = "region", timeVar = "time", 
@@ -34,45 +36,106 @@
 #' geo <- DemoMap$geo
 #' mat <- DemoMap$Amat
 #' 
-#' # Simulate hyper priors
-#' priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat, only.iid = TRUE)
-#' 
 #' # combine data from multiple surveys
-#' data <- aggregateSurvey(data)
+#' data_agg <- aggregateSurvey(data)
 #' 
 #' # Model fitting with INLA
 #' years.all <- c(years, "15-19")
-#' fit <- fitINLA(data = data, geo = geo, Amat = mat, 
-#' year_names = years.all, year_range = c(1985, 2019), 
-#' priors = priors, rw = 2, is.yearly=TRUE, 
+#'
+#' 
+#' fit <- fitINLA(data = data_agg, geo = NULL, Amat = NULL, 
+#' year_names = years.all, year_range = c(1985, 2019),  
+#' rw = 2, is.yearly=TRUE, 
+#' m = 5, type.st = 4)
+#' # Projection
+#' out <- projINLA(fit, is.yearly = TRUE)
+#' # National smoothed plot
+#' plot(out, is.yearly=TRUE, is.subnational=FALSE) + ggplot2::ggtitle("National yearly model")
+#' 
+#' # National smoothed plot with the aggregated direct estimates
+#' plot(out, is.yearly=TRUE, is.subnational=FALSE,  data.add = data_agg, 
+#' option.add = list(point = "u5m", lower = "lower", upper = "upper"), 
+#' color.add = "orange") + ggplot2::ggtitle("National yearly model") 
+#' 
+#' # National smoothed plot with the survey-specific direct estimates
+#' plot(out, is.yearly=TRUE, is.subnational=FALSE,  data.add = data, 
+#' option.add = list(point = "u5m", by = "surveyYears"), 
+#' color.add = "darkblue") + ggplot2::ggtitle ("National yearly model") 
+#'
+#' 
+#' 
+#' fit <- fitINLA(data = data_agg, geo = geo, Amat = mat, 
+#' year_names = years.all, year_range = c(1985, 2019),  
+#' rw = 2, is.yearly=TRUE, 
 #' m = 5, type.st = 4)
 #' # Projection
 #' out <- projINLA(fit, Amat = mat, is.yearly = TRUE)
+#' 
+#' # Subnational estimates
 #' plot(out, is.yearly=TRUE, is.subnational=TRUE) + ggplot2::ggtitle("Subnational yearly model")
+#'
+#' 
+#' # Subnational estimates with the aggregated direct estimates
+#' plot(out, is.yearly=TRUE, is.subnational=TRUE,  data.add = data_agg, option.add = 
+#' list(point = "u5m", lower = "lower", upper = "upper")) + 
+#' ggplot2::ggtitle("Subnational yearly model") + facet_wrap(~region)
+#'
+#' 
+#' # Subnational estimates with survey-specific direct estimates
+#' plot(out, is.yearly=TRUE, is.subnational=TRUE,  data.add = data, option.add = 
+#' list(point = "u5m", by = "surveyYears")) + 
+#' ggplot2::ggtitle("Subnational yearly model") + facet_wrap(~region) 
+#' 
+
 #' 
 #' }
 #' @export
-plot.projINLA <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), year_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.yearly=TRUE, is.subnational = TRUE, proj_year = 2015, ...){
+plot.projINLA <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), year_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.yearly=TRUE, is.subnational = TRUE, proj_year = 2015, data.add = NULL, option.add = list(point = NULL, lower = NULL, upper = NULL, by = NULL), color.add = "black", ...){
 
   if(is.null(proj_year)) {
     proj_year = 0
   }
-  
-  is.periods <- x$Year %in% year_label
-  x$Year.num[is.periods] <- year_med[match(x$Year[is.periods], year_label)]
+
+
+  if(!is.null(data.add)){
+    data.add <- data.add[, c("region", "years", as.character(option.add))]
+    x <- merge(data.add, x, by = c("region", "years"), all.y = TRUE)
+    x$add_x <- x[, option.add$point]
+    if(!is.null(option.add$lower)){
+      x$add_lower <- x[, option.add$lower]
+      x$add_upper <- x[, option.add$upper]      
+    }else{
+      x$add_lower <- x$add_upper <- NULL
+    }
+    if(!is.null(option.add$by)){
+        x$Comparisons <- x[, option.add$by]
+        if(sum(is.na(x$Comparisons)) == dim(x)[1]) x$Comparisons <- "Direct"
+    }else{
+         x$Comparisons <- "Direct"
+    }
+  }
+
+  is.periods <- x$years %in% year_label
+  x$Year.num[is.periods] <- year_med[match(x$years[is.periods], year_label)]
   x$project <- FALSE
   x$project[x$Year.num >= proj_year] <- TRUE
   # fix for global variable issue
-  Year.num <- NULL; District <- NULL; med <- NULL; q025 <- NULL; q975 <- NULL; project <- NULL
+  Year.num <- NULL; region <- NULL; med <- NULL; q025 <- NULL; q975 <- NULL; project <- NULL; Comparisons <- NULL; add_x <- NULL; add_lower <- NULL; add_upper <- NULL
   
   if(is.subnational){
-    g <- ggplot2::ggplot(ggplot2::aes(x = Year.num, y = med, ymin = q025, ymax = q975, color = District), data = x)
+    g <- ggplot2::ggplot(ggplot2::aes(x = Year.num, y = med, ymin = q025, ymax = q975, color = region), data = x)
     my.dodge <- ggplot2::position_dodge(width = 1)
   }else{
     g <- ggplot2::ggplot(ggplot2::aes(x = Year.num, y = med, ymin = q025, ymax = q975), data = x)
     my.dodge <- ggplot2::position_dodge(width = 0.2)
   }
-  
+  if(!is.null(data.add)){
+    my.dodgeadd <- ggplot2::position_dodge2(width = 0.15, padding = 0.1)
+    g <- g + ggplot2::geom_point(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, ggplot2::aes(x = Year.num+0.5, y = add_x, shape = Comparisons), color = color.add)
+    if(!is.null(option.add$lower)) g <- g + ggplot2::geom_errorbar(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, ggplot2::aes(x = Year.num+0.5, ymin = add_lower, ymax = add_upper), size = 0.5, width = .03, alpha = 0.35, color = color.add)
+
+  }
+
   if(!is.yearly){
     g <- g + ggplot2::geom_point(position = my.dodge)
     g <- g + ggplot2::geom_line(position = my.dodge)
@@ -89,7 +152,7 @@ plot.projINLA <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04", 
   }else if(is.subnational){
     g <- g + ggplot2::geom_point(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5)
     g <- g + ggplot2::geom_line(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5)
-    g <- g + ggplot2::geom_point(shape = 17, size = 2.5, position = my.dodge, data=subset(x, is.periods==TRUE))
+    g <- g + ggplot2::geom_point(shape = 17, size = 2.5, position = my.dodge, data=subset(x, is.periods==TRUE), alpha = 0.7)
     g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE))
     g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("U5MR")
   }

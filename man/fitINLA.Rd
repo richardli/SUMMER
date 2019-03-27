@@ -57,9 +57,9 @@ fitINLA(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
 
 \item{b.icar}{hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}}
 
-\item{verbose}{logical indicator to print out detailed inla() intermediate steps.}
+\item{options}{list of options to be passed to control.compute() in the inla() function.}
 
-\item{option}{list of options to be passed to control.compute() in the inla() function.}
+\item{verbose}{logical indicator to print out detailed inla() intermediate steps.}
 }
 \value{
 INLA model fit using the provided formula, country summary data, and geographic data

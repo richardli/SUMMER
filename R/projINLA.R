@@ -95,7 +95,11 @@ projINLA <- function(inla_mod, is.yearly=TRUE, year_range = c(1985, 2019), year_
   results$Year.num <- suppressWarnings(as.numeric(as.character(results$Year)))
   if(region_names[1] != "All"){
     results$District <- region_names[results$District]
+  }else{
+    results$District <- "All"
   }
+  colnames(results)[which(colnames(results) == "District")] <- "region"
+  colnames(results)[which(colnames(results) == "Year")] <- "years"
   # Add S3 method
   class(results) <- c("projINLA", "data.frame")
   return(results)

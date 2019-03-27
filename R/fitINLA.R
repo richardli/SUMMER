@@ -25,7 +25,7 @@
 #' @param b.rw2 hyperparameter for RW2 random effects, only need if \code{useHyper = TRUE}
 #' @param a.icar hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}
 #' @param b.icar hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}
-#' @param option list of options to be passed to control.compute() in the inla() function.
+#' @param options list of options to be passed to control.compute() in the inla() function.
 #' @param verbose logical indicator to print out detailed inla() intermediate steps.
 #' @seealso \code{\link{countrySummary}}
 #' @import Matrix

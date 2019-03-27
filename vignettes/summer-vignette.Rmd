@@ -215,7 +215,7 @@ Next, we obtain Horvitz-Thompson estimators using `countrySummary_mult`.
 ```{r, warning=FALSE}
 years <- levels(DemoData[[1]]$time)
 
-data <- countrySummary_mult(births = DemoData, years = years, idVar = "id", regionVar = "region",
+data_multi <- countrySummary_mult(births = DemoData, years = years, idVar = "id", regionVar = "region",
                            timeVar = "time", clusterVar = "~clustid+id", ageVar = "age",
                            weightsVar = "weights", geo.recode = NULL)
 ```
@@ -223,8 +223,8 @@ data <- countrySummary_mult(births = DemoData, years = years, idVar = "id", regi
 Before fitting the model, we also aggregate estimates based on different surveys into a single set of estimates, using the inverse design-based variances as the weights. 
 
 ```{r}
-dim(data)
-data <- aggregateSurvey(data)
+dim(data_multi)
+data <- aggregateSurvey(data_multi)
 dim(data)
 ```
 
@@ -297,7 +297,7 @@ fit4 <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years.all,
 out4 <- projINLA(fit4, Amat = mat, is.yearly = TRUE)
 ```
 
-The figures below shows the comparison of the subnational model with different temporal scales, and the estimates over time on maps.
+The figures below shows the comparison of the subnational model with different temporal scales.
 
 ```{r}
 g2 <- NULL
@@ -306,9 +306,18 @@ g2[[2]] <- plot(out4, is.yearly=TRUE, is.subnational=TRUE) + ggtitle("Subnationa
 grid.arrange(grobs=g2, ncol = 2)
 ```
 
+We can also add back the direct estimates for comparison.
+
+```{r}
+plot(out4, is.yearly=TRUE, is.subnational=TRUE,  data.add = data_multi, option.add = list(point = "u5m", by = "surveyYears")) + ggplot2::ggtitle("Subnational yearly model") + facet_wrap(~region) 
+
+```
+
+Finally, we show the estimates over time on maps.
+
 ```{r, fig.width=9, fig.height=9}
 mapPlot(data = subset(out4, is.yearly==F), geo = DemoMap$geo,
-        variables=c("Year"), values = c("med"), by.data = "District", by.geo = "NAME_final", is.long=TRUE)
+        variables=c("years"), values = c("med"), by.data = "region", by.geo = "NAME_final", is.long=TRUE)
 ```
 
 
