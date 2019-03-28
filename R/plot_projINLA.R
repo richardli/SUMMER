@@ -8,6 +8,7 @@
 #' @param data.add data frame for the Comparisons data points to add to the graph. This can be, for example, the raw direct estimates. This data frame is merged to the projections by column 'region' and 'years'. Except for these two columns, this dataset should not have Comparisons columns with names overlapping the projINLA output.
 #' @param option.add list of options specifying the variable names for the points to plot, lower and upper bounds, and the grouping variable. This is intended to be used to add Comparisons estimates on the same plot as the smoothed estimates. See examples for details.  
 #' @param color.add the color of the Comparisons data points to plot.
+#' @param dodge.width the amount to add to data points at the same year to avoid overlap. Default to be 1.
 #' @param ... optional arguments, see details
 #' 
 #' @details 
@@ -90,7 +91,7 @@
 #' 
 #' }
 #' @export
-plot.projINLA <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), year_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.yearly=TRUE, is.subnational = TRUE, proj_year = 2015, data.add = NULL, option.add = list(point = NULL, lower = NULL, upper = NULL, by = NULL), color.add = "black", ...){
+plot.projINLA <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), year_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.yearly=TRUE, is.subnational = TRUE, proj_year = 2015, data.add = NULL, option.add = list(point = NULL, lower = NULL, upper = NULL, by = NULL), color.add = "black", dodge.width = 1, ...){
 
   if(is.null(proj_year)) {
     proj_year = 0
@@ -124,15 +125,15 @@ plot.projINLA <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04", 
   
   if(is.subnational){
     g <- ggplot2::ggplot(ggplot2::aes(x = Year.num, y = med, ymin = q025, ymax = q975, color = region), data = x)
-    my.dodge <- ggplot2::position_dodge(width = 1)
+    my.dodge <- ggplot2::position_dodge(width = dodge.width)
   }else{
     g <- ggplot2::ggplot(ggplot2::aes(x = Year.num, y = med, ymin = q025, ymax = q975), data = x)
-    my.dodge <- ggplot2::position_dodge(width = 0.2)
+    my.dodge <- ggplot2::position_dodge(width = dodge.width/5)
   }
   if(!is.null(data.add)){
     my.dodgeadd <- ggplot2::position_dodge2(width = 0.15, padding = 0.1)
-    g <- g + ggplot2::geom_point(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, ggplot2::aes(x = Year.num+0.5, y = add_x, shape = Comparisons), color = color.add)
-    if(!is.null(option.add$lower)) g <- g + ggplot2::geom_errorbar(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, ggplot2::aes(x = Year.num+0.5, ymin = add_lower, ymax = add_upper), size = 0.5, width = .03, alpha = 0.35, color = color.add)
+    g <- g + ggplot2::geom_point(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, ggplot2::aes(x = Year.num+0.5*dodge.width, y = add_x, shape = Comparisons), color = color.add)
+    if(!is.null(option.add$lower)) g <- g + ggplot2::geom_errorbar(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, ggplot2::aes(x = Year.num+0.5*dodge.width, ymin = add_lower, ymax = add_upper), size = 0.5, width = .03, alpha = 0.35, color = color.add)
 
   }
 

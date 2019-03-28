@@ -8,7 +8,8 @@
   "00-04", "05-09", "10-14", "15-19"), year_med = c(1987, 1992, 1997,
   2002, 2007, 2012, 2017), is.yearly = TRUE, is.subnational = TRUE,
   proj_year = 2015, data.add = NULL, option.add = list(point = NULL,
-  lower = NULL, upper = NULL, by = NULL), color.add = "black", ...)
+  lower = NULL, upper = NULL, by = NULL), color.add = "black",
+  dodge.width = 1, ...)
 }
 \arguments{
 \item{x}{output from \code{\link{projINLA}}}
@@ -28,6 +29,8 @@
 \item{option.add}{list of options specifying the variable names for the points to plot, lower and upper bounds, and the grouping variable. This is intended to be used to add Comparisons estimates on the same plot as the smoothed estimates. See examples for details.}
 
 \item{color.add}{the color of the Comparisons data points to plot.}
+
+\item{dodge.width}{the amount to add to data points at the same year to avoid overlap. Default to be 1.}
 
 \item{...}{optional arguments, see details}
 }
