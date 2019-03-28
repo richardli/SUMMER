@@ -43,10 +43,10 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("c
   
   datnew$obsStop[datnew$obsStart == datnew$obsStop] <- datnew$obsStop[datnew$obsStart == datnew$obsStop] + 0.01
   
-  datnew$id <- 1:nrow(datnew)
+  datnew$id.personmonth <- 1:nrow(datnew)
   
   # Surv(time = obsStart, time2=obsStop, event = died, origin=dob)~dob+survey_year+died+id + caseid + v001 + v002 + v004 + v005 + v021 + v022 + v023 + v024 + v025 + v139 + bidx
-  formula <- as.formula(paste(c("Surv(time = obsStart, time2=obsStop, event = died, origin=dob)~dob+survey_year+died+id", union(variables, strata)),  collapse = "+"))
+  formula <- as.formula(paste(c("Surv(time = obsStart, time2=obsStop, event = died, origin=dob)~dob+survey_year+died+id.personmonth", union(variables, strata)),  collapse = "+"))
 
   Surv <- survival::Surv
   test <- survival::survSplit(formula,
@@ -59,7 +59,7 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("c
   test$year <- floor((test$obsmonth-1)/12)
   
   test <- test[test$agemonth<max(month.cut), ]
-  test <- test[test$year>year.cut[1] - 1900, ]
+  test <- test[test$year>year.cut[1], ]
   test <- test[test$year<test$survey_year, ]
   
   test$tstop <- NULL
@@ -119,6 +119,6 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("c
   }else{
     test$strata <- do.call(paste, c(test[strata], sep="."))
   }
-  test$survey_year <- test$survey_year + 1990
+  test$survey_year <- test$survey_year + 1900
   return(test)
 }
