@@ -6,7 +6,8 @@
 \usage{
 countrySummary_mult(births, years, idVar = "v002",
   regionVar = "region", timeVar = "per5", clusterVar = "~v001+v002",
-  ageVar = "ageGrpD", weightsVar = "v005", geo.recode = NULL)
+  ageVar = "ageGrpD", weightsVar = "v005", geo.recode = NULL,
+  national.only = FALSE)
 }
 \arguments{
 \item{births}{A list of child-month data from multiple surveys from \code{\link{getBirths}}. The name of the list is used as the identifier in the output.}
@@ -26,6 +27,8 @@ countrySummary_mult(births, years, idVar = "v002",
 \item{weightsVar}{Variable name for sampling weights, typically 'v005'}
 
 \item{geo.recode}{The recode matrix to be used if region name is not consistent across different surveys. See \code{\link{ChangeRegion}}.}
+
+\item{national.only}{Logical indicator to obtain only the national estimates}
 }
 \value{
 a matrix of period-region summary of the Horvitz-Thompson direct estimates, the standard errors using delta method for a single survey, the 95\% confidence interval, the logit of the estimates, and the survey labels.

@@ -6,7 +6,7 @@
 \usage{
 countrySummary(births, years, idVar = "v002", regionVar = "region",
   timeVar = "time", clusterVar = "~v001+v002", ageVar = "age",
-  weightsVar = "v005", geo.recode = NULL)
+  weightsVar = "v005", geo.recode = NULL, national.only = FALSE)
 }
 \arguments{
 \item{births}{A matrix child-month data from \code{\link{getBirths}}}
@@ -26,6 +26,8 @@ countrySummary(births, years, idVar = "v002", regionVar = "region",
 \item{weightsVar}{Variable name for sampling weights, typically 'v005'}
 
 \item{geo.recode}{The recode matrix to be used if region name is not consistent across different surveys. See \code{\link{ChangeRegion}}.}
+
+\item{national.only}{Logical indicator to obtain only the national estimates}
 }
 \value{
 a matrix of period-region summary of the Horvitz-Thompson direct estimates, the standard errors using delta method for a single survey, the 95\% confidence interval, and the logit of the estimates.

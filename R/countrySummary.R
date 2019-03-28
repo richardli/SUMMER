@@ -10,6 +10,7 @@
 #' @param weightsVar Variable name for sampling weights, typically 'v005'
 #' @param clusterVar Variable name for cluster, typically '~v001 + v002'
 #' @param geo.recode The recode matrix to be used if region name is not consistent across different surveys. See \code{\link{ChangeRegion}}.
+#' @param national.only Logical indicator to obtain only the national estimates
 #'
 #' @return a matrix of period-region summary of the Horvitz-Thompson direct estimates, the standard errors using delta method for a single survey, the 95\% confidence interval, and the logit of the estimates.
 #' @seealso \code{\link{countrySummary_mult}}
@@ -23,7 +24,7 @@
 #' }
 #' @export
 countrySummary <- function(births, years, idVar = "v002", regionVar = "region", timeVar = "time", clusterVar = "~v001+v002",
-                           ageVar = "age", weightsVar = "v005", geo.recode = NULL) {
+                           ageVar = "age", weightsVar = "v005", geo.recode = NULL, national.only = FALSE) {
     # check all elements are provided
     if (is.null(births)) {
         stop("No births file specified!")
@@ -101,8 +102,13 @@ countrySummary <- function(births, years, idVar = "v002", regionVar = "region", 
     regions_num <- 1:length(regions_list)
     
     # add 'All' to all regions
-    regions_list <- c("All", regions_list)
-    regions_num <- c(0, regions_num)
+    if(national.only){
+        regions_list <- c("All")
+        regions_num <- c(0)
+    }else{
+        regions_list <- c("All", regions_list)
+        regions_num <- c(0, regions_num)        
+    }
     
     # create result data frame
     results <- data.frame(region = rep(regions_list, each = length(years)))
