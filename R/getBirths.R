@@ -59,7 +59,7 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("c
   test$year <- floor((test$obsmonth-1)/12)
   
   test <- test[test$agemonth<max(month.cut), ]
-  test <- test[test$year>year.cut[1], ]
+  test <- test[test$year>=year.cut[1], ]
   test <- test[test$year<test$survey_year, ]
   
   test$tstop <- NULL
