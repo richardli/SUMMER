@@ -1,7 +1,7 @@
 ---
 title: "Examples of Bayesian Small Area Estimation using Survey Data"
 author: Zehang Richard Li
-date: 2018/01/20
+date: 2019/03/28
 output: rmarkdown::pdf_document
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
@@ -209,15 +209,14 @@ colnames(dat) <- c("clustid","id","region","time","age","weights","strata","died
 
 ### Horvitz-Thompson estimators of U5MR
 
-Next, we obtain Horvitz-Thompson estimators using `countrySummary_mult`.
+Next, we obtain Horvitz-Thompson estimators using `countrySummary_mult`. We specify the survey design as the popular two-stage stratified cluster sampling where strata are specified in the ``strata`` column, and clusters are specified by both the cluster ID (`clusterid`) and household ID (`id`). 
 
 
 ```{r, warning=FALSE}
 years <- levels(DemoData[[1]]$time)
 
-data_multi <- countrySummary_mult(births = DemoData, years = years, idVar = "id", regionVar = "region",
-                           timeVar = "time", clusterVar = "~clustid+id", ageVar = "age",
-                           weightsVar = "weights", geo.recode = NULL)
+data_multi <- countrySummary_mult(births = DemoData, years = years,regionVar = "region", 
+  timeVar = "time", clusterVar = "~clustid+id", ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 ```
 
 Before fitting the model, we also aggregate estimates based on different surveys into a single set of estimates, using the inverse design-based variances as the weights. 
@@ -309,7 +308,7 @@ grid.arrange(grobs=g2, ncol = 2)
 We can also add back the direct estimates for comparison.
 
 ```{r}
-plot(out4, is.yearly=TRUE, is.subnational=TRUE,  data.add = data_multi, option.add = list(point = "u5m", by = "surveyYears")) + ggplot2::ggtitle("Subnational yearly model") + facet_wrap(~region) 
+plot(out4, is.yearly=TRUE, is.subnational=TRUE,  data.add = data_multi, option.add = list(point = "u5m", by = "surveyYears")) + facet_wrap(~region, scales = 'free') 
 
 ```
 

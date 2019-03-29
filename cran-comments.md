@@ -47,4 +47,7 @@ We added the vignette output to inst/doc. We also have switched to a static vign
 * Improve generalizability of some functions.
 
 ## Version 0.2.3 Update
-* Improve generalizability of some functions.
+* Major improvements in generalizability and documents of some functions.
+* We Changed how non-existent age bins are handled in the discrete survival model. Previously they were ignored. Now these age bins are combined with previous bins. This affects direct estimates in situations where very few observations exist.
+* Improved visualizations.
+* Update to vignette.
