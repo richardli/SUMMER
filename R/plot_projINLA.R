@@ -27,7 +27,7 @@
 #' years <- levels(DemoData[[1]]$time)
 #' 
 #' data <- countrySummary_mult(births = DemoData, 
-#' years = years, idVar = "id", 
+#' years = years, 
 #' regionVar = "region", timeVar = "time", 
 #' clusterVar = "~clustid+id", 
 #' ageVar = "age", weightsVar = "weights", 
@@ -118,8 +118,8 @@ plot.projINLA <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04", 
 
   is.periods <- x$years %in% year_label
   x$Year.num[is.periods] <- year_med[match(x$years[is.periods], year_label)]
-  x$project <- FALSE
-  x$project[x$Year.num >= proj_year] <- TRUE
+  x$project <- "No"
+  x$project[x$Year.num >= proj_year] <- "Yes"
   # fix for global variable issue
   Year.num <- NULL; region <- NULL; med <- NULL; q025 <- NULL; q975 <- NULL; project <- NULL; Comparisons <- NULL; add_x <- NULL; add_lower <- NULL; add_upper <- NULL
   

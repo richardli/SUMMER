@@ -13,6 +13,7 @@
 #' @param month.cut The cutoff of each bins of age group in the unit of months. Default values are 1, 12, 24, 36, 48, and 60, representing the age groups (0, 1), [1, 12), [12, 24), ..., [48, 60).
 #' @param year.cut The cutoff of each bins of time periods, including both boundaries. Default values are 1980, 1985, ..., 2020, representing the time periods 80-84, 85-89, ..., 15-19.
 #' 
+#' @return This function returns a new data frame where each row indicate a person-month, with the additional variables specified in the function argument.
 #' @examples 
 #' \dontrun{
 #' my_fp <- "/myExampleFilepath/surveyData.DTA"
@@ -43,10 +44,10 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("c
   
   datnew$obsStop[datnew$obsStart == datnew$obsStop] <- datnew$obsStop[datnew$obsStart == datnew$obsStop] + 0.01
   
-  datnew$id.personmonth <- 1:nrow(datnew)
+  datnew$id.new <- 1:nrow(datnew)
   
   # Surv(time = obsStart, time2=obsStop, event = died, origin=dob)~dob+survey_year+died+id + caseid + v001 + v002 + v004 + v005 + v021 + v022 + v023 + v024 + v025 + v139 + bidx
-  formula <- as.formula(paste(c("Surv(time = obsStart, time2=obsStop, event = died, origin=dob)~dob+survey_year+died+id.personmonth", union(variables, strata)),  collapse = "+"))
+  formula <- as.formula(paste(c("Surv(time = obsStart, time2=obsStop, event = died, origin=dob)~dob+survey_year+died+id.new", union(variables, strata)),  collapse = "+"))
 
   Surv <- survival::Surv
   test <- survival::survSplit(formula,

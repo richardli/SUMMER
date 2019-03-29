@@ -34,6 +34,9 @@ getBirths(filepath = NULL, data = NULL, surveyyear,
 
 \item{year.cut}{The cutoff of each bins of time periods, including both boundaries. Default values are 1980, 1985, ..., 2020, representing the time periods 80-84, 85-89, ..., 15-19.}
 }
+\value{
+This function returns a new data frame where each row indicate a person-month, with the additional variables specified in the function argument.
+}
 \description{
 Function to get Births file from DHS .dta files.
 }

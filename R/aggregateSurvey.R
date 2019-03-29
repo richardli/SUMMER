@@ -11,7 +11,7 @@
 #' 
 #' # obtain direct estimates
 #' data <- countrySummary_mult(births = DemoData, 
-#' years = years, idVar = "id", 
+#' years = years, 
 #' regionVar = "region", timeVar = "time", 
 #' clusterVar = "~clustid+id", 
 #' ageVar = "age", weightsVar = "weights", 

@@ -4,24 +4,22 @@
 \alias{countrySummary}
 \title{Obtain the Horvitz-Thompson direct estimates and standard errors using delta method for a single survey.}
 \usage{
-countrySummary(births, years, idVar = "v002", regionVar = "region",
-  timeVar = "time", clusterVar = "~v001+v002", ageVar = "age",
-  weightsVar = "v005", geo.recode = NULL, national.only = FALSE)
+countrySummary(births, years, regionVar = "region", timeVar = "time",
+  clusterVar = "~v001+v002", ageVar = "age", weightsVar = "v005",
+  geo.recode = NULL, national.only = FALSE)
 }
 \arguments{
 \item{births}{A matrix child-month data from \code{\link{getBirths}}}
 
 \item{years}{String vector of the year intervals used}
 
-\item{idVar}{Variable name for ID, typically 'v002'}
+\item{regionVar}{Variable name for region in the input births data.}
 
-\item{regionVar}{Variable name for region, typically 'v024', for older surveys might be 'v101'}
-
-\item{timeVar}{Variable name for time, typically 'per5'}
+\item{timeVar}{Variable name for the time period indicator in the input births data.}
 
 \item{clusterVar}{Variable name for cluster, typically '~v001 + v002'}
 
-\item{ageVar}{Variable name for age group, default assumes the variable is called 'ageGrpD'}
+\item{ageVar}{Variable name for age group. This variable need to be in the form of "a-b" where a and b are both ages in months. For example, "1-11" means age between 1 and 11 months, including both end points. An exception is age less than one month can be represented by "0" or "0-0".}
 
 \item{weightsVar}{Variable name for sampling weights, typically 'v005'}
 
@@ -30,7 +28,7 @@ countrySummary(births, years, idVar = "v002", regionVar = "region",
 \item{national.only}{Logical indicator to obtain only the national estimates}
 }
 \value{
-a matrix of period-region summary of the Horvitz-Thompson direct estimates, the standard errors using delta method for a single survey, the 95\% confidence interval, and the logit of the estimates.
+a matrix of period-region summary of the Horvitz-Thompson direct estimates by region and time period specified in the argument, the standard errors using delta method for a single survey, the 95\% confidence interval, and the logit of the estimates.
 }
 \description{
 Obtain the Horvitz-Thompson direct estimates and standard errors using delta method for a single survey.
@@ -39,7 +37,7 @@ Obtain the Horvitz-Thompson direct estimates and standard errors using delta met
 \dontrun{
 data(DemoData)
 years <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14")
-u5m <- countrySummary(births = DemoData[[1]],  years = years, idVar = "id", 
+u5m <- countrySummary(births = DemoData[[1]],  years = years, 
 regionVar = "region", timeVar = "time", clusterVar = "~clustid+id", 
 ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 }

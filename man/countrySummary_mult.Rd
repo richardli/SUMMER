@@ -4,25 +4,22 @@
 \alias{countrySummary_mult}
 \title{Obtain the Horvitz-Thompson direct estimates and standard errors using delta method for multiple surveys.}
 \usage{
-countrySummary_mult(births, years, idVar = "v002",
-  regionVar = "region", timeVar = "per5", clusterVar = "~v001+v002",
-  ageVar = "ageGrpD", weightsVar = "v005", geo.recode = NULL,
-  national.only = FALSE)
+countrySummary_mult(births, years, regionVar = "region",
+  timeVar = "time", clusterVar = "~v001+v002", ageVar = "age",
+  weightsVar = "v005", geo.recode = NULL, national.only = FALSE)
 }
 \arguments{
 \item{births}{A list of child-month data from multiple surveys from \code{\link{getBirths}}. The name of the list is used as the identifier in the output.}
 
 \item{years}{String vector of the year intervals used}
 
-\item{idVar}{Variable name for ID, typically 'v002'}
-
 \item{regionVar}{Variable name for region, typically 'v024', for older surveys might be 'v101'}
 
-\item{timeVar}{Variable name for time, typically 'per5'}
+\item{timeVar}{Variable name for the time period indicator in the input births data.}
 
-\item{clusterVar}{Variable name for cluster, typically '~v001 + v002'}
+\item{clusterVar}{Variable name for the IDs in the second-stage cluster sampling, typically '~v001 + v002', i.e., the cluster number and household number. When no cluster sampling design exists, this variable usually is the household ID.}
 
-\item{ageVar}{Variable name for age group, default assumes the variable is called 'ageGrpD'}
+\item{ageVar}{Variable name for age group. This variable need to be in the form of "a-b" where a and b are both ages in months. For example, "1-11" means age between 1 and 11 months, including both end points. An exception is age less than one month can be represented by "0" or "0-0".}
 
 \item{weightsVar}{Variable name for sampling weights, typically 'v005'}
 
@@ -31,7 +28,7 @@ countrySummary_mult(births, years, idVar = "v002",
 \item{national.only}{Logical indicator to obtain only the national estimates}
 }
 \value{
-a matrix of period-region summary of the Horvitz-Thompson direct estimates, the standard errors using delta method for a single survey, the 95\% confidence interval, the logit of the estimates, and the survey labels.
+This is the extension to the \code{\link{countrySummary}} function that returns estimates from multiple surveys. Additional columns in the output (survey and surveyYears) specify the estimates from different surveys.
 }
 \description{
 Obtain the Horvitz-Thompson direct estimates and standard errors using delta method for multiple surveys.
@@ -40,7 +37,7 @@ Obtain the Horvitz-Thompson direct estimates and standard errors using delta met
 \dontrun{
 data(DemoData)
 years <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14")
-u5m <- countrySummary_mult(births = DemoData, years = years, idVar = "id", 
+u5m <- countrySummary_mult(births = DemoData, years = years, 
 regionVar = "region", timeVar = "time", clusterVar = "~clustid+id", 
 ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 }
