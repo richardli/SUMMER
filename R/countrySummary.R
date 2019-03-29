@@ -3,28 +3,26 @@
 #' 
 #' @param births A matrix child-month data from \code{\link{getBirths}}
 #' @param years String vector of the year intervals used
-#' @param idVar Variable name for ID, typically 'v002'
-#' @param regionVar Variable name for region, typically 'v024', for older surveys might be 'v101'
-#' @param timeVar Variable name for time, typically 'per5'
-#' @param ageVar Variable name for age group, default assumes the variable is called 'ageGrpD'
+#' @param regionVar Variable name for region in the input births data.
+#' @param timeVar Variable name for the time period indicator in the input births data.
+#' @param ageVar Variable name for age group. This variable need to be in the form of "a-b" where a and b are both ages in months. For example, "1-11" means age between 1 and 11 months, including both end points. An exception is age less than one month can be represented by "0" or "0-0".
 #' @param weightsVar Variable name for sampling weights, typically 'v005'
 #' @param clusterVar Variable name for cluster, typically '~v001 + v002'
 #' @param geo.recode The recode matrix to be used if region name is not consistent across different surveys. See \code{\link{ChangeRegion}}.
 #' @param national.only Logical indicator to obtain only the national estimates
 #'
-#' @return a matrix of period-region summary of the Horvitz-Thompson direct estimates, the standard errors using delta method for a single survey, the 95\% confidence interval, and the logit of the estimates.
+#' @return a matrix of period-region summary of the Horvitz-Thompson direct estimates by region and time period specified in the argument, the standard errors using delta method for a single survey, the 95\% confidence interval, and the logit of the estimates.
 #' @seealso \code{\link{countrySummary_mult}}
 #' @examples
 #' \dontrun{
 #' data(DemoData)
 #' years <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14")
-#' u5m <- countrySummary(births = DemoData[[1]],  years = years, idVar = "id", 
+#' u5m <- countrySummary(births = DemoData[[1]],  years = years, 
 #' regionVar = "region", timeVar = "time", clusterVar = "~clustid+id", 
 #' ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 #' }
 #' @export
-countrySummary <- function(births, years, idVar = "v002", regionVar = "region", timeVar = "time", clusterVar = "~v001+v002",
-                           ageVar = "age", weightsVar = "v005", geo.recode = NULL, national.only = FALSE) {
+countrySummary <- function(births, years, regionVar = "region", timeVar = "time", clusterVar = "~v001+v002",  ageVar = "age", weightsVar = "v005", geo.recode = NULL, national.only = FALSE) {
     # check all elements are provided
     if (is.null(births)) {
         stop("No births file specified!")
@@ -52,7 +50,6 @@ countrySummary <- function(births, years, idVar = "v002", regionVar = "region", 
     
     # create new variables
     births$region0 <- births[, regionVar]
-    births$id0 <- births[, idVar]
     births$weights0 <- births[, weightsVar]
     births$time0 <- births[, timeVar]
     births$age0 <- births[, ageVar]
@@ -89,8 +86,7 @@ countrySummary <- function(births, years, idVar = "v002", regionVar = "region", 
         stop("Strata not defined.")
     }
     if (is.null(clusterVar)){
-        clusterVar <- paste0("~", idVar)
-        warning(paste("Cluster not specified, use", clusterVar, "instead"), immediate. = TRUE)
+        stop("Cluster not defined")
     }
 
     options(survey.lonely.psu = "adjust")
@@ -136,11 +132,20 @@ countrySummary <- function(births, years, idVar = "v002", regionVar = "region", 
         } else if (sum(tmp$variables$died) == 0) {
             warning(paste0(which.area, " ", which.time, " has no death, set to NA\n"),immediate. = TRUE)
             return(rep(NA, 5))
-        # } else if (length(unique(tmp$variables$age0)) < length(levels(tmp$variables$age0))) {
-        #     warning(paste0(which.area, " ", which.time, " has not enough person-months to fit the model, set to NA\n"),immediate. = TRUE)
-        #     return(rep(NA, 5))
         } else if(length(unique(tmp$variables$age0)) > 1){
             glm.ob <- survey::svyglm(died ~ (-1) + factor(age0), design = tmp, family = stats::quasibinomial, maxit = 50)
+            if(dim(summary(glm.ob)$coef)[1] < length(labels)){
+                bins.nodata <- length(labels) - dim(summary(glm.ob)$coef)[1] 
+                if(bins.nodata >= length(ns)/2){
+                    warning(paste0(which.area, " ", which.time, " has no observation in more than half of the age bins, set to NA\n"),immediate. = TRUE)
+                    return(rep(NA, 5))
+                }
+                # This can only happen for the last one or several bins, since person-month are cumulative
+                ns.comb <- ns
+                ns.comb[length(ns) - bins.nodata] <- sum(ns[c(length(ns) - bins.nodata) : length(ns)])
+                warning(paste0(which.area, " ", which.time, " has no observations in ", bins.nodata, " age bins. They are collapsed with previous bins\n"),immediate. = TRUE)
+                return(get.est.withNA(glm.ob, labels, ns.comb))
+            }
             return(get.est.withNA(glm.ob, labels, ns))
         } else {
             glm.ob <- survey::svyglm(died ~ 1, design = tmp, family = stats::quasibinomial, maxit = 50)
