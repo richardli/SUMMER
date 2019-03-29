@@ -1,6 +1,6 @@
 ## Test environments
-* local OS X install, R 3.4.2
-* ubuntu 12.04 (on travis-ci), R 3.4.2
+* local OS X install, R 3.5.1
+* ubuntu 12.04 (on travis-ci), R 3.5.1
 * win-builder (devel and release)
 
 0 errors | 0 warnings | 0 notes
@@ -48,6 +48,6 @@ We added the vignette output to inst/doc. We also have switched to a static vign
 
 ## Version 0.2.3 Update
 * Major improvements in generalizability and documents of some functions.
-* We Changed how non-existent age bins are handled in the discrete survival model. Previously they were ignored. Now these age bins are combined with previous bins. This affects direct estimates in situations where very few observations exist.
+* We changed how non-existent age bins are handled in the discrete survival model. Previously they were ignored. Now these age bins are combined with previous bins. This affects direct estimates in situations where very few observations exist.
 * Improved visualizations.
 * Update to vignette.
