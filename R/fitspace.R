@@ -7,6 +7,7 @@
 #' @param data data frame with region and strata information.
 #' @param geo Geo file
 #' @param Amat Adjacency matrix for the regions
+#' @param X Covariate matrix with the first column being the region names. Currently only supporting static region-level covariates.
 #' @param family Link function specification, currently supports 'binomial' (default with logit link function) or 'gaussian'. 
 #' @param responseVar the response variable
 #' @param strataVar the strata variable
@@ -45,11 +46,21 @@
 #' weightVar="weights", regionVar="region", 
 #' clusterVar = "~clustid+id", 
 #' hyper=NULL, CI = 0.95)
+#' 
+#' # Example with region-level covariates
+#'  Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
+#'  fit <- fitSpace(data=DemoData2, geo=DemoMap2$geo, 
+#'   Amat=DemoMap2$Amat, family="binomial", 
+#'   X = Xmat,
+#'   responseVar="tobacco.use", strataVar="strata", 
+#'   weightVar="weights", regionVar="region", 
+#'   clusterVar = "~clustid+id", 
+ #'  hyper=NULL, CI = 0.95)
 #' }
 #' @export
 
 
-fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", hyper=NULL, hyper.besag = c(0.5, 5E-5), hyper.iid = c(0.5, 5E-5), CI = 0.95, FUN=NULL, newformula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], hyper.time = NULL, type.st = 0){
+fitSpace <- function(data, geo, Amat, X = NULL, family, responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", hyper=NULL, hyper.besag = c(0.5, 5E-5), hyper.iid = c(0.5, 5E-5), CI = 0.95, FUN=NULL, newformula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], hyper.time = NULL, type.st = 0){
 
     svy <- TRUE
 	if(!is.data.frame(data)){
@@ -73,6 +84,10 @@ fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", w
     }
     if(sum(rownames(Amat) != colnames(Amat)) > 0){
         stop("Row and column names of Amat needs to be the same.")
+    }
+    if(!is.null(X)){
+        if(sum(X[,1] %in% colnames(Amat) == FALSE) > 0 ||
+           sum(colnames(Amat) %in% X[,1] == FALSE) > 0) stop("Regions in the X matrix does not match the region names in Amat.")
     }
     
     if (is.null(clusterVar)){
@@ -211,11 +226,19 @@ fitSpace <- function(data, geo, Amat, family, responseVar, strataVar="strata", w
     }else{
         dat <- dat[order(dat[, "region.struct"]), ]
     }
+    
 
     if(!svy && family == "binomial"){
         formulatext <- "y ~ 1"
     }else{
         formulatext <- "HT.est ~ 1"
+    }
+    if(!is.null(X)){
+        X <- data.frame(X)        
+        fixed <- colnames(X)[-1]
+        colnames(X)[1] <- "region"
+        dat <- merge(dat, X, by = "region", all = TRUE)
+        formulatext <- paste(formulatext, " + ", paste(fixed, collapse = " + "))
     }
 
     if(is.null(newformula)){

@@ -128,6 +128,16 @@ library(gridExtra)
 grid.arrange(grobs = list(g1, g2, g3, g4), ncol = 2)
 ```
 
+### Area-level covariates
+Covariates at the area level could be included in the smoothing model by specifying the `X` argument. The first column of the covariate matrix should be the names of regions that match the column and row names of the adjacency matrix. 
+
+```{r}
+Education <- svyby(~age, ~hracode, design, svymean)
+Education <- Education[, 1:2]
+svysmoothed_with_covariate <- fitSpace(data = BRFSS, geo = KingCounty, Amat = mat, X = Education, family = "binomial", responseVar="diab2", strataVar="strata", weightVar="rwt_llcp", regionVar="hracode", clusterVar = "~1", hyper=NULL,  CI = 0.95)
+summary(svysmoothed_with_covariate$fit)
+```
+
 
 ### Customized prior distribution
 The `fitSpace` function has some default hyperprior choices built in. For Binomial models, we use $Ga(0.5, 0.001488)$ on the latent precisions, which leads to a 95\% prior interval for the residual odds ratio between $[0.5, 2]$, and for Gaussian models we use the default $Ga(1, 5E-5)$ prior from INLA. There are two ways to customize this default hyperprior choice. To simply update the hyper parameters of the Gamma prior, we can simply use the ` hyper.besag` and `hyper.iid` arguments. For example, 

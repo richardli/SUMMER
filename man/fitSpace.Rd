@@ -4,8 +4,8 @@
 \alias{fitSpace}
 \title{Fit INLA models to perform simple space smoothing.}
 \usage{
-fitSpace(data, geo, Amat, family, responseVar, strataVar = "strata",
-  weightVar = "weights", regionVar = "region",
+fitSpace(data, geo, Amat, X = NULL, family, responseVar,
+  strataVar = "strata", weightVar = "weights", regionVar = "region",
   clusterVar = "~v001+v002", hyper = NULL, hyper.besag = c(0.5,
   5e-05), hyper.iid = c(0.5, 5e-05), CI = 0.95, FUN = NULL,
   newformula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1],
@@ -17,6 +17,8 @@ fitSpace(data, geo, Amat, family, responseVar, strataVar = "strata",
 \item{geo}{Geo file}
 
 \item{Amat}{Adjacency matrix for the regions}
+
+\item{X}{Covariate matrix with the first column being the region names. Currently only supporting static region-level covariates.}
 
 \item{family}{Link function specification, currently supports 'binomial' (default with logit link function) or 'gaussian'.}
 
@@ -76,6 +78,16 @@ responseVar="tobacco.use", strataVar="strata",
 weightVar="weights", regionVar="region", 
 clusterVar = "~clustid+id", 
 hyper=NULL, CI = 0.95)
+
+# Example with region-level covariates
+ Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
+ fit <- fitSpace(data=DemoData2, geo=DemoMap2$geo, 
+  Amat=DemoMap2$Amat, family="binomial", 
+  X = Xmat,
+  responseVar="tobacco.use", strataVar="strata", 
+  weightVar="weights", regionVar="region", 
+  clusterVar = "~clustid+id", 
+ hyper=NULL, CI = 0.95)
 }
 }
 \seealso{
