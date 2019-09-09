@@ -32,7 +32,7 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("c
   year.cut <- year.cut - 1900
   variables <- union(variables, strata)
   datnew <- dat[, variables] 
-  
+  dat[, alive] <- tolower(dat[, alive])
   
   datnew$dob <- dat[, dob]
   datnew$survey_year <- surveyyear

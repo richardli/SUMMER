@@ -2,3 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
+vignettes/cache
+vignettes/figure
+vignettes/summer-vignette_cache
+summer-vignette.md
+vignettes/summer-vignette_files/figure-latex

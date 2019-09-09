@@ -132,8 +132,8 @@ grid.arrange(grobs = list(g1, g2, g3, g4), ncol = 2)
 Covariates at the area level could be included in the smoothing model by specifying the `X` argument. The first column of the covariate matrix should be the names of regions that match the column and row names of the adjacency matrix. 
 
 ```{r}
-Education <- svyby(~age, ~hracode, design, svymean)
-Education <- Education[, 1:2]
+Education <- svyby(~educau, ~hracode, design, svymean)
+Education <- Education[, 1:5]
 svysmoothed_with_covariate <- fitSpace(data = BRFSS, geo = KingCounty, Amat = mat, X = Education, family = "binomial", responseVar="diab2", strataVar="strata", weightVar="rwt_llcp", regionVar="hracode", clusterVar = "~1", hyper=NULL,  CI = 0.95)
 summary(svysmoothed_with_covariate$fit)
 ```
