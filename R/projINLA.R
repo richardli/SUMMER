@@ -3,11 +3,11 @@
 #' 
 #'
 #' @param inla_mod output from \code{\link{fitINLA}}
-#' @param is.yearly indicator for whether model is yearly or not
 #' @param year_range range corresponding to year label
 #' @param year_label vector of year string vector
 #' @param Amat adjacency matrix
 #' @param nsim number of simulations
+#' @param ... not used
 #' 
 #' @return Results from RW2 model fit, including projection.
 #' 
@@ -16,7 +16,7 @@
 #' years <- levels(DemoData[[1]]$time)
 #' 
 #' # obtain direct estimates
-#' data <- countrySummary_mult(births = DemoData, 
+#' data <- getDirectList(births = DemoData, 
 #' years = years,  
 #' regionVar = "region", timeVar = "time", 
 #' clusterVar = "~clustid+id", 
@@ -40,15 +40,15 @@
 #' priors = priors, rw = 2, is.yearly=TRUE, 
 #' m = 5, type.st = 4)
 #' # Projection
-#' out <- projINLA(fit, Amat = mat, is.yearly = TRUE)
-#' plot(out, is.yearly=TRUE, is.subnational=TRUE) + ggplot2::ggtitle("Subnational yearly model")
+#' out <- getSmoothed(fit, Amat = mat)
+#' plot(out, is.subnational=TRUE) + ggplot2::ggtitle("Subnational yearly model")
 #' 
 #' }
 #' 
 #' 
 #' @export
-projINLA <- function(inla_mod, is.yearly=TRUE, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), 
-                            Amat = NULL, nsim = 1000){
+getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), 
+                            Amat = NULL, nsim = 1000, ...){
 
   if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
     stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
@@ -65,13 +65,14 @@ projINLA <- function(inla_mod, is.yearly=TRUE, year_range = c(1985, 2019), year_
     region_names <- colnames(Amat)
     region_nums <- 1:length(region_names)
   }
+  is.yearly = inla_mod$is.yearly
   if(is.yearly){
     timelabel.yearly <- c(year_range[1] : year_range[2], year_label)
   }else{
     timelabel.yearly <- year_label
   }
   results <- expand.grid(District = region_nums, Year = timelabel.yearly)
-  results$med <- results$q025 <- results$q975 <- results$logit.med <- results$logit.q025 <- results$logit.q975 <- NA
+  results$median <- results$lower <- results$upper <- results$logit.median <- results$logit.lower <- results$logit.upper <- NA
   mod <- inla_mod$fit
   lincombs.info <- inla_mod$lincombs.info
 
@@ -82,12 +83,12 @@ projINLA <- function(inla_mod, is.yearly=TRUE, year_range = c(1985, 2019), year_
         marg <- INLA::inla.tmarginal(expit, mod$marginals.lincomb.derived[[index]])
         tmp <- INLA::inla.rmarginal(nsim, marg)
 
-        results$med[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::median(tmp)
-        results$q975[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp, .975)
-        results$q025[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp, .025)
-        results$logit.med[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::median(tmp.logit)
-        results$logit.q975[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp.logit, .975)
-        results$logit.q025[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp.logit, .025)
+        results$median[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::median(tmp)
+        results$upper[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp, .975)
+        results$lower[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp, .025)
+        results$logit.median[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::median(tmp.logit)
+        results$logit.upper[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp.logit, .975)
+        results$logit.lower[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp.logit, .025)
 
     }
   }
@@ -101,7 +102,7 @@ projINLA <- function(inla_mod, is.yearly=TRUE, year_range = c(1985, 2019), year_
   colnames(results)[which(colnames(results) == "District")] <- "region"
   colnames(results)[which(colnames(results) == "Year")] <- "years"
   # Add S3 method
-  class(results) <- c("projINLA", "data.frame")
+  class(results) <- c("SUMMERproj", "data.frame")
   return(results)
   }
 }

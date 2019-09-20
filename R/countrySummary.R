@@ -12,17 +12,17 @@
 #' @param national.only Logical indicator to obtain only the national estimates
 #'
 #' @return a matrix of period-region summary of the Horvitz-Thompson direct estimates by region and time period specified in the argument, the standard errors using delta method for a single survey, the 95\% confidence interval, and the logit of the estimates.
-#' @seealso \code{\link{countrySummary_mult}}
+#' @seealso \code{\link{getDirectList}}
 #' @examples
 #' \dontrun{
 #' data(DemoData)
 #' years <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14")
-#' u5m <- countrySummary(births = DemoData[[1]],  years = years, 
+#' mean <- getDirect(births = DemoData[[1]],  years = years, 
 #' regionVar = "region", timeVar = "time", clusterVar = "~clustid+id", 
 #' ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 #' }
 #' @export
-countrySummary <- function(births, years, regionVar = "region", timeVar = "time", clusterVar = "~v001+v002",  ageVar = "age", weightsVar = "v005", geo.recode = NULL, national.only = FALSE) {
+getDirect <- function(births, years, regionVar = "region", timeVar = "time", clusterVar = "~v001+v002",  ageVar = "age", weightsVar = "v005", geo.recode = NULL, national.only = FALSE) {
     # check all elements are provided
     if (is.null(births)) {
         stop("No births file specified!")
@@ -111,7 +111,7 @@ countrySummary <- function(births, years, regionVar = "region", timeVar = "time"
     results$region_num <- rep(regions_num, each = length(years))
     results$years <- rep(years, length(regions_list))
     # add empty variables
-    results$var.est <- results$logit.est <- results$upper <- results$lower <- results$u5m <- NA
+    results$var.est <- results$logit.est <- results$upper <- results$lower <- results$mean <- NA
     
     # updated helper function: region.time.HT notes: the original function only works when the selected area-time combination has
     # data. Add a new line of codes so that when there is no data for selected combination, return a line of NA values updated
@@ -197,7 +197,7 @@ countrySummary <- function(births, years, regionVar = "region", timeVar = "time"
         # ns <- c(1, 11, 12, 12, 12, 12)
         probs <- expit(betas)
         
-        u5m.est <- (1 - prod((1 - probs)^ns, na.rm = TRUE))  #*1000  
+        mean.est <- (1 - prod((1 - probs)^ns, na.rm = TRUE))  #*1000  
         
         ## partial derivatives ##
         gamma <- prod((1 + exp(betas))^ns, na.rm = TRUE)
@@ -207,8 +207,8 @@ countrySummary <- function(births, years, regionVar = "region", timeVar = "time"
         derivatives[which(is.na(derivatives))] <- 0
         ## Items to return ##
         var.est <- t(derivatives) %*% V %*% derivatives
-        lims <- logit(u5m.est) + stats::qnorm(c(0.025, 0.975)) * sqrt(c(var.est))
-        return(c(u5m.est, expit(lims), logit(u5m.est), var.est))
+        lims <- logit(mean.est) + stats::qnorm(c(0.025, 0.975)) * sqrt(c(var.est))
+        return(c(mean.est, expit(lims), logit(mean.est), var.est))
     }
     
     # run for all combinations
@@ -216,7 +216,7 @@ countrySummary <- function(births, years, regionVar = "region", timeVar = "time"
     results[, 4:8] <- t(x)
     results$survey <- NA
     results$logit.prec <- 1/results$var.est
-    results <- results[, c("region", "years", "u5m", "lower", "upper", "logit.est", "var.est", "region_num", "survey", "logit.prec")]
+    results <- results[, c("region", "years", "mean", "lower", "upper", "logit.est", "var.est", "region_num", "survey", "logit.prec")]
      
     return(results)
 }

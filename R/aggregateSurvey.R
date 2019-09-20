@@ -1,6 +1,6 @@
 #' Aggregate estimators from different surveys. 
 #' 
-#' @param data Output from \code{\link{countrySummary_mult}}
+#' @param data Output from \code{\link{getDirectList}}
 #' 
 #' @return Estimators aggregated across surveys.
 #' @examples
@@ -10,7 +10,7 @@
 #' years <- levels(DemoData[[1]]$time)
 #' 
 #' # obtain direct estimates
-#' data <- countrySummary_mult(births = DemoData, 
+#' data <- getDirectList(births = DemoData, 
 #' years = years, 
 #' regionVar = "region", timeVar = "time", 
 #' clusterVar = "~clustid+id", 
@@ -36,7 +36,7 @@ aggregateSurvey <- function(data) {
   data0$logit.prec <- 1/data0$var.est
   time_region <- unique(data0[, c("region", "years")])
   
-  data <- data.frame(region = time_region$region, years = time_region$years, u5m = NA, lower=NA, upper=NA, logit.est=NA, var.est=NA, region_num = NA, survey = NA, logit.prec = NA)
+  data <- data.frame(region = time_region$region, years = time_region$years, mean = NA, lower=NA, upper=NA, logit.est=NA, var.est=NA, region_num = NA, survey = NA, logit.prec = NA)
   for(i in 1:dim(data)[1]){
     tmp <- intersect(which(data0$region == data$region[i]),
                      which(data0$years == data$years[i]))
@@ -49,7 +49,7 @@ aggregateSurvey <- function(data) {
       data[i, "var.est"] <- 1 / data[i, "logit.prec"]
       weights <- data0[tmp, "logit.prec"] / data[i, "logit.prec"]
       data[i, "logit.est"] <- sum(weights * data0[tmp, "logit.est"], na.rm = TRUE)
-      data[i, "u5m"] <- expit(data[i, "logit.est"])
+      data[i, "mean"] <- expit(data[i, "logit.est"])
       
       data[i, "lower"] <- expit(data[i, "logit.est"] + stats::qnorm(0.975)*sqrt(data[i, "var.est"]))
       data[i, "upper"] <- expit(data[i, "logit.est"] + stats::qnorm(0.025)*sqrt(data[i, "var.est"]))

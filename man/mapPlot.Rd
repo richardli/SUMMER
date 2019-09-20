@@ -6,7 +6,7 @@
 \usage{
 mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
   by.geo, is.long = FALSE, size = 0.5, removetab = FALSE,
-  border = "gray20", ncol = NULL, ylim = NULL)
+  border = "gray20", ncol = NULL, ylim = NULL, clean = TRUE)
 }
 \arguments{
 \item{data}{a data frame with variables to be plotted}
@@ -34,6 +34,8 @@ mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
 \item{ncol}{number of columns for the output tabs}
 
 \item{ylim}{range of the values to be plotted.}
+
+\item{clean}{remove all coordinates for a cleaner layout, default to TRUE.}
 }
 \description{
 This function visualizes the map with different variables. The input data frame can be either the long or wide format.

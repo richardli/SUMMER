@@ -2,15 +2,15 @@
 % Please edit documentation in R/fitINLA.R
 \name{fitINLA}
 \alias{fitINLA}
-\title{Fit INLA models to direct estimators with a yearly model.}
+\title{Fit space-time smoothing models to mortality rates}
 \usage{
 fitINLA(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
   year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE,
-  redo.prior = FALSE, priors = NULL, type.st = 1, useHyper = FALSE,
-  a.iid = NULL, b.iid = NULL, a.rw1 = NULL, b.rw1 = NULL,
-  a.rw2 = NULL, b.rw2 = NULL, a.icar = NULL, b.icar = NULL,
-  options = list(dic = T, mlik = T, cpo = T, openmp.strategy =
-  "default"), verbose = FALSE)
+  priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1],
+  pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3,
+  a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL,
+  a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo
+  = T, openmp.strategy = "default"), verbose = FALSE)
 }
 \arguments{
 \item{data}{Combined dataset}
@@ -33,29 +33,23 @@ fitINLA(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
 
 \item{na.rm}{Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.}
 
-\item{redo.prior}{Logical indicator of whether to re-estimate hyperparameters}
-
 \item{priors}{priors from \code{\link{simhyper}}}
 
 \item{type.st}{type for space-time interaction}
 
-\item{useHyper}{option to manually set all hyperpriors}
+\item{hyper}{option to choose between PC prior or Gamma prior for the latent factors.}
 
-\item{a.iid}{hyperparameter for i.i.d random effects, only need if \code{useHyper = TRUE}}
+\item{a.iid}{hyperparameter for i.i.d random effects.}
 
-\item{b.iid}{hyperparameter for i.i.d random effects, only need if \code{useHyper = TRUE}}
+\item{b.iid}{hyperparameter for i.i.d random effects.}
 
-\item{a.rw1}{hyperparameter for RW1 random effects, only need if \code{useHyper = TRUE}}
+\item{a.rw}{hyperparameter for RW 1 or 2 random effects.}
 
-\item{b.rw1}{hyperparameter for RW1 random effects, only need if \code{useHyper = TRUE}}
+\item{b.rw}{hyperparameter for RW 1 or 2random effects.}
 
-\item{a.rw2}{hyperparameter for RW2 random effects, only need if \code{useHyper = TRUE}}
+\item{a.icar}{hyperparameter for ICAR random effects.}
 
-\item{b.rw2}{hyperparameter for RW2 random effects, only need if \code{useHyper = TRUE}}
-
-\item{a.icar}{hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}}
-
-\item{b.icar}{hyperparameter for ICAR random effects, only need if \code{useHyper = TRUE}}
+\item{b.icar}{hyperparameter for ICAR random effects.}
 
 \item{options}{list of options to be passed to control.compute() in the inla() function.}
 
@@ -65,7 +59,7 @@ fitINLA(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
 INLA model fit using the provided formula, country summary data, and geographic data
 }
 \description{
-Fit INLA models to direct estimators with a yearly model.
+Fit space-time smoothing models to mortality rates
 }
 \examples{
 \dontrun{
@@ -75,7 +69,7 @@ data(DemoMap)
 years <- levels(DemoData[[1]]$time)
 
 # obtain direct estimates
-data <- countrySummary_mult(births = DemoData, 
+data <- getDirectList(births = DemoData, 
 years = years, 
 regionVar = "region", timeVar = "time", 
 clusterVar = "~clustid+id", 
@@ -99,12 +93,12 @@ year_names = years.all, year_range = c(1985, 2019),
  priors = priors, rw = 2,
  is.yearly=TRUE, m = 5, type.st = 4)
 # Projection
-out <- projINLA(fit, Amat = mat, is.yearly = TRUE)
+out <- getSmoothed(fit, Amat = mat, is.yearly = TRUE)
 plot(out, is.yearly=TRUE, is.subnational=TRUE) + ggplot2::ggtitle("Subnational yearly model")
 
 }
 
 }
 \seealso{
-\code{\link{countrySummary}}
+\code{\link{getDirect}}
 }

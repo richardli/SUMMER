@@ -4,7 +4,7 @@ author: Zehang Richard Li
 date: 2019/03/28
 output: rmarkdown::pdf_document
 vignette: >
-  %\VignetteEngine{knitr::rmarkdown}
+  \VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{Spatio-temporal Under-five Mortality Methods for Estimation}
   %\usepackage[utf8]{inputenc}
 ---
@@ -35,7 +35,7 @@ First, we load the package and the necessary data. INLA is not in a standard rep
 ```{r, message = FALSE}
 library(SUMMER)
 if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
-  install.packages('INLA', repos = 'https://www.math.ntnu.no/inla/R/stable')
+  install.packages("INLA", repos=c(getOption("repos"), INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
 }
 data(BRFSS)
 data(KingCounty)
@@ -219,13 +219,13 @@ colnames(dat) <- c("clustid","id","region","time","age","weights","strata","died
 
 ### Horvitz-Thompson estimators of U5MR
 
-Next, we obtain Horvitz-Thompson estimators using `countrySummary_mult`. We specify the survey design as the popular two-stage stratified cluster sampling where strata are specified in the ``strata`` column, and clusters are specified by both the cluster ID (`clusterid`) and household ID (`id`). 
+Next, we obtain Horvitz-Thompson estimators using `getDirectList`. We specify the survey design as the popular two-stage stratified cluster sampling where strata are specified in the ``strata`` column, and clusters are specified by both the cluster ID (`clusterid`) and household ID (`id`). 
 
 
 ```{r, warning=FALSE}
 years <- levels(DemoData[[1]]$time)
 
-data_multi <- countrySummary_mult(births = DemoData, years = years,regionVar = "region", 
+data_multi <- getDirectList(births = DemoData, years = years,regionVar = "region", 
   timeVar = "time", clusterVar = "~clustid+id", ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 ```
 
@@ -268,8 +268,8 @@ fit2 <- fitINLA(data = data, geo = NULL, Amat = NULL, year_names = years.all,
 The marginal posteriors are already stored in the fitted object. We use the following function to extract and re-arrange them.
 
 ```{r}
-out1 <- projINLA(fit1, is.yearly = FALSE)
-out2 <- projINLA(fit2, is.yearly = TRUE)
+out1 <- getSmoothed(fit1, is.yearly = FALSE)
+out2 <- getSmoothed(fit2, is.yearly = TRUE)
 ```
 
 We can compare the results visually using the function below.
@@ -293,7 +293,7 @@ Similarly we can fit the full model on all subnational regions as well. First, w
 fit3 <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years.all,
                 year_range = c(1985, 2019), priors = priors, rw = 2,
                 is.yearly=FALSE)
-out3 <- projINLA(fit3, Amat = mat, is.yearly = FALSE)
+out3 <- getSmoothed(fit3, Amat = mat, is.yearly = FALSE)
 ```
 
 Similarly we can also estimate the Random Walk 2 random effects on the yearly scale. 
@@ -303,7 +303,7 @@ Similarly we can also estimate the Random Walk 2 random effects on the yearly sc
 fit4 <- fitINLA(data = data, geo = geo, Amat = mat, year_names = years.all,
                 year_range = c(1985, 2019), priors = priors, rw = 2,
                 is.yearly=TRUE, m = 5, type.st = 4)
-out4 <- projINLA(fit4, Amat = mat, is.yearly = TRUE)
+out4 <- getSmoothed(fit4, Amat = mat, is.yearly = TRUE)
 ```
 
 The figures below shows the comparison of the subnational model with different temporal scales.
@@ -318,7 +318,7 @@ grid.arrange(grobs=g2, ncol = 2)
 We can also add back the direct estimates for comparison.
 
 ```{r}
-plot(out4, is.yearly=TRUE, is.subnational=TRUE,  data.add = data_multi, option.add = list(point = "u5m", by = "surveyYears")) + facet_wrap(~region, scales = 'free') 
+plot(out4, is.yearly=TRUE, is.subnational=TRUE,  data.add = data_multi, option.add = list(point = "mean", by = "surveyYears")) + facet_wrap(~region, scales = 'free') 
 
 ```
 

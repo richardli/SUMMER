@@ -2,7 +2,7 @@
 % Please edit documentation in R/fitspace.R
 \name{fitSpace}
 \alias{fitSpace}
-\title{Fit INLA models to perform simple space smoothing.}
+\title{Fit space-time smoothing models for a generic outcome from complex surveys.}
 \usage{
 fitSpace(data, geo, Amat, X = NULL, family, responseVar,
   strataVar = "strata", weightVar = "weights", regionVar = "region",
@@ -91,5 +91,5 @@ hyper=NULL, CI = 0.95)
 }
 }
 \seealso{
-\code{\link{countrySummary_mult}}, \code{\link{fitINLA}}
+\code{\link{getDirectList}}, \code{\link{fitINLA}}
 }

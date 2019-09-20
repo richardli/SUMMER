@@ -1,4 +1,4 @@
-#' Fit INLA models to perform simple space smoothing.
+#' Fit space-time smoothing models for a generic outcome from complex surveys.
 #'
 #' This function calculates the direct estimates by region and fit a simple spatial smoothing model to the direct estimates adjusting for survey design.
 #' 
@@ -34,7 +34,7 @@
 #' \item{CI}{input argument}
 #' \item{family}{input argument}
 #' \item{FUN}{input argument}
-#' @seealso \code{\link{countrySummary_mult}}, \code{\link{fitINLA}}
+#' @seealso \code{\link{getDirectList}}, \code{\link{fitINLA}}
 #' @importFrom stats median quantile sd var aggregate as.formula
 #' @examples
 #' \dontrun{

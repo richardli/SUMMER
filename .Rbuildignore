@@ -3,3 +3,6 @@
 ^\.travis\.yml$
 ^cran-comments\.md$
 vignettes/summer-vignette.Rmd
+Demo/*
+vignettes/*cache*
+vignettes/*.Rmd

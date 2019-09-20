@@ -15,6 +15,7 @@
 #' @param border color of the border
 #' @param ncol number of columns for the output tabs
 #' @param ylim range of the values to be plotted.
+#' @param clean remove all coordinates for a cleaner layout, default to TRUE.
 #' 
 #' @examples
 #' \dontrun{
@@ -41,7 +42,7 @@
 #' }
 #' 
 #' @export
-mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE, border = "gray20", ncol = NULL, ylim = NULL){
+mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE, border = "gray20", ncol = NULL, ylim = NULL, clean = TRUE){
     value <- group <- lat <- long <- NULL
     if (is.null(labels) & !is.long) {
         labels <- variables
@@ -81,6 +82,11 @@ mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data,
     }else{
         g <- g + ggplot2::scale_fill_viridis_c()
     } 
+    g <- g + ggplot2::coord_map()
+
+    if(clean){
+        g <- g + ggplot2::theme_bw() + ggplot2::theme(legend.title=ggplot2::element_text(size=ggplot2::rel(0.7)), axis.title.x=ggplot2::element_blank(), axis.text.x=ggplot2::element_blank(), axis.ticks.x=ggplot2::element_blank(), axis.title.y=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank(), axis.ticks.y=ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank())
+    }
 
     return(g)
 }

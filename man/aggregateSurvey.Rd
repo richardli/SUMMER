@@ -7,7 +7,7 @@
 aggregateSurvey(data)
 }
 \arguments{
-\item{data}{Output from \code{\link{countrySummary_mult}}}
+\item{data}{Output from \code{\link{getDirectList}}}
 }
 \value{
 Estimators aggregated across surveys.
@@ -22,7 +22,7 @@ data(DemoMap)
 years <- levels(DemoData[[1]]$time)
 
 # obtain direct estimates
-data <- countrySummary_mult(births = DemoData, 
+data <- getDirectList(births = DemoData, 
 years = years, 
 regionVar = "region", timeVar = "time", 
 clusterVar = "~clustid+id", 
