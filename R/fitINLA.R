@@ -6,7 +6,7 @@
 #' @param data Combined dataset
 #' @param geo Geo file
 #' @param Amat Adjacency matrix for the regions
-#' @param formula INLA formula. Defaults to RW2, ICAR, IID time, IID, region, IID survey effect, IID time-region interaction, IID survey-region interaction, and IID survey-time-region interaction. 
+#' @param formula INLA formula. See vignette for example of using customized formula.
 #' @param year_names string vector of year names
 #' @param na.rm Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.
 #' @param priors priors from \code{\link{simhyper}}

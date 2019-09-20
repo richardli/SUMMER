@@ -16,6 +16,7 @@
 #' @param lim.CI fixed range of the CI widths to plot
 #' @param breaks.CI a vector of numerical values that decides the breaks in the CI widths to be shown
 #' @param ncol number of columns for the output tabs
+#' @param col.hatch color of the hatching lines.
 #'
 #' @examples
 #' \dontrun{
@@ -23,7 +24,7 @@
 #' }
 #' @export 
 
-hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo,  is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL, breaks.CI = NULL, ncol = 4){
+hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo,  is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL, breaks.CI = NULL, ncol = 4, col.hatch = NULL){
 
 
    if (is.null(labels) & !is.long) {
@@ -68,7 +69,7 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
     brklabels <- paste(signif(breaks.CI[1:(nbrks-1)],2), signif(breaks.CI[2:nbrks],2), sep = " - ")
     dens <- (2:nbrks)*3
 
-    col.hatch <- viridis::viridis_pal(option="E")(11)[7]
+    if(is.null(col.hatch)) col.hatch <- viridis::viridis_pal(option="A")(11)[11]
     col.border<- viridis::viridis_pal(option="E")(11)[8]
     
     m <- length(unique(data$variable)) / ncol
