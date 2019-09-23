@@ -22,6 +22,8 @@
 #' \dontrun{
 #'  #TODO
 #' }
+#' @importFrom viridis viridis_pal
+#' @importFrom sp plot
 #' @export 
 
 hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo,  is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL, breaks.CI = NULL, ncol = 4, col.hatch = NULL){
@@ -75,15 +77,15 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
     m <- length(unique(data$variable)) / ncol
     m <- floor(m)
     if(length(unique(data$variable)) %% ncol != 0) m <- m + 1
-    par(mfrow = c(m, ncol), mai = c(.25, 0.1,0.3,0.1), oma = c(0.5, 0.1, 0.1, 0.1))
+    graphics::par(mfrow = c(m, ncol), mai = c(.25, 0.1,0.3,0.1), oma = c(0.5, 0.1, 0.1, 0.1))
     for(tt in levels(data$variable)){
         tmp <- data[data$variable == tt, ]
         tmp <- tmp[match(geo[[by.geo]], tmp[, by.data]),]
-        plot(geo, col = tmp$value.col, border = col.border,
+        sp::plot(geo, col = tmp$value.col, border = col.border,
            main  = tt)
       	geo@data$diff <- tmp[, upper] - tmp[, lower]
       	rrt1 <- geo@data$diff
-      	plot(geo,  density=dens[findInterval(rrt1, breaks.CI,
+      	sp::plot(geo,  density=dens[findInterval(rrt1, breaks.CI,
              	all.inside=TRUE)], add=T, col = col.hatch, border = FALSE)
     }
 
@@ -94,35 +96,35 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
     legend.col <- function(col, lev, hadj=-2){
       opar <- par
       n <- length(col)
-      bx <- par("usr")
+      bx <- graphics::par("usr")
       box.cx <- c(bx[1] + (bx[2] - bx[1]) / 1000,
       bx[1] + (bx[2] - bx[1]) / 1000 + (bx[2] - bx[1]) / 30)
       box.cy <- c(bx[3], bx[3])
       box.sy <- (bx[4] - bx[3]) / n
        
       xx <- rep(box.cx, each = 2)
-      par(xpd = TRUE)
+      graphics::par(xpd = TRUE)
       for(i in 1:n){ 
       yy <- c(box.cy[1] + (box.sy * (i - 1)),
       box.cy[1] + (box.sy * (i)),
       box.cy[1] + (box.sy * (i)),
       box.cy[1] + (box.sy * (i - 1)))
-      polygon(xx, yy, col = col[i], border = col[i])
+      graphics::polygon(xx, yy, col = col[i], border = col[i])
       }
-      par(new = TRUE)
-      plot(0, 0, type = "n",
+      graphics::par(new = TRUE)
+      graphics::plot(0, 0, type = "n",
       ylim = c(min(lev), max(lev)),
       yaxt = "n", ylab = "",
       xaxt = "n", xlab = "",
       frame.plot = FALSE)
-      axis(side = 2, las = 2, tick = FALSE, line = .25, hadj=hadj)
+      graphics::axis(side = 2, las = 2, tick = FALSE, line = .25, hadj=hadj)
       par <- opar
     }
 
-    plot(1, type = "n", axes=FALSE, xlab="", ylab="")
+    graphics::plot(1, type = "n", axes=FALSE, xlab="", ylab="")
     legend.col(col = med.palette, lev = zlim, hadj = -1.5)
 
-    legend(x = 'center', inset = 0,
+    graphics::legend(x = 'center', inset = 0,
            legend = brklabels,
            col = rep('black',2), 
            cex = 1.25, 

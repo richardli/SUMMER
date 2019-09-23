@@ -9,7 +9,7 @@
 \url{https://dhsprogram.com/data/model-datasets.cfm}
 }
 \usage{
-DemoData2
+data(DemoData2)
 }
 \description{
 A small fake dataset with 8 regions and two response variables: age and tobacco.use. This  does not represent 

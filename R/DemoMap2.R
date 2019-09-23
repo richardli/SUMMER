@@ -7,4 +7,7 @@
 #'  \item Amat. Adjacency matrix for regions
 #' }
 #' @source \url{https://spatialdata.dhsprogram.com/boundaries/#view=table&countryId=KE}
+#' @docType data
+#' @usage data(DemoMap2)
+
 "DemoMap2"

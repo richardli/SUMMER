@@ -10,3 +10,4 @@
 #' 
 #' The development version of the package will be maintained on \url{https://github.com/bryandmartin/SUMMER}.
 NULL
+     if(getRversion() >= "3.1.0") utils::suppressForeignCheck(c("n", "m", "tau", "my.cache", "shape0", "rate0", "u0", "alpha0"))

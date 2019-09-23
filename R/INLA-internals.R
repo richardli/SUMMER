@@ -11,6 +11,13 @@ rw.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.
     ## there.
     envir = environment(sys.call()[[1]]) 
     if(is.null(envir)) envir <- environment()
+     n = eval(n, environment()) 
+     m = eval(m, environment()) 
+     order = eval(order, environment()) 
+     tau = eval(tau, environment()) 
+     shape0 = eval(shape0, environment()) 
+     rate0 = eval(rate0, environment())
+
     inla.rw = utils::getFromNamespace("inla.rw", "INLA")
     inla.ginv = utils::getFromNamespace("inla.ginv", "INLA")
     
@@ -24,9 +31,11 @@ rw.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.
         A[i, j:(j+m-1)] = 1/m
         j = j + m
       }
-      A = inla.as.sparse(A)
+      A = INLA::inla.as.sparse(A)
       D = Matrix::Diagonal(nn, x=1)
       assign("my.cache", list(R=R, A=A, D=D, nn=nn), envir = envir)
+    } else{
+      my.cache <- eval(my.cache, envir = envir)
     } 
     
     interpret.theta = function() {
@@ -85,7 +94,15 @@ rw.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.
     iid.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL){
     
     envir = environment(sys.call()[[1]]) 
-          if(is.null(envir)) envir <- environment()
+    if(is.null(envir)) envir <- environment()
+     n = eval(n, environment()) 
+     m = eval(m, environment()) 
+     order = eval(order, environment()) 
+     tau = eval(tau, environment()) 
+     shape0 = eval(shape0, environment()) 
+     rate0 = eval(rate0, environment())
+
+
     if (!exists("my.cache", envir = envir, mode = "list")) {
       nn = n %/% m
       stopifnot (nn == as.integer(n/m))
@@ -96,9 +113,11 @@ rw.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.
         A[i, j:(j+m-1)] = 1/m
         j = j + m
       }
-      A = inla.as.sparse(A)
+      A = INLA::inla.as.sparse(A)
       D = Matrix::Diagonal(nn, x=1)
       assign("my.cache", list(R=R, A=A, D=D, nn=nn), envir = envir)
+    } else{
+      my.cache <- eval(my.cache, envir = envir)
     } 
     
     interpret.theta = function() {
@@ -158,7 +177,17 @@ rw.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.
   st.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"), theta = NULL){
   
   envir = environment(sys.call()[[1]]) 
-        if(is.null(envir)) envir <- environment()
+  if(is.null(envir)) envir <- environment()
+  n = eval(n, environment()) 
+  m = eval(m, environment()) 
+  order = eval(order, environment()) 
+  tau = eval(tau, environment()) 
+  shape0 = eval(shape0, environment()) 
+  rate0 = eval(rate0, environment())
+  S = eval(S, environment())
+  Amat = eval(Amat, environment())
+  type = eval(type, environment())
+
   inla.rw = utils::getFromNamespace("inla.rw", "INLA")
   inla.ginv = utils::getFromNamespace("inla.ginv", "INLA")
   # The new structure takes the following order
@@ -199,10 +228,12 @@ rw.new = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.
       A[i, j:(j+m-1)] = 1/m
       j = j + m
     }
-    A = inla.as.sparse(A)
+    A = INLA::inla.as.sparse(A)
     D = Matrix::Diagonal(nn*S, x=1)
     assign("my.cache", list(R=INLA::inla.as.sparse(R), A=A, D=D, nn=nn), envir = envir)
-  } 
+  } else{
+      my.cache <- eval(my.cache, envir = envir)
+    } 
   
   interpret.theta = function() {
     return(list(kappa = exp(theta[1L])))

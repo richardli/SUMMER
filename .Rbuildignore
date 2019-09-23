@@ -3,6 +3,8 @@
 ^\.travis\.yml$
 ^cran-comments\.md$
 vignettes/summer-vignette.Rmd
-Demo/*
-vignettes/*cache*
-vignettes/*.Rmd
+vignettes/u5mr-vignette2.Rmd
+vignettes/u5mr-vignette.Rmd
+
+
+

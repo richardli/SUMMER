@@ -19,7 +19,7 @@ fitINLA(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
 
 \item{geo}{Geo file}
 
-\item{formula}{INLA formula. Defaults to RW2, ICAR, IID time, IID, region, IID survey effect, IID time-region interaction, IID survey-region interaction, and IID survey-time-region interaction.}
+\item{formula}{INLA formula. See vignette for example of using customized formula.}
 
 \item{rw}{Take values 1 or 2, indicating the order of random walk.}
 
@@ -37,7 +37,15 @@ fitINLA(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
 
 \item{type.st}{type for space-time interaction}
 
-\item{hyper}{option to choose between PC prior or Gamma prior for the latent factors.}
+\item{hyper}{which hyperpriors to use. Default to be using the PC prior ("pc").}
+
+\item{pc.u}{hyperparameter U for the PC prior on precisions.}
+
+\item{pc.alpha}{hyperparameter alpha for the PC prior on precisions.}
+
+\item{pc.u.phi}{hyperparameter U for the PC prior on the mixture probability phi in BYM2 model.}
+
+\item{pc.alpha.phi}{hyperparameter alpha for the PC prior on the mixture probability phi in BYM2 model.}
 
 \item{a.iid}{hyperparameter for i.i.d random effects.}
 

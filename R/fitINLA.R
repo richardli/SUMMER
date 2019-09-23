@@ -10,12 +10,16 @@
 #' @param year_names string vector of year names
 #' @param na.rm Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.
 #' @param priors priors from \code{\link{simhyper}}
-#' @param hyper option to choose between PC prior or Gamma prior for the latent factors.
 #' @param rw Take values 1 or 2, indicating the order of random walk.
 #' @param is.yearly Logical indicator for fitting yearly or period model.
 #' @param year_range Entire range of the years (inclusive) defined in year_names.
 #' @param m Number of years in each period.
 #' @param type.st type for space-time interaction
+#' @param hyper which hyperpriors to use. Default to be using the PC prior ("pc"). 
+#' @param pc.u hyperparameter U for the PC prior on precisions.
+#' @param pc.alpha hyperparameter alpha for the PC prior on precisions.
+#' @param pc.u.phi hyperparameter U for the PC prior on the mixture probability phi in BYM2 model.
+#' @param pc.alpha.phi hyperparameter alpha for the PC prior on the mixture probability phi in BYM2 model.
 #' @param a.iid hyperparameter for i.i.d random effects.
 #' @param b.iid hyperparameter for i.i.d random effects.
 #' @param a.rw hyperparameter for RW 1 or 2 random effects.
@@ -116,7 +120,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     #################################################################### Re-calculate hyper-priors
     
     if (is.null(priors)) {
-      priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat, nperiod = length(year_names), only.iid = TRUE)
+      priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, nperiod = length(year_names), only.iid = TRUE)
     }
     
     if(is.null(a.iid)) a.iid <- priors$a.iid
@@ -156,35 +160,35 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       n <- year_range[2] - year_range[1] + 1
       nn <- n %/% m
       N <- n + nn
-      rw.model <- INLA::inla.rgeneric.define(model = SUMMER:::rw.new,
+      rw.model <- INLA::inla.rgeneric.define(model = rw.new,
                                        n = n, 
                                        m = m,
                                        order = rw,
                                        tau = exp(10),
                                        shape0 = a.rw,
                                        rate0 = b.rw) 
-      iid.model <- INLA::inla.rgeneric.define(model = SUMMER:::iid.new,
+      iid.model <- INLA::inla.rgeneric.define(model = iid.new,
                                              n = n, 
                                              m = m,
                                              tau = exp(10),
                                              shape0 = a.iid,
                                              rate0 = b.iid)
 
-      rw.model.pc <- INLA::inla.rgeneric.define(model = SUMMER:::rw.new.pc,
+      rw.model.pc <- INLA::inla.rgeneric.define(model = rw.new.pc,
                                        n = n, 
                                        m = m,
                                        order = rw,
                                        tau = exp(10),
                                        u0 = pc.u,
                                        alpha0 = pc.alpha) 
-      iid.model.pc <- INLA::inla.rgeneric.define(model = SUMMER:::iid.new.pc,
+      iid.model.pc <- INLA::inla.rgeneric.define(model = iid.new.pc,
                                              n = n, 
                                              m = m,
                                              tau = exp(10),
                                              u0 = pc.u,
                                              alpha0 = pc.alpha) 
       if(!is.null(geo)){
-         st.model <- INLA::inla.rgeneric.define(model = SUMMER:::st.new,
+         st.model <- INLA::inla.rgeneric.define(model = st.new,
                                        n = n, 
                                        m = m,
                                        order = rw,
@@ -194,7 +198,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
                                        tau = exp(10),
                                        shape0 = a.iid,
                                        rate0 = b.iid)
-         st.model.pc <- INLA::inla.rgeneric.define(model = SUMMER:::st.new.pc,
+         st.model.pc <- INLA::inla.rgeneric.define(model = st.new.pc,
                                        n = n, 
                                        m = m,
                                        order = rw,

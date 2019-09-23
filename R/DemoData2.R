@@ -6,4 +6,7 @@
 #'
 #' @format A data.frame of 7 variables.
 #' @source \url{https://dhsprogram.com/data/model-datasets.cfm}
+#' @docType data
+#'
+#' @usage data(DemoData2)
 "DemoData2"

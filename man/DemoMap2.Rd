@@ -9,7 +9,7 @@
 \url{https://spatialdata.dhsprogram.com/boundaries/#view=table&countryId=KE}
 }
 \usage{
-DemoMap2
+data(DemoMap2)
 }
 \description{
 Shapefiles are from 2014 Kenya Admin 1 regions provided by DHS, but the data do not represent real information about any country.

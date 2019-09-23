@@ -9,7 +9,7 @@
 \url{https://dhsprogram.com/data/model-datasets.cfm}
 }
 \usage{
-DemoData
+data(DemoData)
 }
 \description{
 A small fake dataset with 4 regions and 5 survey years. This  does not represent 

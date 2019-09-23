@@ -1,6 +1,7 @@
 #' Make diagnostic plots
 #' 
 #' @param inla_mod output from \code{\link{fitINLA}}
+#' @param field which random effects to plot. It can be one of the following: space, time, and spacetime.
 #' @param year_range range corresponding to year label
 #' @param year_label vector of year string vector
 #' @param Amat adjacency matrix
@@ -22,7 +23,7 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 	getquants <- function(mlist, lower, upper){
 		quants <- data.frame(matrix(NA, length(mlist), 3))
 		for(i in 1:length(mlist)){
-			quants[i, ] <- inla.qmarginal(c(0.025, 0.5, 0.975), mlist[[i]])
+			quants[i, ] <- INLA::inla.qmarginal(c(0.025, 0.5, 0.975), mlist[[i]])
 		}
 		colnames(quants) <- c("lower", "median", "upper")
 		return(quants)

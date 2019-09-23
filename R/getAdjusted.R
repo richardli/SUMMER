@@ -45,8 +45,8 @@ getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "
 			data[i, logit] <- new[2]
 			data[i, logit.var] <- new[3]
 			data[i, logit.prec] <- new[4]
-			data[i, logit.lower] <- new[2] - qnorm(0.025)*sqrt(new[3])
-			data[i, logit.upper] <- new[2] + qnorm(0.025)*sqrt(new[3])
+			data[i, logit.lower] <- new[2] - stats::qnorm(0.025)*sqrt(new[3])
+			data[i, logit.upper] <- new[2] + stats::qnorm(0.025)*sqrt(new[3])
 
 		}else{
 			stop("Multiple adjustment factors found for some estimates.")

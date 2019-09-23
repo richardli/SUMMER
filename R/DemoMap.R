@@ -7,4 +7,8 @@
 #'  \item Amat. Adjacency matrix for regions
 #' }
 #' @source \url{https://spatialdata.dhsprogram.com/boundaries/#view=table&countryId=UG}
+#' @docType data
+#'
+#' @usage data(DemoMap)
+#' 
 "DemoMap"

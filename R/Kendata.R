@@ -9,4 +9,8 @@
 #' }  
 #' @references Neff Walker, Kenneth Hill, and Fengmin Zhao (2012) \emph{Child mortality estimation: methods used to adjust for bias due to aids in estimating trends in under-five mortality.}, \cr \emph{PLoS Medicine, 9(8):e1001298}.
 #' 
+#' @docType data
+#'
+#' @usage data(KenData)
+#' 
 "KenData"

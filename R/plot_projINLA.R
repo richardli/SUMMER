@@ -7,6 +7,7 @@
 #' @param data.add data frame for the Comparisons data points to add to the graph. This can be, for example, the raw direct estimates. This data frame is merged to the projections by column 'region' and 'years'. Except for these two columns, this dataset should not have Comparisons columns with names overlapping the getSmoothed output.
 #' @param option.add list of options specifying the variable names for the points to plot, lower and upper bounds, and the grouping variable. This is intended to be used to add Comparisons estimates on the same plot as the smoothed estimates. See examples for details.  
 #' @param color.add the color of the Comparisons data points to plot.
+#' @param label.add the label of the Comparisons data points in the legend.
 #' @param dodge.width the amount to add to data points at the same year to avoid overlap. Default to be 1.
 #' @param plot.CI logical indicator of whether to plot the error bars.
 #' @param ... optional arguments, see details
@@ -20,6 +21,7 @@
 #'  \item{\code{is.yearly}}{indicator for yearly model, defaults to \code{TRUE}}
 #'  \item{\code{is.subnational}}{indicator for subnational model, defaults to \code{TRUE}}
 #' }
+#' @method plot SUMMERproj
 #' @examples
 #' \dontrun{
 #' data(DemoData)
@@ -167,6 +169,6 @@ plot.SUMMERproj <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04"
     g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("U5MR")
   }
 
-  if(!is.null(label.add)) g <- g + scale_shape_discrete(label.add) 
+  if(!is.null(label.add)) g <- g + ggplot2::scale_shape_discrete(label.add) 
   g
 }
