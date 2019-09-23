@@ -15,8 +15,9 @@
 #' @param age.group a character vector of age groups in increasing order.
 #' @param age.n number of months in each age groups in the same order.
 #' @param family family of the model. This can be either binomial (with logistic normal prior) or betabiniomial.
-#' @param geo Geo file
 #' @param Amat Adjacency matrix for the regions
+#' @param geo Geo file
+#' @param bias.adjust the ratio of unadjusted mortality rates or age-group-specific hazards to the true rates or hazards. It needs to be a data frame that can be merged to thee outcome, i.e., with the same column names for time periods (for national adjustment), or time periods and region (for subnational adjustment). The column specifying the ratio should be named "ratio".
 #' @param formula INLA formula.  See vignette for example of using customized formula.
 #' @param year_names string vector of year names
 #' @param na.rm Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.
@@ -54,7 +55,7 @@
 #' 
 #' 
 
-fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), verbose = FALSE){
+fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), Amat, geo, bias.adjust = NULL, formula = NULL, rw = 2, is.yearly = TRUE, year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), verbose = FALSE){
 
   # check region names in Amat is consistent
   if(!is.null(Amat)){
@@ -279,7 +280,8 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
       newdata <- merge(newdata, survey.time.area, by = c("region_number", "time.unstruct", "survey"))
     }
     if(!is.null(geo)){
-      newdata <- merge(newdata, time.area, by = c("region_number", "time.unstruct"))
+      newdata <- merge(newdata, time.area, 
+        by = c("region_number", "time.unstruct"))
     }else{
       newdata$time.area <- NA
     }
@@ -289,11 +291,12 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     
     # -- subset of not missing and not direct estimate of 0 -- #
     exdat <- newdata
-    clusters <- unique(exdat$cluster)
-    exdat$cluster.id <- match(exdat$cluster, clusters)
-    cluster.time <- expand.grid(cluster = clusters, time = 1:N)
-    cluster.time$nugget.id <- 1:dim(cluster.time)[1]
-    exdat <- merge(exdat, cluster.time, by.x = c("cluster", "time.struct"), by.y = c("cluster", "time"))
+    # # clusters <- unique(exdat$cluster)
+    # # exdat$cluster.id <- match(exdat$cluster, clusters)
+    # # cluster.time <- expand.grid(cluster = clusters, time = 1:N)
+    # cluster.time$nugget.id <- 1:dim(cluster.time)[1]
+    # exdat <- merge(exdat, cluster.time, by.x = c("cluster", "time.struct"), by.y = c("cluster", "time"))
+    exdat$nugget.id <- 1:dim(exdat)[1]
 
   if(is.null(formula)){
         period.constr <- NULL
@@ -419,19 +422,30 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     }else{
       stop("hyper needs to be either pc or gamma.")
     }
+
+    if(family == "binomial"){
+      if(tolower(hyper) == "gamma"){
+          formula <- update(formula, ~.+ f(nugget.id,model="iid",model="iid", param=c(a.iid,b.iid)))
+      }else if(tolower(hyper) == "pc"){
+          formula <- update(formula, ~.+ f(nugget.id,model="iid", hyper = hyperpc1))
+      }else{
+          stop("hyper needs to be either pc or gamma.")
+      }
+    }
+    formula <- update(formula, ~. -1 + age + strata)
+    if(!is.null(bias.adjust)){
+      exdat <- merge(exdat, bias.adjust, all.x = TRUE)
+      if("ratio" %in% colnames(exdat) == FALSE){
+        stop("bias.adjust argument is misspecified. It require the following column: ratio.")
+      }
+    }else{
+      exdat$ratio <- 1
+    }
+    exdat$logoffset <- log(exdat$ratio)
+
+    formula <- update(formula, ~. + offset(logoffset))
 }
 
-
-if(family == "binomial"){
-  if(tolower(hyper) == "gamma"){
-      formula <- update(formula, ~.+ f(nugget.id,model="iid",model="iid", param=c(a.iid,b.iid)))
-  }else if(tolower(hyper) == "pc"){
-      formula <- update(formula, ~.+ f(nugget.id,model="iid", hyper = hyperpc1))
-  }else{
-      stop("hyper needs to be either pc or gamma.")
-  }
-}
-formula <- update(formula, ~. -1 + age + strata)
 
 ## add yearly observations with NA outcome and 1 trial, does not contribute to likelihood
 exdat <- subset(exdat, total != 0)
@@ -445,49 +459,24 @@ for(i in 1:N){
     tmp$Y <- NA
     exdat<-rbind(exdat,tmp)   
   }
-    # print(",")
-    # print(",")
-    # print(",")
-    # print(",")
-    # print(",")
-    # print(",")
-    # print(",")
-    # print(",")
-    # print(",")
-    # print(",")
-    # print(",")
-    # print(",")
-    # print(",")
-    # print(",")
+  exdat$strata <- factor(exdat$strata)
+  exdat$age <- factor(exdat$age, levels = age.groups)
 
 
-    # formula =  Y ~ f(time.struct, model = rw.model.pc, diagonal = 1e-06, 
-    #     extraconstr = constr, values = 1:N) + f(time.unstruct, model = iid.model.pc) + 
-    #     f(region.struct, graph = Amat, model = "bym2", hyper = hyperpc2, 
-    #         scale.model = TRUE) + f(time.area, model = st.model.pc, 
-    #     diagonal = 1e-06, extraconstr = constr.st, values = 1:(N * 
-    #         S)) + age + strata
+  # for(z in 1:20) print(".")
 
-    # formula =  Y ~ -1 + f(time.unstruct, model = "rw2") + f(region.struct, graph = Amat, model = "bym2", hyper = hyperpc2, scale.model = TRUE) + f(nugget.id, model = "iid", hyper = hyperpc1) + age + strata    
-    # formula =  Y ~ -1 + f(nugget.id, model = "iid", hyper = hyperpc1) + age + strata    
       
   fit <- INLA::inla(formula, family = family, control.compute = options, data = exdat, control.predictor = list(compute = FALSE), Ntrials = exdat$total, lincomb = NULL, control.inla = list(int.strategy = "auto"), verbose = verbose)
 
-  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), survey.time = survey.time, survey.area = survey.area, time.area = time.area, survey.time.area = survey.time.area, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, cluster.time = cluster.time, is.yearly = is.yearly, age.groups = age.groups, age.n = age.n))
+ # find the name for baseline strata
+ levels <- grep("strata", rownames(fit$summary.fixed))   
+ levels <- gsub("strata", "", rownames(fit$summary.fixed)[levels])
+ strata.all <- as.character(unique(exdat$strata))
+ strata.base <- strata.all[strata.all%in%levels == FALSE]
+
+  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), survey.time = survey.time, survey.area = survey.area, time.area = time.area, survey.time.area = survey.time.area, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, is.yearly = is.yearly, age.groups = age.groups, age.n = age.n, strata.base = strata.base))
     
   }
-  
-  
 }
-
-
-# debug(fitINLA2)
-years <- levels(outcome$years)
-outcome$region = outcome$REGNAME
-fit <- fitINLA2(data = outcome, family = c("betabinomial", "binomial")[1], Amat = Amat, geo = geo, year_names = years, year_range = c(1985, 2019), is.yearly = FALSE, verbose = TRUE, type.st = 4)
-
-fit2 <- fitINLA2(data = outcome, family = c("betabinomial", "binomial")[1], Amat = Amat, geo = geo, year_names = years, year_range = c(1985, 2019), is.yearly = TRUE, verbose = TRUE, type.st = 4)
-
-
-fit$age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59")
-fit$age.n = c(1,11,12,12,12,12)
+  
+  
