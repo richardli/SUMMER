@@ -64,6 +64,18 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         other <- other[grep("strata", other)]
         other <- gsub("strata", "", other)
         stratalabels <- c(stratalabels, other)
+        if(fit$is.yearly) year_names <- c(year_range[1]:year_range[2], year_label)
+        if(!fit$is.yearly) year_names <- year_label
+
+        err <- NULL
+        for(i in year_names){
+          tmp <- colnames(Amat)[which(colnames(Amat) %in% subset(weight.strata, years == i)$region == FALSE)]
+          if(length(tmp) > 0) err <- c(err, paste(tmp, i))
+        }
+        if(!is.null(err)){
+          stop(paste0("The following region-year combinations are not present in the strata weights: ", paste(err, collapse = ", ")))
+        }
+
 
         if(!is.null(weight.strata)){
           if(sum(c("region", "years") %in% colnames(weight.strata)) != 2) stop("weight.strata argument not specified correctly. It requires the following columns: region, years.")
@@ -91,8 +103,6 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         out2 <- expand.grid(time = 1:T, area = 1:N)
         out1$lower <- out1$upper <- out1$mean <- out1$median <- NA
         out2$lower <- out2$upper <- out2$mean <- out2$median <- NA
-        if(fit$is.yearly) year_names <- c(year_range[1]:year_range[2], year_label)
-        if(!fit$is.yearly) year_names <- year_label
         out1$years <- year_names[out1$time]
         out2$years <- year_names[out2$time]
         out1$region <- colnames(Amat)[out1$area]
