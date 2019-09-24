@@ -93,7 +93,7 @@
 #' 
 #' }
 #' @export
-plot.SUMMERproj <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), year_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.subnational = TRUE, proj_year = 2015, data.add = NULL, option.add = list(point = NULL, lower = NULL, upper = NULL, by = NULL), color.add = "black", label.add = NULL, dodge.width = 1, plot.CI = NULL, ...){
+plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), year_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.subnational = TRUE, proj_year = 2015, data.add = NULL, option.add = list(point = NULL, lower = NULL, upper = NULL, by = NULL), color.add = "black", label.add = NULL, dodge.width = 1, plot.CI = NULL, ...){
 
   if(is.null(proj_year)) {
     proj_year = 0
@@ -126,24 +126,27 @@ plot.SUMMERproj <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04"
     }
   }
 
+  # deal with 1 year period
+  period.1yr <- diff(unique(x$years.num[x$is.yearly == FALSE]))[1] == 1
+
   is.periods <- x$years %in% year_label
-  x$Year.num[is.periods] <- year_med[match(x$years[is.periods], year_label)]
+  x$years.num[is.periods] <- year_med[match(x$years[is.periods], year_label)]
   x$project <- "No"
-  x$project[x$Year.num >= proj_year] <- "Yes"
+  x$project[x$years.num >= proj_year] <- "Yes"
   # fix for global variable issue
-  Year.num <- NULL; region <- NULL; median <- NULL; lower <- NULL; upper <- NULL; project <- NULL; Comparisons <- NULL; add_x <- NULL; add_lower <- NULL; add_upper <- NULL
+  years.num <- NULL; region <- NULL; median <- NULL; lower <- NULL; upper <- NULL; project <- NULL; Comparisons <- NULL; add_x <- NULL; add_lower <- NULL; add_upper <- NULL
   
   if(is.subnational){
-    g <- ggplot2::ggplot(ggplot2::aes(x = Year.num, y = median, ymin = lower, ymax = upper, color = region), data = x)
+    g <- ggplot2::ggplot(ggplot2::aes(x = years.num, y = median, ymin = lower, ymax = upper, color = region), data = x)
     my.dodge <- ggplot2::position_dodge(width = dodge.width)
   }else{
-    g <- ggplot2::ggplot(ggplot2::aes(x = Year.num, y = median, ymin = lower, ymax = upper), data = x)
+    g <- ggplot2::ggplot(ggplot2::aes(x = years.num, y = median, ymin = lower, ymax = upper), data = x)
     my.dodge <- ggplot2::position_dodge(width = dodge.width/5)
   }
   if(!is.null(data.add)){
     my.dodgeadd <- ggplot2::position_dodge2(width = 0.15, padding = 0.1)
-    g <- g + ggplot2::geom_point(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, ggplot2::aes(x = Year.num+0.5*dodge.width, y = add_x, shape = Comparisons), color = color.add)
-    if(!is.null(option.add$lower)) g <- g + ggplot2::geom_errorbar(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, ggplot2::aes(x = Year.num+0.5*dodge.width, ymin = add_lower, ymax = add_upper), size = 0.5, width = .03, alpha = 0.35, color = color.add)
+    g <- g + ggplot2::geom_point(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, ggplot2::aes(x = years.num+0.5*dodge.width, y = add_x, shape = Comparisons), color = color.add)
+    if(!is.null(option.add$lower)) g <- g + ggplot2::geom_errorbar(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, ggplot2::aes(x = years.num+0.5*dodge.width, ymin = add_lower, ymax = add_upper), size = 0.5, width = .03, alpha = 0.35, color = color.add)
 
   }
 
@@ -152,7 +155,7 @@ plot.SUMMERproj <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04"
     g <- g + ggplot2::geom_line(position = my.dodge)
     if(plot.CI) g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .7, width = .05, position = my.dodge)
     g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("U5MR")
-    g <- g + ggplot2::scale_x_continuous(breaks=year_med, labels=year_label)
+    if(!period.1yr) g <- g + ggplot2::scale_x_continuous(breaks=year_med, labels=year_label)
   }else if(!is.subnational){
     g <- g + ggplot2::geom_point(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5, color = 1)
     g <- g + ggplot2::geom_line(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5, color = 1)

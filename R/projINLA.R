@@ -53,7 +53,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
                             Amat = NULL, nsim = 1000, seed = 1234, weight.strata = NULL, ...){
 
       years <- NA
-      
+
       ########################
       ## Binomial methods
       ########################
@@ -200,13 +200,19 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         }
 
       out1$is.yearly <- !(out1$years %in% year_label)
-      out1$Year.num <- suppressWarnings(as.numeric(as.character(out1$years)))
-      out1$years <- factor(out1$years, year_names)
-      class(out1) <- c("SUMMERproj", "data.frame")
-
+      out1$years.num <- suppressWarnings(as.numeric(as.character(out1$years)))
       out2$is.yearly <- !(out2$years %in% year_label)
-      out2$Year.num <- suppressWarnings(as.numeric(as.character(out2$years)))
-      out2$year <- factor(out2$year, year_names)
+      out2$years.num <- suppressWarnings(as.numeric(as.character(out2$years)))
+   
+      # ## deal with 1 year case
+      # tmp <- as.numeric(strsplit(out1$years[out1$time == 1][1], "-")[[1]])
+      # if(tmp[1] == tmp[2]){
+      #     out1$years.num <- 1900 + tmp[1] + out1$time - 1
+      #     out2$years.num <- 1900 + tmp[1] + out2$time - 1
+      # }
+      out1$years <- factor(out1$years, year_names)
+      out2$years <- factor(out2$years, year_names)
+      class(out1) <- c("SUMMERproj", "data.frame")
       class(out2) <- c("SUMMERproj", "data.frame")
       return(list(overall = out2, stratified = out1)) 
 
@@ -259,7 +265,13 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         }
       }
       results$is.yearly <- !(results$Year %in% year_label)
-      results$Year.num <- suppressWarnings(as.numeric(as.character(results$Year)))
+      results$years.num <- suppressWarnings(as.numeric(as.character(results$Year)))
+      #  ## deal with 1 year case
+      # results$years <- as.character(results$years)
+      # tmp <- as.numeric(strsplit(results$years[results$time == 1][1], "-")[[1]])
+      # if(tmp[1] == tmp[2]){
+      #     results$years.num <- 1900 + tmp[1] + results$time - 1
+      # }
       if(region_names[1] != "All"){
         results$District <- region_names[results$District]
       }else{

@@ -28,6 +28,7 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("c
       dat <- data.frame(data)
   }
   
+  period.1yr <- year.cut[2] - year.cut[1] == 1
   surveyyear <- surveyyear - 1900
   year.cut <- year.cut - 1900
   variables <- union(variables, strata)
@@ -92,25 +93,31 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("c
   test$age <- factor(test$age)
   levels(test$age) <- bins #c("0","1-11","12-23","24-35","36-47","48-59")
   
+  if(period.1yr){
+      test$time <- year.cut[1] + 1900 
+      year.bin <-  year.cut[1] + 1900
+      for(i in 2:(length(year.cut)-1)){
+        test$time[test$year >= year.cut[i] & test$year < year.cut[i+1]] <- year.cut[i] + 1900
+        year.bin <- c(year.bin, year.cut[i] + 1900)
+      }
+  }else{
+      year.cut2 <- year.cut
+      year.cut2[year.cut2 >= 100] <- as.character(year.cut2[year.cut2 >= 100] - 100)
+      year.cut2[as.numeric(year.cut2) < 10] <- paste0("0", year.cut2[as.numeric(year.cut2) < 10])
+      year.cut3 <- year.cut - 1
+      year.cut3[year.cut3 >= 100] <- as.character(year.cut3[year.cut3 >= 100] - 100)
+      year.cut3[as.numeric(year.cut3) < 10] <- paste0("0", year.cut3[as.numeric(year.cut3) < 10])
 
-  year.cut2 <- year.cut
-  year.cut2[year.cut2 >= 100] <- as.character(year.cut2[year.cut2 >= 100] - 100)
-  year.cut2[as.numeric(year.cut2) < 10] <- paste0("0", year.cut2[as.numeric(year.cut2) < 10])
-  year.cut3 <- year.cut - 1
-  year.cut3[year.cut3 >= 100] <- as.character(year.cut3[year.cut3 >= 100] - 100)
-  year.cut3[as.numeric(year.cut3) < 10] <- paste0("0", year.cut3[as.numeric(year.cut3) < 10])
-
-  test$time <- paste(year.cut[1], year.cut[2] - 1, sep = "-")
-  year.bin <- paste(year.cut[1], year.cut[2] - 1, sep = "-")
-  for(i in 2:(length(year.cut)-1)){
-    test$time[test$year >= year.cut[i] & test$year < year.cut[i+1]] <- paste(year.cut2[i], year.cut3[i+1], sep = "-")
-    year.bin <- c(year.bin, paste(year.cut2[i], year.cut3[i+1], sep = "-"))
+      test$time <- paste(year.cut[1], year.cut[2] - 1, sep = "-")
+      year.bin <- paste(year.cut[1], year.cut[2] - 1, sep = "-")
+      for(i in 2:(length(year.cut)-1)){
+        test$time[test$year >= year.cut[i] & test$year < year.cut[i+1]] <- paste(year.cut2[i], year.cut3[i+1], sep = "-")
+        year.bin <- c(year.bin, paste(year.cut2[i], year.cut3[i+1], sep = "-"))
+      }
   }
-  # test$time[test$year > 89] <- "90-94"
-  # test$time[test$year > 94] <- "95-99"
-  # test$time[test$year > 99] <- "00-04"
-  # test$time[test$year > 104] <- "05-09"
-  # test$time[test$year > 109] <- "10-14"
+
+
+
   test$time <- factor(test$time, levels = year.bin)
   
   if(length(strata) == 0){
