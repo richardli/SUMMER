@@ -55,7 +55,12 @@
 #' 
 #' 
 
-fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), Amat, geo, bias.adjust = NULL, formula = NULL, rw = 2, is.yearly = TRUE, year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), verbose = FALSE){
+fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), Amat, geo, bias.adjust = NULL, formula = NULL, rw = 2, is.yearly = FALSE, year_names, year_range = c(1980, 2014), m = 1, na.rm = TRUE, priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), verbose = FALSE){
+
+  if(m == 1){
+    if(is.yearly) warning("Switched to period model because m = 1.")
+    is.yearly = FALSE
+  }
 
   # check region names in Amat is consistent
   if(!is.null(Amat)){
@@ -337,8 +342,8 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         }else if(!is.yearly && (!is.null(geo))){
 
             formula <- Y ~ 
-                f(time.struct, model=paste0("rw", rw), hyper = hyperpc1, scale.model = TRUE, extraconstr = period.constr)  + 
-                f(time.unstruct,model="iid", hyper = hyperpc1) + 
+                f(time.struct, model=paste0("rw", rw), hyper = hyperpc1, scale.model = TRUE, extraconstr = period.constr, values = 1:N)  + 
+                f(time.unstruct,model="iid", hyper = hyperpc1, values = 1:N) + 
                 f(region.struct, graph=Amat,model="bym2", hyper = hyperpc2, scale.model = TRUE)  
 
             if(type.st == 1){
@@ -349,10 +354,10 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                     f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1))
             }else if(type.st == 3){
                 formula <- update(formula, ~. + 
-                    f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="iid"), hyper = hyperpc1, scale.model = TRUE))
+                    f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="iid", values = 1:N), hyper = hyperpc1, scale.model = TRUE))
             }else{
                 formula <- update(formula, ~. + 
-                    f(region.int,model="besag", graph = Amat, scale.model = TRUE, group=time.int, control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1))
+                    f(region.int,model="besag", graph = Amat, scale.model = TRUE, group=time.int, control.group=list(model=paste0("rw", rw), scale.model = TRUE, values = 1:N), hyper = hyperpc1))
             }
           
         ## ------------------------- 
@@ -434,6 +439,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     }
     formula <- update(formula, ~. -1 + age + strata)
     if(!is.null(bias.adjust)){
+      exdat$years <- as.character(exdat$years)
       exdat <- merge(exdat, bias.adjust, all.x = TRUE)
       if("ratio" %in% colnames(exdat) == FALSE){
         stop("bias.adjust argument is misspecified. It require the following column: ratio.")
@@ -463,10 +469,7 @@ for(i in 1:N){
   exdat$strata <- factor(exdat$strata)
   exdat$age <- factor(exdat$age, levels = age.groups)
 
-
-  # for(z in 1:20) print(".")
-
-      
+     
   fit <- INLA::inla(formula, family = family, control.compute = options, data = exdat, control.predictor = list(compute = FALSE), Ntrials = exdat$total, lincomb = NULL, control.inla = list(int.strategy = "auto"), verbose = verbose)
 
  # find the name for baseline strata
@@ -475,7 +478,7 @@ for(i in 1:N){
  strata.all <- as.character(unique(exdat$strata))
  strata.base <- strata.all[strata.all%in%levels == FALSE]
 
-  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), survey.time = survey.time, survey.area = survey.area, time.area = time.area, survey.time.area = survey.time.area, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, is.yearly = is.yearly, age.groups = age.groups, age.n = age.n, strata.base = strata.base))
+  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), survey.time = survey.time, survey.area = survey.area, time.area = time.area, survey.time.area = survey.time.area, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, is.yearly = is.yearly, type.st = type.st, age.groups = age.groups, age.n = age.n, strata.base = strata.base))
     
   }
 }
