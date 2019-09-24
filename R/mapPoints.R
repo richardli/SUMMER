@@ -20,9 +20,9 @@ mapPoints <- function(data, geo, long, lat, names){
  	 gridP = data.frame(Longitude = data[, long],
                     	 Latitude = data[, lat])
   
- 	 coordinates(gridP) = ~ Longitude + Latitude
-	 proj4string(gridP) = proj4string(geo)
-	 new = data.frame(over(gridP, geo))
+ 	 sp::coordinates(gridP) = ~ Longitude + Latitude
+	 sp::proj4string(gridP) = sp::proj4string(geo)
+	 new = data.frame(sp::over(gridP, geo))
 	 new <- new[, names, drop=FALSE]
 	 colnames(new) <- names
 	 data <- cbind(data, new)

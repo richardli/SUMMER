@@ -4,20 +4,40 @@
 \alias{fitINLA2}
 \title{Fit cluster-level space-time smoothing models to mortality rates}
 \usage{
-fitINLA2(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
-  year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE,
-  priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1],
-  pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3,
+fitINLA2(data, family = c("betabinomial", "binomial")[1],
+  age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"),
+  age.n = c(1, 11, 12, 12, 12, 12), Amat, geo, bias.adjust = NULL,
+  formula = NULL, rw = 2, is.yearly = TRUE, year_names,
+  year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL,
+  type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1,
+  pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3,
   a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL,
-  a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo
-  = T, openmp.strategy = "default"), verbose = FALSE)
+  a.icar = NULL, b.icar = NULL, options = list(config = TRUE),
+  verbose = FALSE)
 }
 \arguments{
-\item{data}{TODO}
+\item{data}{count data of person-months with the following columns
+\itemize{
+ \item cluster: cluster ID
+ \item years: time period
+ \item region: region of the cluster
+\item strata: stratum of the cluster
+\item age: age group corresponding to the row
+\item total: total number of person-month in this age group, stratum, cluster, and period
+\item Y: total number of deaths in this age group, stratum, cluster, and period
+}}
+
+\item{family}{family of the model. This can be either binomial (with logistic normal prior) or betabiniomial.}
+
+\item{age.groups}{a character vector of age groups in increasing order.}
+
+\item{age.n}{number of months in each age groups in the same order.}
 
 \item{Amat}{Adjacency matrix for the regions}
 
 \item{geo}{Geo file}
+
+\item{bias.adjust}{the ratio of unadjusted mortality rates or age-group-specific hazards to the true rates or hazards. It needs to be a data frame that can be merged to thee outcome, i.e., with the same column names for time periods (for national adjustment), or time periods and region (for subnational adjustment). The column specifying the ratio should be named "ratio".}
 
 \item{formula}{INLA formula.  See vignette for example of using customized formula.}
 

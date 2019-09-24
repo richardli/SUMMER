@@ -52,6 +52,8 @@
 getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), 
                             Amat = NULL, nsim = 1000, seed = 1234, weight.strata = NULL, ...){
 
+      years <- NA
+      
       ########################
       ## Binomial methods
       ########################
@@ -64,8 +66,8 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         other <- other[grep("strata", other)]
         other <- gsub("strata", "", other)
         stratalabels <- c(stratalabels, other)
-        if(fit$is.yearly) year_names <- c(year_range[1]:year_range[2], year_label)
-        if(!fit$is.yearly) year_names <- year_label
+        if(inla_mod$is.yearly) year_names <- c(year_range[1]:year_range[2], year_label)
+        if(!inla_mod$is.yearly) year_names <- year_label
 
         err <- NULL
         for(i in year_names){
@@ -82,7 +84,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
 
           if(sum(stratalabels %in% colnames(weight.strata)) != length(stratalabels)) stop(paste0("weight.strata argument not specified correctly. It requires the following columns: ", paste(stratalabels, collapse = ", ")))
         }
-        sampAll = inla.posterior.sample(n = nsim, result = inla_mod$fit, intern = TRUE, seed = seed)
+        sampAll = INLA::inla.posterior.sample(n = nsim, result = inla_mod$fit, intern = TRUE, seed = seed)
         fields <- rownames(sampAll[[1]]$latent)        
         pred <- grep("Predictor", fields)
         time.struct <- grep("time.struct", fields)
@@ -199,7 +201,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
 
       out1$is.yearly <- !(out1$years %in% year_label)
       out1$Year.num <- suppressWarnings(as.numeric(as.character(out1$years)))
-      out1$year <- factor(out1$year, year_names)
+      out1$years <- factor(out1$years, year_names)
       class(out1) <- c("SUMMERproj", "data.frame")
 
       out2$is.yearly <- !(out2$years %in% year_label)

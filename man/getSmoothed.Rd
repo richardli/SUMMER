@@ -6,7 +6,8 @@
 \usage{
 getSmoothed(inla_mod, year_range = c(1985, 2019),
   year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14",
-  "15-19"), Amat = NULL, nsim = 1000, ...)
+  "15-19"), Amat = NULL, nsim = 1000, seed = 1234,
+  weight.strata = NULL, ...)
 }
 \arguments{
 \item{inla_mod}{output from \code{\link{fitINLA}}}
@@ -18,6 +19,10 @@ getSmoothed(inla_mod, year_range = c(1985, 2019),
 \item{Amat}{adjacency matrix}
 
 \item{nsim}{number of simulations}
+
+\item{seed}{seed for sampling}
+
+\item{weight.strata}{a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region.}
 
 \item{...}{not used}
 }
@@ -52,7 +57,7 @@ data <- aggregateSurvey(data)
 # Model fitting with INLA
 years.all <- c(years, "15-19")
 fit <- fitINLA(data = data, geo = geo, Amat = mat, 
-year_names = years.all, year_range = c(1985, 2019), 
+year_label = years.all, year_range = c(1985, 2019), 
 priors = priors, rw = 2, is.yearly=TRUE, 
 m = 5, type.st = 4)
 # Projection

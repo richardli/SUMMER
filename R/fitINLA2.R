@@ -12,7 +12,7 @@
 #' \item total: total number of person-month in this age group, stratum, cluster, and period
 #' \item Y: total number of deaths in this age group, stratum, cluster, and period
 #' }
-#' @param age.group a character vector of age groups in increasing order.
+#' @param age.groups a character vector of age groups in increasing order.
 #' @param age.n number of months in each age groups in the same order.
 #' @param family family of the model. This can be either binomial (with logistic normal prior) or betabiniomial.
 #' @param Amat Adjacency matrix for the regions
@@ -144,35 +144,35 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
       n <- year_range[2] - year_range[1] + 1
       nn <- n %/% m
       N <- n + nn
-      rw.model <- INLA::inla.rgeneric.define(model = SUMMER:::rw.new,
+      rw.model <- INLA::inla.rgeneric.define(model = rw.new,
                                        n = n, 
                                        m = m,
                                        order = rw,
                                        tau = exp(10),
                                        shape0 = a.rw,
                                        rate0 = b.rw) 
-      iid.model <- INLA::inla.rgeneric.define(model = SUMMER:::iid.new,
+      iid.model <- INLA::inla.rgeneric.define(model = iid.new,
                                              n = n, 
                                              m = m,
                                              tau = exp(10),
                                              shape0 = a.iid,
                                              rate0 = b.iid)
 
-      rw.model.pc <- INLA::inla.rgeneric.define(model = SUMMER:::rw.new.pc,
+      rw.model.pc <- INLA::inla.rgeneric.define(model = rw.new.pc,
                                        n = n, 
                                        m = m,
                                        order = rw,
                                        tau = exp(10),
                                        u0 = pc.u,
                                        alpha0 = pc.alpha) 
-      iid.model.pc <- INLA::inla.rgeneric.define(model = SUMMER:::iid.new.pc,
+      iid.model.pc <- INLA::inla.rgeneric.define(model = iid.new.pc,
                                              n = n, 
                                              m = m,
                                              tau = exp(10),
                                              u0 = pc.u,
                                              alpha0 = pc.alpha) 
       if(!is.null(geo)){
-         st.model <- INLA::inla.rgeneric.define(model = SUMMER:::st.new,
+         st.model <- INLA::inla.rgeneric.define(model = st.new,
                                        n = n, 
                                        m = m,
                                        order = rw,
@@ -182,7 +182,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                                        tau = exp(10),
                                        shape0 = a.iid,
                                        rate0 = b.iid)
-         st.model.pc <- INLA::inla.rgeneric.define(model = SUMMER:::st.new.pc,
+         st.model.pc <- INLA::inla.rgeneric.define(model = st.new.pc,
                                        n = n, 
                                        m = m,
                                        order = rw,
@@ -448,6 +448,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
 
 
 ## add yearly observations with NA outcome and 1 trial, does not contribute to likelihood
+total <- NA
 exdat <- subset(exdat, total != 0)
 for(i in 1:N){
     tmp<-exdat[match(unique(exdat$region), exdat$region), ]
