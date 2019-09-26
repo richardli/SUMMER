@@ -216,6 +216,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         }
 
         # Put hazards together
+        draw.temp <- draws.hazards <- NA
         index1 <- 1
         index2 <- 1
         for(j in 1:N){
@@ -229,11 +230,11 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
               # Monte Carlo approximation of the marginal effects
               if(inla_mod$family == "binomial" && mc > 0){
                 sd.temp <- matrix(1/sqrt(tau), nsim, mc)
-                err.temp <- matrix(rnorm(nsim*mc, mean = matrix(0, nsim, mc), sd = sd.temp), nsim, mc)
+                err.temp <- matrix(stats::rnorm(nsim*mc, mean = matrix(0, nsim, mc), sd = sd.temp), nsim, mc)
                 for(tt in 1:age.length){
-                    draws.temp <- matrix(draws.hazard[, tt], nsim, mc)
+                    draws.temp <- matrix(draws.hazards[, tt], nsim, mc)
                     draws.temp <- expit(draws.temp + err.temp)
-                    draws.hazard[, tt] <- apply(draw.temp, 1, mean)
+                    draws.hazards[, tt] <- apply(draws.temp, 1, mean)
                 }
               }else{                 
                 draws.hazards <- expit(draw.hazards)
