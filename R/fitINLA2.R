@@ -477,7 +477,11 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
 
 
   exdat$strata <- factor(exdat$strata)
-  exdat$age <- factor(exdat$age, levels = age.groups)
+  if(!is.null(age.groups)){
+      exdat$age <- factor(exdat$age, levels = age.groups)    
+  }else{
+     formula <- update(formula, ~.-age)   
+  }
 
      
   fit <- INLA::inla(formula, family = family, control.compute = options, data = exdat, control.predictor = list(compute = FALSE), Ntrials = exdat$total, lincomb = NULL, control.inla = list(int.strategy = "auto"), verbose = verbose)

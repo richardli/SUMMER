@@ -114,7 +114,10 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           names(select)[i] <- cs[i]
        }
 
+
+       message("Starting posterior sampling...")
         sampAll <- INLA::inla.posterior.sample(n = nsim, result = inla_mod$fit, intern = TRUE, selection = select, verbose = verbose, ...)
+       message("Finished posterior sampling, cleaning up results now...")
 
         fields <- rownames(sampAll[[1]]$latent)        
         pred <- grep("Predictor", fields)
@@ -126,16 +129,24 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         region.int <- grep("region.int", fields)
         time.area <- grep("time.area", fields)
         age <- grep("age", fields)
+        age.nn <- inla_mod$age.n
+        
         strata <- grep("strata", fields)
         T <- length(time.struct)
         N <- dim(Amat)[1]
+
+        if(length(age) == 0){
+          age.length  <- 1
+        }else{
+          age.length <- length(age)
+        }
           
 
         # organize output
         out1 <- expand.grid(strata = stratalabels, time = 1:T, area = 1:N)
         out2 <- expand.grid(time = 1:T, area = 1:N)
-        out1$lower <- out1$upper <- out1$mean <- out1$median <- NA
-        out2$lower <- out2$upper <- out2$mean <- out2$median <- NA
+        out1$lower <- out1$upper <- out1$mean <- out1$median <- out1$variance <- NA
+        out2$lower <- out2$upper <- out2$mean <- out2$median <- out2$variance <- NA
         out1$years <- year_label[out1$time]
         out2$years <- year_label[out2$time]
         out1$region <- colnames(Amat)[out1$area]
@@ -158,7 +169,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         theta <- matrix(NA, nsim, T * N)
         tau <- rep(NA, nsim)
         ## K blocks, each with age 1 to G
-        beta <- matrix(NA, nsim, (length(strata)+1) * length(age))
+        beta <- matrix(NA, nsim, length(stratalabels) * age.length)
 
         time.area.order <- inla_mod$time.area[with(inla_mod$time.area, order( time.unstruct, region_number)), "time.area"]
 
@@ -176,8 +187,17 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
             theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[region.unstruct], T)
           }
 
-          beta[i, ] <- rep(sampAll[[i]]$latent[age], length(strata) + 1)
-          beta[i, ] <- beta[i, ] + rep(c(0, sampAll[[i]]$latent[strata]), each = length(age))
+          if(length(age) > 0){
+              beta[i, ] <- rep(sampAll[[i]]$latent[age], length(stratalabels))
+          }else{
+            beta[i, ] <- 0
+          }
+
+          if(length(strata) == length(stratalabels)){
+              beta[i, ] <- beta[i, ] + rep(sampAll[[i]]$latent[strata], each = age.length)
+          }else{
+              beta[i, ] <- beta[i, ] + rep(c(0, sampAll[[i]]$latent[strata]), each = age.length)
+          }
           if(inla_mod$family == "binomial"){
             tau[i] <-exp(sampAll[[i]]$hyperpar[["Log precision for nugget.id"]])
           }
@@ -204,19 +224,24 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         index2 <- 1
         for(j in 1:N){
           for(i in 1:T){
-            draws <- matrix(NA, nsim, length(strata) + 1)
+            draws <- matrix(NA, nsim, length(stratalabels))
             # For each strata
-            for(k in 1:(length(strata)+1)){
+            for(k in 1:(length(stratalabels))){
               # column add
-              draws.hazards <- expit(theta[, j + (i-1)*N] + beta[, ((k-1)*length(age)+1) :(k*length(age))])
-              draws.mort <- (1 - draws.hazards[, 1])^(inla_mod$age.n[1])
-              for(tt in 2:dim(draws.hazards)[2]){
-                  draws.mort <- draws.mort * (1 - draws.hazards[, tt])^(inla_mod$age.n[tt])
+              draws.hazards <- expit(theta[, j + (i-1)*N] + beta[, ((k-1)*age.length+1) :(k*age.length)])
+              if(!is.null(age.nn)){
+                draws.mort <- (1 - draws.hazards[, 1])^(age.nn[1])
+                for(tt in 2:dim(draws.hazards)[2]){
+                    draws.mort <- draws.mort * (1 - draws.hazards[, tt])^(age.nn[tt])
+                }
+                draws.mort <- 1 - draws.mort
+              }else{
+                draws.mort <- draws.hazards
               }
-              draws.mort <- 1 - draws.mort
               draws[, k] <- draws.mort
               out1[index1, c("lower", "median", "upper")] <- quantile(draws.mort, c(0.025, 0.5, 0.975))
               out1[index1, "mean"] <- mean(draws.mort)
+              out1[index1, "variance"] <- var(draws.mort)
               index1 <- index1 + 1
             }
             # aggregate to time-area estimates
@@ -224,6 +249,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
             draws <- apply(draws, 1, function(x, p){sum(x * p)}, prop)
             out2[index2, c("lower", "median", "upper")] <- quantile(draws, c(0.025, 0.5, 0.975))
             out2[index2, "mean"] <- mean(draws)
+            out2[index2, "variance"] <- var(draws)
             index2 <- index2 + 1
           }
         }
