@@ -16,7 +16,7 @@
 #' @param ncol number of columns for the output tabs
 #' @param ylim range of the values to be plotted.
 #' @param clean remove all coordinates for a cleaner layout, default to TRUE.
-#' 
+#' importFrom sp proj4string
 #' @examples
 #' \dontrun{
 #' data(DemoMap)
@@ -53,6 +53,7 @@ mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data,
     if (is.null(values) & is.long) {
         stop("values need to be specified for long format input.")
     }
+    has.coord <- !is.na(sp::proj4string(geo))
     geo <- ggplot2::fortify(geo, region = by.geo)
     if (!is.long) {
         data <- data[, c(variables, by.data)]
@@ -82,7 +83,7 @@ mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data,
     }else{
         g <- g + ggplot2::scale_fill_viridis_c()
     } 
-    g <- g + ggplot2::coord_map()
+    if(has.coord) g <- g + ggplot2::coord_map()
 
     if(clean){
         g <- g + ggplot2::theme_bw() + ggplot2::theme(legend.title=ggplot2::element_text(size=ggplot2::rel(0.7)), axis.title.x=ggplot2::element_blank(), axis.text.x=ggplot2::element_blank(), axis.ticks.x=ggplot2::element_blank(), axis.title.y=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank(), axis.ticks.y=ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank())

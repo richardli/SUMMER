@@ -35,7 +35,8 @@ mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
 
 \item{ylim}{range of the values to be plotted.}
 
-\item{clean}{remove all coordinates for a cleaner layout, default to TRUE.}
+\item{clean}{remove all coordinates for a cleaner layout, default to TRUE.
+importFrom sp proj4string}
 }
 \description{
 This function visualizes the map with different variables. The input data frame can be either the long or wide format.

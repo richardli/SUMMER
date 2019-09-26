@@ -7,12 +7,12 @@
 #' @param geo Geo file
 #' @param Amat Adjacency matrix for the regions
 #' @param formula INLA formula. See vignette for example of using customized formula.
-#' @param year_names string vector of year names
+#' @param year_label string vector of year names
 #' @param na.rm Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.
 #' @param priors priors from \code{\link{simhyper}}
 #' @param rw Take values 1 or 2, indicating the order of random walk.
 #' @param is.yearly Logical indicator for fitting yearly or period model.
-#' @param year_range Entire range of the years (inclusive) defined in year_names.
+#' @param year_range Entire range of the years (inclusive) defined in year_label.
 #' @param m Number of years in each period.
 #' @param type.st type for space-time interaction
 #' @param hyper which hyperpriors to use. Default to be using the PC prior ("pc"). 
@@ -35,43 +35,40 @@
 #' @return INLA model fit using the provided formula, country summary data, and geographic data
 #' @examples
 #' \dontrun{
-#' 
-#' data(DemoData)
-#' data(DemoMap)
 #' years <- levels(DemoData[[1]]$time)
 #' 
 #' # obtain direct estimates
 #' data <- getDirectList(births = DemoData, 
-#' years = years, 
+#' years = years,  
 #' regionVar = "region", timeVar = "time", 
 #' clusterVar = "~clustid+id", 
 #' ageVar = "age", weightsVar = "weights", 
 #' geo.recode = NULL)
+#' # obtain direct estimates
+#' data_multi <- getDirectList(births = DemoData, years = years,
+#'   regionVar = "region",  timeVar = "time", clusterVar = "~clustid+id",
+#'   ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+#' data <- aggregateSurvey(data_multi)
 #' 
-#' # obtain maps
-#' geo <- DemoMap$geo
-#' mat <- DemoMap$Amat
-#' 
-#' # Simulate hyperpriors
-#' priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat, only.iid = TRUE)
-#' 
-#' # combine data from multiple surveys
-#' data <- aggregateSurvey(data)
-#' 
-#' # Model fitting with INLA
+#' #  national model
 #' years.all <- c(years, "15-19")
-#' fit <- fitINLA(data = data, geo = geo, Amat = mat, 
-#' year_names = years.all, year_range = c(1985, 2019),
-#'  priors = priors, rw = 2,
-#'  is.yearly=TRUE, m = 5, type.st = 4)
-#' # Projection
-#' out <- getSmoothed(fit, Amat = mat, is.yearly = TRUE)
-#' plot(out, is.yearly=TRUE, is.subnational=TRUE) + ggplot2::ggtitle("Subnational yearly model")
+#' fit1 <- fitINLA(data = data, geo = NULL, Amat = NULL, 
+#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   rw = 2, is.yearly=FALSE, m = 5)
+#' out1 <- getSmoothed(fit1)
+#' plot(out1, is.subnational=FALSE)
+#' 
+#' #  subnational model
+#' fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
+#' out2 <- getSmoothed(fit2, Amat = mat)
+#' plot(out2, is.yearly=TRUE, is.subnational=TRUE)
+#' 
 #' 
 #' }
-#' 
 #' @export
-fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo = T, openmp.strategy = 'default'), verbose = FALSE){
+fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo = T, openmp.strategy = 'default'), verbose = FALSE){
 
 
   if(m == 1){
@@ -127,7 +124,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     #################################################################### Re-calculate hyper-priors
     
     if (is.null(priors)) {
-      priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, nperiod = length(year_names), only.iid = TRUE)
+      priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, nperiod = length(year_label), only.iid = TRUE)
     }
     
     if(is.null(a.iid)) a.iid <- priors$a.iid
@@ -217,8 +214,8 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
                                        alpha0 = pc.alpha) 
        }
       
-      year_names_new <- c(as.character(c(year_range[1]:year_range[2])), year_names)
-      time.index <- cbind.data.frame(idx = 1:N, Year = year_names_new)
+      year_label_new <- c(as.character(c(year_range[1]:year_range[2])), year_label)
+      time.index <- cbind.data.frame(idx = 1:N, Year = year_label_new)
       constr = list(A = matrix(c(rep(1, n), rep(0, nn)), 1, N), e = 0)
       
       if(type.st %in% c(2, 4)){
@@ -245,11 +242,11 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       }else{
         constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
       }
-      years <- data.frame(year = year_names_new[1:N], year_number = seq(1, N))
+      years <- data.frame(year = year_label_new[1:N], year_number = seq(1, N))
     }else{
       n <- 0
-      N <- nn <- length(year_names)
-      years <- data.frame(year = year_names, year_number = seq(1, N))      
+      N <- nn <- length(year_label)
+      years <- data.frame(year = year_label, year_number = seq(1, N))      
     }
     
     # -- creating IDs for the temporal REs -- #
@@ -318,7 +315,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
 
   if(is.null(formula)){
         period.constr <- NULL
-        Tmax <- length(year_names)            
+        Tmax <- length(year_label)            
         if(rw == 2) period.constr <- list(A = matrix(c(rep(1, Tmax)), 1, Tmax), e = 0)
         if(rw %in% c(1, 2) == FALSE) stop("Random walk only support rw = 1 or 2.")
    
@@ -560,7 +557,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
 
     for(i in 1:N){
       tmp<-exdat[match(unique(exdat$region), exdat$region), ]
-      tmp$time.unstruct<-tmp$time.struct<- i
+      tmp$time.unstruct<-tmp$time.struct<- tmp$time.int <- i
       tmp$logit.est<-tmp$logit.prec<-tmp$survey<-NA
       tmp <- tmp[, colnames(tmp) != "time.area"]
       tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))

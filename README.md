@@ -14,16 +14,16 @@ The following functions have been renamed. Most of the function arguments remain
 + ``fitspace`` is now ``fitGeneric``
 + ``projINLA`` is now ``getSmooth``
 
-For now, the old function names can still be called and they are internally linked to the new functions. But we encourage users to switch to the new functions, as they will be more actively maintained. In the next major release, the old functions will be removed.
-
 #### New functions
 The following new functions are added:
 
 + ``getDiag``: produce diagnostic plots for the fitted model.
 + ``getAdjusted``: produce adjusted estimates for a fitted model
++ ``getAmat``: automatic extract spatial adjacency matrix from the polygon file.
++ ``hatchPlot``: plot variables on a map with hatching indicating the width of the credible interval.
 
 #### New methods
-``fitINLA`` function now implements new smoothing methods based on binomial models at cluster level. 
+``fitINLA2``: implements new smoothing methods based on binomial models at cluster level. 
 
 
 
@@ -58,3 +58,8 @@ utils::browseVignettes(package = "SUMMER")
 
 ## Bug Reports / Change Requests
 If you encounter a bug or would like make a change request, please file it as an issue [here](https://github.com/bryandmartin/SUMMER/issues).
+
+### Random notes:
++ In order to use `devtools::check` to check the package with static vignettes, use the hidden option `devtools::check(clean_doc = FALSE)` to avoid deleting the inst/doc folder.
++ 
+

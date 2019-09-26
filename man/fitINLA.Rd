@@ -5,7 +5,7 @@
 \title{Fit space-time smoothing models to mortality rates}
 \usage{
 fitINLA(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
-  year_names, year_range = c(1980, 2014), m = 5, na.rm = TRUE,
+  year_label, year_range = c(1980, 2014), m = 5, na.rm = TRUE,
   priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1],
   pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3,
   a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL,
@@ -25,9 +25,9 @@ fitINLA(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
 
 \item{is.yearly}{Logical indicator for fitting yearly or period model.}
 
-\item{year_names}{string vector of year names}
+\item{year_label}{string vector of year names}
 
-\item{year_range}{Entire range of the years (inclusive) defined in year_names.}
+\item{year_range}{Entire range of the years (inclusive) defined in year_label.}
 
 \item{m}{Number of years in each period.}
 
@@ -71,41 +71,38 @@ Fit space-time smoothing models to mortality rates
 }
 \examples{
 \dontrun{
-
-data(DemoData)
-data(DemoMap)
 years <- levels(DemoData[[1]]$time)
 
 # obtain direct estimates
 data <- getDirectList(births = DemoData, 
-years = years, 
+years = years,  
 regionVar = "region", timeVar = "time", 
 clusterVar = "~clustid+id", 
 ageVar = "age", weightsVar = "weights", 
 geo.recode = NULL)
+# obtain direct estimates
+data_multi <- getDirectList(births = DemoData, years = years,
+  regionVar = "region",  timeVar = "time", clusterVar = "~clustid+id",
+  ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+data <- aggregateSurvey(data_multi)
 
-# obtain maps
-geo <- DemoMap$geo
-mat <- DemoMap$Amat
-
-# Simulate hyperpriors
-priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat, only.iid = TRUE)
-
-# combine data from multiple surveys
-data <- aggregateSurvey(data)
-
-# Model fitting with INLA
+#  national model
 years.all <- c(years, "15-19")
-fit <- fitINLA(data = data, geo = geo, Amat = mat, 
-year_names = years.all, year_range = c(1985, 2019),
- priors = priors, rw = 2,
- is.yearly=TRUE, m = 5, type.st = 4)
-# Projection
-out <- getSmoothed(fit, Amat = mat, is.yearly = TRUE)
-plot(out, is.yearly=TRUE, is.subnational=TRUE) + ggplot2::ggtitle("Subnational yearly model")
+fit1 <- fitINLA(data = data, geo = NULL, Amat = NULL, 
+  year_label = years.all, year_range = c(1985, 2019), 
+  rw = 2, is.yearly=FALSE, m = 5)
+out1 <- getSmoothed(fit1)
+plot(out1, is.subnational=FALSE)
+
+#  subnational model
+fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+  year_label = years.all, year_range = c(1985, 2019), 
+  rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
+out2 <- getSmoothed(fit2, Amat = mat)
+plot(out2, is.yearly=TRUE, is.subnational=TRUE)
+
 
 }
-
 }
 \seealso{
 \code{\link{getDirect}}

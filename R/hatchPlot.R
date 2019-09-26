@@ -16,17 +16,46 @@
 #' @param lim.CI fixed range of the CI widths to plot
 #' @param breaks.CI a vector of numerical values that decides the breaks in the CI widths to be shown
 #' @param ncol number of columns for the output tabs
-#' @param col.hatch color of the hatching lines.
+#' @param hatch color of the hatching lines.
+#' @param border color of the polygon borders.
+#' @param size line width of the polygon borders.
+#' @param ... unused.
 #'
 #' @examples
 #' \dontrun{
-#'  #TODO
+#' years <- levels(DemoData[[1]]$time)
+#' 
+#' # obtain direct estimates
+#' data <- getDirectList(births = DemoData, 
+#' years = years,  
+#' regionVar = "region", timeVar = "time", 
+#' clusterVar = "~clustid+id", 
+#' ageVar = "age", weightsVar = "weights", 
+#' geo.recode = NULL)
+#' # obtain direct estimates
+#' data_multi <- getDirectList(births = DemoData, years = years,
+#'   regionVar = "region",  timeVar = "time", clusterVar = "~clustid+id",
+#'   ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+#' data <- aggregateSurvey(data_multi)
+#' 
+#' fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
+#' out2 <- getSmoothed(fit2, Amat = mat)
+#' 
+#' plot(out2, is.yearly=TRUE, is.subnational=TRUE)
+#' 
+#' hatchPlot(data = subset(out2, is.yearly==FALSE), geo = geo,
+#' variables=c("years"), values = c("median"), 
+#' by.data = "region", by.geo = "REGNAME", 
+#' lower = "lower", upper = "upper", is.long=TRUE)
+#' 
 #' }
 #' @importFrom viridis viridis_pal
 #' @importFrom sp plot
 #' @export 
 
-hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo,  is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL, breaks.CI = NULL, ncol = 4, col.hatch = NULL){
+hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo,  is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL, breaks.CI = NULL, ncol = 4, hatch = NULL, border = NULL, size = 1, ...){
 
 
    if (is.null(labels) & !is.long) {
@@ -71,8 +100,16 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
     brklabels <- paste(signif(breaks.CI[1:(nbrks-1)],2), signif(breaks.CI[2:nbrks],2), sep = " - ")
     dens <- (2:nbrks)*3
 
-    if(is.null(col.hatch)) col.hatch <- viridis::viridis_pal(option="A")(11)[11]
-    col.border<- viridis::viridis_pal(option="E")(11)[8]
+    if(is.null(hatch)){
+      col.hatch <- viridis::viridis_pal(option="A")(11)[11]
+    }else{
+      col.hatch <- hatch
+    }
+    if(is.null(border)){
+      col.border<- viridis::viridis_pal(option="E")(11)[8]
+    }else{
+      col.border <- border
+    }
     
     m <- length(unique(data$variable)) / ncol
     m <- floor(m)
@@ -82,7 +119,7 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
         tmp <- data[data$variable == tt, ]
         tmp <- tmp[match(geo[[by.geo]], tmp[, by.data]),]
         sp::plot(geo, col = tmp$value.col, border = col.border,
-           main  = tt)
+           main  = tt, lwd = size)
       	geo@data$diff <- tmp[, upper] - tmp[, lower]
       	rrt1 <- geo@data$diff
       	sp::plot(geo,  density=dens[findInterval(rrt1, breaks.CI,

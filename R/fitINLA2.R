@@ -17,14 +17,15 @@
 #' @param family family of the model. This can be either binomial (with logistic normal prior) or betabiniomial.
 #' @param Amat Adjacency matrix for the regions
 #' @param geo Geo file
-#' @param bias.adjust the ratio of unadjusted mortality rates or age-group-specific hazards to the true rates or hazards. It needs to be a data frame that can be merged to thee outcome, i.e., with the same column names for time periods (for national adjustment), or time periods and region (for subnational adjustment). The column specifying the ratio should be named "ratio".
+#' @param bias.adj the ratio of unadjusted mortality rates or age-group-specific hazards to the true rates or hazards. It needs to be a data frame that can be merged to thee outcome, i.e., with the same column names for time periods (for national adjustment), or time periods and region (for subnational adjustment). The column specifying the adjustment ratio should be named "ratio".
+#' @param bias.adj.by vector of the column names specifying how to merge the bias adjustment to the count data. For example, if bias adjustment factor is provided in bias.adj for each region and time, then bias.adj.by should be `c("region", "time")`.
 #' @param formula INLA formula.  See vignette for example of using customized formula.
-#' @param year_names string vector of year names
+#' @param year_label string vector of year names
 #' @param na.rm Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.
 #' @param priors priors from \code{\link{simhyper}}
 #' @param rw Take values 1 or 2, indicating the order of random walk.
 #' @param is.yearly Logical indicator for fitting yearly or period model.
-#' @param year_range Entire range of the years (inclusive) defined in year_names.
+#' @param year_range Entire range of the years (inclusive) defined in year_label.
 #' @param m Number of years in each period.
 #' @param type.st type for space-time interaction
 #' @param hyper which hyperpriors to use. Default to be using the PC prior ("pc"). 
@@ -46,16 +47,13 @@
 #' @importFrom Matrix Diagonal 
 #' @return INLA model fit using the provided formula, country summary data, and geographic data
 #' @examples
-#' \dontrun{
-#'  
-#' 
-#' }
+#' message("Please check the package vignette on binomial models.")
 #' 
 #' @export
 #' 
 #' 
 
-fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), Amat, geo, bias.adjust = NULL, formula = NULL, rw = 2, is.yearly = FALSE, year_names, year_range = c(1980, 2014), m = 1, na.rm = TRUE, priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), verbose = FALSE){
+fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, is.yearly = FALSE, year_label, year_range = c(1980, 2014), m = 1, na.rm = TRUE, priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), verbose = FALSE){
 
   if(m == 1){
     if(is.yearly) warning("Switched to period model because m = 1.")
@@ -109,7 +107,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     #################################################################### Re-calculate hyper-priors
     
     if (is.null(priors)) {
-      priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, nperiod = length(year_names), only.iid = TRUE)
+      priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, nperiod = length(year_label), only.iid = TRUE)
     }
     
     if(is.null(a.iid)) a.iid <- priors$a.iid
@@ -199,8 +197,8 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                                        alpha0 = pc.alpha) 
        }
       
-      year_names_new <- c(as.character(c(year_range[1]:year_range[2])), year_names)
-      time.index <- cbind.data.frame(idx = 1:N, Year = year_names_new)
+      year_label_new <- c(as.character(c(year_range[1]:year_range[2])), year_label)
+      time.index <- cbind.data.frame(idx = 1:N, Year = year_label_new)
       constr = list(A = matrix(c(rep(1, n), rep(0, nn)), 1, N), e = 0)
       
       if(type.st %in% c(2, 4)){
@@ -227,11 +225,11 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
       }else{
         constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
       }
-      years <- data.frame(year = year_names_new[1:N], year_number = seq(1, N))
+      years <- data.frame(year = year_label_new[1:N], year_number = seq(1, N))
     }else{
       n <- 0
-      N <- nn <- length(year_names)
-      years <- data.frame(year = year_names, year_number = seq(1, N))      
+      N <- nn <- length(year_label)
+      years <- data.frame(year = year_label, year_number = seq(1, N))      
     }
     
     # -- creating IDs for the temporal REs -- #
@@ -305,7 +303,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
 
   if(is.null(formula)){
         period.constr <- NULL
-        Tmax <- length(year_names)            
+        Tmax <- length(year_label)            
         if(rw == 2) period.constr <- list(A = matrix(c(rep(1, Tmax)), 1, Tmax), e = 0)
         if(rw %in% c(1, 2) == FALSE) stop("Random walk only support rw = 1 or 2.")
    
@@ -354,10 +352,10 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                     f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1))
             }else if(type.st == 3){
                 formula <- update(formula, ~. + 
-                    f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="iid", values = 1:N), hyper = hyperpc1, scale.model = TRUE))
+                    f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="iid"), hyper = hyperpc1, scale.model = TRUE))
             }else{
                 formula <- update(formula, ~. + 
-                    f(region.int,model="besag", graph = Amat, scale.model = TRUE, group=time.int, control.group=list(model=paste0("rw", rw), scale.model = TRUE, values = 1:N), hyper = hyperpc1))
+                    f(region.int,model="besag", graph = Amat, scale.model = TRUE, group=time.int, control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1))
             }
           
         ## ------------------------- 
@@ -438,11 +436,13 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
       }
     }
     formula <- update(formula, ~. -1 + age + strata)
-    if(!is.null(bias.adjust)){
+    if(!is.null(bias.adj)){
+      if(is.null(bias.adj.by)) stop("bias.adj.by argument is not specified. Please specify which bias adjustment factors are specified by which columns. ")
+      bias.adj <- bias.adj[, c(bias.adj.by, "ratio")]
       exdat$years <- as.character(exdat$years)
-      exdat <- merge(exdat, bias.adjust, all.x = TRUE)
+      exdat <- merge(exdat, bias.adj, all.x = TRUE, by = bias.adj.by)
       if("ratio" %in% colnames(exdat) == FALSE){
-        stop("bias.adjust argument is misspecified. It require the following column: ratio.")
+        stop("bias.adj argument is misspecified. It require the following column: ratio.")
       }
     }else{
       exdat$ratio <- 1
@@ -453,19 +453,26 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
 }
 
 
-## add yearly observations with NA outcome and 1 trial, does not contribute to likelihood
-total <- NA
-exdat <- subset(exdat, total != 0)
-for(i in 1:N){
-    tmp<-exdat[match(unique(exdat$region), exdat$region), ]
-    tmp$time.unstruct<-tmp$time.struct<-tmp$time.int <- i
-    tmp <- tmp[, colnames(tmp) != "time.area"]
-    tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
-    tmp$years<-years[i, 1]
-    tmp$total <- 1
-    tmp$Y <- NA
-    exdat<-rbind(exdat,tmp)   
-  }
+  ## add yearly observations with NA outcome and 1 trial, does not contribute to likelihood
+  total <- NA
+  exdat <- subset(exdat, total != 0)
+  
+  # tmp<-exdat[1:N, ]
+  # tmp$time.unstruct<-tmp$time.struct<-tmp$time.int <- 1:N
+  # tmp$years<-years[1:N, 1]
+  # tmp$total <- 1
+  # tmp$Y <- NA
+  # exdat<-rbind(exdat,tmp)   
+  for(i in 1:N){
+      tmp<-exdat[match(unique(exdat$region), exdat$region), ]
+      tmp$time.unstruct<-tmp$time.struct<- tmp$time.int <- i
+      tmp$years<-years[i, 1]
+      tmp$total <- 1
+      tmp$Y <- NA
+      exdat<-rbind(exdat,tmp)   
+    }
+
+
   exdat$strata <- factor(exdat$strata)
   exdat$age <- factor(exdat$age, levels = age.groups)
 

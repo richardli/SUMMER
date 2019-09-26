@@ -24,72 +24,36 @@
 #' @method plot SUMMERproj
 #' @examples
 #' \dontrun{
-#' data(DemoData)
-#' deta(DemoMap)
 #' years <- levels(DemoData[[1]]$time)
 #' 
+#' # obtain direct estimates
 #' data <- getDirectList(births = DemoData, 
-#' years = years, 
+#' years = years,  
 #' regionVar = "region", timeVar = "time", 
 #' clusterVar = "~clustid+id", 
 #' ageVar = "age", weightsVar = "weights", 
 #' geo.recode = NULL)
+#' # obtain direct estimates
+#' data_multi <- getDirectList(births = DemoData, years = years,
+#'   regionVar = "region",  timeVar = "time", clusterVar = "~clustid+id",
+#'   ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+#' data <- aggregateSurvey(data_multi)
 #' 
-#' # obtain maps
-#' geo <- DemoMap$geo
-#' mat <- DemoMap$Amat
-#' 
-#' # combine data from multiple surveys
-#' data_agg <- aggregateSurvey(data)
-#' 
-#' # Model fitting with INLA
+#' #  national model
 #' years.all <- c(years, "15-19")
-#'
+#' fit1 <- fitINLA(data = data, geo = NULL, Amat = NULL, 
+#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   rw = 2, is.yearly=FALSE, m = 5)
+#' out1 <- getSmoothed(fit1)
+#' plot(out1, is.subnational=FALSE)
 #' 
-#' fit <- fitINLA(data = data_agg, geo = NULL, Amat = NULL, 
-#' year_names = years.all, year_range = c(1985, 2019),  
-#' rw = 2, is.yearly=TRUE, 
-#' m = 5, type.st = 4)
-#' # Projection
-#' out <- getSmoothed(fit)
-#' # National smoothed plot
-#' plot(out, is.subnational=FALSE) + ggplot2::ggtitle("National yearly model")
+#' #  subnational model
+#' fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
+#' out2 <- getSmoothed(fit2, Amat = mat)
+#' plot(out2, is.yearly=TRUE, is.subnational=TRUE)
 #' 
-#' # National smoothed plot with the aggregated direct estimates
-#' plot(out, is.subnational=FALSE,  data.add = data_agg, 
-#' option.add = list(point = "mean", lower = "lower", upper = "upper"), 
-#' color.add = "orange") + ggplot2::ggtitle("National yearly model") 
-#' 
-#' # National smoothed plot with the survey-specific direct estimates
-#' plot(out, is.subnational=FALSE,  data.add = data, 
-#' option.add = list(point = "mean", by = "surveyYears"), 
-#' color.add = "darkblue") + ggplot2::ggtitle ("National yearly model") 
-#'
-#' 
-#' 
-#' fit <- fitINLA(data = data_agg, geo = geo, Amat = mat, 
-#' year_names = years.all, year_range = c(1985, 2019),  
-#' rw = 2, is.yearly=TRUE, 
-#' m = 5, type.st = 4)
-#' # Projection
-#' out <- getSmoothed(fit, Amat = mat)
-#' 
-#' # Subnational estimates
-#' plot(out, is.subnational=TRUE) + ggplot2::ggtitle("Subnational yearly model")
-#'
-#' 
-#' # Subnational estimates with the aggregated direct estimates
-#' plot(out,is.subnational=TRUE,  data.add = data_agg, option.add = 
-#' list(point = "mean", lower = "lower", upper = "upper")) + 
-#' ggplot2::ggtitle("Subnational yearly model") + facet_wrap(~region)
-#'
-#' 
-#' # Subnational estimates with survey-specific direct estimates
-#' plot(out, is.subnational=TRUE,  data.add = data, option.add = 
-#' list(point = "mean", by = "surveyYears")) + 
-#' ggplot2::ggtitle("Subnational yearly model") + facet_wrap(~region) 
-#' 
-
 #' 
 #' }
 #' @export
@@ -128,6 +92,7 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
 
   # deal with 1 year period
   period.1yr <- diff(unique(x$years.num[x$is.yearly == FALSE]))[1] == 1
+  if(sum(is.na(x$years.num)) == length(x$years.num)) period.1yr = FALSE
 
   is.periods <- x$years %in% year_label
   x$years.num[is.periods] <- year_med[match(x$years[is.periods], year_label)]

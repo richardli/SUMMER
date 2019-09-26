@@ -29,7 +29,32 @@ Make diagnostic plots
 }
 \examples{
 \dontrun{
-# TODO 
-} 
+  data(DemoMap)
+  years <- levels(DemoData[[1]]$time)
+  
+  # obtain direct estimates
+  data <- getDirectList(births = DemoData, 
+  years = years,  
+  regionVar = "region", timeVar = "time", 
+  clusterVar = "~clustid+id", 
+  ageVar = "age", weightsVar = "weights", 
+  geo.recode = NULL)
+  # obtain direct estimates
+  data_multi <- getDirectList(births = DemoData, years = years,
+    regionVar = "region",  timeVar = "time", clusterVar = "~clustid+id",
+    ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+  data <- aggregateSurvey(data_multi)
+  
+  #  national model
+  years.all <- c(years, "15-19")
+  fit1 <- fitINLA(data = data, geo = DemoMap$geo, Amat = DemoMap$Amat, 
+    year_label = years.all, year_range = c(1985, 2019), 
+    rw = 2, is.yearly=FALSE, m = 5)
+random.time <- getDiag(fit1, field = "time", year_label = years.all, #' year_range = c(1985, 2019))
+  random.space <- getDiag(fit1, field = "space", Amat = DemoMap$Amat)
+  random.spacetime <- getDiag(fit1, field = "spacetime",
+   year_label = years, year_range = c(1985, 2019), 
+   Amat = DemoMap$Amat)
+}
 
 }

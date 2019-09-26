@@ -8,21 +8,21 @@
 #' @param geo Geo file
 #' @param Amat Adjacency matrix for the regions
 #' @param X Covariate matrix with the first column being the region names. Currently only supporting static region-level covariates.
-#' @param family Link function specification, currently supports 'binomial' (default with logit link function) or 'gaussian'. 
+#' @param responseType Type of the response variable, currently supports 'binary' (default with logit link function) or 'gaussian'. 
 #' @param responseVar the response variable
 #' @param strataVar the strata variable
 #' @param weightVar the weights variable
 #' @param regionVar Variable name for region, typically 'v024', for older surveys might be 'v101'
 #' @param clusterVar Variable name for cluster, typically '~v001 + v002'
-#' @param hyper the vector of two hyper parameters if specified by user
-#' @param hyper.iid the vector of two hyper parameters for the unstructured spatial random effects in Gaussian model, if specified by user
-#' @param hyper.besag the vector of two hyper parameters for the structured spatial random effects in Gaussian model, if specified by user
+#' @param pc.u hyperparameter U for the PC prior on precisions.
+#' @param pc.alpha hyperparameter alpha for the PC prior on precisions.
+#' @param pc.u.phi hyperparameter U for the PC prior on the mixture probability phi in BYM2 model.
+#' @param pc.alpha.phi hyperparameter alpha for the PC prior on the mixture probability phi in BYM2 model.
 #' @param CI the desired posterior credible interval to calculate
 #' @param FUN the function to transform the posterior draws. Default to be identify function for normal variable and inverse logit transformation for binomial variables
-#' @param newformula a string of user-specified random effects model to be used in the INLA call
+#' @param formula a string of user-specified random effects model to be used in the INLA call
 #' @param  timeVar The variable indicating time period. If set to NULL then the temporal model and space-time interaction model are ignored.
 #' @param time.model the model for temporal trends and interactions. It can be either "rw1" or "rw2".
-#' @param hyper.time the vector of two hyper parameters for the structured temporal random effects in Gaussian model, if specified by user
 #' @param type.st can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.
 #' 
 #' 
@@ -32,7 +32,7 @@
 #' \item{geo}{input argument}
 #' \item{Amat}{input argument}
 #' \item{CI}{input argument}
-#' \item{family}{input argument}
+#' \item{responseType}{input argument}
 #' \item{FUN}{input argument}
 #' @seealso \code{\link{getDirectList}}, \code{\link{fitINLA}}
 #' @importFrom stats median quantile sd var aggregate as.formula
@@ -40,27 +40,25 @@
 #' \dontrun{
 #' data(DemoData2)
 #' data(DemoMap2)
-#' fit <- fitSpace(data=DemoData2, geo=DemoMap2$geo, 
-#' Amat=DemoMap2$Amat, family="binomial", 
+#' fit <- fitGeneric(data=DemoData2, geo=DemoMap2$geo, 
+#' Amat=DemoMap2$Amat, responseType="binary", 
 #' responseVar="tobacco.use", strataVar="strata", 
 #' weightVar="weights", regionVar="region", 
-#' clusterVar = "~clustid+id", 
-#' hyper=NULL, CI = 0.95)
+#' clusterVar = "~clustid+id", CI = 0.95)
 #' 
 #' # Example with region-level covariates
 #'  Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
-#'  fit <- fitSpace(data=DemoData2, geo=DemoMap2$geo, 
-#'   Amat=DemoMap2$Amat, family="binomial", 
+#'  fit <- fitGeneric(data=DemoData2, geo=DemoMap2$geo, 
+#'   Amat=DemoMap2$Amat, responseType="binary", 
 #'   X = Xmat,
 #'   responseVar="tobacco.use", strataVar="strata", 
 #'   weightVar="weights", regionVar="region", 
-#'   clusterVar = "~clustid+id", 
- #'  hyper=NULL, CI = 0.95)
+#'   clusterVar = "~clustid+id", CI = 0.95)
 #' }
 #' @export
 
 
-fitSpace <- function(data, geo, Amat, X = NULL, family, responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", hyper=NULL, hyper.besag = c(0.5, 5E-5), hyper.iid = c(0.5, 5E-5), CI = 0.95, FUN=NULL, newformula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], hyper.time = NULL, type.st = 0){
+fitGeneric <- function(data, geo, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, FUN=NULL, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1){
 
     svy <- TRUE
 	if(!is.data.frame(data)){
@@ -73,8 +71,8 @@ fitSpace <- function(data, geo, Amat, X = NULL, family, responseVar, strataVar="
     if(is.null(responseVar)){
     	stop("Response variable not specified")
     }
-    if(is.null(family)){
-    	stop("family not specified")
+    if(is.null(responseType)){
+    	stop("responseType not specified")
     }
     if(is.null(rownames(Amat))){
         stop("Row names of Amat needs to be specified to region names.")
@@ -95,10 +93,10 @@ fitSpace <- function(data, geo, Amat, X = NULL, family, responseVar, strataVar="
         svy <- FALSE
     }
     if(is.null(FUN)){
-        if(family == "binomial"){
+        if(responseType == "binary"){
             message("FUN is not specified, default to be expit()")
             FUN <- expit
-        }else if(family == "gaussian"){
+        }else if(responseType == "gaussian"){
             message("FUN is not specified, default to be no transformation")
             FUN <- function(x){x}
         }
@@ -121,20 +119,10 @@ fitSpace <- function(data, geo, Amat, X = NULL, family, responseVar, strataVar="
         data$strata0 <- data[, strataVar]
     }
     if(!is.null(timeVar)) data$time0 <- data[, timeVar]
-    if(is.null(hyper.time)) hyper.time <- hyper.iid
 
+    hyperpc1 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
+    hyperpc2 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)),  phi = list(prior = 'pc', param = c(pc.u.phi , pc.alpha.phi)))
 
-    if(is.null(hyper) && family == "binomial"){
-        hyper <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, only.iid = TRUE)
-        param1 <- param2 <- param3 <- c(hyper$a.iid, hyper$b.iid)
-    }else if(family == "gaussian"){
-        # default by INLA
-        param1 <- c(hyper.iid[1], hyper.iid[2])
-        param2 <- c(hyper.besag[1], hyper.besag[2])
-        param3 <- c(hyper.time[1], hyper.time[2])
-    }else{
-        param1 <- param2 <- param3 <- c(hyper[1], hyper[2])
-    }
 
     if(is.null(colnames(Amat)) || is.null(rownames(Amat))){
         stop("column and row names for Amat needs to be specified to region names.")
@@ -161,16 +149,16 @@ fitSpace <- function(data, geo, Amat, X = NULL, family, responseVar, strataVar="
         name.i <- mean$region0            
         p.i <- mean$response0
         var.i <- mean$se^2
-        if(family == "binomial"){
+        if(responseType == "binary"){
             ht <- log(p.i/(1-p.i))
             ht.v <- var.i/(p.i^2*(1-p.i)^2)
             ht.prec <- 1/ht.v
-        }else if(family == "gaussian"){
+        }else if(responseType == "gaussian"){
             ht <- p.i
             ht.v <- var.i
             ht.prec <- 1/ht.v
         }else{
-            stop("family argument only supports binomial or gaussian at the time.")
+            stop("responseType argument only supports binary or gaussian at the time.")
         }
         n <- y <- NA
     }else{
@@ -188,16 +176,16 @@ fitSpace <- function(data, geo, Amat, X = NULL, family, responseVar, strataVar="
         colnames(mean) <- c("mean", "n", "y") 
         p.i <- mean$mean
         var.i <- p.i * (1-p.i)/mean$n
-        if(family == "binomial"){
+        if(responseType == "binary"){
             ht <- log(p.i/(1-p.i))
             ht.v <- var.i/(p.i^2*(1-p.i)^2)
             ht.prec <- 1/ht.v
-        }else if(family == "gaussian"){
+        }else if(responseType == "gaussian"){
             ht <- p.i
             ht.v <- var.i
             ht.prec <- 1/ht.v
         }else{
-            stop("family argument only supports binomial or gaussian at the time.")
+            stop("responseType argument only supports binary or gaussian at the time.")
         }
         n <- mean$n
         y <- mean$y
@@ -228,7 +216,7 @@ fitSpace <- function(data, geo, Amat, X = NULL, family, responseVar, strataVar="
     }
     
 
-    if(!svy && family == "binomial"){
+    if(!svy && responseType == "binary"){
         formulatext <- "y ~ 1"
     }else{
         formulatext <- "HT.est ~ 1"
@@ -241,30 +229,30 @@ fitSpace <- function(data, geo, Amat, X = NULL, family, responseVar, strataVar="
         formulatext <- paste(formulatext, " + ", paste(fixed, collapse = " + "))
     }
 
-    if(is.null(newformula)){
-        formula <- paste(formulatext, "f(region.unstruct, model = 'iid', param=param1) + f(region.struct, graph=Amat, model='besag', param=param2, scale.model = TRUE)", sep = "+")
+    if(is.null(formula)){
+        formula <- paste(formulatext, "f(region.struct, graph=Amat, model='bym2', hyper = hyperpc2, scale.model = TRUE)", sep = "+")
        if(!is.null(timeVar)){
-            formula <- paste(formula, "f(time.unstruct, model = 'iid', param=param1) + f(time.struct, model=tolower(time.model), param=param3, scale.model = TRUE)", sep = "+")
+            formula <- paste(formula, "f(time.unstruct, model = 'iid', hyper = hyperpc1) + f(time.struct, model=tolower(time.model), hyper = hyperpc1, scale.model = TRUE)", sep = "+")
             if(type.st == 1){
-                formula <- paste(formula, "f(region.int, model = 'iid', param=param1, group = time.int, control.group = list(model ='iid', param = param1))", sep = "+")
+                formula <- paste(formula, "f(region.int, model = 'iid', hyper = hyperpc1, group = time.int, control.group = list(model ='iid', hyper = hyperpc1))", sep = "+")
             }else if(type.st == 2){
-                formula <- paste(formula, "f(region.int, model = 'besag', graph = mat, scale.model = TRUE, param=param2, group = time.int, control.group = list(model ='iid', param = param1))", sep = "+")
+                formula <- paste(formula, "f(region.int, model = 'besag', graph = mat, scale.model = TRUE, param=hyperpc1, group = time.int, control.group = list(model ='iid'))", sep = "+")
             }else if(type.st == 3){
-                formula <- paste(formula, "f(region.int, model = 'iid', param=param1, group = time.int, control.group = list(model =tolower(time.model), param=param3, scale.model = TRUE))", sep = "+")
+                formula <- paste(formula, "f(region.int, model = 'iid', hyper = hyperpc1, group = time.int, control.group = list(model =tolower(time.model), scale.model = TRUE))", sep = "+")
             }else{
-                formula <- paste(formula, "f(region.int, model = 'besag', graph = mat, scale.model = TRUE, param=param2, group = time.int, control.group = list(model =tolower(time.model), param=param3, scale.model = TRUE))", sep = "+")
+                formula <- paste(formula, "f(region.int, model = 'besag', graph = mat, scale.model = TRUE, hyper = hyperpc1, group = time.int, control.group = list(model =tolower(time.model), hyper = hyperpc1, scale.model = TRUE))", sep = "+")
             }
         }
         formula <- as.formula(formula)
     }else{
-        formula <- as.formula(paste(formulatext, newformula, sep = "+"))
+        formula <- as.formula(paste(formulatext, formula, sep = "+"))
     }   
 
-    if(!svy && family == "binomial"){
+    if(!svy && responseType == "binary"){
          fit <- INLA::inla(formula, family="binomial", Ntrials=n, control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     
     # Weighted estimates
-    }else if(!svy && family == "gaussian"){
+    }else if(!svy && responseType == "gaussian"){
         fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     }else{
          fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
@@ -281,7 +269,7 @@ fitSpace <- function(data, geo, Amat, X = NULL, family, responseVar, strataVar="
     proj <- data.frame(region=dat$region[1:n], time = temp, mean=NA, variance=NA, median=NA, lower=NA, upper=NA, mean.original=NA, variance.original=NA, median.original=NA, lower.original=NA, upper.original=NA)
     for(i in 1:n){
         tmp <- matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[i]]))
-        if(!svy && family == "binomial"){
+        if(!svy && responseType == "binary"){
            tmp2 <- tmp
             proj[i, "mean"] <- mean(tmp2)
             proj[i, "variance"] <- var(tmp2)
@@ -310,13 +298,13 @@ fitSpace <- function(data, geo, Amat, X = NULL, family, responseVar, strataVar="
         }
       
     }
-
    return(list(HT = dat[, !colnames(dat) %in% c("region.struct", "region.unstruct", "region.int", "time.struct", "time.unstruct", "time.int")],
                smooth = proj, 
                fit = fit, 
                CI = CI,
                Amat = Amat,
                geo = geo,
-               family = family,
-               FUN = FUN))
+               responseType = responseType,
+               FUN = FUN, 
+               formula = formula))
 }

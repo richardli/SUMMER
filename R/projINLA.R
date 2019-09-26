@@ -7,9 +7,9 @@
 #' @param year_label vector of year string vector
 #' @param Amat adjacency matrix
 #' @param nsim number of simulations
-#' @param seed seed for sampling
 #' @param weight.strata a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. 
-#' @param ... not used
+#' @param verbose logical indicator whether to print progress messages from inla.posterior.sample.
+#' @param ... additional configurations passed to inla.posterior.sample.
 #' 
 #' @return Results from RW2 model fit, including projection.
 #' 
@@ -24,33 +24,34 @@
 #' clusterVar = "~clustid+id", 
 #' ageVar = "age", weightsVar = "weights", 
 #' geo.recode = NULL)
+#' # obtain direct estimates
+#' data_multi <- getDirectList(births = DemoData, years = years,
+#'   regionVar = "region",  timeVar = "time", clusterVar = "~clustid+id",
+#'   ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+#' data <- aggregateSurvey(data_multi)
 #' 
-#' # obtain maps
-#' geo <- DemoMap$geo
-#' mat <- DemoMap$Amat
-#' 
-#' # Simulate hyper priors
-#' priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat, only.iid = TRUE)
-#' 
-#' # combine data from multiple surveys
-#' data <- aggregateSurvey(data)
-#' 
-#' # Model fitting with INLA
+#' #  national model
 #' years.all <- c(years, "15-19")
-#' fit <- fitINLA(data = data, geo = geo, Amat = mat, 
-#' year_label = years.all, year_range = c(1985, 2019), 
-#' priors = priors, rw = 2, is.yearly=TRUE, 
-#' m = 5, type.st = 4)
-#' # Projection
-#' out <- getSmoothed(fit, Amat = mat)
-#' plot(out, is.subnational=TRUE) + ggplot2::ggtitle("Subnational yearly model")
+#' fit1 <- fitINLA(data = data, geo = NULL, Amat = NULL, 
+#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   rw = 2, is.yearly=FALSE, m = 5)
+#' out1 <- getSmoothed(fit1)
+#' plot(out1, is.subnational=FALSE)
+#' 
+#' #  subnational model
+#' fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
+#' out2 <- getSmoothed(fit2, Amat = mat)
+#' plot(out2, is.yearly=TRUE, is.subnational=TRUE)
+#' 
 #' 
 #' }
 #' 
 #' 
 #' @export
 getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), 
-                            Amat = NULL, nsim = 1000, seed = 1234, weight.strata = NULL, ...){
+                            Amat = NULL, nsim = 1000, weight.strata = NULL, verbose = FALSE, ...){
 
       years <- NA
 
@@ -66,25 +67,55 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         other <- other[grep("strata", other)]
         other <- gsub("strata", "", other)
         stratalabels <- c(stratalabels, other)
-        if(inla_mod$is.yearly) year_names <- c(year_range[1]:year_range[2], year_label)
-        if(!inla_mod$is.yearly) year_names <- year_label
+        if(inla_mod$is.yearly) year_label <- c(year_range[1]:year_range[2], year_label)
+        if(!inla_mod$is.yearly) year_label <- year_label
 
         err <- NULL
-        for(i in year_names){
-          tmp <- colnames(Amat)[which(colnames(Amat) %in% subset(weight.strata, years == i)$region == FALSE)]
-          if(length(tmp) > 0) err <- c(err, paste(tmp, i))
-        }
-        if(!is.null(err)){
-          stop(paste0("The following region-year combinations are not present in the strata weights: ", paste(err, collapse = ", ")))
-        }
-
+        weight.strata.by <- NULL
 
         if(!is.null(weight.strata)){
-          if(sum(c("region", "years") %in% colnames(weight.strata)) != 2) stop("weight.strata argument not specified correctly. It requires the following columns: region, years.")
 
           if(sum(stratalabels %in% colnames(weight.strata)) != length(stratalabels)) stop(paste0("weight.strata argument not specified correctly. It requires the following columns: ", paste(stratalabels, collapse = ", ")))
+
+           if(sum(c("region", "years") %in% colnames(weight.strata)) == 2){
+              for(i in year_label){
+                tmp <- colnames(Amat)[which(colnames(Amat) %in% subset(weight.strata, years == i)$region == FALSE)]
+                if(length(tmp) > 0) err <- c(err, paste(tmp, i))
+              }
+              if(!is.null(err)){
+                stop(paste0("The following region-year combinations are not present in the strata weights: ", paste(err, collapse = ", ")))
+              }
+              weight.strata.by <- c("region", "years")
+            }else if("region" %in% colnames(weight.strata)){
+              warning("Time is not specified, assuming the strata weights are static.")
+                tmp <- colnames(Amat)[which(colnames(Amat) %in% weight.strata$region == FALSE)]
+                if(length(tmp) > 0){
+                    stop(paste0("The following regions are not present in the strata weights: ", paste(tmp, collapse = ", ")))
+                 }
+              weight.strata.by <- c("region")
+            }else if("years" %in% colnames(weight.strata)){
+                tmp <- year_label[which(year_label %in% weight.strata$years == FALSE)]
+                if(length(tmp) > 0){
+                    stop(paste0("The following time periods are not present in the strata weights: ", paste(tmp, collapse = ", ")))
+                 }
+              weight.strata.by <- c("years")
+            }else{
+               stop("weight.strata argument not specified correctly. It requires one of the following columns: region, years.")
+            }  
         }
-        sampAll = INLA::inla.posterior.sample(n = nsim, result = inla_mod$fit, intern = TRUE, seed = seed)
+
+       # get a subset of fields only
+       cs <- inla_mod$fit$misc$configs$contents$tag
+       cs <- cs[cs != "Predictor"]
+       cs <- cs[cs != "nugget.id"]
+       select <- list()
+       for(i in 1:length(cs)){
+          select[[i]] <- 0
+          names(select)[i] <- cs[i]
+       }
+
+        sampAll <- INLA::inla.posterior.sample(n = nsim, result = inla_mod$fit, intern = TRUE, selection = select, verbose = verbose, ...)
+
         fields <- rownames(sampAll[[1]]$latent)        
         pred <- grep("Predictor", fields)
         time.struct <- grep("time.struct", fields)
@@ -105,8 +136,8 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         out2 <- expand.grid(time = 1:T, area = 1:N)
         out1$lower <- out1$upper <- out1$mean <- out1$median <- NA
         out2$lower <- out2$upper <- out2$mean <- out2$median <- NA
-        out1$years <- year_names[out1$time]
-        out2$years <- year_names[out2$time]
+        out1$years <- year_label[out1$time]
+        out2$years <- year_label[out2$time]
         out1$region <- colnames(Amat)[out1$area]
         out2$region <- colnames(Amat)[out2$area]
 
@@ -117,12 +148,10 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           }
 
         }else{
-          out2 <- merge(out2, weight.strata, by = c("region", "years"))
+          out2 <- merge(out2, weight.strata, by = weight.strata.by)
           strata.index <- match(stratalabels, colnames(out2))
           out2 <- out2[with(out2, order(area, time)), ]
         }
-      
-
       
 
         ## T blocks, each with region 1 to N
@@ -150,7 +179,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           beta[i, ] <- rep(sampAll[[i]]$latent[age], length(strata) + 1)
           beta[i, ] <- beta[i, ] + rep(c(0, sampAll[[i]]$latent[strata]), each = length(age))
           if(inla_mod$family == "binomial"){
-            tau[i] <- sampAll[[i]]$hyperpar[["Log precision for nugget.id"]]
+            tau[i] <-exp(sampAll[[i]]$hyperpar[["Log precision for nugget.id"]])
           }
         }
 
@@ -210,8 +239,8 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
       #     out1$years.num <- 1900 + tmp[1] + out1$time - 1
       #     out2$years.num <- 1900 + tmp[1] + out2$time - 1
       # }
-      out1$years <- factor(out1$years, year_names)
-      out2$years <- factor(out2$years, year_names)
+      out1$years <- factor(out1$years, year_label)
+      out2$years <- factor(out2$years, year_label)
       class(out1) <- c("SUMMERproj", "data.frame")
       class(out2) <- c("SUMMERproj", "data.frame")
       return(list(overall = out2, stratified = out1)) 

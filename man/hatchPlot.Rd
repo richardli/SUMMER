@@ -6,7 +6,8 @@
 \usage{
 hatchPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
   by.geo, is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL,
-  breaks.CI = NULL, ncol = 4, col.hatch = NULL)
+  breaks.CI = NULL, ncol = 4, hatch = NULL, border = NULL,
+  size = 1, ...)
 }
 \arguments{
 \item{data}{a data frame with variables to be plotted}
@@ -37,13 +38,45 @@ hatchPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
 
 \item{ncol}{number of columns for the output tabs}
 
-\item{col.hatch}{color of the hatching lines.}
+\item{hatch}{color of the hatching lines.}
+
+\item{border}{color of the polygon borders.}
+
+\item{size}{line width of the polygon borders.}
+
+\item{...}{unused.}
 }
 \description{
 This function visualizes the map with different variables. The input data frame can be either the long or wide format.
 }
 \examples{
 \dontrun{
- #TODO
+years <- levels(DemoData[[1]]$time)
+
+# obtain direct estimates
+data <- getDirectList(births = DemoData, 
+years = years,  
+regionVar = "region", timeVar = "time", 
+clusterVar = "~clustid+id", 
+ageVar = "age", weightsVar = "weights", 
+geo.recode = NULL)
+# obtain direct estimates
+data_multi <- getDirectList(births = DemoData, years = years,
+  regionVar = "region",  timeVar = "time", clusterVar = "~clustid+id",
+  ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+data <- aggregateSurvey(data_multi)
+
+fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+  year_label = years.all, year_range = c(1985, 2019), 
+  rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
+out2 <- getSmoothed(fit2, Amat = mat)
+
+plot(out2, is.yearly=TRUE, is.subnational=TRUE)
+
+hatchPlot(data = subset(out2, is.yearly==FALSE), geo = geo,
+variables=c("years"), values = c("median"), 
+by.data = "region", by.geo = "REGNAME", 
+lower = "lower", upper = "upper", is.long=TRUE)
+
 }
 }

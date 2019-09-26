@@ -6,8 +6,8 @@
 \usage{
 getSmoothed(inla_mod, year_range = c(1985, 2019),
   year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14",
-  "15-19"), Amat = NULL, nsim = 1000, seed = 1234,
-  weight.strata = NULL, ...)
+  "15-19"), Amat = NULL, nsim = 1000, weight.strata = NULL,
+  verbose = FALSE, ...)
 }
 \arguments{
 \item{inla_mod}{output from \code{\link{fitINLA}}}
@@ -20,11 +20,11 @@ getSmoothed(inla_mod, year_range = c(1985, 2019),
 
 \item{nsim}{number of simulations}
 
-\item{seed}{seed for sampling}
-
 \item{weight.strata}{a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region.}
 
-\item{...}{not used}
+\item{verbose}{logical indicator whether to print progress messages from inla.posterior.sample.}
+
+\item{...}{additional configurations passed to inla.posterior.sample.}
 }
 \value{
 Results from RW2 model fit, including projection.
@@ -43,26 +43,27 @@ regionVar = "region", timeVar = "time",
 clusterVar = "~clustid+id", 
 ageVar = "age", weightsVar = "weights", 
 geo.recode = NULL)
+# obtain direct estimates
+data_multi <- getDirectList(births = DemoData, years = years,
+  regionVar = "region",  timeVar = "time", clusterVar = "~clustid+id",
+  ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+data <- aggregateSurvey(data_multi)
 
-# obtain maps
-geo <- DemoMap$geo
-mat <- DemoMap$Amat
-
-# Simulate hyper priors
-priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat, only.iid = TRUE)
-
-# combine data from multiple surveys
-data <- aggregateSurvey(data)
-
-# Model fitting with INLA
+#  national model
 years.all <- c(years, "15-19")
-fit <- fitINLA(data = data, geo = geo, Amat = mat, 
-year_label = years.all, year_range = c(1985, 2019), 
-priors = priors, rw = 2, is.yearly=TRUE, 
-m = 5, type.st = 4)
-# Projection
-out <- getSmoothed(fit, Amat = mat)
-plot(out, is.subnational=TRUE) + ggplot2::ggtitle("Subnational yearly model")
+fit1 <- fitINLA(data = data, geo = NULL, Amat = NULL, 
+  year_label = years.all, year_range = c(1985, 2019), 
+  rw = 2, is.yearly=FALSE, m = 5)
+out1 <- getSmoothed(fit1)
+plot(out1, is.subnational=FALSE)
+
+#  subnational model
+fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+  year_label = years.all, year_range = c(1985, 2019), 
+  rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
+out2 <- getSmoothed(fit2, Amat = mat)
+plot(out2, is.yearly=TRUE, is.subnational=TRUE)
+
 
 }
 
