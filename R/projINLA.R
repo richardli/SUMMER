@@ -237,7 +237,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
                     draws.hazards[, tt] <- apply(draws.temp, 1, mean)
                 }
               }else{                 
-                draws.hazards <- expit(draw.hazards)
+                draws.hazards <- expit(draws.hazards)
               }
 
 
