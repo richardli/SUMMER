@@ -354,7 +354,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
             formula <- logit.est ~ 
                 f(time.struct, model=paste0("rw", rw), hyper = hyperpc1, scale.model = TRUE, extraconstr = period.constr)  + 
                 f(time.unstruct,model="iid", hyper = hyperpc1) + 
-                f(region.struct, graph=Amat,model="bym2", hyper = hyperpc2, scale.model = TRUE)  
+                f(region.struct, graph=Amat,model="bym2", hyper = hyperpc2, scale.model = TRUE, adjust.for.con.comp = TRUE)  
 
             if(type.st == 1){
                 formula <- update(formula, ~. + 
@@ -364,10 +364,10 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
                     f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1))
             }else if(type.st == 3){
                 formula <- update(formula, ~. + 
-                    f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="iid"), hyper = hyperpc1, scale.model = TRUE))
+                    f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="iid"), hyper = hyperpc1, scale.model = TRUE, adjust.for.con.comp = TRUE))
             }else{
                 formula <- update(formula, ~. + 
-                    f(region.int,model="besag", graph = Amat, scale.model = TRUE, group=time.int, control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1))
+                    f(region.int,model="besag", graph = Amat, scale.model = TRUE, adjust.for.con.comp = TRUE, group=time.int, control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1))
             }
           
         ## ------------------------- 
@@ -377,7 +377,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
               formula <- logit.est ~ 
                   f(time.struct, model = rw.model.pc, diagonal = 1e-6, extraconstr = constr, values = 1:N) +
                   f(time.unstruct,model=iid.model.pc) + 
-                  f(region.struct, graph=Amat,model="bym2", hyper = hyperpc2, scale.model = TRUE) + 
+                  f(region.struct, graph=Amat,model="bym2", hyper = hyperpc2, scale.model = TRUE, adjust.for.con.comp = TRUE) + 
                   f(time.area,model=st.model.pc, diagonal = 1e-6, extraconstr = constr.st, values = 1:(N*S))
         }
 
@@ -409,7 +409,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
             formula <- logit.est ~ 
                   f(time.struct,model=paste0("rw", rw), param=c(a.rw,b.rw), scale.model = TRUE, extraconstr = period.constr)  + 
                   f(time.unstruct,model="iid",param=c(a.iid,b.iid)) + 
-                  f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + 
+                  f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE, adjust.for.con.comp = TRUE) + 
                   f(region.unstruct,model="iid",param=c(a.iid,b.iid)) 
                   
             if(type.st == 1){
@@ -417,9 +417,9 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
             }else if(type.st == 2){
                 formula <- update(formula, ~. + f(region.int,model="iid", group=time.int,control.group=list(model="rw2", scale.model = TRUE), param=c(a.iid,b.iid)))
             }else if(type.st == 3){
-                formula <- update(formula, ~. + f(region.int,model="besag", graph = Amat, group=time.int,control.group=list(model="iid"),param=c(a.iid,b.iid), scale.model = TRUE))
+                formula <- update(formula, ~. + f(region.int,model="besag", graph = Amat, group=time.int,control.group=list(model="iid"),param=c(a.iid,b.iid), scale.model = TRUE, adjust.for.con.comp = TRUE))
             }else{
-                formula <- update(formula, ~. + f(region.int,model="besag", graph = Amat, scale.model = TRUE, group=time.int,control.group=list(model="rw2", scale.model = TRUE),param=c(a.iid,b.iid)))
+                formula <- update(formula, ~. + f(region.int,model="besag", graph = Amat, scale.model = TRUE, adjust.for.con.comp = TRUE, group=time.int,control.group=list(model="rw2", scale.model = TRUE),param=c(a.iid,b.iid)))
             }
          
           
@@ -430,7 +430,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
             formula <- logit.est ~ 
               f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + 
               f(time.unstruct,model=iid.model) + 
-              f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE) + 
+              f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE, adjust.for.con.comp = TRUE) + 
               f(region.unstruct,model="iid",param=c(a.iid,b.iid)) + 
               f(time.area,model=st.model, diagonal = 1e-6, extraconstr = constr.st, values = 1:(N*S)) 
         }
