@@ -7,7 +7,7 @@
 getSmoothed(inla_mod, year_range = c(1985, 2019),
   year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14",
   "15-19"), Amat = NULL, nsim = 1000, weight.strata = NULL,
-  verbose = FALSE, ...)
+  verbose = FALSE, mc = 0, ...)
 }
 \arguments{
 \item{inla_mod}{output from \code{\link{fitINLA}}}
@@ -23,6 +23,8 @@ getSmoothed(inla_mod, year_range = c(1985, 2019),
 \item{weight.strata}{a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region.}
 
 \item{verbose}{logical indicator whether to print progress messages from inla.posterior.sample.}
+
+\item{mc}{number of monte carlo draws to approximate the marginal prevalence/hazards for binomial model. If mc = 0, analytical approximation is used. The analytical approximation is invalid for hazard modeling with more than one age groups.}
 
 \item{...}{additional configurations passed to inla.posterior.sample.}
 }

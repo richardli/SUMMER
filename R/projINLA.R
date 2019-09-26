@@ -9,6 +9,7 @@
 #' @param nsim number of simulations
 #' @param weight.strata a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. 
 #' @param verbose logical indicator whether to print progress messages from inla.posterior.sample.
+#' @param mc number of monte carlo draws to approximate the marginal prevalence/hazards for binomial model. If mc = 0, analytical approximation is used. The analytical approximation is invalid for hazard modeling with more than one age groups.
 #' @param ... additional configurations passed to inla.posterior.sample.
 #' 
 #' @return Results from RW2 model fit, including projection.
@@ -51,7 +52,7 @@
 #' 
 #' @export
 getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), 
-                            Amat = NULL, nsim = 1000, weight.strata = NULL, verbose = FALSE, ...){
+                            Amat = NULL, nsim = 1000, weight.strata = NULL, verbose = FALSE, mc = 0,...){
 
       years <- NA
 
@@ -207,16 +208,11 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         ########################
         ## Beta-Binomial methods
         ########################        
-        if(inla_mod$family == "betabinomial"){
-        # Does nothing, this is already marginal
-        
-        ########################
-        ## Logistic-Normal-Binomial methods
-        ########################    
-        }else{
+        if(inla_mod$family == "binomial" && (mc == 0)){
           # again, column operation here
           k <- 16 * sqrt(3) / 15 / base::pi
           theta <- theta / sqrt(1 + k^2 / tau)
+          beta <- beta / sqrt(1 + k^2 / tau)
         }
 
         # Put hazards together
@@ -228,7 +224,22 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
             # For each strata
             for(k in 1:(length(stratalabels))){
               # column add
-              draws.hazards <- expit(theta[, j + (i-1)*N] + beta[, ((k-1)*age.length+1) :(k*age.length)])
+              # This is a matix of dimension nsim * age.length
+              draws.hazards <- theta[, j + (i-1)*N] + beta[, ((k-1)*age.length+1) :(k*age.length)]              
+              # Monte Carlo approximation of the marginal effects
+              if(inla_mod$family == "binomial" && mc > 0){
+                sd.temp <- matrix(1/sqrt(tau), nsim, mc)
+                err.temp <- matrix(rnorm(nsim*mc, mean = matrix(0, nsim, mc), sd = sd.temp), nsim, mc)
+                for(tt in 1:age.length){
+                    draws.temp <- matrix(draws.hazard[, tt], nsim, mc)
+                    draws.temp <- expit(draws.temp + err.temp)
+                    draws.hazard[, tt] <- apply(draw.temp, 1, mean)
+                }
+              }else{                 
+                draws.hazards <- expit(draw.hazards)
+              }
+
+
               if(!is.null(age.nn)){
                 draws.mort <- (1 - draws.hazards[, 1])^(age.nn[1])
                 for(tt in 2:dim(draws.hazards)[2]){
