@@ -62,7 +62,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
 
 
         # check strata weights are properly specified
-        stratalabels <- inla_mod$fit$strata.base
+        stratalabels <- inla_mod$strata.base
         other <- rownames(inla_mod$fit$summary.fixed)
         other <- other[grep("strata", other)]
         other <- gsub("strata", "", other)

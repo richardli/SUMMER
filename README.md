@@ -61,5 +61,5 @@ If you encounter a bug or would like make a change request, please file it as an
 
 ### Random notes:
 + In order to use `devtools::check` to check the package with static vignettes, use the hidden option `devtools::check(clean_doc = FALSE)` to avoid deleting the inst/doc folder.
-+ 
++ Also for large PDF vignette, run `tools::compactPDF(gs_quality = "ebook", paths = "inst/doc/")` to please CRAN.
 

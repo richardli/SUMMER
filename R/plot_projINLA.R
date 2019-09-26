@@ -68,6 +68,14 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
   is.yearly = sum(x$is.yearly) > 0
 
   if(!is.null(data.add)){
+    if(!is.null(option.add$point)){
+      for(ii in length(option.add$point)){
+        if(option.add$point[ii] %in% colnames(x)){
+         colnames(data.add)[which(colnames(data.add) == option.add$point[ii])] <- paste0(option.add$point[ii], ".addedtemp")
+         option.add$point[ii] <- paste0(option.add$point[ii], ".addedtemp")
+        }
+      }
+   }
     if("region" %in% colnames(data.add)){
       data.add <- data.add[, c("region", "years", as.character(option.add))]
       x <- merge(data.add, x, by = c("region", "years"), all.y = TRUE)      
@@ -83,7 +91,7 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
       x$add_lower <- x$add_upper <- NULL
     }
     if(!is.null(option.add$by)){
-        x$Comparisons <- x[, option.add$by]
+      x$Comparisons <- x[, option.add$by]
         if(sum(is.na(x$Comparisons)) == dim(x)[1]) x$Comparisons <- "Direct"
     }else{
         x$Comparisons <- "Direct"

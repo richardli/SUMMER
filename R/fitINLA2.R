@@ -465,7 +465,10 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   # exdat<-rbind(exdat,tmp)   
   for(i in 1:N){
       tmp<-exdat[match(unique(exdat$region), exdat$region), ]
+      tmp <- tmp[]
       tmp$time.unstruct<-tmp$time.struct<- tmp$time.int <- i
+      tmp <- tmp[, colnames(tmp) != "time.area"]
+      tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
       tmp$years<-years[i, 1]
       tmp$total <- 1
       tmp$Y <- NA
