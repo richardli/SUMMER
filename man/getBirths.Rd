@@ -9,7 +9,7 @@ getBirths(filepath = NULL, data = NULL, surveyyear,
   "v023", "v024", "v025", "v139", "bidx"), strata = c("v024", "v025"),
   dob = "b3", alive = "b5", age = "b7", date.interview = "v008",
   month.cut = c(1, 12, 24, 36, 48, 60), year.cut = seq(1980, 2020, by =
-  5))
+  5), cmc.adjust = 0)
 }
 \arguments{
 \item{filepath}{file path of raw .dta file from DHS. Only used when data frame is not provided in the function call.}
@@ -33,6 +33,8 @@ getBirths(filepath = NULL, data = NULL, surveyyear,
 \item{month.cut}{The cutoff of each bins of age group in the unit of months. Default values are 1, 12, 24, 36, 48, and 60, representing the age groups (0, 1), [1, 12), [12, 24), ..., [48, 60).}
 
 \item{year.cut}{The cutoff of each bins of time periods, including both boundaries. Default values are 1980, 1985, ..., 2020, representing the time periods 80-84, 85-89, ..., 15-19.}
+
+\item{cmc.adjust}{Number of months to add to the recorded month in the dataset. Some DHS surveys does not use Gregorian calendar (the calendar used in most of the world). For example, the Ethiopian calendar is 92 months behind the Gregorian calendar in general. Then we can set cmc.adjust to 92, which adds 92 months to all dates in the dataset, effectively transforming the Ethiopian calendar to the Gregorian calendar.}
 }
 \value{
 This function returns a new data frame where each row indicate a person-month, with the additional variables specified in the function argument.
