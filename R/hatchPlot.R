@@ -19,6 +19,8 @@
 #' @param hatch color of the hatching lines.
 #' @param border color of the polygon borders.
 #' @param size line width of the polygon borders.
+#' @param legend.label Label for the color legend.
+#' @param per1000 logical indicator to plot mortality rates as rates per 1,000 live births. Note that the added comparison data should always be in the probability scale.
 #' @param ... unused.
 #'
 #' @examples
@@ -55,7 +57,7 @@
 #' @importFrom sp plot
 #' @export 
 
-hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo,  is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL, breaks.CI = NULL, ncol = 4, hatch = NULL, border = NULL, size = 1, ...){
+hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo,  is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL, breaks.CI = NULL, ncol = 4, hatch = NULL, border = NULL, size = 1, legend.label = NULL,  per1000 = FALSE, ...){
 
 
    if (is.null(labels) & !is.long) {
@@ -77,6 +79,11 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
         data$variable <- data[, variables]
         data$variable <- as.character(data$variable)
         data$variable <- factor(data$variable, levels = labels)
+    }
+    if(per1000){
+      data$value <- data$value * 1000
+      data[, upper] <- data[, upper] * 1000
+      data[, lower] <- data[, lower] * 1000
     }
     npal = 100
     med.palette <- viridis::viridis_pal()(npal)
@@ -130,7 +137,7 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
 
 
 
-    legend.col <- function(col, lev, hadj=-2){
+    legend.col <- function(col, lev, hadj=-2, title = NULL){
       opar <- par
       n <- length(col)
       bx <- graphics::par("usr")
@@ -148,6 +155,7 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
       box.cy[1] + (box.sy * (i - 1)))
       graphics::polygon(xx, yy, col = col[i], border = col[i])
       }
+      if(!is.null(title)) text(box.cx[1], box.cy[1] + box.sy * (n+2), title, pos=4)
       graphics::par(new = TRUE)
       graphics::plot(0, 0, type = "n",
       ylim = c(min(lev), max(lev)),
@@ -159,7 +167,8 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
     }
 
     graphics::plot(1, type = "n", axes=FALSE, xlab="", ylab="")
-    legend.col(col = med.palette, lev = zlim, hadj = -1.5)
+    legend.col(col = med.palette, lev = zlim, hadj = -1.5, title = legend.label)
+
 
     graphics::legend(x = 'center', inset = 0,
            legend = brklabels,

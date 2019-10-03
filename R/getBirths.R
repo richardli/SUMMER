@@ -39,7 +39,7 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("c
   datnew$dob <- dat[, dob] + cmc.adjust
   datnew$survey_year <- surveyyear
   datnew$obsStart <- dat[, dob] + cmc.adjust
-  datnew$dod <- dat[, dob] + dat[, age]  + cmc.adjust 
+  datnew$dod <- dat[, dob] + dat[, age] + cmc.adjust 
   datnew$obsStop <- dat[, date.interview] + cmc.adjust
   datnew$obsStop[dat[, alive] == "no"] <- datnew$dod[dat[, alive] == "no"]
   datnew$died <- (dat[, alive] == "no")

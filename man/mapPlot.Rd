@@ -6,7 +6,8 @@
 \usage{
 mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
   by.geo, is.long = FALSE, size = 0.5, removetab = FALSE,
-  border = "gray20", ncol = NULL, ylim = NULL, clean = TRUE)
+  border = "gray20", ncol = NULL, ylim = NULL, legend.label = NULL,
+  per1000 = FALSE, clean = TRUE)
 }
 \arguments{
 \item{data}{a data frame with variables to be plotted}
@@ -34,6 +35,10 @@ mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
 \item{ncol}{number of columns for the output tabs}
 
 \item{ylim}{range of the values to be plotted.}
+
+\item{legend.label}{Label for the color legend.}
+
+\item{per1000}{logical indicator to plot mortality rates as rates per 1,000 live births. Note that the added comparison data should always be in the probability scale.}
 
 \item{clean}{remove all coordinates for a cleaner layout, default to TRUE.
 importFrom sp proj4string}

@@ -10,6 +10,7 @@
 #' @param label.add the label of the Comparisons data points in the legend.
 #' @param dodge.width the amount to add to data points at the same year to avoid overlap. Default to be 1.
 #' @param plot.CI logical indicator of whether to plot the error bars.
+#' @param per1000 logical indicator to plot mortality rates as rates per 1,000 live births. Note that the added comparison data should always be in the probability scale.
 #' @param ... optional arguments, see details
 #' 
 #' @details 
@@ -57,7 +58,7 @@
 #' 
 #' }
 #' @export
-plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), year_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.subnational = TRUE, proj_year = 2015, data.add = NULL, option.add = list(point = NULL, lower = NULL, upper = NULL, by = NULL), color.add = "black", label.add = NULL, dodge.width = 1, plot.CI = NULL, ...){
+plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), year_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.subnational = TRUE, proj_year = 2015, data.add = NULL, option.add = list(point = NULL, lower = NULL, upper = NULL, by = NULL), color.add = "black", label.add = NULL, dodge.width = 1, plot.CI = NULL, per1000 = FALSE, ...){
 
   if(is.null(proj_year)) {
     proj_year = 0
@@ -108,6 +109,16 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
   x$project[x$years.num >= proj_year] <- "Yes"
   # fix for global variable issue
   years.num <- NULL; region <- NULL; median <- NULL; lower <- NULL; upper <- NULL; project <- NULL; Comparisons <- NULL; add_x <- NULL; add_lower <- NULL; add_upper <- NULL
+  if(per1000){
+    x$median <- x$median * 1000
+    x$lower <- x$lower * 1000
+    x$upper <- x$upper * 1000
+    if(!is.null(data.add)){
+      x$add_x <- x$add_x * 1000
+      x$add_lower <- x$add_lower * 1000
+      x$add_upper <- x$add_upper * 1000      
+    }
+  }
   
   if(is.subnational){
     g <- ggplot2::ggplot(ggplot2::aes(x = years.num, y = median, ymin = lower, ymax = upper, color = region), data = x)
@@ -143,6 +154,9 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
     g <- g + ggplot2::geom_point(shape = 17, size = 2.5, position = my.dodge, data=subset(x, is.periods==TRUE), alpha = 0.7)
     if(plot.CI) g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE))
     g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("U5MR")
+  }
+  if(per1000){
+    g <- g + ggplot2::ylab("U5MR (deaths per 1000 live births)")
   }
 
   if(!is.null(label.add)) g <- g + ggplot2::scale_shape_discrete(label.add) 

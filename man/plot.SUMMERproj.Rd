@@ -9,7 +9,7 @@
   2002, 2007, 2012, 2017), is.subnational = TRUE, proj_year = 2015,
   data.add = NULL, option.add = list(point = NULL, lower = NULL, upper
   = NULL, by = NULL), color.add = "black", label.add = NULL,
-  dodge.width = 1, plot.CI = NULL, ...)
+  dodge.width = 1, plot.CI = NULL, per1000 = FALSE, ...)
 }
 \arguments{
 \item{x}{output from \code{\link{getSmoothed}}}
@@ -33,6 +33,8 @@
 \item{dodge.width}{the amount to add to data points at the same year to avoid overlap. Default to be 1.}
 
 \item{plot.CI}{logical indicator of whether to plot the error bars.}
+
+\item{per1000}{logical indicator to plot mortality rates as rates per 1,000 live births. Note that the added comparison data should always be in the probability scale.}
 
 \item{...}{optional arguments, see details}
 }

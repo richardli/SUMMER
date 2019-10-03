@@ -7,7 +7,7 @@
 hatchPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
   by.geo, is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL,
   breaks.CI = NULL, ncol = 4, hatch = NULL, border = NULL,
-  size = 1, ...)
+  size = 1, legend.label = NULL, per1000 = FALSE, ...)
 }
 \arguments{
 \item{data}{a data frame with variables to be plotted}
@@ -43,6 +43,10 @@ hatchPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
 \item{border}{color of the polygon borders.}
 
 \item{size}{line width of the polygon borders.}
+
+\item{legend.label}{Label for the color legend.}
+
+\item{per1000}{logical indicator to plot mortality rates as rates per 1,000 live births. Note that the added comparison data should always be in the probability scale.}
 
 \item{...}{unused.}
 }
