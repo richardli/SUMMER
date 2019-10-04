@@ -122,7 +122,6 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
 
         fields <- rownames(sampAll[[1]]$latent)        
         pred <- grep("Predictor", fields)
-        time.struct <- grep("time.struct", fields)
         time.unstruct <- grep("time.unstruct", fields)
         region.struct <- grep("region.struct", fields)
         region.unstruct <- grep("region.unstruct", fields)
@@ -131,10 +130,20 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         time.area <- grep("time.area", fields)
         age <- grep("age", fields)
         age.nn <- inla_mod$age.n
-        
         strata <- grep("strata", fields)
-        T <- length(time.struct)
+        T <- length(time.unstruct) 
         N <- dim(Amat)[1]
+
+        # Handle replicated RW
+        time.struct <- grep("time.struct", fields)
+        newindex <- rep(NA, T * length(age))
+        for(i in 1:length(age)){
+          where <- ((fit$age.rw.group[i] - 1) * T + 1) : (fit$age.rw.group[i] * T)
+          newindex[((i-1)*T+1):(i*T)] <- where
+        }
+        time.struct <- time.struct[newindex]
+
+        
 
         if(length(age) == 0){
           age.length  <- 1
@@ -168,6 +177,8 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
 
         ## T blocks, each with region 1 to N
         theta <- matrix(NA, nsim, T * N)
+        ## Age blocks, each with age 1 to T
+        theta.rw <- matrix(NA, nsim, age.length * T)
         tau <- rep(NA, nsim)
         ## K blocks, each with age 1 to G
         beta <- matrix(NA, nsim, length(stratalabels) * age.length)
@@ -176,14 +187,14 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
 
         for(i in 1:nsim){
           if(length(time.area)> 0){
-            # TODO: double check this ordering
             theta[i, time.area.order] <- sampAll[[i]]$latent[time.area]
           }else{
             theta[i, ] <- sampAll[[i]]$latent[region.int]
           }
-          theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[time.struct], each = N)
           theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[time.unstruct], each = N)
           theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[region.struct], T)
+          theta.rw[i, ] <- sampAll[[i]]$latent[time.struct]
+
           if(length(region.unstruct)> 0){
             theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[region.unstruct], T)
           }
@@ -212,6 +223,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           # again, column operation here
           k <- 16 * sqrt(3) / 15 / base::pi
           theta <- theta / sqrt(1 + k^2 / tau)
+          theta.rw <- theta.rw / sqrt(1 + k^2 / tau)
           beta <- beta / sqrt(1 + k^2 / tau)
         }
 
@@ -226,7 +238,8 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
             for(k in 1:(length(stratalabels))){
               # column add
               # This is a matix of dimension nsim * age.length
-              draws.hazards <- theta[, j + (i-1)*N] + beta[, ((k-1)*age.length+1) :(k*age.length)]              
+              age.rw <- theta.rw[, (1:(T*age.length)) %% T == ifelse(i == T, 0, i)]  
+              draws.hazards <- theta[, j + (i-1)*N] + beta[, ((k-1)*age.length+1) :(k*age.length)] + age.rw            
               # Monte Carlo approximation of the marginal effects
               if(inla_mod$family == "binomial" && mc > 0){
                 sd.temp <- matrix(1/sqrt(tau), nsim, mc)
