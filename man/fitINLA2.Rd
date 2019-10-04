@@ -6,14 +6,13 @@
 \usage{
 fitINLA2(data, family = c("betabinomial", "binomial")[1],
   age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"),
-  age.n = c(1, 11, 12, 12, 12, 12), Amat, geo, bias.adj = NULL,
-  bias.adj.by = NULL, formula = NULL, rw = 2, is.yearly = FALSE,
-  year_label, year_range = c(1980, 2014), m = 1, na.rm = TRUE,
-  priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1],
-  pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3,
-  a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL,
-  a.icar = NULL, b.icar = NULL, options = list(config = TRUE),
-  verbose = FALSE)
+  age.n = c(1, 11, 12, 12, 12, 12), age.rw.group = 1:6, Amat, geo,
+  bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2,
+  year_label, priors = NULL, type.st = 1, hyper = c("pc",
+  "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5,
+  pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL,
+  b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config
+  = TRUE), verbose = FALSE)
 }
 \arguments{
 \item{data}{count data of person-months with the following columns
@@ -33,6 +32,8 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 
 \item{age.n}{number of months in each age groups in the same order.}
 
+\item{age.rw.group}{vector indicating grouping of the ages groups. For example, if each age group is assigned a different random walk component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate random walk to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.}
+
 \item{Amat}{Adjacency matrix for the regions}
 
 \item{geo}{Geo file}
@@ -45,15 +46,7 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 
 \item{rw}{Take values 1 or 2, indicating the order of random walk.}
 
-\item{is.yearly}{Logical indicator for fitting yearly or period model.}
-
 \item{year_label}{string vector of year names}
-
-\item{year_range}{Entire range of the years (inclusive) defined in year_label.}
-
-\item{m}{Number of years in each period.}
-
-\item{na.rm}{Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.}
 
 \item{priors}{priors from \code{\link{simhyper}}}
 
@@ -84,6 +77,8 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 \item{options}{list of options to be passed to control.compute() in the inla() function.}
 
 \item{verbose}{logical indicator to print out detailed inla() intermediate steps.}
+
+\item{na.rm}{Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.}
 }
 \value{
 INLA model fit using the provided formula, country summary data, and geographic data

@@ -2,14 +2,16 @@ Package: SUMMER
 Type: Package
 Title: Spatio-Temporal Under-Five Mortality Methods for Estimation
 Version: 0.3.0
-Date: 2019-10-01
+Date: 2019-10-05
 Authors@R: c(
-    person(given = "Bryan D", family = "Martin", email= "bmartin6@uw.edu", role = c("cre","aut")), 
-    person(given = "Zehang R", family = "Li", email= "lizehang@gmail.com", role = "aut"),
+    person(given = "Bryan D", family = "Martin", email= "bmartin6@uw.edu", role = "aut"), 
+    person(given = "Zehang R", family = "Li", email= "lizehang@gmail.com", role = c("cre","aut")),
     person(given = "Yuan", family = "Hsiao", email = "yahsiao@uw.edu", role = "aut"),
     person(given = "Jessica", family = "Godwin", email = "jlg0003@uw.edu", role = "aut"),
     person(given = "Jon", family = "Wakefield", email = "jonno@uw.edu", role = "aut"),
-    person(given = "Samuel J", family = "Clark", email = "work@samclark.net", role = "aut")
+    person(given = "Samuel J", family = "Clark", email = "work@samclark.net", role = "aut"),
+    person(given = "Geir-Arne", family = "Fuglstad", email = "geir-arne.fuglstad@ntnu.no", role = "aut"),
+    person(given = "Andrea", family = "Riebler", email = "andrea.riebler@ntnu.no", role = "aut")
   )
 Description: Provides methods for estimating, projecting, and plotting spatio-temporal 
   under-five mortality rates, described in Mercer et al. (2015) <doi:10.1214/15-AOAS872>

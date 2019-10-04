@@ -25,9 +25,6 @@
 #' @param na.rm Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.
 #' @param priors priors from \code{\link{simhyper}}
 #' @param rw Take values 1 or 2, indicating the order of random walk.
-#' @param is.yearly Logical indicator for fitting yearly or period model.
-#' @param year_range Entire range of the years (inclusive) defined in year_label.
-#' @param m Number of years in each period.
 #' @param type.st type for space-time interaction
 #' @param hyper which hyperpriors to use. Default to be using the PC prior ("pc"). 
 #' @param pc.u hyperparameter U for the PC prior on precisions.
