@@ -10,6 +10,7 @@
 #' @param weight.strata a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. 
 #' @param verbose logical indicator whether to print progress messages from inla.posterior.sample.
 #' @param mc number of monte carlo draws to approximate the marginal prevalence/hazards for binomial model. If mc = 0, analytical approximation is used. The analytical approximation is invalid for hazard modeling with more than one age groups.
+#' @param include_time_unstruct logical indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates.
 #' @param ... additional configurations passed to inla.posterior.sample.
 #' 
 #' @return Results from RW2 model fit, including projection.
@@ -52,7 +53,7 @@
 #' 
 #' @export
 getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), 
-                            Amat = NULL, nsim = 1000, weight.strata = NULL, verbose = FALSE, mc = 0,...){
+                            Amat = NULL, nsim = 1000, weight.strata = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, ...){
 
       years <- NA
 
@@ -60,7 +61,10 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
       ## Binomial methods
       ########################
     if(!is.null(inla_mod$family)){
-
+       if("region.struct" %in% names(inla_mod$fit$summary.random) == FALSE){
+        warning("No spatial random effects in the model. Set Amat to NULL", immediate. = TRUE)
+        Amat <- NULL
+       }
 
         # check strata weights are properly specified
         stratalabels <- inla_mod$strata.base
@@ -87,8 +91,8 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
                 stop(paste0("The following region-year combinations are not present in the strata weights: ", paste(err, collapse = ", ")))
               }
               weight.strata.by <- c("region", "years")
-            }else if("region" %in% colnames(weight.strata)){
-              warning("Time is not specified, assuming the strata weights are static.")
+            }else if("region" %in% colnames(weight.strata) && dim(weight.strata)[1] > 1){
+              warning("Time is not specified, assuming the strata weights are static.", immediate.=TRUE)
                 tmp <- colnames(Amat)[which(colnames(Amat) %in% weight.strata$region == FALSE)]
                 if(length(tmp) > 0){
                     stop(paste0("The following regions are not present in the strata weights: ", paste(tmp, collapse = ", ")))
@@ -101,7 +105,8 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
                  }
               weight.strata.by <- c("years")
             }else{
-               stop("weight.strata argument not specified correctly. It requires one of the following columns: region, years.")
+               warning("no region or years in the strata proportion. Treat proportion as constant.", immediate.=TRUE)
+               weight.strata.by = "Constant"
             }  
         }
 
@@ -132,13 +137,17 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         age.nn <- inla_mod$age.n
         strata <- grep("strata", fields)
         T <- length(time.unstruct) 
-        N <- dim(Amat)[1]
+        if(!is.null(Amat)){
+            N <- dim(Amat)[1]          
+        }else{
+            N <- 1
+        }
 
         # Handle replicated RW
         time.struct <- grep("time.struct", fields)
         newindex <- rep(NA, T * length(age))
         for(i in 1:length(age)){
-          where <- ((fit$age.rw.group[i] - 1) * T + 1) : (fit$age.rw.group[i] * T)
+          where <- ((inla_mod$age.rw.group[i] - 1) * T + 1) : (inla_mod$age.rw.group[i] * T)
           newindex[((i-1)*T+1):(i*T)] <- where
         }
         time.struct <- time.struct[newindex]
@@ -159,15 +168,24 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         out2$lower <- out2$upper <- out2$mean <- out2$median <- out2$variance <- NA
         out1$years <- year_label[out1$time]
         out2$years <- year_label[out2$time]
-        out1$region <- colnames(Amat)[out1$area]
-        out2$region <- colnames(Amat)[out2$area]
+        if(N > 1){              
+          out1$region <- colnames(Amat)[out1$area]
+          out2$region <- colnames(Amat)[out2$area]
+        }else{
+          out1$region <- out2$region <- "All"
+        }
 
         if(is.null(weight.strata)){
-          warning("No strata weights has been supplied. Equal weights are used to calculate the overall estimates. Please interpret results with caution or use only the stratified estimates.")
+          warning("No strata weights has been supplied. Equal weights are used to calculate the overall estimates. Please interpret results with caution or use only the stratified estimates.", immediate.=TRUE)
           for(tt in stratalabels){
             out2[, tt] <- 1/length(stratalabels)
           }
 
+        }else if(weight.strata.by == "Constant"){
+          for(tt in stratalabels){
+            out2[, tt] <- weight.strata[1, match(tt, colnames(weight.strata))]
+          }
+          strata.index <- match(stratalabels, colnames(out2))
         }else{
           out2 <- merge(out2, weight.strata, by = weight.strata.by)
           strata.index <- match(stratalabels, colnames(out2))
@@ -176,7 +194,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
       
 
         ## T blocks, each with region 1 to N
-        theta <- matrix(NA, nsim, T * N)
+        theta <- matrix(0, nsim, T * N)
         ## Age blocks, each with age 1 to T
         theta.rw <- matrix(NA, nsim, age.length * T)
         tau <- rep(NA, nsim)
@@ -188,11 +206,13 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         for(i in 1:nsim){
           if(length(time.area)> 0){
             theta[i, time.area.order] <- sampAll[[i]]$latent[time.area]
-          }else{
+          }else if(length(region.int) > 0){
             theta[i, ] <- sampAll[[i]]$latent[region.int]
+          }else{
+            theta[i, ] <- 0
           }
-          theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[time.unstruct], each = N)
-          theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[region.struct], T)
+          if(include_time_unstruct) theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[time.unstruct], each = N)
+          if(N > 1) theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[region.struct], T)
           theta.rw[i, ] <- sampAll[[i]]$latent[time.struct]
 
           if(length(region.unstruct)> 0){
@@ -232,6 +252,12 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         index1 <- 1
         index2 <- 1
         for(j in 1:N){
+          # Monte Carlo approximation of the marginal effects that are shared across time
+          if(inla_mod$family == "binomial" && mc > 0){
+            sd.temp <- matrix(1/sqrt(tau), nsim, mc)
+            err.temp <- matrix(stats::rnorm(nsim*mc, mean = matrix(0, nsim, mc), sd = sd.temp), nsim, mc)
+          }
+
           for(i in 1:T){
             draws <- matrix(NA, nsim, length(stratalabels))
             # For each strata
@@ -242,8 +268,8 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
               draws.hazards <- theta[, j + (i-1)*N] + beta[, ((k-1)*age.length+1) :(k*age.length)] + age.rw            
               # Monte Carlo approximation of the marginal effects
               if(inla_mod$family == "binomial" && mc > 0){
-                sd.temp <- matrix(1/sqrt(tau), nsim, mc)
-                err.temp <- matrix(stats::rnorm(nsim*mc, mean = matrix(0, nsim, mc), sd = sd.temp), nsim, mc)
+                # sd.temp <- matrix(1/sqrt(tau), nsim, mc)
+                # err.temp <- matrix(stats::rnorm(nsim*mc, mean = matrix(0, nsim, mc), sd = sd.temp), nsim, mc)
                 for(tt in 1:age.length){
                     draws.temp <- matrix(draws.hazards[, tt], nsim, mc)
                     draws.temp <- expit(draws.temp + err.temp)

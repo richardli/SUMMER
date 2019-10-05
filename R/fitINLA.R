@@ -315,7 +315,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
 
   if(is.null(formula)){
         period.constr <- NULL
-        Tmax <- length(year_label)            
+        # Tmax <- length(year_label)            
         # if(rw == 2) period.constr <- list(A = matrix(c(rep(1, Tmax)), 1, Tmax), e = 0)
         if(rw %in% c(1, 2) == FALSE) stop("Random walk only support rw = 1 or 2.")
    

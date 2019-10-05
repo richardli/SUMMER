@@ -77,8 +77,6 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 \item{options}{list of options to be passed to control.compute() in the inla() function.}
 
 \item{verbose}{logical indicator to print out detailed inla() intermediate steps.}
-
-\item{na.rm}{Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.}
 }
 \value{
 INLA model fit using the provided formula, country summary data, and geographic data

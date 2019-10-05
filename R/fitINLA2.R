@@ -22,7 +22,6 @@
 #' @param bias.adj.by vector of the column names specifying how to merge the bias adjustment to the count data. For example, if bias adjustment factor is provided in bias.adj for each region and time, then bias.adj.by should be `c("region", "time")`.
 #' @param formula INLA formula.  See vignette for example of using customized formula.
 #' @param year_label string vector of year names
-#' @param na.rm Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.
 #' @param priors priors from \code{\link{simhyper}}
 #' @param rw Take values 1 or 2, indicating the order of random walk.
 #' @param type.st type for space-time interaction
@@ -90,12 +89,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     ## ---------------------------------------------------------
     ## Common Setup
     ## --------------------------------------------------------- 
-    if(is.null(geo)){
-      data <- data[which(data$region == "All"), ]
-      if(length(data) == 0){
-        stop("No geographics specified and no observation labeled 'All' either.")
-      }
-    } else{
+    if(!is.null(geo)){
       data <- data[which(data$region != "All"), ]
     }  
     #################################################################### Re-calculate hyper-priors
@@ -195,17 +189,18 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     exdat <- newdata
     clusters <- unique(exdat$cluster)
     exdat$cluster.id <- match(exdat$cluster, clusters)
-    cluster.time <- expand.grid(cluster = clusters, time = 1:N)
-    cluster.time$nugget.id <- 1:dim(cluster.time)[1]
-    exdat <- merge(exdat, cluster.time, by.x = c("cluster", "time.struct"), by.y = c("cluster", "time"))
-    # exdat$nugget.id <- 1:dim(exdat)[1]
+    exdat$nugget.id <- exdat$cluster.id
+    # cluster.time <- expand.grid(cluster = clusters, time = 1:N)
+    # cluster.time$nugget.id <- 1:dim(cluster.time)[1]
+    # exdat <- merge(exdat, cluster.time, by.x = c("cluster", "time.struct"), by.y = c("cluster", "time"))
+    # # exdat$nugget.id <- 1:dim(exdat)[1]
 
   replicate.rw <- length(unique(age.rw.group)) > 1
 
 
   if(is.null(formula)){
         period.constr <- NULL
-        Tmax <- length(year_label)            
+        # Tmax <- length(year_label)            
         # if(rw == 2) period.constr <- list(A = matrix(c(rep(1, Tmax)), 1, Tmax), e = 0)
         if(rw %in% c(1, 2) == FALSE) stop("Random walk only support rw = 1 or 2.")
    
