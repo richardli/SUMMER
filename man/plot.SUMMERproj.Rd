@@ -9,7 +9,8 @@
   2002, 2007, 2012, 2017), is.subnational = TRUE, proj_year = 2015,
   data.add = NULL, option.add = list(point = NULL, lower = NULL, upper
   = NULL, by = NULL), color.add = "black", label.add = NULL,
-  dodge.width = 1, plot.CI = NULL, per1000 = FALSE, ...)
+  dodge.width = 1, plot.CI = NULL, per1000 = FALSE,
+  color.CI = "black", alpha.CI = 0.3, ...)
 }
 \arguments{
 \item{x}{output from \code{\link{getSmoothed}}}
@@ -35,6 +36,10 @@
 \item{plot.CI}{logical indicator of whether to plot the error bars.}
 
 \item{per1000}{logical indicator to plot mortality rates as rates per 1,000 live births. Note that the added comparison data should always be in the probability scale.}
+
+\item{color.CI}{the color of the error bars of the credible interval.}
+
+\item{alpha.CI}{the alpha (transparency) of the error bars of the credible interval.}
 
 \item{...}{optional arguments, see details}
 }

@@ -55,6 +55,7 @@
 #' }
 #' @importFrom viridis viridis_pal
 #' @importFrom sp plot
+#' @importFrom graphics text
 #' @export 
 
 hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo,  is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL, breaks.CI = NULL, ncol = 4, hatch = NULL, border = NULL, size = 1, legend.label = NULL,  per1000 = FALSE, ...){
@@ -155,7 +156,7 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
       box.cy[1] + (box.sy * (i - 1)))
       graphics::polygon(xx, yy, col = col[i], border = col[i])
       }
-      if(!is.null(title)) text(box.cx[1], box.cy[1] + box.sy * (n+2), title, pos=4)
+      if(!is.null(title)) graphics::text(box.cx[1], box.cy[1] + box.sy * (n+2), title, pos=4)
       graphics::par(new = TRUE)
       graphics::plot(0, 0, type = "n",
       ylim = c(min(lev), max(lev)),
