@@ -64,11 +64,30 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 		  }else{
 		    label <- year_label
 		 }
-		if(length(struct) != length(label)) stop("The input year_range or year_label does not match the fitted model. Please double check.")
-		quants <- rbind(getquants(struct), getquants(unstruct))
-		quants$years <- label
+		if(!is.null(inla_mod$age.rw.group)){
+			group <- rep(inla_mod$age.groups, each = length(label))
+			label <- rep(label, length(inla_mod$age.rw.group))
+		} 
+		expand <- 1
+		if(!is.null(inla_mod$age.rw.group)) expand <-  max(inla_mod$age.rw.group) / length(inla_mod$age.rw.group) 
+		if(length(struct) != length(label) * expand) stop("The input year_range or year_label does not match the fitted model. Please double check.")
+		temp <- getquants(struct)	
+		quants <- NULL
+		if(!is.null(inla_mod$age.rw.group)){
+			for(i in 1:length(inla_mod$age.groups)){
+				where <- (inla_mod$age.rw.group[i] - 1) * length(year_label) + c(1:length(year_label))
+				quants <- rbind(quants,  temp[where, ])
+			}
+		}
+		n <- dim(quants)[1]
+		m <- length(unstruct)
+		quants <- rbind(quants, getquants(unstruct))
+		quants$years <- c(label, year_label)
+		if(!is.null(inla_mod$age.rw.group)){
+			quants$group <- c(group, rep(NA, m))
+		}
 	  	quants$years.num <- suppressWarnings(as.numeric(as.character(quants$years)))
-		quants$label <- rep(c("RW", "IID"), each = length(label))
+		quants$label <- c(rep("RW", n), rep("IID", m))
 		quants$is.yearly <- !(quants$years %in% year_label)
 
 	}else if(field == "space"){
