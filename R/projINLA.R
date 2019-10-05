@@ -145,12 +145,14 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
 
         # Handle replicated RW
         time.struct <- grep("time.struct", fields)
-        newindex <- rep(NA, T * length(age))
-        for(i in 1:length(age)){
-          where <- ((inla_mod$age.rw.group[i] - 1) * T + 1) : (inla_mod$age.rw.group[i] * T)
-          newindex[((i-1)*T+1):(i*T)] <- where
+        if(length(age) > 0){
+          newindex <- rep(NA, T * length(age))
+          for(i in 1:length(age)){
+            where <- ((inla_mod$age.rw.group[i] - 1) * T + 1) : (inla_mod$age.rw.group[i] * T)
+            newindex[((i-1)*T+1):(i*T)] <- where
+          }          
+          time.struct <- time.struct[newindex]
         }
-        time.struct <- time.struct[newindex]
 
         
 
@@ -280,7 +282,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
               }
 
 
-              if(!is.null(age.nn)){
+              if(!is.null(age.nn) && age.length > 1){
                 draws.mort <- (1 - draws.hazards[, 1])^(age.nn[1])
                 for(tt in 2:dim(draws.hazards)[2]){
                     draws.mort <- draws.mort * (1 - draws.hazards[, tt])^(age.nn[tt])

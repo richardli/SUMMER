@@ -81,6 +81,10 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
       attachNamespace("INLA")
     }
 
+  if(is.null(age.groups)){
+    age.n <- 1
+    age.rw.group <- 1
+  }
 
     tau = exp(10)
 
