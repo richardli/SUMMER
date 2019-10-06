@@ -236,11 +236,11 @@ fitGeneric <- function(data, geo, Amat, X = NULL, responseType = c("binary", "ga
             if(type.st == 1){
                 formula <- paste(formula, "f(region.int, model = 'iid', hyper = hyperpc1, group = time.int, control.group = list(model ='iid', hyper = hyperpc1))", sep = "+")
             }else if(type.st == 2){
-                formula <- paste(formula, "f(region.int, model = 'besag', graph = mat, scale.model = TRUE, param=hyperpc1, group = time.int, control.group = list(model ='iid'))", sep = "+")
+                formula <- paste(formula, "f(region.int, model = 'besag', graph = Amat, scale.model = TRUE, param=hyperpc1, group = time.int, control.group = list(model ='iid'))", sep = "+")
             }else if(type.st == 3){
                 formula <- paste(formula, "f(region.int, model = 'iid', hyper = hyperpc1, group = time.int, control.group = list(model =tolower(time.model), scale.model = TRUE))", sep = "+")
             }else{
-                formula <- paste(formula, "f(region.int, model = 'besag', graph = mat, scale.model = TRUE, hyper = hyperpc1, group = time.int, control.group = list(model =tolower(time.model), hyper = hyperpc1, scale.model = TRUE))", sep = "+")
+                formula <- paste(formula, "f(region.int, model = 'besag', graph = Amat, scale.model = TRUE, hyper = hyperpc1, group = time.int, control.group = list(model =tolower(time.model), hyper = hyperpc1, scale.model = TRUE))", sep = "+")
             }
         }
         formula <- as.formula(formula)
