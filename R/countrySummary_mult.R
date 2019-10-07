@@ -8,6 +8,7 @@
 #' @param ageVar Variable name for age group. This variable need to be in the form of "a-b" where a and b are both ages in months. For example, "1-11" means age between 1 and 11 months, including both end points. An exception is age less than one month can be represented by "0" or "0-0".
 #' @param weightsVar Variable name for sampling weights, typically 'v005'
 #' @param clusterVar Variable name for the IDs in the second-stage cluster sampling, typically '~v001 + v002', i.e., the cluster number and household number. When no cluster sampling design exists, this variable usually is the household ID.
+#' @param Ntrials Variable for the total number of person-months if the input data (births) is in the compact form.
 #' @param geo.recode The recode matrix to be used if region name is not consistent across different surveys. See \code{\link{ChangeRegion}}.
 #' @param national.only Logical indicator to obtain only the national estimates
 #'
@@ -22,7 +23,7 @@
 #' ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 #' }
 #' @export
-getDirectList <- function(births, years,  regionVar = "region", timeVar = "time", clusterVar = "~v001+v002", ageVar = "age", weightsVar = "v005", geo.recode = NULL, national.only = FALSE) {
+getDirectList <- function(births, years,  regionVar = "region", timeVar = "time", clusterVar = "~v001+v002", ageVar = "age", weightsVar = "v005", Ntrials = NULL, geo.recode = NULL, national.only = FALSE) {
     if (length(births) == 1) {
         stop("No multiple surveys detected. Use getDirect.")
     }
@@ -32,11 +33,11 @@ getDirectList <- function(births, years,  regionVar = "region", timeVar = "time"
     n_surv <- length(births)
     
     out_mult <- getDirect(births = births[[1]], years = years, regionVar = regionVar, timeVar = timeVar, 
-        ageVar = ageVar, weightsVar = weightsVar, clusterVar = clusterVar, geo.recode = geo.recode, national.only = national.only)
+        ageVar = ageVar, weightsVar = weightsVar, clusterVar = clusterVar, Ntrials = Ntrials, geo.recode = geo.recode, national.only = national.only)
     out_mult$survey <- survey_years[1]
     for (i in 2:n_surv) {
         temp <- getDirect(births = births[[i]], years = years,  regionVar = regionVar, timeVar = timeVar, 
-            ageVar = ageVar, weightsVar = weightsVar, clusterVar = clusterVar, geo.recode = geo.recode, national.only = national.only)
+            ageVar = ageVar, weightsVar = weightsVar, clusterVar = clusterVar, Ntrials = Ntrials, geo.recode = geo.recode, national.only = national.only)
         temp$survey <- survey_years[i]
         out_mult <- rbind(out_mult, temp)
     }

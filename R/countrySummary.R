@@ -8,6 +8,7 @@
 #' @param ageVar Variable name for age group. This variable need to be in the form of "a-b" where a and b are both ages in months. For example, "1-11" means age between 1 and 11 months, including both end points. An exception is age less than one month can be represented by "0" or "0-0".
 #' @param weightsVar Variable name for sampling weights, typically 'v005'
 #' @param clusterVar Variable name for cluster, typically '~v001 + v002'
+#' @param Ntrials Variable for the total number of person-months if the input data (births) is in the compact form.
 #' @param geo.recode The recode matrix to be used if region name is not consistent across different surveys. See \code{\link{ChangeRegion}}.
 #' @param national.only Logical indicator to obtain only the national estimates
 #'
@@ -22,7 +23,7 @@
 #' ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 #' }
 #' @export
-getDirect <- function(births, years, regionVar = "region", timeVar = "time", clusterVar = "~v001+v002",  ageVar = "age", weightsVar = "v005", geo.recode = NULL, national.only = FALSE) {
+getDirect <- function(births, years, regionVar = "region", timeVar = "time", clusterVar = "~v001+v002",  ageVar = "age", weightsVar = "v005",  Ntrials = NULL, geo.recode = NULL, national.only = FALSE) {
     # check all elements are provided
     if (is.null(births)) {
         stop("No births file specified!")
@@ -88,7 +89,9 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
     if (is.null(clusterVar)){
         stop("Cluster not defined")
     }
-
+    if(!is.null(Ntrials)){
+        births$n <- births[,Ntrials]
+    }
     options(survey.lonely.psu = "adjust")
     my.svydesign <- survey::svydesign(ids = stats::formula(clusterVar), strata = ~strata, nest = T, weights = ~weights0, 
         data = births)
@@ -133,7 +136,12 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
             warning(paste0(which.area, " ", which.time, " has no death, set to NA\n"),immediate. = TRUE)
             return(rep(NA, 5))
         } else if(length(unique(tmp$variables$age0)) > 1){
-            glm.ob <- survey::svyglm(died ~ (-1) + factor(age0), design = tmp, family = stats::quasibinomial, maxit = 50)
+            if(is.null(Ntrials)){
+                glm.ob <- survey::svyglm(died ~ (-1) + factor(age0), design = tmp, family = stats::quasibinomial, maxit = 50)
+            }else{
+                glm.ob <- survey::svyglm(died ~ (-1) + factor(age0), design = tmp, family = stats::quasibinomial, maxit = 50, , weights = tmp$variables$n)
+
+            }
             if(dim(summary(glm.ob)$coef)[1] < length(labels)){
                 bins.nodata <- length(labels) - dim(summary(glm.ob)$coef)[1] 
                 if(bins.nodata >= length(ns)/2){
@@ -148,7 +156,11 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
             }
             return(get.est.withNA(glm.ob, labels, ns))
         } else {
-            glm.ob <- survey::svyglm(died ~ 1, design = tmp, family = stats::quasibinomial, maxit = 50)
+              if(is.null(Ntrials)){
+                 glm.ob <- survey::svyglm(died ~ 1, design = tmp, family = stats::quasibinomial, maxit = 50)
+              }else{
+                  glm.ob <- survey::svyglm(died ~ 1, design = tmp, family = stats::quasibinomial, maxit = 50, weights = tmp$variables$n)
+              }
             var.est <- stats::vcov(glm.ob)
             mean <- expit(summary(glm.ob)$coefficient[1])
             lims <- expit(logit(mean) + stats::qnorm(c(0.025, 0.975)) * sqrt(c(var.est)))

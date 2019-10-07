@@ -6,7 +6,7 @@
 \usage{
 getDirect(births, years, regionVar = "region", timeVar = "time",
   clusterVar = "~v001+v002", ageVar = "age", weightsVar = "v005",
-  geo.recode = NULL, national.only = FALSE)
+  Ntrials = NULL, geo.recode = NULL, national.only = FALSE)
 }
 \arguments{
 \item{births}{A matrix child-month data from \code{\link{getBirths}}}
@@ -22,6 +22,8 @@ getDirect(births, years, regionVar = "region", timeVar = "time",
 \item{ageVar}{Variable name for age group. This variable need to be in the form of "a-b" where a and b are both ages in months. For example, "1-11" means age between 1 and 11 months, including both end points. An exception is age less than one month can be represented by "0" or "0-0".}
 
 \item{weightsVar}{Variable name for sampling weights, typically 'v005'}
+
+\item{Ntrials}{Variable for the total number of person-months if the input data (births) is in the compact form.}
 
 \item{geo.recode}{The recode matrix to be used if region name is not consistent across different surveys. See \code{\link{ChangeRegion}}.}
 
