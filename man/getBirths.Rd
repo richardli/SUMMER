@@ -4,7 +4,7 @@
 \alias{getBirths}
 \title{Function to get Births file from DHS .dta files.}
 \usage{
-getBirths(filepath = NULL, data = NULL, surveyyear,
+getBirths(filepath = NULL, data = NULL, surveyyear = NA,
   variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022",
   "v023", "v024", "v025", "v139", "bidx"), strata = c("v024", "v025"),
   dob = "b3", alive = "b5", age = "b7", date.interview = "v008",
@@ -32,7 +32,7 @@ getBirths(filepath = NULL, data = NULL, surveyyear,
 
 \item{month.cut}{the cutoff of each bins of age group in the unit of months. Default values are 1, 12, 24, 36, 48, and 60, representing the age groups (0, 1), [1, 12), [12, 24), ..., [48, 60).}
 
-\item{year.cut}{The cutoff of each bins of time periods, including both boundaries. Default values are 1980, 1985, ..., 2020, representing the time periods 80-84, 85-89, ..., 15-19.}
+\item{year.cut}{The cutoff of each bins of time periods, including both boundaries. Default values are 1980, 1985, ..., 2020, representing the time periods 80-84, 85-89, ..., 15-19. Notice that if each bin contains one year, the last year in the output is max(year.cut)-1. For example, if year.cut = 1980:2020, the last year in the output is 2019.}
 
 \item{cmc.adjust}{number of months to add to the recorded month in the dataset. Some DHS surveys does not use Gregorian calendar (the calendar used in most of the world). For example, the Ethiopian calendar is 92 months behind the Gregorian calendar in general. Then we can set cmc.adjust to 92, which adds 92 months to all dates in the dataset, effectively transforming the Ethiopian calendar to the Gregorian calendar.}
 
