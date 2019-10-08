@@ -23,7 +23,7 @@
 #' }
 #' 
 #' @export
-getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022", "v023", "v024", "v025", "v139", "bidx"), strata=c("v024", "v025"), dob = "b3", alive = "b5", age = "b7", date.interview= "v008", month.cut = c(1,12,24,36,48,60), year.cut=seq(1980, 2020, by=5), cmc.adjust = 0, compact = FALSE) {
+getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022", "v023", "v024", "v025", "v139", "bidx"), strata=c("v024", "v025"), dob = "b3", alive = "b5", age = "b7", date.interview= "v008", month.cut = c(1,12,24,36,48,60), year.cut=seq(1980, 2020, by=5), cmc.adjust = 0, compact = FALSE) {
   if(is.null(data)){
       dat <- suppressWarnings(readstata13::read.dta13(filepath, generate.factors = TRUE))    
   }else{
@@ -64,7 +64,7 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear, variables = c("c
   
   test <- test[test$agemonth<max(month.cut), ]
   test <- test[test$year>=year.cut[1], ]
-  test <- test[test$year<test$survey_year, ]
+  test <- test[test$year<=year.cut[length(year.cut)], ]
   
   test$tstop <- NULL
   
