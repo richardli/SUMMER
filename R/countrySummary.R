@@ -139,7 +139,7 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
             if(is.null(Ntrials)){
                 glm.ob <- survey::svyglm(died ~ (-1) + factor(age0), design = tmp, family = stats::quasibinomial, maxit = 50)
             }else{
-                glm.ob <- survey::svyglm(died ~ (-1) + factor(age0), design = tmp, family = stats::quasibinomial, maxit = 50, , weights = tmp$variables$n)
+                glm.ob <- survey::svyglm(died ~ (-1) + factor(age0), design = tmp, family = stats::quasibinomial, maxit = 50, weights = tmp$variables$n)
 
             }
             if(dim(summary(glm.ob)$coef)[1] < length(labels)){

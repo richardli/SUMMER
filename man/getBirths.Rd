@@ -9,7 +9,8 @@ getBirths(filepath = NULL, data = NULL, surveyyear = NA,
   "v023", "v024", "v025", "v139", "bidx"), strata = c("v024", "v025"),
   dob = "b3", alive = "b5", age = "b7", date.interview = "v008",
   month.cut = c(1, 12, 24, 36, 48, 60), year.cut = seq(1980, 2020, by =
-  5), cmc.adjust = 0, compact = FALSE)
+  5), cmc.adjust = 0, compact = FALSE, compact.by = c("v001", "v024",
+  "v025", "v005"))
 }
 \arguments{
 \item{filepath}{file path of raw .dta file from DHS. Only used when data frame is not provided in the function call.}
@@ -37,6 +38,8 @@ getBirths(filepath = NULL, data = NULL, surveyyear = NA,
 \item{cmc.adjust}{number of months to add to the recorded month in the dataset. Some DHS surveys does not use Gregorian calendar (the calendar used in most of the world). For example, the Ethiopian calendar is 92 months behind the Gregorian calendar in general. Then we can set cmc.adjust to 92, which adds 92 months to all dates in the dataset, effectively transforming the Ethiopian calendar to the Gregorian calendar.}
 
 \item{compact}{logical indicator of whether the compact format is returned. In the compact output, person months are aggregated by cluster, age, and time. Total number of person months and deaths in each group are returned instead of the raw person-months.}
+
+\item{compact.by}{vector of variables to summarize the compact form by.}
 }
 \value{
 This function returns a new data frame where each row indicate a person-month, with the additional variables specified in the function argument.

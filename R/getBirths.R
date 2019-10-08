@@ -14,6 +14,7 @@
 #' @param year.cut The cutoff of each bins of time periods, including both boundaries. Default values are 1980, 1985, ..., 2020, representing the time periods 80-84, 85-89, ..., 15-19. Notice that if each bin contains one year, the last year in the output is max(year.cut)-1. For example, if year.cut = 1980:2020, the last year in the output is 2019.
 #' @param cmc.adjust number of months to add to the recorded month in the dataset. Some DHS surveys does not use Gregorian calendar (the calendar used in most of the world). For example, the Ethiopian calendar is 92 months behind the Gregorian calendar in general. Then we can set cmc.adjust to 92, which adds 92 months to all dates in the dataset, effectively transforming the Ethiopian calendar to the Gregorian calendar.  
 #' @param compact logical indicator of whether the compact format is returned. In the compact output, person months are aggregated by cluster, age, and time. Total number of person months and deaths in each group are returned instead of the raw person-months.
+#' @param compact.by vector of variables to summarize the compact form by. 
 #' 
 #' @return This function returns a new data frame where each row indicate a person-month, with the additional variables specified in the function argument.
 #' @examples 
@@ -23,7 +24,7 @@
 #' }
 #' 
 #' @export
-getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022", "v023", "v024", "v025", "v139", "bidx"), strata=c("v024", "v025"), dob = "b3", alive = "b5", age = "b7", date.interview= "v008", month.cut = c(1,12,24,36,48,60), year.cut=seq(1980, 2020, by=5), cmc.adjust = 0, compact = FALSE) {
+getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022", "v023", "v024", "v025", "v139", "bidx"), strata=c("v024", "v025"), dob = "b3", alive = "b5", age = "b7", date.interview= "v008", month.cut = c(1,12,24,36,48,60), year.cut=seq(1980, 2020, by=5), cmc.adjust = 0, compact = FALSE, compact.by = c('v001',"v024", "v025", "v005")) {
   if(is.null(data)){
       dat <- suppressWarnings(readstata13::read.dta13(filepath, generate.factors = TRUE))    
   }else{
@@ -132,7 +133,11 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables =
   test$survey_year <- test$survey_year + 1900
 
   if(compact){
-
+      test.comp <- test[, c(compact.by, "age", "strata", "time", "died")]
+      test.comp$total <- 1
+      formula <- as.formula(paste0(".~age + time + strata + ", paste(compact.by, collapse = " + ")))
+      test.comp <- aggregate(formula, data = test.comp, FUN = sum, drop = TRUE)
+     test <- test.comp
   }
 
 
