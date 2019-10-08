@@ -91,6 +91,8 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
     }
     if(!is.null(Ntrials)){
         births$n <- births[,Ntrials]
+        births$died <- births$died / births$n
+        message("Compact input is used.")
     }
     options(survey.lonely.psu = "adjust")
     my.svydesign <- survey::svydesign(ids = stats::formula(clusterVar), strata = ~strata, nest = T, weights = ~weights0, 
@@ -232,5 +234,3 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
      
     return(results)
 }
-
-
