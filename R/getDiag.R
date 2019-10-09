@@ -78,6 +78,8 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 				where <- (inla_mod$age.rw.group[i] - 1) * length(year_label) + c(1:length(year_label))
 				quants <- rbind(quants,  temp[where, ])
 			}
+		}else{
+			quants <- getquants(struct)
 		}
 		n <- dim(quants)[1]
 		m <- length(unstruct)
@@ -119,8 +121,8 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 		 }
 
 		 if("region.int" %in% names(inla_mod$fit$marginals.random)){
-			 group <- rep(colnames(Amat), each = length(label))
-			 label <- rep(label, N)	
+			 group <- rep(colnames(Amat), length(label))
+			 label <- rep(label, each = N)	
 			 struct <- inla_mod$fit$marginals.random$region.int	 	
 		 }else{
 		 	group <- colnames(Amat)[inla_mod$time.area$region_number]	
