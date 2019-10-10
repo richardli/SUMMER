@@ -1,15 +1,17 @@
 #' Adjust direct estimates and their associated variances
 #' 
 #' @param data data frame of the adjusted estimates and the associated uncertainties, see the arguments below for specific columns.
-#' @param ratio the ratio of unadjusted mortality rates to the true mortality rates. It can be either a data frame with the following three columns (region, time, and ratio) if adjustment factor differ by region; or a data frame with the following two columns (time and ratio) if adjustment factor only varies over time.
-#' @param time the column name for time in the data 
-#' @param region the column name for region in the data 
+#' @param ratio the ratio of unadjusted mortality rates to the true mortality rates. It can be either a data frame with the following three columns (region, time, and adj) if adjustment factor differ by region; or a data frame with the following two columns (time and adj) if adjustment factor only varies over time. The column names specifying region, time and ratio, and adjustment are specified by the arguments in the function call.
+#' @param time the column name for time in the data and adjustment ratio.
+#' @param region the column name for region in the data  and adjustment ratio.
 #' @param est the column name for unadjusted mortality rates in the data 
 #' @param logit the column name for the logit of the unadjusted mortality rates in the data 
 #' @param logit.var the column name for the variance of the logit of the unadjusted mortality rates in the data
 #' @param logit.prec the column name for the precision of the logit of the unadjusted mortality rates in the data
 #' @param logit.lower the column name for the 95\% lower bound of the logit of the unadjusted mortality rates in the data
 #' @param logit.upper the column name for the 95\% lower bound of the logit of the unadjusted mortality rates in the data
+#' @param adj the column name for the adjustment ratio
+#' @param verbose logical indicator for whether to print out unadjusted row index
 #' 
 #' @return adjusted dataset of the same columns.
 #' @examples
@@ -30,14 +32,14 @@
 #' data <- aggregateSurvey(data_multi)
 #' 
 #' # randomly simulate adjustment factor
-#' adj <- expand.grid(region = unique(data$region), time = years)
+#' adj <- expand.grid(region = unique(data$region), years = years)
 #' adj$ratio <- runif(dim(adj)[1], min = 0.5, max = 0.8)
 #' data.adj <- getAdjusted(data = data, ratio = adj)
 #'  }
 #' @export
 #' 
 
-getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "mean", logit = "logit.est", logit.var = "var.est", logit.prec = "logit.prec", logit.lower = "lower", logit.upper = "upper"){
+getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "mean", logit = "logit.est", logit.var = "var.est", logit.prec = "logit.prec", logit.lower = "lower", logit.upper = "upper", adj = "ratio", verbose = FALSE){
 
 	adjust <- function(p, v, c){
 		f.prime <- 1 - (c - 1) * (p/(1-p)) / (c + (c-1) * (p/(1-p)))
@@ -47,19 +49,23 @@ getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "
 	}
 
 	count <- 0
+	warn_national <- FALSE
+	unadj <- NULL
 	for(i in 1:dim(data)[1]){
 		t <- data[i, time]
 		s <- data[i, region]
-		if("region" %in% colnames(ratio)){
-			matched <- intersect(which(ratio$region == s), which(ratio$time == t))
+		if(region %in% colnames(ratio)){
+			matched <- intersect(which(ratio[, region] == s), which(ratio[, time] == t))
 		}else{
-			matched <- which(ratio$time == t)
+			matched <- which(ratio[, time] == t)
 		}
 		if(length(matched) == 0){
+			warn_national <- (s == "All") && (region %in% colnames(ratio))
+			unadj <- c(unadj, i)
 			next
 		}else if(length(matched) == 1){
 			count <- count + 1
-			new <- adjust(data[i, est], data[i, logit.var], ratio[matched, "ratio"])
+			new <- adjust(data[i, est], data[i, logit.var], ratio[matched, adj])
 			data[i, est] <- new[1]
 			data[i, logit] <- new[2]
 			data[i, logit.var] <- new[3]
@@ -72,6 +78,12 @@ getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "
 		}
 	}
 	message(paste0(count, " estimates were adjusted."))
+	if(warn_national){
+		warning("National estimates are not adjusted. If you will benchmark smoothed direct estimates,  make sure you have national adjustment factors as well. ")
+	}
+	if(!is.null(unadj) && verbose){
+		warning(paste0("The following rows of the data are not adjusted: ", paste(unadj, collapse = ", ")))
+	}
 	return(data)
 }
 

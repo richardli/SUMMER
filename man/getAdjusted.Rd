@@ -7,16 +7,16 @@
 getAdjusted(data, ratio, time = "years", region = "region",
   est = "mean", logit = "logit.est", logit.var = "var.est",
   logit.prec = "logit.prec", logit.lower = "lower",
-  logit.upper = "upper")
+  logit.upper = "upper", adj = "ratio", verbose = FALSE)
 }
 \arguments{
 \item{data}{data frame of the adjusted estimates and the associated uncertainties, see the arguments below for specific columns.}
 
-\item{ratio}{the ratio of unadjusted mortality rates to the true mortality rates. It can be either a data frame with the following three columns (region, time, and ratio) if adjustment factor differ by region; or a data frame with the following two columns (time and ratio) if adjustment factor only varies over time.}
+\item{ratio}{the ratio of unadjusted mortality rates to the true mortality rates. It can be either a data frame with the following three columns (region, time, and adj) if adjustment factor differ by region; or a data frame with the following two columns (time and adj) if adjustment factor only varies over time. The column names specifying region, time and ratio, and adjustment are specified by the arguments in the function call.}
 
-\item{time}{the column name for time in the data}
+\item{time}{the column name for time in the data and adjustment ratio.}
 
-\item{region}{the column name for region in the data}
+\item{region}{the column name for region in the data  and adjustment ratio.}
 
 \item{est}{the column name for unadjusted mortality rates in the data}
 
@@ -29,6 +29,10 @@ getAdjusted(data, ratio, time = "years", region = "region",
 \item{logit.lower}{the column name for the 95\% lower bound of the logit of the unadjusted mortality rates in the data}
 
 \item{logit.upper}{the column name for the 95\% lower bound of the logit of the unadjusted mortality rates in the data}
+
+\item{adj}{the column name for the adjustment ratio}
+
+\item{verbose}{logical indicator for whether to print out unadjusted row index}
 }
 \value{
 adjusted dataset of the same columns.
@@ -54,7 +58,7 @@ data_multi <- getDirectList(births = DemoData, years = years,
 data <- aggregateSurvey(data_multi)
 
 # randomly simulate adjustment factor
-adj <- expand.grid(region = unique(data$region), time = years)
+adj <- expand.grid(region = unique(data$region), years = years)
 adj$ratio <- runif(dim(adj)[1], min = 0.5, max = 0.8)
 data.adj <- getAdjusted(data = data, ratio = adj)
  }
