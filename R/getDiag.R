@@ -60,9 +60,9 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 		struct <- inla_mod$fit$marginals.random$time.struct
 		unstruct <- inla_mod$fit$marginals.random$time.unstruct
 		if(is.yearly){
-		    label <- c(year_range[1] : year_range[2], year_label)
+		    label <- label.unstruct <- c(year_range[1] : year_range[2], year_label)
 		  }else{
-		    label <- year_label
+		    label <- label.unstruct <- year_label
 		 }
 		if(!is.null(inla_mod$age.rw.group)){
 			group <- rep(inla_mod$age.groups, each = length(label))
@@ -84,7 +84,7 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 		n <- dim(quants)[1]
 		m <- length(unstruct)
 		quants <- rbind(quants, getquants(unstruct))
-		quants$years <- c(label, label)
+		quants$years <- c(label, label.unstruct)
 		if(!is.null(inla_mod$age.rw.group)){
 			quants$group <- c(group, rep(NA, m))
 		}
