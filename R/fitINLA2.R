@@ -255,8 +255,36 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                 formula <- update(formula, ~. + 
                     f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="iid"), hyper = hyperpc1, scale.model = TRUE, adjust.for.con.comp = TRUE))
             }else{
-                formula <- update(formula, ~. + 
-                    f(region.int,model="besag", graph = Amat, scale.model = TRUE, adjust.for.con.comp = TRUE, group=time.int, control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1))
+                
+
+              # defines type IV explicitly with constraints
+              # Use time.area as index
+              # S blocks each with time 1:T (in this code, 1:N)
+              # UPDATE!
+
+             inla.rw = utils::getFromNamespace("inla.rw", "INLA")
+             R2 <- inla.rw(N, order = rw, scale.model=TRUE, sparse=TRUE)
+             R4 = Amat
+             diag(R4) <- 0
+             diag <- apply(R4, 1, sum)
+             R4[R4 != 0] <- -1
+             diag(R4) <- diag
+             R4 <- INLA::inla.scale.model(R4, constr = list(A=matrix(1,1,dim(R4)[1]), e=0))
+             R <- R4 %x% R2
+             tmp <- matrix(0, S, N * S)
+             for(i in 1:S){
+               tmp[i, ((i-1)*N + 1) : (i*N)] <- 1
+             }
+             tmp2 <- matrix(0, N, N * S)
+             for(i in 1:N){
+                tmp2[i , which((1:(N*S)) %% N == i-1)] <- 1
+             }
+             tmp <- rbind(tmp, tmp2)
+             constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
+             
+
+             formula <- update(formula, ~. + 
+                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1))
             }
           
         ## ------------------------- 
@@ -303,7 +331,37 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
             }else if(type.st == 3){
                 formula <- update(formula, ~. + f(region.int,model="besag", graph = Amat, group=time.int,control.group=list(model="iid"),param=c(a.iid,b.iid), scale.model = TRUE, adjust.for.con.comp = TRUE))
             }else{
-                formula <- update(formula, ~. + f(region.int,model="besag", graph = Amat, scale.model = TRUE, adjust.for.con.comp = TRUE, group=time.int,control.group=list(model="rw2", scale.model = TRUE),param=c(a.iid,b.iid)))
+                
+
+                 # defines type IV explicitly with constraints
+                 # Use time.area as index
+                 # S blocks each with time 1:T (in this code, 1:N)
+                 # UPDATE for connected components:
+                 # nc2 sum-to-zero constraints for each of the connected components of size >= 2. Scaled so that the geometric mean of the marginal variances in each connected component of size >= 2 is 1, and modified so that singletons have a standard Normal distribution.
+
+                inla.rw = utils::getFromNamespace("inla.rw", "INLA")
+                R2 <- inla.rw(N, order = rw, scale.model=TRUE, sparse=TRUE)
+                R4 = Amat
+                diag(R4) <- 0
+                diag <- apply(R4, 1, sum)
+                R4[R4 != 0] <- -1
+                diag(R4) <- diag
+                R4 <- INLA::inla.scale.model(R4, constr = list(A=matrix(1,1,dim(R4)[1]), e=0))
+                R <- R4 %x% R2
+                tmp <- matrix(0, S, N * S)
+                for(i in 1:S){
+                  tmp[i, ((i-1)*N + 1) : (i*N)] <- 1
+                }
+                tmp2 <- matrix(0, N, N * S)
+                for(i in 1:N){
+                   tmp2[i , which((1:(N*S)) %% N == i-1)] <- 1
+                }
+                tmp <- rbind(tmp, tmp2)
+                constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
+                
+
+                formula <- update(formula, ~. + 
+                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), param=c(a.iid,b.iid)))
             }
          
           
