@@ -11,6 +11,8 @@
 #' @param logit.lower the column name for the 95\% lower bound of the logit of the unadjusted mortality rates in the data
 #' @param logit.upper the column name for the 95\% lower bound of the logit of the unadjusted mortality rates in the data
 #' @param adj the column name for the adjustment ratio
+#' @param lower the column name for the 95\% lower bound of the unadjusted mortality rates in the data, if provided.
+#' @param upper the column name for the 95\% upper bound of the unadjusted mortality rates in the data, if provided.
 #' @param verbose logical indicator for whether to print out unadjusted row index
 #' 
 #' @return adjusted dataset of the same columns.
@@ -39,7 +41,7 @@
 #' @export
 #' 
 
-getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "mean", logit = "logit.est", logit.var = "var.est", logit.prec = "logit.prec", logit.lower = "lower", logit.upper = "upper", adj = "ratio", verbose = FALSE){
+getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "mean", logit = "logit.est", logit.var = "var.est", logit.prec = "logit.prec", logit.lower = "lower", logit.upper = "upper", adj = "ratio", verbose = FALSE, lower = NULL, upper = NULL){
 
 	adjust <- function(p, v, c){
 		f.prime <- 1 - (c - 1) * (p/(1-p)) / (c + (c-1) * (p/(1-p)))
@@ -70,8 +72,8 @@ getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "
 			data[i, logit] <- new[2]
 			data[i, logit.var] <- new[3]
 			data[i, logit.prec] <- new[4]
-			data[i, logit.lower] <- new[2] - stats::qnorm(0.025)*sqrt(new[3])
-			data[i, logit.upper] <- new[2] + stats::qnorm(0.025)*sqrt(new[3])
+			data[i, logit.lower] <- new[2] + stats::qnorm(0.025)*sqrt(new[3])
+			data[i, logit.upper] <- new[2] - stats::qnorm(0.025)*sqrt(new[3])
 
 		}else{
 			stop("Multiple adjustment factors found for some estimates.")
@@ -83,6 +85,10 @@ getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "
 	}
 	if(!is.null(unadj) && verbose){
 		warning(paste0("The following rows of the data are not adjusted: ", paste(unadj, collapse = ", ")))
+	}
+	if(!is.null(lower)){
+		data[, lower] <- expit(data[, logit.lower])
+		data[, upper] <- expit(data[, logit.upper])
 	}
 	return(data)
 }

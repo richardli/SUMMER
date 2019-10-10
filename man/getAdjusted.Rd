@@ -7,7 +7,8 @@
 getAdjusted(data, ratio, time = "years", region = "region",
   est = "mean", logit = "logit.est", logit.var = "var.est",
   logit.prec = "logit.prec", logit.lower = "lower",
-  logit.upper = "upper", adj = "ratio", verbose = FALSE)
+  logit.upper = "upper", adj = "ratio", verbose = FALSE,
+  lower = NULL, upper = NULL)
 }
 \arguments{
 \item{data}{data frame of the adjusted estimates and the associated uncertainties, see the arguments below for specific columns.}
@@ -33,6 +34,10 @@ getAdjusted(data, ratio, time = "years", region = "region",
 \item{adj}{the column name for the adjustment ratio}
 
 \item{verbose}{logical indicator for whether to print out unadjusted row index}
+
+\item{lower}{the column name for the 95\% lower bound of the unadjusted mortality rates in the data, if provided.}
+
+\item{upper}{the column name for the 95\% upper bound of the unadjusted mortality rates in the data, if provided.}
 }
 \value{
 adjusted dataset of the same columns.
