@@ -84,7 +84,7 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 		n <- dim(quants)[1]
 		m <- length(unstruct)
 		quants <- rbind(quants, getquants(unstruct))
-		quants$years <- c(label, year_label)
+		quants$years <- c(label, label)
 		if(!is.null(inla_mod$age.rw.group)){
 			quants$group <- c(group, rep(NA, m))
 		}
