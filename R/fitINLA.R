@@ -308,9 +308,9 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     
     ########################## Model Selection ######
     
-    # -- subset of not missing and not direct estimate of 0 -- #
+    ## -- subset of not missing and not direct estimate of 0 -- #
     exdat <- newdata
-    exdat <- exdat[!is.na(exdat$logit.est) && exdat$logit.est > (-20), ]
+    # exdat <- exdat[!is.na(exdat$logit.est) && exdat$logit.est > (-20), ]
   
 
   if(is.null(formula)){
