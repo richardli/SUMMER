@@ -528,7 +528,7 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
           lincombs.info[index, c("District", "Year")] <- c(j,i)
           # BYM model under Gamma prior
           if(hyper == "gamma"){
-            if(is.yearly || type.st == 1){
+            if(is.yearly || type.st%in% c(1, 4)){
               assign(object.name, INLA::inla.make.lincomb("(Intercept)" = 1,
                                                     time.area = spacetime,
                                                     time.struct= time ,
