@@ -7,7 +7,8 @@
 getAdjusted(data, ratio, time = "years", region = "region",
   est = "mean", logit = "logit.est", logit.var = "var.est",
   logit.prec = "logit.prec", logit.lower = "lower",
-  logit.upper = "upper", adj = "ratio", verbose = FALSE,
+  logit.upper = "upper", original.lower = NULL,
+  original.upper = NULL, adj = "ratio", verbose = FALSE,
   lower = NULL, upper = NULL)
 }
 \arguments{
@@ -30,6 +31,10 @@ getAdjusted(data, ratio, time = "years", region = "region",
 \item{logit.lower}{the column name for the 95\% lower bound of the logit of the unadjusted mortality rates in the data}
 
 \item{logit.upper}{the column name for the 95\% lower bound of the logit of the unadjusted mortality rates in the data}
+
+\item{original.lower}{the column name for the 95\% lower bound of the unadjusted mortality rates in the data. If this is provided instead of logit.lower, the logit scale lower bound will be created.}
+
+\item{original.upper}{the column name for the 95\% lower bound of the unadjusted mortality rates in the data. if this is provided instead of logit.upper, the logit scale upper bound will be created.}
 
 \item{adj}{the column name for the adjustment ratio}
 
