@@ -119,9 +119,9 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
       col.border <- border
     }
     
-    m <- length(unique(data$variable)) / ncol
-    m <- floor(m)
-    if(length(unique(data$variable)) %% ncol != 0) m <- m + 1
+    nplot <- length(unique(data$variable))
+    m <- nplot / ncol
+    m <- floor(m) + 1
     graphics::par(mfrow = c(m, ncol), mai = c(.25, 0.1,0.3,0.1), oma = c(0.5, 0.1, 0.1, 0.1))
     for(tt in levels(data$variable)){
         tmp <- data[data$variable == tt, ]
@@ -133,6 +133,7 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
       	sp::plot(geo,  density=dens[findInterval(rrt1, breaks.CI,
              	all.inside=TRUE)], add=T, col = col.hatch, border = FALSE)
     }
+    nplot0 <- ncol - nplot %% ncol 
 
 
 
@@ -166,8 +167,9 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
       graphics::axis(side = 2, las = 2, tick = FALSE, line = .25, hadj=hadj)
       par <- opar
     }
-
-    graphics::plot(1, type = "n", axes=FALSE, xlab="", ylab="")
+    for(tt in 1:nplot0){
+        graphics::plot(1, type = "n", axes=FALSE, xlab="", ylab="")      
+    }
     legend.col(col = med.palette, lev = zlim, hadj = -1.5, title = legend.label)
 
 
