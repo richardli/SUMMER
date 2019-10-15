@@ -207,7 +207,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
 
         for(i in 1:nsim){
           if(length(time.area)> 0){
-            theta[i, time.area.order] <- sampAll[[i]]$latent[time.area]
+            theta[i, ] <- sampAll[[i]]$latent[time.area[time.area.order]]
           }else if(length(region.int) > 0){
             theta[i, ] <- sampAll[[i]]$latent[region.int]
           }else{
