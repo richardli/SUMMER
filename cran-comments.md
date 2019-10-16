@@ -51,3 +51,7 @@ We added the vignette output to inst/doc. We also have switched to a static vign
 * We changed how non-existent age bins are handled in the discrete survival model. Previously they were ignored. Now these age bins are combined with previous bins. This affects direct estimates in situations where very few observations exist.
 * Improved visualizations.
 * Update to vignette.
+
+## Version 0.3.0 Update
+* Maintainer change.
+* Major updates to the functionalities. See the News file for details.

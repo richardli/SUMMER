@@ -71,5 +71,7 @@ plot(out2, is.yearly=TRUE, is.subnational=TRUE)
 
 }
 
-
+}
+\seealso{
+\code{\link{plot.SUMMERproj}}
 }

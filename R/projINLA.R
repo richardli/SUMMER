@@ -14,7 +14,7 @@
 #' @param ... additional configurations passed to inla.posterior.sample.
 #' 
 #' @return Results from RW2 model fit, including projection.
-#' 
+#' @seealso \code{\link{plot.SUMMERproj}}
 #' @examples
 #' \dontrun{
 #' years <- levels(DemoData[[1]]$time)
@@ -50,7 +50,7 @@
 #' 
 #' }
 #' 
-#' 
+
 #' @export
 getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), 
                             Amat = NULL, nsim = 1000, weight.strata = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, ...){

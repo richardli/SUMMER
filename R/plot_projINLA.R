@@ -25,6 +25,8 @@
 #'  \item{\code{is.subnational}}{indicator for subnational model, defaults to \code{TRUE}}
 #' }
 #' @method plot SUMMERproj
+#' @seealso \code{\link{getSmoothed}}
+
 #' @examples
 #' \dontrun{
 #' years <- levels(DemoData[[1]]$time)
@@ -59,6 +61,7 @@
 #' 
 #' 
 #' }
+#' 
 #' @export
 plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), year_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.subnational = TRUE, proj_year = 2015, data.add = NULL, option.add = list(point = NULL, lower = NULL, upper = NULL, by = NULL), color.add = "black", label.add = NULL, dodge.width = 1, plot.CI = NULL, per1000 = FALSE,  color.CI = "black", alpha.CI = 0.3, ...){
 

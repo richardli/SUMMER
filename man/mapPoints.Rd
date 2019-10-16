@@ -2,7 +2,7 @@
 % Please edit documentation in R/mapPoints.R
 \name{mapPoints}
 \alias{mapPoints}
-\title{Extract adjacency matrix from the map}
+\title{Map GPS points to polygon regions}
 \usage{
 mapPoints(data, geo, long, lat, names)
 }
@@ -21,7 +21,7 @@ mapPoints(data, geo, long, lat, names)
 Spatial djacency matrix.
 }
 \description{
-Extract adjacency matrix from the map
+Map GPS points to polygon regions
 }
 \examples{
 data(DemoMap) 

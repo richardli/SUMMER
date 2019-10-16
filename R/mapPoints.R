@@ -1,4 +1,4 @@
-#' Extract adjacency matrix from the map 
+#' Map GPS points to polygon regions 
 #' 
 #' @param data point data with two columns of GPS locations.
 #' @param geo SpatialPolygonsDataFrame of the map
