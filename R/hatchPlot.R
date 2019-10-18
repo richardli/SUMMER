@@ -120,6 +120,7 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
     }
     
     nplot <- length(unique(data$variable))
+    if(ncol == nplot) ncol <- ncol + 1
     m <- nplot / ncol
     m <- floor(m) + 1
     graphics::par(mfrow = c(m, ncol), mai = c(.25, 0.1,0.3,0.1), oma = c(0.5, 0.1, 0.1, 0.1))
