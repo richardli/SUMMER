@@ -7,9 +7,8 @@
 getAdjusted(data, ratio, time = "years", region = "region",
   est = "mean", logit = "logit.est", logit.var = "var.est",
   logit.prec = "logit.prec", logit.lower = "lower",
-  logit.upper = "upper", original.lower = NULL,
-  original.upper = NULL, adj = "ratio", verbose = FALSE,
-  lower = NULL, upper = NULL)
+  logit.upper = "upper", prob.lower = NULL, prob.upper = NULL,
+  adj = "ratio", verbose = FALSE, lower = NULL, upper = NULL)
 }
 \arguments{
 \item{data}{data frame of the adjusted estimates and the associated uncertainties, see the arguments below for specific columns.}
@@ -32,17 +31,17 @@ getAdjusted(data, ratio, time = "years", region = "region",
 
 \item{logit.upper}{the column name for the 95\% lower bound of the logit of the unadjusted mortality rates in the data}
 
-\item{original.lower}{the column name for the 95\% lower bound of the unadjusted mortality rates in the data. If this is provided instead of logit.lower, the logit scale lower bound will be created.}
+\item{prob.lower}{the column name for the 95\% lower bound of the unadjusted mortality rates in the data. If this is provided instead of logit.lower, the logit scale lower bound will be created.}
 
-\item{original.upper}{the column name for the 95\% lower bound of the unadjusted mortality rates in the data. if this is provided instead of logit.upper, the logit scale upper bound will be created.}
+\item{prob.upper}{the column name for the 95\% lower bound of the unadjusted mortality rates in the data. if this is provided instead of logit.upper, the logit scale upper bound will be created.}
 
 \item{adj}{the column name for the adjustment ratio}
 
 \item{verbose}{logical indicator for whether to print out unadjusted row index}
 
-\item{lower}{the column name for the 95\% lower bound of the unadjusted mortality rates in the data, if provided.}
+\item{lower}{previous argument name for prob.lower. Will be removed in the next update}
 
-\item{upper}{the column name for the 95\% upper bound of the unadjusted mortality rates in the data, if provided.}
+\item{upper}{previous argument name for prob.upper. Will be removed in the next update}
 }
 \value{
 adjusted dataset of the same columns.

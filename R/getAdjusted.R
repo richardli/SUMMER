@@ -10,11 +10,11 @@
 #' @param logit.prec the column name for the precision of the logit of the unadjusted mortality rates in the data
 #' @param logit.lower the column name for the 95\% lower bound of the logit of the unadjusted mortality rates in the data
 #' @param logit.upper the column name for the 95\% lower bound of the logit of the unadjusted mortality rates in the data
-#' @param original.lower the column name for the 95\% lower bound of the unadjusted mortality rates in the data. If this is provided instead of logit.lower, the logit scale lower bound will be created.
-#' @param original.upper the column name for the 95\% lower bound of the unadjusted mortality rates in the data. if this is provided instead of logit.upper, the logit scale upper bound will be created.
+#' @param prob.lower the column name for the 95\% lower bound of the unadjusted mortality rates in the data. If this is provided instead of logit.lower, the logit scale lower bound will be created.
+#' @param prob.upper the column name for the 95\% lower bound of the unadjusted mortality rates in the data. if this is provided instead of logit.upper, the logit scale upper bound will be created.
 #' @param adj the column name for the adjustment ratio
-#' @param lower the column name for the 95\% lower bound of the unadjusted mortality rates in the data, if provided.
-#' @param upper the column name for the 95\% upper bound of the unadjusted mortality rates in the data, if provided.
+#' @param lower previous argument name for prob.lower. Will be removed in the next update
+#' @param upper previous argument name for prob.upper. Will be removed in the next update
 #' @param verbose logical indicator for whether to print out unadjusted row index
 #' 
 #' @return adjusted dataset of the same columns.
@@ -43,7 +43,7 @@
 #' @export
 #' 
 
-getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "mean", logit = "logit.est", logit.var = "var.est", logit.prec = "logit.prec", logit.lower = "lower", logit.upper = "upper", original.lower = NULL, original.upper = NULL, adj = "ratio", verbose = FALSE, lower = NULL, upper = NULL){
+getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "mean", logit = "logit.est", logit.var = "var.est", logit.prec = "logit.prec", logit.lower = "lower", logit.upper = "upper", prob.lower = NULL, prob.upper = NULL, adj = "ratio", verbose = FALSE, lower = NULL, upper = NULL){
 
 	adjust <- function(p, v, c){
 		f.prime <- 1 - (c - 1) * (p/(1-p)) / (c + (c-1) * (p/(1-p)))
@@ -51,16 +51,26 @@ getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "
 		v <- v * f.prime^2
 		return(c(p, log(p/(1-p)), v, 1/v))
 	}
-	if(identical(original.lower, logit.lower)){
-		stop("The same column has been specified for logit.lower and original.lower. Please specify only one of them.")
-	}
-	if(identical(original.upper, logit.upper)){
-		stop("The same column has been specified for logit.upper and original.upper. Please specify only one of them.")
+	if(!is.null(lower)){
+		if(is.null(prob.lower)){
+			warning("Arguments 'lower' and 'upper' has been renamed to 'prob.lower' and 'prob.upper' to avoid confusion. 'lower' and 'upper' will be removed in the next major update.")
+			prob.lower <- lower
+			prob.upper <- upper			
+		}else{
+			warning("Arguments 'lower' and 'upper' has been renamed to 'prob.lower' and 'prob.upper' to avoid confusion. 'lower' and 'upper' arguments will be ignored.")
+		}
 	}
 
-	if(!is.null(original.lower) && (is.null(logit.lower) || is.na(logit.lower))){
-		data$logit.lower <- logit(data[, original.lower])
-		data$logit.upper <- logit(data[, original.upper])
+	if(identical(prob.lower, logit.lower)){
+		stop("The same column has been specified for logit.lower and prob.lower. Please specify only one of them.")
+	}
+	if(identical(prob.upper, logit.upper)){
+		stop("The same column has been specified for logit.upper and prob.upper. Please specify only one of them.")
+	}
+
+	if(!is.null(prob.lower) && (is.null(logit.lower) || is.na(logit.lower))){
+		data$logit.lower <- logit(data[, prob.lower])
+		data$logit.upper <- logit(data[, prob.upper])
 		logit.lower <- "logit.lower"
 		logit.upper <- "logit.upper"
 	}
@@ -100,9 +110,9 @@ getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "
 	if(!is.null(unadj) && verbose){
 		warning(paste0("The following rows of the data are not adjusted: ", paste(unadj, collapse = ", ")))
 	}
-	if(!is.null(lower)){
-		data[, lower] <- expit(data[, logit.lower])
-		data[, upper] <- expit(data[, logit.upper])
+	if(!is.null(prob.lower)){
+		data[, prob.lower] <- expit(data[, logit.lower])
+		data[, prob.upper] <- expit(data[, logit.upper])
 	}
 	return(data)
 }
