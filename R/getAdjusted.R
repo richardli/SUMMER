@@ -53,11 +53,11 @@ getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "
 	}
 	if(!is.null(lower)){
 		if(is.null(prob.lower)){
-			warning("Arguments 'lower' and 'upper' has been renamed to 'prob.lower' and 'prob.upper' to avoid confusion. 'lower' and 'upper' will be removed in the next major update.")
+			message("Arguments 'lower' and 'upper' has been renamed to 'prob.lower' and 'prob.upper' to avoid confusion. 'lower' and 'upper' will be removed in the next major update.")
 			prob.lower <- lower
 			prob.upper <- upper			
 		}else{
-			warning("Arguments 'lower' and 'upper' has been renamed to 'prob.lower' and 'prob.upper' to avoid confusion. 'lower' and 'upper' arguments will be ignored.")
+			message("Arguments 'lower' and 'upper' has been renamed to 'prob.lower' and 'prob.upper' to avoid confusion. 'lower' and 'upper' arguments will be ignored.")
 		}
 	}
 
@@ -74,6 +74,21 @@ getAdjusted <- function(data, ratio, time = "years", region = "region",  est = "
 		logit.lower <- "logit.lower"
 		logit.upper <- "logit.upper"
 	}
+
+	## Check all regions are adjusted for each time period
+	if(region %in% colnames(ratio)){
+		region.names <- unique(data[, region])
+		time.names <- unique(ratio[, time])
+		time.names <- time.names[time.names %in% data[, time]]
+		for(t in time.names){
+			sub <- ratio[ratio[, time] == t, ]
+			all.there <- sum(region.names %in% sub[, region]) == length(region.names)
+			if(!all.there){
+				stop("For some time periods, there are missing adjustment ratios for some regions. Check that all regions have adjustment ratios in each time period, including national estimates (region = 'All'), if they exist in the data.")
+			}
+		}
+	}
+
 	count <- 0
 	warn_national <- FALSE
 	unadj <- NULL
