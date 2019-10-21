@@ -55,3 +55,6 @@ We added the vignette output to inst/doc. We also have switched to a static vign
 ## Version 0.3.0 Update
 * Maintainer change.
 * Major updates to the functionalities. See the News file for details.
+* The size of two directories lead to devtools::check() notes: data (2.7Mb) and doc (8.7Mb). The data directory contains necessary illustrative examples of complex survey data. The doc directory contains static vignettes that provide more details in using the package. Dynamic vignettes are not possible because the computation of examples takes a long time and requires INLA installation. Since the package also concerns visualizing space-time smoothing models for fine geographic areas, the resulting vignettes are slightly larger in size as well.
+
+
