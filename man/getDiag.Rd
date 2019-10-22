@@ -13,7 +13,7 @@ getDiag(inla_mod, field = c("space", "time", "spacetime")[1],
 
 \item{field}{which random effects to plot. It can be one of the following: space, time, and spacetime.}
 
-\item{year_range}{range corresponding to year label}
+\item{year_range}{Entire range of the years (inclusive) defined in year_label. To be deprecated and imputed from the fitted object in the next version of SUMMER.}
 
 \item{year_label}{vector of year string vector}
 

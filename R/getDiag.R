@@ -2,7 +2,7 @@
 #' 
 #' @param inla_mod output from \code{\link{fitINLA}}
 #' @param field which random effects to plot. It can be one of the following: space, time, and spacetime.
-#' @param year_range range corresponding to year label
+#' @param year_range Entire range of the years (inclusive) defined in year_label. To be deprecated and imputed from the fitted object in the next version of SUMMER.
 #' @param year_label vector of year string vector
 #' @param Amat adjacency matrix
 #' @param CI Desired level of credible intervals
@@ -45,6 +45,9 @@
 getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), Amat = NULL, CI = 0.95){
 	lower <- (1 - CI) / 2
 	upper <- 1 - lower
+	if(!is.null(inla_mod$year_range)){
+		year_range <- inla_mod$year_range
+	}
 	getquants <- function(mlist, lower, upper){
 		quants <- data.frame(matrix(NA, length(mlist), 3))
 		for(i in 1:length(mlist)){
