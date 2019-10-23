@@ -51,8 +51,8 @@ aggregateSurvey <- function(data) {
       data[i, "logit.est"] <- sum(weights * data0[tmp, "logit.est"], na.rm = TRUE)
       data[i, "mean"] <- expit(data[i, "logit.est"])
       
-      data[i, "lower"] <- expit(data[i, "logit.est"] + stats::qnorm(0.975)*sqrt(data[i, "var.est"]))
-      data[i, "upper"] <- expit(data[i, "logit.est"] + stats::qnorm(0.025)*sqrt(data[i, "var.est"]))
+      data[i, "lower"] <- expit(data[i, "logit.est"] + stats::qnorm(0.025)*sqrt(data[i, "var.est"]))
+      data[i, "upper"] <- expit(data[i, "logit.est"] + stats::qnorm(0.975)*sqrt(data[i, "var.est"]))
     }
     data[i, "region_num"] <- data0[tmp, "region_num"][1]
   }
