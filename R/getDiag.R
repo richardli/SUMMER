@@ -51,7 +51,7 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 	getquants <- function(mlist, lower, upper){
 		quants <- data.frame(matrix(NA, length(mlist), 3))
 		for(i in 1:length(mlist)){
-			quants[i, ] <- INLA::inla.qmarginal(c(0.025, 0.5, 0.975), mlist[[i]])
+			quants[i, ] <- INLA::inla.qmarginal(c(lower, 0.5, upper), mlist[[i]])
 		}
 		colnames(quants) <- c("lower", "median", "upper")
 		return(quants)
