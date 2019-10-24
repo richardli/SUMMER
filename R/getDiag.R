@@ -74,7 +74,7 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 		expand <- 1
 		if(!is.null(inla_mod$age.rw.group)) expand <-  max(inla_mod$age.rw.group) / length(inla_mod$age.rw.group) 
 		if(length(struct) != length(label) * expand) stop("The input year_range or year_label does not match the fitted model. Please double check.")
-		temp <- getquants(struct)	
+		temp <- getquants(struct, lower = lower, upper = upper)	
 		quants <- NULL
 		if(!is.null(inla_mod$age.rw.group)){
 			for(i in 1:length(inla_mod$age.groups)){
@@ -82,11 +82,11 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 				quants <- rbind(quants,  temp[where, ])
 			}
 		}else{
-			quants <- getquants(struct)
+			quants <- getquants(struct, lower = lower, upper = upper)
 		}
 		n <- dim(quants)[1]
 		m <- length(unstruct)
-		quants <- rbind(quants, getquants(unstruct))
+		quants <- rbind(quants, getquants(unstruct, lower = lower, upper = upper))
 		quants$years <- c(label, label.unstruct)
 		if(!is.null(inla_mod$age.rw.group)){
 			quants$group <- c(group, rep(NA, m))
@@ -108,7 +108,7 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 		}else{
 			stop("No spatial term used in this model.")
 		}
-		quants <- rbind(getquants(struct), getquants(unstruct))
+		quants <- rbind(getquants(struct, lower = lower, upper = upper), getquants(unstruct, lower = lower, upper = upper))
 		quants$region <- rep(colnames(Amat), 2)
 		quants$label <- group
 	}else if(field == "spacetime"){
@@ -133,7 +133,7 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 			struct <- inla_mod$fit$marginals.random$time.area
 		 }
 		if(length(struct) != length(label)) stop("The input year_range or year_label does not match the fitted model. Please double check.")
-		quants <- getquants(struct) 
+		quants <- getquants(struct, lower = lower, upper = upper) 
 		quants$years <- label
 	  	quants$years.num <- suppressWarnings(as.numeric(as.character(quants$years)))
 		quants$region <- group	
