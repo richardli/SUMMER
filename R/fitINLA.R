@@ -6,6 +6,7 @@
 #' @param data Combined dataset
 #' @param geo Geo file
 #' @param Amat Adjacency matrix for the regions
+#' @param X Covariate matrix. It must contain either a column with name "region", or a column with name "years", or both. The covariates must not have missing values for all regions (if varying in space) and all time periods (if varying in time). The rest of the columns are treated as covariates in the mean model.
 #' @param formula INLA formula. See vignette for example of using customized formula.
 #' @param year_label string vector of year names
 #' @param na.rm Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.
@@ -68,7 +69,7 @@
 #' 
 #' }
 #' @export
-fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo = T, openmp.strategy = 'default'), verbose = FALSE){
+fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo = T, openmp.strategy = 'default'), verbose = FALSE){
 
 
   if(m == 1){
@@ -121,6 +122,8 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     } else{
       data <- data[which(data$region != "All"), ]
     }  
+
+
     #################################################################### Re-calculate hyper-priors
     
     if (is.null(priors)) {
@@ -305,14 +308,96 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     }else{
       newdata$time.area <- NA
     }
-    
+
+
+    if(!is.null(X)){
+      by <- NULL
+      if("region" %in% colnames(X)){
+        by <- c(by, "region")
+      }
+      if("years" %in% colnames(X)){
+        by <- c(by, "years")
+      }
+      covariate.names <- colnames(X)[colnames(X) %in% by == FALSE]
+      if(length(covariate.names) == 0){
+        warning("The X argument is specified but no covariate identified.")
+        X <- NULL
+      }
+      if("region" %in% by && (!"years" %in% by)){
+        for(ii in unique(newdata$region)){
+          which <- which(X$region == ii)
+          if(length(which) == 0){
+            stop(paste("Missing region in the covariate matrix:", ii))
+          }
+          if(length(which) > 1) stop(paste("Duplicated covariates for region", ii))
+          if(sum(is.na(X[which, ])) > 0) stop("NA in covariate matrix.")
+        }
+      }else if((!"region" %in% by) && "years" %in% by){
+        for(tt in unique(newdata$years)){
+          which <- which(X$years == tt)
+          if(length(which) == 0){
+            stop(paste("Missing years in the covariate matrix:", tt))
+          }
+          if(length(which) > 1) stop(paste("Duplicated covariates for period", tt))
+          if(sum(is.na(X[which, ])) > 0) stop("NA in covariate matrix.")
+        }
+      }else if("region" %in% by && "years" %in% by){
+        for(tt in unique(newdata$years)){
+          for(ii in unique(newdata$region)){
+            which <- intersect(which(X$years == tt), which(X$region == ii))
+            if(length(which) == 0){
+              stop(paste("Missing region-years in the covariate matrix:", ii, tt))
+            }
+           if(length(which) > 1) stop(paste("Duplicated covariates for region-years", ii, tt))
+           if(sum(is.na(X[which, ])) > 0) stop("NA in covariate matrix.")
+          }
+        }
+      }else{
+        stop("Covariate need to contain column 'region' or 'years'.")
+      }
+    }
+
+
     
     ########################## Model Selection ######
     
     ## -- subset of not missing and not direct estimate of 0 -- #
     exdat <- newdata
     # exdat <- exdat[!is.na(exdat$logit.est) && exdat$logit.est > (-20), ]
+    for(i in 1:N){
+      tmp<-exdat[match(unique(exdat$region), exdat$region), ]
+      tmp$time.unstruct<-tmp$time.struct<- tmp$time.int <- i
+      tmp$logit.est<-tmp$logit.prec<-tmp$survey<-NA
+      tmp <- tmp[, colnames(tmp) != "time.area"]
+      tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
+      tmp$years<-years[i, 1]
+      tmp$mean <- tmp$lower <- tmp$upper <- tmp$var.est <- NA
+      if("mean.nohiv" %in% colnames(data)){
+        tmp$mean.nohiv <- tmp$lower.nohiv <- tmp$upper.nohiv <- tmp$var.est.nohiv<- tmp$logit.prec.nohiv<- tmp$logit.est.nohiv <- NA          
+      }
+      exdat<-rbind(exdat,tmp)   
+    }
+   if(!is.null(X)){
+    exdat <- exdat[, colnames(exdat) %in% covariate.names == FALSE]
+    Xnew <- expand.grid(time.struct = 1:N, region.struct = 1:S)
+    if(is.null(Amat)) Xnew$region.struct <- 0
+    Xnew[, covariate.names] <- NA
+    for(i in 1:dim(Xnew)[1]){
+      tt <- ifelse(Xnew$time.struct[i] > n, Xnew$time.struct[i] - n, (Xnew$time.struct[i]-1) %/% m + 1)
+      ii <- ifelse(is.null(Amat), 1, Xnew$region.struct[i])
+      if("region" %in% by && (!"years" %in% by)){
+        which <- which(X$region == region_names[ii])
+      }else if((!"region" %in% by) && "years" %in% by){
+        which <- which(X$years == year_label[tt]) 
+      }else{
+        which <- intersect(which(X$years == year_label[tt]), which(X$region == region_names[ii]))
+      }
+      Xnew[i, covariate.names] <- X[which, covariate.names]
+    }
+    exdat <- merge(exdat, Xnew, by = c("time.struct", "region.struct"))
+   }
   
+
 
   if(is.null(formula)){
         period.constr <- NULL
@@ -497,12 +582,30 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
     }else{
       stop("hyper needs to be either pc or gamma.")
     }
+
+    if(!is.null(X)){
+      formula <- as.formula(paste("logit.est~", as.character(formula)[3], "+", paste(covariate.names, collapse = " + ")))
+    }
 }
 
 
     mod <- formula
     
+
+
+
     
+    # borrow the old function from INLA
+    inla.uncbind0 <- function (A, name.prefix = "col"){
+        if (!is.matrix(A)) 
+            return(NULL)
+        result = list()
+        rownames(A) = NULL
+        tmp.result = apply(A, 2, function(x) list(x))
+        result = sapply(tmp.result, function(x) c(x))
+        return(result)
+    }
+
     
     ## ---------------------------------------------------------
     ## Subnational lincomb for projection
@@ -523,6 +626,20 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
           time[i] <- 1
           area[j] <- 1
           time.unstruct <- time
+          if(!is.null(X)){
+             if("region" %in% by && (!"years" %in% by)){
+                which <- which(exdat$region.struct == j)
+              }else if((!"region" %in% by) && "years" %in% by){
+                which <- which(exdat$time.struct == i) 
+              }else{
+                which <- intersect(which(exdat$time.struct == i), which(exdat$region.struct == j))
+              }
+            sub <- matrix(exdat[which[1], covariate.names], nrow = 1)
+            colnames(sub) <- covariate.names
+            XX <- inla.uncbind0(sub)
+          }else{
+            XX <- NULL
+          }
           
           object.name <- paste("lc", index, sep = "")
           
@@ -530,39 +647,43 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
           # BYM model under Gamma prior
           if(hyper == "gamma"){
             if(is.yearly || type.st%in% c(1, 4)){
-              assign(object.name, INLA::inla.make.lincomb("(Intercept)" = 1,
+              assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
                                                     time.area = spacetime,
                                                     time.struct= time ,
                                                     time.unstruct= time,
                                                     region.struct = area,
-                                                    region.unstruct = area))
+                                                    region.unstruct = area), 
+                                                    XX)))
             }else{
               newidx <- rep(0, j + (i - 1) * region_count)
               newidx[j + (i - 1) * region_count] <- 1
-              assign(object.name, INLA::inla.make.lincomb("(Intercept)" = 1,
+              assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
                                                     time.struct= time ,
                                                     time.unstruct= time,
                                                     region.struct = area,
                                                     region.unstruct = area,
-                                                    region.int = newidx))
+                                                    region.int = newidx), 
+                                                    XX)))
 
             }
           # BYM2 model under PC prior
           }else{
             if(is.yearly || type.st %in% c(1, 4)){
-              assign(object.name, INLA::inla.make.lincomb("(Intercept)" = 1,
+              assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
                                                     time.area = spacetime,
                                                     time.struct= time ,
                                                     time.unstruct= time,
-                                                    region.struct = area))
+                                                    region.struct = area), 
+                                                    XX)))
             }else{
               newidx <- rep(0, j + (i - 1) * region_count)
               newidx[j + (i - 1) * region_count] <- 1
-              assign(object.name, INLA::inla.make.lincomb("(Intercept)" = 1,
+              assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
                                                     time.struct= time ,
                                                     time.unstruct= time,
                                                     region.struct = area,
-                                                    region.int = newidx))
+                                                    region.int = newidx), 
+                                                    XX)))
 
             }
           }
@@ -589,18 +710,34 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
         time <- rep(NA, N)
         time[i] <- 1
         time.unstruct <- time
+        if(!is.null(X)){
+            if("region" %in% by && (!"years" %in% by)){
+              which <- which(exdat$region.struct == 0)
+            }else if((!"region" %in% by) && "years" %in% by){
+              which <- which(exdat$time.struct == i) 
+            }else{
+              which <- intersect(which(exdat$time.struct == i), which(exdat$region.struct == 0))
+            }
+          sub <- matrix(exdat[which[1], covariate.names], nrow = 1)
+          colnames(sub) <- covariate.names
+          XX <- inla.uncbind0(sub)
+        }else{
+          XX <- NULL
+        }
         
         object.name <- paste("lc", index, sep = "")
         
         lincombs.info[index, c("District", "Year")] <- c(0,i)
         if(rw == 1){
-          assign(object.name, INLA::inla.make.lincomb("(Intercept)" = 1,
+          assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
                                                 time.struct= time ,
-                                                time.unstruct= time))          
+                                                time.unstruct= time), 
+                                                XX)))         
         }else{
-          assign(object.name, INLA::inla.make.lincomb("(Intercept)" = 1,
+          assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
                                                 time.struct= time ,
-                                                time.unstruct= time))
+                                                time.unstruct= time), 
+                                                XX)))
         }
         
         if(index == 1){
@@ -613,22 +750,6 @@ fitINLA <- function(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE, y
       }
     }
     
-
-    for(i in 1:N){
-      tmp<-exdat[match(unique(exdat$region), exdat$region), ]
-      tmp$time.unstruct<-tmp$time.struct<- tmp$time.int <- i
-      tmp$logit.est<-tmp$logit.prec<-tmp$survey<-NA
-      tmp <- tmp[, colnames(tmp) != "time.area"]
-      tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
-      tmp$years<-years[i, 1]
-      tmp$mean <- tmp$lower <- tmp$upper <- tmp$var.est <- NA
-      if("mean.nohiv" %in% colnames(data)){
-        tmp$mean.nohiv <- tmp$lower.nohiv <- tmp$upper.nohiv <- tmp$var.est.nohiv<- tmp$logit.prec.nohiv<- tmp$logit.est.nohiv <- NA          
-      }
-      exdat<-rbind(exdat,tmp)   
-    }
-
-
 
     fit <- INLA::inla(mod, family = "gaussian", control.compute = options, data = exdat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE ))), scale = exdat$logit.prec, lincomb = lincombs.fit, control.inla = list(int.strategy = "ccd"), verbose = verbose)
     

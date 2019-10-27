@@ -4,13 +4,13 @@
 \alias{fitINLA}
 \title{Fit space-time smoothing models to mortality rates}
 \usage{
-fitINLA(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
-  year_label, year_range = c(1980, 2014), m = 5, na.rm = TRUE,
-  priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1],
-  pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3,
-  a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL,
-  a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo
-  = T, openmp.strategy = "default"), verbose = FALSE)
+fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2,
+  is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5,
+  na.rm = TRUE, priors = NULL, type.st = 1, hyper = c("pc",
+  "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5,
+  pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL,
+  b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic =
+  T, mlik = T, cpo = T, openmp.strategy = "default"), verbose = FALSE)
 }
 \arguments{
 \item{data}{Combined dataset}
@@ -18,6 +18,8 @@ fitINLA(data, Amat, geo, formula = NULL, rw = 2, is.yearly = TRUE,
 \item{Amat}{Adjacency matrix for the regions}
 
 \item{geo}{Geo file}
+
+\item{X}{Covariate matrix. It must contain either a column with name "region", or a column with name "years", or both. The covariates must not have missing values for all regions (if varying in space) and all time periods (if varying in time). The rest of the columns are treated as covariates in the mean model.}
 
 \item{formula}{INLA formula. See vignette for example of using customized formula.}
 
