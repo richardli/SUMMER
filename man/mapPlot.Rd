@@ -7,10 +7,11 @@
 mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
   by.geo, is.long = FALSE, size = 0.5, removetab = FALSE,
   border = "gray20", ncol = NULL, ylim = NULL, legend.label = NULL,
-  per1000 = FALSE, clean = TRUE)
+  per1000 = FALSE, clean = TRUE, size.label = 2, add.adj = FALSE,
+  color.adj = "red", alpha.adj = 0.85)
 }
 \arguments{
-\item{data}{a data frame with variables to be plotted}
+\item{data}{a data frame with variables to be plotted. When it is null, a map is produced.}
 
 \item{variables}{vector of variables to be plotted. If long format of data is used, only one variable can be selected}
 
@@ -40,8 +41,15 @@ mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
 
 \item{per1000}{logical indicator to plot mortality rates as rates per 1,000 live births. Note that the added comparison data should always be in the probability scale.}
 
-\item{clean}{remove all coordinates for a cleaner layout, default to TRUE.
-importFrom sp proj4string}
+\item{clean}{remove all coordinates for a cleaner layout, default to TRUE.}
+
+\item{size.label}{size of the label of the regions.}
+
+\item{add.adj}{logical indicator to add edges between connected regions.}
+
+\item{color.adj}{color of the adjacency matrix edges.}
+
+\item{alpha.adj}{alpha level (transparency) of the adjacency matrix edges.}
 }
 \description{
 This function visualizes the map with different variables. The input data frame can be either the long or wide format.

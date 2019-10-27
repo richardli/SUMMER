@@ -2,7 +2,7 @@
 #' 
 #' This function visualizes the map with different variables. The input data frame can be either the long or wide format.
 #'
-#' @param data a data frame with variables to be plotted
+#' @param data a data frame with variables to be plotted. When it is null, a map is produced.
 #' @param variables vector of variables to be plotted. If long format of data is used, only one variable can be selected
 #' @param values the column corresponding to the values to be plotted, only used when long format of data is used
 #' @param labels vector of labels to use for each variable, only used when wide format of data is used
@@ -18,7 +18,14 @@
 #' @param legend.label Label for the color legend.
 #' @param per1000 logical indicator to plot mortality rates as rates per 1,000 live births. Note that the added comparison data should always be in the probability scale.
 #' @param clean remove all coordinates for a cleaner layout, default to TRUE.
-#' importFrom sp proj4string
+#' @param size.label size of the label of the regions.
+#' @param add.adj logical indicator to add edges between connected regions.
+#' @param color.adj color of the adjacency matrix edges.
+#' @param alpha.adj alpha level (transparency) of the adjacency matrix edges.
+#' @importFrom sp proj4string
+#' @importFrom shadowtext geom_shadowtext
+#' @importFrom sp Polygon
+#' @importFrom stats setNames
 #' @examples
 #' \dontrun{
 #' data(DemoMap)
@@ -44,8 +51,42 @@
 #' }
 #' 
 #' @export
-mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE, border = "gray20", ncol = NULL, ylim = NULL, legend.label = NULL,  per1000 = FALSE, clean = TRUE){
-    value <- group <- lat <- long <- NULL
+mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE, border = "gray20", ncol = NULL, ylim = NULL, legend.label = NULL,  per1000 = FALSE, clean = TRUE, size.label = 2, add.adj = FALSE, color.adj = "red", alpha.adj = 0.85){
+    value <- group <- lat <- long <- x0 <- x1 <- y0 <- y1 <- id <- name <- NULL
+
+    # Simple Map Plot
+    if(is.null(data)){
+        geo1 <- ggplot2::fortify(geo, region = by.geo)
+        geo2 <- by(geo1, geo1$id, function(x) {sp::Polygon(x[c('long', 'lat')])@labpt})
+        centroids <- stats::setNames(do.call("rbind.data.frame", geo2), c('long', 'lat'))
+        centroids$name <- names(geo2) 
+
+        g <- ggplot2::ggplot() + ggplot2::geom_polygon(data=geo1, ggplot2::aes(x = long, y = lat, group = group, fill = id), color = border, alpha = .3) + ggplot2::coord_map()  
+
+        if(add.adj){
+            mat <- getAmat(geo, names = geo[[by.geo]])
+            centroids2 <- centroids[match(colnames(mat), centroids$name), ]
+            edges <- data.frame(x0 = rep(NA, sum(mat)/2), x1 = rep(NA, sum(mat)/2), y0 = rep(NA, sum(mat)/2), y1 = rep(NA, sum(mat)/2))
+            index <- 1
+            for(i in 1:dim(mat)[1]){
+                for(j in 1:i){
+                    if(mat[i, j] == 1){
+                        edges[index, ] <- c(centroids2[i, 1], centroids2[j, 1], centroids2[i, 2], centroids2[j, 2])
+                        index <- index + 1
+                }
+            }
+        }
+        g <- g + ggplot2::geom_segment(data = edges, ggplot2::aes(x = x0, y = y0, xend = x1, yend = y1), color = color.adj, alpha = alpha.adj)
+        }
+
+        g <- g + ggplot2::scale_fill_discrete(guide = FALSE) + shadowtext::geom_shadowtext(data = centroids, ggplot2::aes(x = long, y = lat, label = name), check.overlap = TRUE, size = size.label, color = border, bg.colour='white') + ggplot2::theme_bw()
+
+        if(clean){
+            g <- g + ggplot2::theme_bw() + ggplot2::theme(legend.title=ggplot2::element_text(size=ggplot2::rel(0.7)), axis.title.x=ggplot2::element_blank(), axis.text.x=ggplot2::element_blank(), axis.ticks.x=ggplot2::element_blank(), axis.title.y=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank(), axis.ticks.y=ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank())
+        }
+        return(g)
+    }
+
     if (is.null(labels) & !is.long) {
         labels <- variables
     }
