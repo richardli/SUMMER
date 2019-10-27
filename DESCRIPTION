@@ -20,7 +20,7 @@ URL: https://github.com/bryandmartin/SUMMER
 BugReports: https://github.com/bryandmartin/SUMMER/issues
 Depends: R (>= 3.5)
 License: GPL (>= 2)
-Imports: maptools, survey, stats, spdep, survival, ggplot2, utils, Matrix, reshape2, viridis, sp, shadowtext
+Imports: maptools, survey, stats, spdep, survival, ggplot2, utils, Matrix, reshape2, viridis, sp, shadowtext, ggridges
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
