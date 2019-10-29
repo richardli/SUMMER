@@ -52,7 +52,7 @@
 #' 
 #' @export
 mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE, border = "gray20", ncol = NULL, ylim = NULL, legend.label = NULL,  per1000 = FALSE, clean = TRUE, size.label = 2, add.adj = FALSE, color.adj = "red", alpha.adj = 0.85){
-    value <- group <- lat <- long <- x0 <- x1 <- y0 <- y1 <- id <- name <- NULL
+    value <- group <- lat <- long <- x0 <- x1 <- y0 <- y1 <- id <- name <- variable <- NULL
 
     # Simple Map Plot
     if(is.null(data)){
@@ -97,9 +97,18 @@ mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data,
         stop("values need to be specified for long format input.")
     }
     has.coord <- !is.na(sp::proj4string(geo))
+    regions <- as.character(unique(geo[[by.geo]]))
     geo <- ggplot2::fortify(geo, region = by.geo)
     if (!is.long) {
         data <- data[, c(variables, by.data)]
+        nonexist <- regions[regions %in% as.character(data[, by.data]) == FALSE]
+        if(length(nonexist) > 0){
+            data.add <- data[rep(1, length(nonexist)), ]
+            data.add[, 1:ncol(data.add)] <- NA
+            data.add[, by.data] <- nonexist
+            data <- rbind(data, data.add)
+            warning(paste0("The following areas not in the dataset to plot: ", paste(nonexist, collapse = ", ")))
+        }
         data <- reshape2::melt(data)
         data$variable <- factor(data$variable, levels = variables)
         levels(data$variable) <- labels
@@ -107,8 +116,24 @@ mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data,
     else {
         data$value <- data[, values]
         data$variable <- data[, variables]
+        nonexist.any <- NULL
+        alllevels <- unique(as.character(data$variable))
+        for(jj in 1:length(alllevels)){
+            sub <- subset(data, variable == alllevels[jj])
+            nonexist <- regions[regions %in% as.character(sub[, by.data]) == FALSE]
+            if(length(nonexist) > 0){
+                    data.add <- data[rep(1, length(nonexist)), ]
+                    data.add[, 1:ncol(data.add)] <- NA
+                    data.add[, by.data] <- nonexist
+                    data.add[, "variable"] <- alllevels[jj]
+                    data <- rbind(data, data.add)
+            }
+            nonexist.any <- c(nonexist.any, nonexist)
+        }
+        if(length(nonexist.any) > 0) warning(paste0("The following areas contain missing values: ", paste(unique(nonexist.any), collapse = ", ")))            
         data$variable <- as.character(data$variable)
         data$variable <- factor(data$variable, levels = labels)
+        data <- data[, c(by.data, "variable", "value")]
     }
     if(per1000){
         data$value <- data$value * 1000
@@ -140,6 +165,3 @@ mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data,
 
     return(g)
 }
-
-
-## Visualize covariates (Space-invariant)
