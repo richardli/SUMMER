@@ -1,8 +1,9 @@
 # SUMMER - changes
-Version 0.3.0 (2019-10-23) 
+Version 0.3.1 (2019-10-23) 
 ==========================
 + Fixed minor typo that lower and upper bounds switched after applying aggregateSurvey().
 + Add option to remove person-month records if last time period contain only k years of data in getBirth().
++ Improved mapPlot().
 
 Version 0.3.0 (2019-10-01) 
 ==========================
