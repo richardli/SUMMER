@@ -15,7 +15,7 @@
 #' @param age.groups a character vector of age groups in increasing order.
 #' @param age.n number of months in each age groups in the same order.
 #' @param age.rw.group vector indicating grouping of the ages groups. For example, if each age group is assigned a different random walk component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate random walk to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.
-#' @param family family of the model. This can be either binomial (with logistic normal prior) or betabiniomial.
+#' @param family family of the model. This can be either binomial (with logistic normal prior), betabiniomial, or betabinomialna (Beta-binomial with normal approximation).
 #' @param Amat Adjacency matrix for the regions
 #' @param geo Geo file
 #' @param bias.adj the ratio of unadjusted mortality rates or age-group-specific hazards to the true rates or hazards. It needs to be a data frame that can be merged to thee outcome, i.e., with the same column names for time periods (for national adjustment), or time periods and region (for subnational adjustment). The column specifying the adjustment ratio should be named "ratio".
@@ -37,10 +37,11 @@
 #' @param a.icar hyperparameter for ICAR random effects.
 #' @param b.icar hyperparameter for ICAR random effects.
 #' @param options list of options to be passed to control.compute() in the inla() function.
+#' @param control.inla list of options to be passed to control.inla() in the inla() function. Default to the "adaptive" integration strategy.
 #' @param verbose logical indicator to print out detailed inla() intermediate steps.
 #' @seealso \code{\link{getDirect}}
 #' @import Matrix
-#' @importFrom stats dgamma
+#' @importFrom stats dgamma na.pass
 #' @importFrom Matrix Diagonal 
 #' @return INLA model fit using the provided formula, country summary data, and geographic data
 #' @examples
@@ -50,7 +51,7 @@
 #' 
 #' 
 
-fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, year_label, priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), verbose = FALSE){
+fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, year_label, priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE){
 
 
   # check region names in Amat is consistent
@@ -213,6 +214,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     ## ---------------------------------------------------------
     if(tolower(hyper) == "pc"){
         hyperpc1 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
+        hyperpc1na <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
         hyperpc2 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
                          phi = list(prior = 'pc', param = c(pc.u.phi , pc.alpha.phi)))
         
@@ -280,11 +282,27 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                 tmp2[i , which((1:(N*S)) %% N == i-1)] <- 1
              }
              tmp <- rbind(tmp, tmp2)
+
+
+             # if(rw == 2){
+             #  tmp3 <- matrix(0, S, N*S)
+             #  for(i in 1:S){
+             #   tmp3[i, ((i-1)*N + 1) : (i*N)] <- 1:N
+             #  }
+             #  tmp <- rbind(tmp, tmp3)
+             # }
+
              constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
              
-
+             if(family == "betabinomialna"){
              formula <- update(formula, ~. + 
-                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1))
+                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1na, initial=10))
+             }else{
+             formula <- update(formula, ~. + 
+                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1))              
+             }
+
+
             }
           
         ## ------------------------- 
@@ -359,9 +377,13 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                 tmp <- rbind(tmp, tmp2)
                 constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
                 
-
-                formula <- update(formula, ~. + 
-                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), param=c(a.iid,b.iid)))
+                if(family == "betabinomialna"){
+                 formula <- update(formula, ~. + 
+                        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), param=c(a.iid,b.iid), initial=10))
+                 }else{
+                 formula <- update(formula, ~. + 
+                        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), param=c(a.iid,b.iid)))            
+                 }
             }
          
           
@@ -410,18 +432,32 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   # tmp$total <- 1
   # tmp$Y <- NA
   # exdat<-rbind(exdat,tmp)   
-  for(i in 1:N){
-      tmp<-exdat[match(unique(exdat$region), exdat$region), ]
-      tmp <- tmp[]
-      tmp$time.unstruct<-tmp$time.struct<- tmp$time.int <- i
-      tmp <- tmp[, colnames(tmp) != "time.area"]
-      tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
-      tmp$years<-years[i, 1]
-      tmp$total <- 1
-      tmp$Y <- NA
-      exdat<-rbind(exdat,tmp)   
-    }
+  # for(i in 1:N){
+  #     tmp<-exdat[match(unique(exdat$region), exdat$region), ]
+  #     tmp <- tmp[]
+  #     tmp$time.unstruct<-tmp$time.struct<- tmp$time.int <- i
+  #     tmp <- tmp[, colnames(tmp) != "time.area"]
+  #     tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
+  #     tmp$years<-years[i, 1]
+  #     tmp$total <- 1
+  #     tmp$Y <- NA
+  #     exdat<-rbind(exdat,tmp)   
+  #   }
 
+  # Create filler data frame for all space-time pairs
+  tmp <- exdat[rep(1, dim(Amat)[1]*N), ]
+  tmp[, c("region.struct", "time.struct")] <- expand.grid(region.struct = 1:dim(Amat)[1], time.struct = 1:N)
+  tmp$time.unstruct <- tmp$time.int <- tmp$time.struct
+  tmp$years <- years$year[match(tmp$time.struct, years$year_number)]
+  tmp$region_number <- tmp$region.int <- tmp$region.unstruct <- tmp$region.struct
+  tmp$region <- colnames(Amat)[tmp$region.struct]
+  tmp <- tmp[, colnames(tmp) != "time.area"]
+  tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
+  tmp <- subset(tmp, tmp$time.area %in% exdat$time.area == FALSE)
+  # remove contents in other columns
+  created <- c("region.struct", "region_number", "region.unstruct", "region.int", "region", "time.struct", "time.unstruct", "time.int", "time.area", "years", "age", "strata")
+  tmp[, colnames(tmp) %in% created == FALSE] <- NA
+  exdat <- rbind(exdat, tmp)
 
   exdat$strata <- factor(exdat$strata)
   if(!is.null(age.groups)){
@@ -431,8 +467,40 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   }
   exdat$age.idx <- match(exdat$age, age.groups)
   exdat$age.rep.idx <- age.rw.group[exdat$age.idx]
-     
-  fit <- INLA::inla(formula, family = family, control.compute = options, data = exdat, control.predictor = list(compute = FALSE), Ntrials = exdat$total, lincomb = NULL, control.inla = list(int.strategy = "auto"), verbose = verbose)
+
+
+if(family == "betabinomialna"){
+    ## Prepare compact version of the data frame
+    if(sum(!is.na(exdat$age.idx)) == 0) exdat$age.idx <- 1
+    if(sum(!is.na(exdat$age.rep.idx)) == 0) exdat$age.rep.idx <- 1
+    exdat$logoffset[is.na(exdat$logoffset)] <- 0
+    # Total Y
+    tmp1 <- aggregate(Y~years + region_number + time.unstruct + region + age + strata + region.int + region.unstruct + region.struct + time.int + time.struct + time.area + logoffset + age.idx + age.rep.idx, data = exdat, FUN = function(x){sum(x, na.rm=TRUE)}, na.action = na.pass)
+    # Total N
+    tmp2 <- aggregate(total~years + region_number + time.unstruct + region + age + strata + region.int + region.unstruct + region.struct + time.int + time.struct + time.area + logoffset + age.idx + age.rep.idx, data = exdat, FUN = function(x){sum(x, na.rm=TRUE)}, na.action = na.pass)
+    # Scaling factor (\sum n(n-1))/N/N-1 
+    tmp3 <- aggregate(total~years + region_number + time.unstruct + region + age + strata + region.int + region.unstruct + region.struct + time.int + time.struct + time.area + logoffset + age.idx + age.rep.idx, data = exdat, FUN = function(x){sum(x*(x-1), na.rm=TRUE)/(sum(x, na.rm=TRUE)*(sum(x, na.rm=TRUE)-1)) }, na.action = na.pass)
+    colnames(tmp3)[which(colnames(tmp3) == "total")] <- "s"
+    exdat <- merge(merge(tmp1, tmp2), tmp3)
+    # Handle division by 0
+    if(sum(is.na(exdat$s)) > 0) exdat$s[is.na(exdat$s)] <- 1
+    exdat$Y[exdat$total == 0] <- NA
+    exdat$total[exdat$total == 0] <- NA
+
+
+
+
+# formula = Y ~ f(time.struct, model = paste0("rw", rw), hyper = hyperpc1, 
+#     scale.model = TRUE, extraconstr = period.constr, values = 1:N) + 
+#     f(time.unstruct, model = "iid", hyper = hyperpc1, values = 1:N, initial = 10) + 
+#     f(region.struct, graph = Amat, model = "bym2", hyper = hyperpc2, 
+#         scale.model = TRUE, adjust.for.con.comp = TRUE) + f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = list(prec = list(prior = "pc.prec", param = c(0.001 , pc.alpha))), initial = 10) + strata + offset(logoffset) -  1
+
+
+    fit <- INLA::inla(formula, family = family, control.compute = options, data = exdat, control.predictor = list(compute = FALSE), Ntrials = exdat$total, scale = exdat$s, lincomb = NULL, control.inla =control.inla, verbose = verbose)
+  }else{
+    fit <- INLA::inla(formula, family = family, control.compute = options, data = exdat, control.predictor = list(compute = FALSE), Ntrials = exdat$total, lincomb = NULL, control.inla = control.inla, verbose = verbose)
+  }  
 
  # find the name for baseline strata
  levels <- grep("strata", rownames(fit$summary.fixed))   
@@ -440,7 +508,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
  strata.all <- as.character(unique(exdat$strata))
  strata.base <- strata.all[strata.all%in%levels == FALSE]
 
-  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), survey.time = survey.time, survey.area = survey.area, time.area = time.area, survey.time.area = survey.time.area, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, is.yearly = FALSE, type.st = type.st, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base))
+  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), survey.time = survey.time, survey.area = survey.area, time.area = time.area, survey.time.area = survey.time.area, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base))
     
   }
 }
