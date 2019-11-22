@@ -6,11 +6,12 @@
 \usage{
 fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2,
   is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5,
-  na.rm = TRUE, priors = NULL, type.st = 1, hyper = c("pc",
-  "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5,
-  pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL,
-  b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic =
-  T, mlik = T, cpo = T, openmp.strategy = "default"), verbose = FALSE)
+  na.rm = TRUE, priors = NULL, type.st = 1, survey.effect = FALSE,
+  hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01,
+  pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL,
+  a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL,
+  options = list(dic = T, mlik = T, cpo = T, openmp.strategy =
+  "default"), verbose = FALSE)
 }
 \arguments{
 \item{data}{Combined dataset}
@@ -38,6 +39,8 @@ fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2,
 \item{priors}{priors from \code{\link{simhyper}}}
 
 \item{type.st}{type for space-time interaction}
+
+\item{survey.effect}{logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0.}
 
 \item{hyper}{which hyperpriors to use. Default to be using the PC prior ("pc").}
 

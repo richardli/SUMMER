@@ -16,6 +16,7 @@
 #' @param year_range Entire range of the years (inclusive) defined in year_label.
 #' @param m Number of years in each period.
 #' @param type.st type for space-time interaction
+#' @param survey.effect logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0. 
 #' @param hyper which hyperpriors to use. Default to be using the PC prior ("pc"). 
 #' @param pc.u hyperparameter U for the PC prior on precisions.
 #' @param pc.alpha hyperparameter alpha for the PC prior on precisions.
@@ -69,7 +70,7 @@
 #' 
 #' }
 #' @export
-fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo = T, openmp.strategy = 'default'), verbose = FALSE){
+fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo = T, openmp.strategy = 'default'), verbose = FALSE){
 
 
   if(m == 1){
@@ -260,22 +261,7 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, is.yearly
       dat$time.unstruct <- dat$time.struct <- dat$time.int <- years[match(dat$years, years[, 1]), 2]
     }
     
-    ################################################################## get the number of surveys
-    if(sum(!is.na(data$survey)) == 0){
-      data$survey <- 1
-      nosurvey <- TRUE
-    }else{
-      nosurvey <- FALSE
-    }
-    survey_count <- length(table(data$survey))
-    ################################################################## -- these are the time X survey options -- #
-    x <- expand.grid(1:nn, 1:survey_count)
-    survey.time <- data.frame(time.unstruct = x[, 1], survey = x[, 2], survey.time = c(1:nrow(x)))
-    
-    # -- these are the area X survey options -- #
-    x <- expand.grid(1:region_count, 1:survey_count)
-    survey.area <- data.frame(region_number = x[, 1], survey = x[, 2], survey.area = c(1:nrow(x)))
-    
+
     # -- these are the area X time options -- #
     # The new structure takes the following order
     # (x_11, ..., x_1T, ..., x_S1, ..., x_ST, xx_11, ..., xx_1t, ..., xx_S1, ..., xx_St)
@@ -292,16 +278,24 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, is.yearly
     if(is.null(geo)){
       time.area$region_number <- 0
     }
-    # -- these are the area X time X survey options -- #
-    x <- expand.grid(1:region_count, 1:N, 1:survey_count)
-    survey.time.area <- data.frame(region_number = x[, 1], time.unstruct = x[, 2], survey = x[, 3], survey.time.area = c(1:nrow(x)))
-    
+    ################################################################## get the number of surveys
+    if(survey.effect){
+          if("survey" %in% colnames(data) == FALSE) stop("survey.effect is set to TRUE, but no survey column in the input data")
+          survey_count <- length(table(data$survey))
+          if(survey_count <= 1){
+            warning("survey.effect is set to TRUE, but only one survey index is provided, the survey effect has been removed.")
+            survey.effect <- FALSE
+          }
+    }
+      
     # -- merge these all into the data sets -- #
     newdata <- dat
-    if (!nosurvey) {
-      newdata <- merge(newdata, survey.time, by = c("time.unstruct", "survey"))
-      newdata <- merge(newdata, survey.area, by = c("region_number", "survey"))
-      newdata <- merge(newdata, survey.time.area, by = c("region_number", "time.unstruct", "survey"))
+    if (survey.effect) {
+      newdata$survey.id <- match(newdata$survey, unique(newdata$survey))
+      survey.table <- data.frame(survey = unique(newdata$survey), survey.id = 1:survey_count)
+    }else{
+      newdata$survey.id <- NA
+      survey.table <- NULL
     }
     if(!is.null(geo)){
       newdata <- merge(newdata, time.area, by = c("region_number", "time.unstruct"))
@@ -367,7 +361,7 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, is.yearly
     for(i in 1:N){
       tmp<-exdat[match(unique(exdat$region), exdat$region), ]
       tmp$time.unstruct<-tmp$time.struct<- tmp$time.int <- i
-      tmp$logit.est<-tmp$logit.prec<-tmp$survey<-NA
+      tmp$logit.est<-tmp$logit.prec<-tmp$survey<-tmp$survey.id <- NA
       tmp <- tmp[, colnames(tmp) != "time.area"]
       tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
       tmp$years<-years[i, 1]
@@ -495,7 +489,10 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, is.yearly
                   f(region.struct, graph=Amat,model="bym2", hyper = hyperpc2, scale.model = TRUE, adjust.for.con.comp = TRUE) + 
                   f(time.area,model=st.model.pc, diagonal = 1e-6, extraconstr = constr.st, values = 1:(N*S))
         }
-
+       
+        if(survey.effect){
+          formula <- update(formula, ~. + f(survey.id, model = "iid", hyper = hyperpc1))
+        }
     ## ---------------------------------------------------------
     ## Setup Gamma prior model
     ## ---------------------------------------------------------
@@ -579,6 +576,10 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, is.yearly
               f(time.area,model=st.model, diagonal = 1e-6, extraconstr = constr.st, values = 1:(N*S)) 
         }
 
+        if(survey.effect){
+          formula <- update(formula, ~. + f(survey.id, model = "iid", param=c(a.iid,b.iid)))
+        }
+
     }else{
       stop("hyper needs to be either pc or gamma.")
     }
@@ -586,13 +587,13 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, is.yearly
     if(!is.null(X)){
       formula <- as.formula(paste("logit.est~", as.character(formula)[3], "+", paste(covariate.names, collapse = " + ")))
     }
+
+  
 }
 
 
     mod <- formula
     
-
-
 
     
     # borrow the old function from INLA
@@ -753,9 +754,6 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, is.yearly
 
     fit <- INLA::inla(mod, family = "gaussian", control.compute = options, data = exdat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE ))), scale = exdat$logit.prec, lincomb = lincombs.fit, control.inla = list(int.strategy = "ccd"), verbose = verbose)
     
-    return(list(model = mod, fit = fit, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), survey.time = survey.time, survey.area = survey.area, time.area = time.area, survey.time.area = survey.time.area, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, lincombs.info = lincombs.info, is.yearly = is.yearly, type.st = type.st, year_range = year_range))
-    
+    return(list(model = mod, fit = fit, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, lincombs.info = lincombs.info, is.yearly = is.yearly, type.st = type.st, year_range = year_range))
   }
-  
-  
 }
