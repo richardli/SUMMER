@@ -25,6 +25,7 @@
 #' @param priors priors from \code{\link{simhyper}}
 #' @param rw Take values 1 or 2, indicating the order of random walk.
 #' @param type.st type for space-time interaction
+#' @param survey.effect logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0. 
 #' @param hyper which hyperpriors to use. Default to be using the PC prior ("pc"). 
 #' @param pc.u hyperparameter U for the PC prior on precisions.
 #' @param pc.alpha hyperparameter alpha for the PC prior on precisions.
@@ -51,7 +52,7 @@
 #' 
 #' 
 
-fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, year_label, priors = NULL, type.st = 1, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE){
+fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomial")[2], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE){
 
 
   # check region names in Amat is consistent
@@ -147,38 +148,30 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
     
 
     ################################################################## get the number of surveys
-    if(sum(!is.na(data$survey)) == 0){
-      data$survey <- 1
-      nosurvey <- TRUE
-    }else{
-      nosurvey <- FALSE
+    if(survey.effect){
+          if("survey" %in% colnames(data) == FALSE) stop("survey.effect is set to TRUE, but no survey column in the input data")
+          survey_count <- length(table(data$survey))
+          if(survey_count <= 1){
+            warning("survey.effect is set to TRUE, but only one survey index is provided, the survey effect has been removed.")
+            survey.effect <- FALSE
+          }
     }
-    survey_count <- length(table(data$survey))
-    ################################################################## -- these are the time X survey options -- #
-    x <- expand.grid(1:nn, 1:survey_count)
-    survey.time <- data.frame(time.unstruct = x[, 1], survey = x[, 2], survey.time = c(1:nrow(x)))
-    
-    # -- these are the area X survey options -- #
-    x <- expand.grid(1:region_count, 1:survey_count)
-    survey.area <- data.frame(region_number = x[, 1], survey = x[, 2], survey.area = c(1:nrow(x)))
-    
+      
     x <- expand.grid(1:N, 1:region_count)
-    
     time.area <- data.frame(region_number = x[, 2], time.unstruct = x[, 1], time.area = c(1:nrow(x)))
     # fix for 0 instead of 1 when no geo file provided
     if(is.null(geo)){
       time.area$region_number <- 0
     }
-    # -- these are the area X time X survey options -- #
-    x <- expand.grid(1:region_count, 1:N, 1:survey_count)
-    survey.time.area <- data.frame(region_number = x[, 1], time.unstruct = x[, 2], survey = x[, 3], survey.time.area = c(1:nrow(x)))
-    
+   
     # -- merge these all into the data sets -- #
     newdata <- dat
-    if (!nosurvey) {
-      newdata <- merge(newdata, survey.time, by = c("time.unstruct", "survey"))
-      newdata <- merge(newdata, survey.area, by = c("region_number", "survey"))
-      newdata <- merge(newdata, survey.time.area, by = c("region_number", "time.unstruct", "survey"))
+    if (survey.effect) {
+      newdata$survey.id <- match(newdata$survey, unique(newdata$survey))
+      survey.table <- data.frame(survey = unique(newdata$survey), survey.id = 1:survey_count)
+    }else{
+      newdata$survey.id <- NA
+      survey.table <- NULL
     }
     if(!is.null(geo)){
       newdata <- merge(newdata, time.area, 
@@ -309,6 +302,9 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
         ## Yearly + Subnational + PC
         ## ------------------------- 
         }
+        if(survey.effect){
+          formula <- update(formula, ~. + f(survey.id, model = "iid", hyper = hyperpc1))
+        }
 
     ## ---------------------------------------------------------
     ## Setup Gamma prior model
@@ -386,7 +382,9 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
                  }
             }
          
-          
+        if(survey.effect){
+          formula <- update(formula, ~. + f(survey.id, model = "iid", param=c(a.iid,b.iid)))
+        }
         ## ------------------- 
         ## Yearly + Subnational
         ## ------------------- 
@@ -474,12 +472,21 @@ if(family == "betabinomialna"){
     if(sum(!is.na(exdat$age.idx)) == 0) exdat$age.idx <- 1
     if(sum(!is.na(exdat$age.rep.idx)) == 0) exdat$age.rep.idx <- 1
     exdat$logoffset[is.na(exdat$logoffset)] <- 0
+
+    ## get list of covariates
+    if(survey.effect){
+      rhs <- "years + region_number + time.unstruct + region + age + strata + region.int + region.unstruct + region.struct + time.int + time.struct + time.area + logoffset + age.idx + age.rep.idx + survey.id" 
+    }else{
+      rhs <- "years + region_number + time.unstruct + region + age + strata + region.int + region.unstruct + region.struct + time.int + time.struct + time.area + logoffset + age.idx + age.rep.idx"
+    }
+
+
     # Total Y
-    tmp1 <- aggregate(Y~years + region_number + time.unstruct + region + age + strata + region.int + region.unstruct + region.struct + time.int + time.struct + time.area + logoffset + age.idx + age.rep.idx, data = exdat, FUN = function(x){sum(x, na.rm=TRUE)}, na.action = na.pass)
+    tmp1 <- aggregate(as.formula(paste0("Y~", rhs)), data = exdat, FUN = function(x){sum(x, na.rm=TRUE)}, na.action = na.pass)
     # Total N
-    tmp2 <- aggregate(total~years + region_number + time.unstruct + region + age + strata + region.int + region.unstruct + region.struct + time.int + time.struct + time.area + logoffset + age.idx + age.rep.idx, data = exdat, FUN = function(x){sum(x, na.rm=TRUE)}, na.action = na.pass)
+    tmp2 <- aggregate(as.formula(paste0("total~", rhs)), data = exdat, FUN = function(x){sum(x, na.rm=TRUE)}, na.action = na.pass)
     # Scaling factor (\sum n(n-1))/N/N-1 
-    tmp3 <- aggregate(total~years + region_number + time.unstruct + region + age + strata + region.int + region.unstruct + region.struct + time.int + time.struct + time.area + logoffset + age.idx + age.rep.idx, data = exdat, FUN = function(x){sum(x*(x-1), na.rm=TRUE)/(sum(x, na.rm=TRUE)*(sum(x, na.rm=TRUE)-1)) }, na.action = na.pass)
+    tmp3 <- aggregate(as.formula(paste0("total~", rhs)), data = exdat, FUN = function(x){sum(x*(x-1), na.rm=TRUE)/(sum(x, na.rm=TRUE)*(sum(x, na.rm=TRUE)-1)) }, na.action = na.pass)
     colnames(tmp3)[which(colnames(tmp3) == "total")] <- "s"
     exdat <- merge(merge(tmp1, tmp2), tmp3)
     # Handle division by 0
@@ -508,7 +515,7 @@ if(family == "betabinomialna"){
  strata.all <- as.character(unique(exdat$strata))
  strata.base <- strata.all[strata.all%in%levels == FALSE]
 
-  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), survey.time = survey.time, survey.area = survey.area, time.area = time.area, survey.time.area = survey.time.area, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base))
+  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base))
     
   }
 }

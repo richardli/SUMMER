@@ -5,15 +5,15 @@
 \title{Fit cluster-level space-time smoothing models to mortality rates}
 \usage{
 fitINLA2(data, family = c("betabinomial", "betabinomialna",
-  "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47",
+  "binomial")[2], age.groups = c("0", "1-11", "12-23", "24-35", "36-47",
   "48-59"), age.n = c(1, 11, 12, 12, 12, 12), age.rw.group = 1:6, Amat,
   geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2,
-  year_label, priors = NULL, type.st = 1, hyper = c("pc",
-  "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5,
-  pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL,
-  b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config
-  = TRUE), control.inla = list(strategy = "adaptive", int.strategy =
-  "auto"), verbose = FALSE)
+  year_label, priors = NULL, type.st = 4, survey.effect = FALSE,
+  hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01,
+  pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL,
+  a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL,
+  options = list(config = TRUE), control.inla = list(strategy =
+  "adaptive", int.strategy = "auto"), verbose = FALSE)
 }
 \arguments{
 \item{data}{count data of person-months with the following columns
@@ -52,6 +52,8 @@ fitINLA2(data, family = c("betabinomial", "betabinomialna",
 \item{priors}{priors from \code{\link{simhyper}}}
 
 \item{type.st}{type for space-time interaction}
+
+\item{survey.effect}{logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0.}
 
 \item{hyper}{which hyperpriors to use. Default to be using the PC prior ("pc").}
 
