@@ -28,6 +28,7 @@
 #' @param b.rw hyperparameter for RW 1 or 2random effects.
 #' @param a.icar hyperparameter for ICAR random effects.
 #' @param b.icar hyperparameter for ICAR random effects.
+#' @param control.inla list of options to be passed to control.inla() in the inla() function. Default to the "adaptive" integration strategy.
 #' @param options list of options to be passed to control.compute() in the inla() function.
 #' @param verbose logical indicator to print out detailed inla() intermediate steps.
 #' @seealso \code{\link{getDirect}}
@@ -70,7 +71,7 @@
 #' 
 #' }
 #' @export
-fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo = T, openmp.strategy = 'default'), verbose = FALSE){
+fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo = T, openmp.strategy = 'default'), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE){
 
 
   if(m == 1){
@@ -752,7 +753,7 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, is.yearly
     }
     
 
-    fit <- INLA::inla(mod, family = "gaussian", control.compute = options, data = exdat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE ))), scale = exdat$logit.prec, lincomb = lincombs.fit, control.inla = list(int.strategy = "ccd"), verbose = verbose)
+    fit <- INLA::inla(mod, family = "gaussian", control.compute = options, data = exdat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE ))), scale = exdat$logit.prec, lincomb = lincombs.fit, control.inla = control.inla, verbose = verbose)
     
     return(list(model = mod, fit = fit, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, lincombs.info = lincombs.info, is.yearly = is.yearly, type.st = type.st, year_range = year_range))
   }

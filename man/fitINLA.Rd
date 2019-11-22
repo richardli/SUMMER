@@ -11,7 +11,8 @@ fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2,
   pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL,
   a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL,
   options = list(dic = T, mlik = T, cpo = T, openmp.strategy =
-  "default"), verbose = FALSE)
+  "default"), control.inla = list(strategy = "adaptive", int.strategy =
+  "auto"), verbose = FALSE)
 }
 \arguments{
 \item{data}{Combined dataset}
@@ -65,6 +66,8 @@ fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2,
 \item{b.icar}{hyperparameter for ICAR random effects.}
 
 \item{options}{list of options to be passed to control.compute() in the inla() function.}
+
+\item{control.inla}{list of options to be passed to control.inla() in the inla() function. Default to the "adaptive" integration strategy.}
 
 \item{verbose}{logical indicator to print out detailed inla() intermediate steps.}
 }
