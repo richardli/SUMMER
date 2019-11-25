@@ -185,6 +185,9 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
     
     # -- subset of not missing and not direct estimate of 0 -- #
     exdat <- newdata
+    if("survey" %in% colnames(exdat)){
+      exdat$cluster <- paste(exdat$survey, exdat$cluster)
+    }
     clusters <- unique(exdat$cluster)
     exdat$cluster.id <- match(exdat$cluster, clusters)
     exdat$nugget.id <- exdat$cluster.id
