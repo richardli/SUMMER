@@ -5,7 +5,7 @@
 \title{Fit cluster-level space-time smoothing models to mortality rates}
 \usage{
 fitINLA2(data, family = c("betabinomial", "betabinomialna",
-  "binomial")[2], age.groups = c("0", "1-11", "12-23", "24-35", "36-47",
+  "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47",
   "48-59"), age.n = c(1, 11, 12, 12, 12, 12), age.rw.group = 1:6, Amat,
   geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2,
   year_label, priors = NULL, type.st = 4, survey.effect = FALSE,
