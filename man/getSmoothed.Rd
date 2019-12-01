@@ -7,7 +7,8 @@
 getSmoothed(inla_mod, year_range = c(1985, 2019),
   year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14",
   "15-19"), Amat = NULL, nsim = 1000, weight.strata = NULL,
-  verbose = FALSE, mc = 0, include_time_unstruct = FALSE, ...)
+  verbose = FALSE, mc = 0, include_time_unstruct = FALSE,
+  CI = 0.95, ...)
 }
 \arguments{
 \item{inla_mod}{output from \code{\link{fitINLA}}}
@@ -27,6 +28,8 @@ getSmoothed(inla_mod, year_range = c(1985, 2019),
 \item{mc}{number of monte carlo draws to approximate the marginal prevalence/hazards for binomial model. If mc = 0, analytical approximation is used. The analytical approximation is invalid for hazard modeling with more than one age groups.}
 
 \item{include_time_unstruct}{logical indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates.}
+
+\item{CI}{Desired level of credible intervals}
 
 \item{...}{additional configurations passed to inla.posterior.sample.}
 }

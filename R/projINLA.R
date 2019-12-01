@@ -11,6 +11,7 @@
 #' @param verbose logical indicator whether to print progress messages from inla.posterior.sample.
 #' @param mc number of monte carlo draws to approximate the marginal prevalence/hazards for binomial model. If mc = 0, analytical approximation is used. The analytical approximation is invalid for hazard modeling with more than one age groups.
 #' @param include_time_unstruct logical indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates.
+#' @param CI Desired level of credible intervals
 #' @param ... additional configurations passed to inla.posterior.sample.
 #' 
 #' @return Results from RW2 model fit, including projection.
@@ -53,10 +54,11 @@
 
 #' @export
 getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), 
-                            Amat = NULL, nsim = 1000, weight.strata = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, ...){
+                            Amat = NULL, nsim = 1000, weight.strata = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, ...){
 
       years <- NA
-
+      lowerCI <- (1 - CI) / 2
+      upperCI <- 1 - lowerCI
       ########################
       ## Binomial methods
       ########################
@@ -292,7 +294,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
                 draws.mort <- draws.hazards
               }
               draws[, k] <- draws.mort
-              out1[index1, c("lower", "median", "upper")] <- quantile(draws.mort, c(0.025, 0.5, 0.975))
+              out1[index1, c("lower", "median", "upper")] <- quantile(draws.mort, c(lowerCI, 0.5, upperCI))
               out1[index1, "mean"] <- mean(draws.mort)
               out1[index1, "variance"] <- var(draws.mort)
               index1 <- index1 + 1
@@ -300,7 +302,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
             # aggregate to time-area estimates
             prop <- out2[index2, strata.index] 
             draws <- apply(draws, 1, function(x, p){sum(x * p)}, prop)
-            out2[index2, c("lower", "median", "upper")] <- quantile(draws, c(0.025, 0.5, 0.975))
+            out2[index2, c("lower", "median", "upper")] <- quantile(draws, c(lowerCI, 0.5, upperCI))
             out2[index2, "mean"] <- mean(draws)
             out2[index2, "variance"] <- var(draws)
             index2 <- index2 + 1
@@ -364,11 +366,11 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
             tmp <- INLA::inla.rmarginal(nsim, marg)
 
             results$median[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::median(tmp)
-            results$upper[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp, .975)
-            results$lower[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp, .025)
+            results$upper[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp, upperCI)
+            results$lower[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp, lowerCI)
             results$logit.median[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::median(tmp.logit)
-            results$logit.upper[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp.logit, .975)
-            results$logit.lower[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp.logit, .025)
+            results$logit.upper[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp.logit, upperCI)
+            results$logit.lower[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp.logit, lowerCI)
 
         }
       }
