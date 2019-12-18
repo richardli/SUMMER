@@ -26,6 +26,7 @@
 #' @param rw Take values 1 or 2, indicating the order of random walk.
 #' @param type.st type for space-time interaction
 #' @param survey.effect logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0. 
+#' @param strata.time.effect logical indicator whether to include strata specific temporal trends. 
 #' @param hyper which hyperpriors to use. Default to be using the PC prior ("pc"). 
 #' @param pc.u hyperparameter U for the PC prior on precisions.
 #' @param pc.alpha hyperparameter alpha for the PC prior on precisions.
@@ -52,9 +53,9 @@
 #' 
 #' 
 
-fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE){
+fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE){
 
-  if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
+  # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
   if(!is.null(Amat)){
     if(is.null(rownames(Amat))){
@@ -86,6 +87,37 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
   if(is.null(age.groups)){
     age.n <- 1
     age.rw.group <- 1
+  }
+  
+  ## Do we need to make sure age.rw.group starts from 1?
+  ##  If we do, add check here.
+
+  stratalevels <- unique(data$strata)
+
+  if(strata.time.effect){
+    if(is.null(data$strata)) stop("No strata column in the data.")
+    ## Update here age -> age x strata to allow stratum-specific trends
+    ## Then redefine age.n and age.rw.group.
+    strata.n <- length(stratalevels) 
+
+    age.n <- rep(age.n, strata.n)
+
+    tmp <- NULL
+    ngroup <- max(age.rw.group)
+    for(i in 1:strata.n){
+        tmp <- c(tmp, age.rw.group + (i-1) * ngroup)
+    }
+    age.rw.group <- tmp
+
+    if(is.null(age.groups)){
+      age.groups <- stratalevels
+      data$age <- data$strata
+    }else{
+      age.groups <- expand.grid(age.groups, stratalevels)
+      age.groups <- paste(age.groups[,2], age.groups[,1], sep = ":")
+      data$age <- paste(data$strata, data$age, sep = ":")
+    }
+
   }
 
     tau = exp(10)
@@ -405,7 +437,12 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
           stop("hyper needs to be either pc or gamma.")
       }
     }
-    formula <- update(formula, ~. -1 + age + strata)
+    if(strata.time.effect){
+        # In this case, age is age x strata already
+        formula <- update(formula, ~. -1 + age) 
+    }else{
+        formula <- update(formula, ~. -1 + age + strata)
+    }
     if(!is.null(bias.adj)){
       if(is.null(bias.adj.by)) stop("bias.adj.by argument is not specified. Please specify which bias adjustment factors are specified by which columns. ")
       bias.adj <- bias.adj[, c(bias.adj.by, "ratio")]
@@ -460,7 +497,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
   tmp[, colnames(tmp) %in% created == FALSE] <- NA
   exdat <- rbind(exdat, tmp)
 
-  exdat$strata <- factor(exdat$strata)
+  exdat$strata <- factor(exdat$strata, levels = stratalevels)
   if(!is.null(age.groups)){
       exdat$age <- factor(exdat$age, levels = age.groups)    
   }else{
