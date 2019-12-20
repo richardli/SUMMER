@@ -295,6 +295,12 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
              inla.rw = utils::getFromNamespace("inla.rw", "INLA")
              R2 <- inla.rw(N, order = rw, scale.model=TRUE, sparse=TRUE)
              R4 = Amat
+            if(sum(R4 > 0 & R4 < 1) != 0){
+              for(row in 1:nrow(R4)){
+                idx <- which(R4[row,] > 0 & R4[row,] < 1)
+                R4[row,idx] <- 1
+              }
+            }
              diag(R4) <- 0
              diag <- apply(R4, 1, sum)
              R4[R4 != 0] <- -1
@@ -391,6 +397,13 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
                 inla.rw = utils::getFromNamespace("inla.rw", "INLA")
                 R2 <- inla.rw(N, order = rw, scale.model=TRUE, sparse=TRUE)
                 R4 = Amat
+                if(sum(R4 > 0 & R4 < 1) != 0){
+                  for(row in 1:nrow(R4)){
+                    idx <- which(R4[row,] > 0 & R4[row,] < 1)
+                    R4[row,idx] <- 1
+                  }
+                }
+              
                 diag(R4) <- 0
                 diag <- apply(R4, 1, sum)
                 R4[R4 != 0] <- -1
