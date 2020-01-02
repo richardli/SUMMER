@@ -58,8 +58,9 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 	}
 
 	is.yearly = inla_mod$is.yearly
+	has.slope <- sum(grepl("slope", rownames(inla_mod$fit$summary.fixed)))
 
-	if(field == "time"){
+	if(field == "time" && has.slope == 0){
 		struct <- inla_mod$fit$marginals.random$time.struct
 		unstruct <- inla_mod$fit$marginals.random$time.unstruct
 		if(is.yearly){
@@ -83,6 +84,75 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 			}
 		}else{
 			quants <- getquants(struct, lower = lower, upper = upper)
+		}
+		n <- dim(quants)[1]
+		m <- length(unstruct)
+		quants <- rbind(quants, getquants(unstruct, lower = lower, upper = upper))
+		quants$years <- c(label, label.unstruct)
+		if(!is.null(inla_mod$age.rw.group)){
+			quants$group <- c(group, rep(NA, m))
+		}
+	  	quants$years.num <- suppressWarnings(as.numeric(as.character(quants$years)))
+		quants$label <- c(rep("RW", n), rep("IID", m))
+		quants$is.yearly <- !(quants$years %in% year_label)
+
+	}else if(field == "time" && has.slope > 0){
+
+		fixed <- rownames(inla_mod$fit$summary.fixed)
+		fixed <- fixed[grepl("slope", fixed)]
+		fixed <- c(fixed, "time.struct")
+        select <- list()
+        for(i in 1:length(fixed)){
+           select[[i]] <- 0
+           names(select)[i] <- fixed[i]
+        }
+        message("AR1 model is still experimental, starting posterior sampling...")
+        sampAll <- INLA::inla.posterior.sample(n = 1e3, result = inla_mod$fit, intern = TRUE, selection = select, verbose = FALSE)
+        message("Finished posterior sampling, cleaning up results now...")
+
+	    #inla_mod$fit$marginals.random$time.struct 
+	    re <- grep("time.struct", rownames(sampAll[[1]]$latent))
+	    fe <- grep("time.slope", rownames(sampAll[[1]]$latent))
+	    fe.name <- rownames(sampAll[[1]]$latent)[fe]
+	    fe.name <- gsub("time.slope.", "", fe.name)
+	    fe.name <- gsub(":1", "", fe.name)
+
+	    struct.all <- matrix(0, length(re), length(sampAll))
+	    T <- length(re) / length(fe)
+	    xx <- ((1:T) - T/2) / sd(1:T)
+	    for(j in 1:length(sampAll)){
+	    	for(k in 1:length(inla_mod$age.rw.group)){
+	    		group.index <- inla_mod$age.rw.group[k]
+	    		where <- ((group.index-1) * T + 1) :(group.index * T )
+		    	struct.all[where, j] <- sampAll[[j]]$latent[re[where], 1] + sampAll[[j]]$latent[fe[group.index], 1]	* xx    		
+	    	}
+	    }
+	    temp <- data.frame(t(apply(struct.all, 1, quantile, c(lower, 0.5, upper))))
+	    colnames(temp) <- c("lower", "median", "upper")
+	    rownames(temp) <- NULL
+		unstruct <- inla_mod$fit$marginals.random$time.unstruct
+		if(is.yearly){
+		    label <- label.unstruct <- c(year_range[1] : year_range[2], year_label)
+		  }else{
+		    label <- label.unstruct <- year_label
+		 }
+		if(!is.null(inla_mod$age.rw.group)){
+			group <- rep(inla_mod$age.groups, each = length(label))
+			# Now in this version, do not repeat the same effects
+			label <- rep(label, length(inla_mod$age.rw.group))
+		} 
+		expand <- 1
+
+		if(!is.null(inla_mod$age.rw.group)) expand <-  max(inla_mod$age.rw.group) / length(inla_mod$age.rw.group) 
+		if(nrow(temp) != length(label) * expand) stop("The input year_range or year_label does not match the fitted model. Please double check.")
+		quants <- NULL
+		if(!is.null(inla_mod$age.rw.group)){
+			for(i in 1:length(inla_mod$age.groups)){
+				where <- (inla_mod$age.rw.group[i] - 1) * length(year_label) + c(1:length(year_label))
+				quants <- rbind(quants,  temp[where, ])
+			}
+		}else{
+			quants <- temp
 		}
 		n <- dim(quants)[1]
 		m <- length(unstruct)

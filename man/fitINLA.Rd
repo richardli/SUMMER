@@ -5,14 +5,14 @@
 \title{Fit space-time smoothing models to mortality rates}
 \usage{
 fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2,
-  is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5,
-  na.rm = TRUE, priors = NULL, type.st = 1, survey.effect = FALSE,
-  hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01,
-  pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL,
-  a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL,
-  options = list(dic = T, mlik = T, cpo = T, openmp.strategy =
-  "default"), control.inla = list(strategy = "adaptive", int.strategy =
-  "auto"), verbose = FALSE)
+  ar1 = FALSE, is.yearly = TRUE, year_label, year_range = c(1980,
+  2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1,
+  survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1,
+  pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3,
+  a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL,
+  a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo
+  = T, openmp.strategy = "default"), control.inla = list(strategy =
+  "adaptive", int.strategy = "auto"), verbose = FALSE)
 }
 \arguments{
 \item{data}{Combined dataset}
@@ -26,6 +26,8 @@ fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2,
 \item{formula}{INLA formula. See vignette for example of using customized formula.}
 
 \item{rw}{Take values 1 or 2, indicating the order of random walk.}
+
+\item{ar1}{Logical indicator for replacing random walk components with an autoregressive component with lag 1.}
 
 \item{is.yearly}{Logical indicator for fitting yearly or period model.}
 

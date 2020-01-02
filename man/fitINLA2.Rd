@@ -4,17 +4,17 @@
 \alias{fitINLA2}
 \title{Fit cluster-level space-time smoothing models to mortality rates}
 \usage{
-fitINLA2(data, family = c("betabinomial", "betabinomialna",
-  "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47",
-  "48-59"), age.n = c(1, 11, 12, 12, 12, 12), age.rw.group = 1:6, Amat,
-  geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2,
-  year_label, priors = NULL, type.st = 4, survey.effect = FALSE,
-  strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1,
-  pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3,
-  a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL,
-  a.icar = NULL, b.icar = NULL, options = list(config = TRUE),
-  control.inla = list(strategy = "adaptive", int.strategy = "auto"),
-  verbose = FALSE)
+fitINLA2(data, family = c("betabinomial", "binomial")[1],
+  age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"),
+  age.n = c(1, 11, 12, 12, 12, 12), age.rw.group = 1:6, Amat, geo,
+  bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2,
+  ar1 = FALSE, year_label, priors = NULL, type.st = 4,
+  survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc",
+  "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5,
+  pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL,
+  b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config
+  = TRUE), control.inla = list(strategy = "adaptive", int.strategy =
+  "auto"), verbose = FALSE)
 }
 \arguments{
 \item{data}{count data of person-months with the following columns
@@ -28,7 +28,7 @@ fitINLA2(data, family = c("betabinomial", "betabinomialna",
 \item Y: total number of deaths in this age group, stratum, cluster, and period
 }}
 
-\item{family}{family of the model. This can be either binomial (with logistic normal prior), betabiniomial, or betabinomialna (Beta-binomial with normal approximation).}
+\item{family}{family of the model. This can be either binomial (with logistic normal prior), betabiniomial.}
 
 \item{age.groups}{a character vector of age groups in increasing order.}
 
@@ -47,6 +47,8 @@ fitINLA2(data, family = c("betabinomial", "betabinomialna",
 \item{formula}{INLA formula.  See vignette for example of using customized formula.}
 
 \item{rw}{Take values 1 or 2, indicating the order of random walk.}
+
+\item{ar1}{Logical indicator for replacing random walk components with an autoregressive component with lag 1.}
 
 \item{year_label}{string vector of year names}
 

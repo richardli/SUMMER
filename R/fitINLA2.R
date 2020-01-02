@@ -15,7 +15,7 @@
 #' @param age.groups a character vector of age groups in increasing order.
 #' @param age.n number of months in each age groups in the same order.
 #' @param age.rw.group vector indicating grouping of the ages groups. For example, if each age group is assigned a different random walk component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate random walk to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.
-#' @param family family of the model. This can be either binomial (with logistic normal prior), betabiniomial, or betabinomialna (Beta-binomial with normal approximation).
+#' @param family family of the model. This can be either binomial (with logistic normal prior), betabiniomial.
 #' @param Amat Adjacency matrix for the regions
 #' @param geo Geo file
 #' @param bias.adj the ratio of unadjusted mortality rates or age-group-specific hazards to the true rates or hazards. It needs to be a data frame that can be merged to thee outcome, i.e., with the same column names for time periods (for national adjustment), or time periods and region (for subnational adjustment). The column specifying the adjustment ratio should be named "ratio".
@@ -24,6 +24,7 @@
 #' @param year_label string vector of year names
 #' @param priors priors from \code{\link{simhyper}}
 #' @param rw Take values 1 or 2, indicating the order of random walk.
+#' @param ar1 Logical indicator for replacing random walk components with an autoregressive component with lag 1.
 #' @param type.st type for space-time interaction
 #' @param survey.effect logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0. 
 #' @param strata.time.effect logical indicator whether to include strata specific temporal trends. 
@@ -53,7 +54,7 @@
 #' 
 #' 
 
-fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE){
+fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, ar1 = FALSE, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
@@ -88,10 +89,76 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
     age.n <- 1
     age.rw.group <- 1
   }
-  
+  if(ar1 && hyper=="gamma"){
+    stop("AR1 model only implemented with PC priors for now.")
+  }
+
+  multi.frame <- FALSE
+  if("frame" %in% colnames(data)){
+    message("column named frame exists in the data, redefine strata to be frame-strata. If this is not desired, please remove the frame column from the data.")
+    if(length(unique(data$frame)) > 1){
+      multi.frame <- TRUE
+      data$strata <- paste(data$frame, data$strata, sep = "-")
+    }
+  }
+
   ## Do we need to make sure age.rw.group starts from 1?
   ##  If we do, add check here.
 
+  ## Survey fixed effect should only exist if they are nested within the same strata.
+  ## This is checked here
+  if(survey.effect){
+      if("survey" %in% colnames(data) == FALSE){
+          warning("survey.effect is set to TRUE, but no survey column in the input data")
+          survey.effect <- FALSE
+          survey.table <- NULL
+      }else if(!multi.frame){
+        # If there is no frame variable in the input data
+          data$survey2 <- data$survey
+          survey_count <- length(unique(data$survey2))
+          survey.table <- data.frame(survey = unique(data$survey2), 
+                                     survey.id = 1:survey_count)
+          data$survey.id <- match(data$survey2, survey.table$survey)
+          survey.A <- matrix(1, 1, survey_count)
+          survey.e <- 0
+
+      }else{
+          # If there are frames, may need to remove survey effects
+          # Then impose sum-to-zero constraints for each frame
+          tab <- table(data$survey, data$frame)
+          if(max(apply(tab, 1, function(x){sum(x>0)})) > 1){
+            stop("There exist surveys associated with more than one frames. Please check the 'survey' column and 'frame' column of the input data.")
+          }
+          # for each frame, check if multiple survey exist
+          nested <- apply(tab, 2, function(x){sum(x!=0) > 1})
+          if(sum(nested) == 0){
+            warning("No survey nested within frames, reset survey.effect to FALSE.", immediate.=TRUE)
+            survey.effect <- FALSE
+            survey.table <- NULL
+          }else{
+            tt <- NULL
+            for(j in which(nested)) tt <- c(tt, which(tab[, j] > 0)) 
+            tt <- rownames(tab)[sort(unique(tt))]
+            data$survey2 <- as.character(data$survey)
+            data$survey2[data$survey2 %in% tt == FALSE] <- NA
+            ss <- unique(data$survey2)
+            ss <- ss[!is.na(ss)]
+            survey_count <- length(ss)
+            # Obtain the correct sum to zero constraints within Frame
+            survey.table <- data.frame(survey = ss, 
+                                       survey.id = 1:survey_count)
+            survey.table$frame <- data[match(survey.table$survey, data$survey), "frame"]
+            nested.frame <- unique(survey.table$frame)
+            survey.A <- matrix(0, length(nested.frame), survey_count)
+            for(j in 1:dim(survey.A)[1]){
+                same_frame <- which(survey.table$frame == nested.frame[j])
+                survey.A[j, same_frame] <- 1
+            }
+            survey.e <- rep(0, length(nested.frame))
+            data$survey.id <-match(data$survey2, survey.table$survey)
+          }
+      }
+  }
   stratalevels <- unique(data$strata)
 
   if(strata.time.effect){
@@ -114,8 +181,8 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
       data$age <- data$strata
     }else{
       age.groups <- expand.grid(age.groups, stratalevels)
-      age.groups <- paste(age.groups[,2], age.groups[,1], sep = ":")
-      data$age <- paste(data$strata, data$age, sep = ":")
+      age.groups <- paste(age.groups[,1], age.groups[,2], sep = ":")
+      data$age <- paste(data$age, data$strata, sep = ":")
     }
 
   }
@@ -177,17 +244,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
     
     # -- creating IDs for the temporal REs -- #
     dat$time.unstruct <- dat$time.struct <- dat$time.int <- years[match(dat$years, years[, 1]), 2]
-    
-
-    ################################################################## get the number of surveys
-    if(survey.effect){
-          if("survey" %in% colnames(data) == FALSE) stop("survey.effect is set to TRUE, but no survey column in the input data")
-          survey_count <- length(table(data$survey))
-          if(survey_count <= 1){
-            warning("survey.effect is set to TRUE, but only one survey index is provided, the survey effect has been removed.")
-            survey.effect <- FALSE
-          }
-    }
+  
       
     x <- expand.grid(1:N, 1:region_count)
     time.area <- data.frame(region_number = x[, 2], time.unstruct = x[, 1], time.area = c(1:nrow(x)))
@@ -198,13 +255,6 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
    
     # -- merge these all into the data sets -- #
     newdata <- dat
-    if (survey.effect) {
-      newdata$survey.id <- match(newdata$survey, unique(newdata$survey))
-      survey.table <- data.frame(survey = unique(newdata$survey), survey.id = 1:survey_count)
-    }else{
-      newdata$survey.id <- NA
-      survey.table <- NULL
-    }
     if(!is.null(geo)){
       newdata <- merge(newdata, time.area, 
         by = c("region_number", "time.unstruct"))
@@ -228,7 +278,23 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
     # exdat <- merge(exdat, cluster.time, by.x = c("cluster", "time.struct"), by.y = c("cluster", "time"))
     # # exdat$nugget.id <- 1:dim(exdat)[1]
 
-  replicate.rw <- length(unique(age.rw.group)) > 1
+    if(ar1){
+      exdat$time.slope <- exdat$time.struct 
+      center <- N/2 + 1e-5 # avoid exact zero in the lincomb creation
+      exdat$time.slope <- (exdat$time.slope  - center) / (sd(1:N))
+      slope.fixed.names <- NULL
+
+      for(aa in unique(age.rw.group)){
+          tmp <- paste0("time.slope.group", aa)
+          exdat[, tmp] <- exdat$time.slope
+          which.age <- age.groups[which(age.rw.group == aa)]
+          this.group <- exdat$age %in% which.age
+          exdat[!this.group, tmp] <- NA
+          slope.fixed.names <- c(slope.fixed.names, tmp)
+      }
+    }
+
+    replicate.rw <- length(unique(age.rw.group)) > 1
 
 
   if(is.null(formula)){
@@ -245,7 +311,8 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
         hyperpc1na <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
         hyperpc2 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
                          phi = list(prior = 'pc', param = c(pc.u.phi , pc.alpha.phi)))
-        
+        hyperar1 = list(theta1 = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
+                        rho = list(prior = "pc.cor1", param = c(0.7, 0.9)))
         ## -----------------------
         ## Period + National + PC
         ## ----------------------- 
@@ -264,13 +331,30 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
         ## ------------------------- 
         }else if(!is.null(geo)){
 
-             if(replicate.rw){
+             if(replicate.rw && (!ar1)){
+              # Replicated RW
               formula <- Y ~ 
                 f(time.struct, model=paste0("rw", rw), hyper = hyperpc1, scale.model = TRUE, extraconstr = period.constr, values = 1:N, replicate =  age.rep.idx) 
-             }else{
+
+             }else if(!ar1){
+              # Single RW
                formula <- Y ~ 
                 f(time.struct, model=paste0("rw", rw), hyper = hyperpc1, scale.model = TRUE, extraconstr = period.constr, values = 1:N) 
+             }else if(replicate.rw && ar1){
+              # Replicated AR1
+               formula <- Y ~ 
+                f(time.struct, model="ar1", hyper = hyperar1, constr = TRUE, extraconstr = period.constr, values = 1:N, replicate =  age.rep.idx) 
+             }else{
+              # Single RW
+              formula <- Y ~ 
+                f(time.struct, model="ar1", hyper = hyperar1, constr = TRUE, extraconstr = period.constr, values = 1:N) 
              }
+             if(ar1){
+                tmp <- paste(slope.fixed.names, collapse = " + ")
+                formula <- as.formula(paste(c(formula, tmp), collapse = "+"))
+             }
+
+
              formula <- update(formula, ~. + 
                   f(time.unstruct,model="iid", hyper = hyperpc1, values = 1:N) + 
                   f(region.struct, graph=Amat,model="bym2", hyper = hyperpc2, scale.model = TRUE, adjust.for.con.comp = TRUE)) 
@@ -279,8 +363,13 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
                 formula <- update(formula, ~. + 
                     f(time.area,model="iid", hyper = hyperpc1))
             }else if(type.st == 2){
-                formula <- update(formula, ~. + 
-                    f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1))
+                if(!ar1){
+                  formula <- update(formula, ~. + 
+                    f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1,  adjust.for.con.comp = TRUE))
+                }else{
+                    formula <- update(formula, ~. + 
+                    f(region.int,model="iid", group=time.int,control.group=list(model="ar1", hyper = hyperar1), scale.model = TRUE, adjust.for.con.comp = TRUE))
+                }
             }else if(type.st == 3){
                 formula <- update(formula, ~. + 
                     f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="iid"), hyper = hyperpc1, scale.model = TRUE, adjust.for.con.comp = TRUE))
@@ -328,12 +417,18 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
 
              constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
              
-             if(family == "betabinomialna"){
-             formula <- update(formula, ~. + 
-                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1na, initial=10))
-             }else{
-             formula <- update(formula, ~. + 
+             # if(family == "betabinomialna"){
+             # formula <- update(formula, ~. + 
+             #        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1na, initial=10))
+             if(ar1){
+              formula <- update(formula, ~. + 
+                   f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="ar1", hyper = hyperar1), scale.model = TRUE, adjust.for.con.comp = TRUE)) 
+             }else if(family != "betabinomialna"){
+                formula <- update(formula, ~. + 
                     f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1))              
+             }else{
+                 formula <- update(formula, ~. + 
+                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1na, initial=10))
              }
 
 
@@ -344,7 +439,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
         ## ------------------------- 
         }
         if(survey.effect){
-          formula <- update(formula, ~. + f(survey.id, model = "iid", hyper = hyperpc1))
+          formula <- update(formula, ~. + f(survey.id, model = "iid", extraconstr = list(A = survey.A, e = survey.e), hyper = list(theta = list(initial=log(0.001), fixed=TRUE))))
         }
 
     ## ---------------------------------------------------------
@@ -431,7 +526,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
             }
          
         if(survey.effect){
-          formula <- update(formula, ~. + f(survey.id, model = "iid", param=c(a.iid,b.iid)))
+          formula <- update(formula, ~. + f(survey.id, model = "iid", extraconstr = list(A = survey.A, e = survey.e), hyper = list(theta = list(initial=log(0.001), fixed=TRUE))))
         }
         ## ------------------- 
         ## Yearly + Subnational
@@ -471,6 +566,8 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
 
     formula <- update(formula, ~. + offset(logoffset))
 }
+
+
 
 
   ## add yearly observations with NA outcome and 1 trial, does not contribute to likelihood
@@ -519,45 +616,40 @@ fitINLA2 <- function(data, family = c("betabinomial", "betabinomialna", "binomia
   exdat$age.idx <- match(exdat$age, age.groups)
   exdat$age.rep.idx <- age.rw.group[exdat$age.idx]
 
+if(ar1){
+  # get lincombs of the design matrix for the temporal effects under AR1
+  ## TODO
 
+}
 if(family == "betabinomialna"){
-    ## Prepare compact version of the data frame
-    if(sum(!is.na(exdat$age.idx)) == 0) exdat$age.idx <- 1
-    if(sum(!is.na(exdat$age.rep.idx)) == 0) exdat$age.rep.idx <- 1
-    exdat$logoffset[is.na(exdat$logoffset)] <- 0
+    # ## Prepare compact version of the data frame
+    # if(sum(!is.na(exdat$age.idx)) == 0) exdat$age.idx <- 1
+    # if(sum(!is.na(exdat$age.rep.idx)) == 0) exdat$age.rep.idx <- 1
+    # exdat$logoffset[is.na(exdat$logoffset)] <- 0
 
-    ## get list of covariates
-    if(survey.effect){
-      rhs <- "years + region_number + time.unstruct + region + age + strata + region.int + region.unstruct + region.struct + time.int + time.struct + time.area + logoffset + age.idx + age.rep.idx + survey.id" 
-    }else{
-      rhs <- "years + region_number + time.unstruct + region + age + strata + region.int + region.unstruct + region.struct + time.int + time.struct + time.area + logoffset + age.idx + age.rep.idx"
-    }
-
-
-    # Total Y
-    tmp1 <- aggregate(as.formula(paste0("Y~", rhs)), data = exdat, FUN = function(x){sum(x, na.rm=TRUE)}, na.action = na.pass)
-    # Total N
-    tmp2 <- aggregate(as.formula(paste0("total~", rhs)), data = exdat, FUN = function(x){sum(x, na.rm=TRUE)}, na.action = na.pass)
-    # Scaling factor (\sum n(n-1))/N/N-1 
-    tmp3 <- aggregate(as.formula(paste0("total~", rhs)), data = exdat, FUN = function(x){sum(x*(x-1), na.rm=TRUE)/(sum(x, na.rm=TRUE)*(sum(x, na.rm=TRUE)-1)) }, na.action = na.pass)
-    colnames(tmp3)[which(colnames(tmp3) == "total")] <- "s"
-    exdat <- merge(merge(tmp1, tmp2), tmp3)
-    # Handle division by 0
-    if(sum(is.na(exdat$s)) > 0) exdat$s[is.na(exdat$s)] <- 1
-    exdat$Y[exdat$total == 0] <- NA
-    exdat$total[exdat$total == 0] <- NA
+    # ## get list of covariates
+    # if(survey.effect){
+    #   rhs <- "years + region_number + time.unstruct + region + age + strata + region.int + region.unstruct + region.struct + time.int + time.struct + time.area + logoffset + age.idx + age.rep.idx + survey2" 
+    # }else{
+    #   rhs <- "years + region_number + time.unstruct + region + age + strata + region.int + region.unstruct + region.struct + time.int + time.struct + time.area + logoffset + age.idx + age.rep.idx"
+    # }
 
 
+    # # Total Y
+    # tmp1 <- aggregate(as.formula(paste0("Y~", rhs)), data = exdat, FUN = function(x){sum(x, na.rm=TRUE)}, na.action = na.pass)
+    # # Total N
+    # tmp2 <- aggregate(as.formula(paste0("total~", rhs)), data = exdat, FUN = function(x){sum(x, na.rm=TRUE)}, na.action = na.pass)
+    # # Scaling factor (\sum n(n-1))/N/N-1 
+    # tmp3 <- aggregate(as.formula(paste0("total~", rhs)), data = exdat, FUN = function(x){sum(x*(x-1), na.rm=TRUE)/(sum(x, na.rm=TRUE)*(sum(x, na.rm=TRUE)-1)) }, na.action = na.pass)
+    # colnames(tmp3)[which(colnames(tmp3) == "total")] <- "s"
+    # exdat <- merge(merge(tmp1, tmp2), tmp3)
+    # # Handle division by 0
+    # if(sum(is.na(exdat$s)) > 0) exdat$s[is.na(exdat$s)] <- 1
+    # exdat$Y[exdat$total == 0] <- NA
+    # exdat$total[exdat$total == 0] <- NA
 
+    # fit <- INLA::inla(formula, family = family, control.compute = options, data = exdat, control.predictor = list(compute = FALSE), Ntrials = exdat$total, scale = exdat$s, lincomb = NULL, control.inla =control.inla, verbose = verbose)
 
-# formula = Y ~ f(time.struct, model = paste0("rw", rw), hyper = hyperpc1, 
-#     scale.model = TRUE, extraconstr = period.constr, values = 1:N) + 
-#     f(time.unstruct, model = "iid", hyper = hyperpc1, values = 1:N, initial = 10) + 
-#     f(region.struct, graph = Amat, model = "bym2", hyper = hyperpc2, 
-#         scale.model = TRUE, adjust.for.con.comp = TRUE) + f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = list(prec = list(prior = "pc.prec", param = c(0.001 , pc.alpha))), initial = 10) + strata + offset(logoffset) -  1
-
-
-    fit <- INLA::inla(formula, family = family, control.compute = options, data = exdat, control.predictor = list(compute = FALSE), Ntrials = exdat$total, scale = exdat$s, lincomb = NULL, control.inla =control.inla, verbose = verbose)
   }else{
     fit <- INLA::inla(formula, family = family, control.compute = options, data = exdat, control.predictor = list(compute = FALSE), Ntrials = exdat$total, lincomb = NULL, control.inla = control.inla, verbose = verbose)
   }  
@@ -572,3 +664,4 @@ if(family == "betabinomialna"){
     
   }
 }
+
