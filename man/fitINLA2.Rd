@@ -14,7 +14,7 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
   pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL,
   b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config
   = TRUE), control.inla = list(strategy = "adaptive", int.strategy =
-  "auto"), verbose = FALSE)
+  "auto"), verbose = FALSE, ...)
 }
 \arguments{
 \item{data}{count data of person-months with the following columns
@@ -87,6 +87,8 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 \item{control.inla}{list of options to be passed to control.inla() in the inla() function. Default to the "adaptive" integration strategy.}
 
 \item{verbose}{logical indicator to print out detailed inla() intermediate steps.}
+
+\item{...}{arguments to be passed to the inla() function call.}
 }
 \value{
 INLA model fit using the provided formula, country summary data, and geographic data
