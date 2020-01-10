@@ -350,10 +350,11 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         #   }else{
         #       beta[i, ] <- beta[i, ] + rep(c(0, sampAll[[i]]$latent[strata]), each = age.length)
         #   }
-        #   if(inla_mod$family == "binomial"){
-        #     tau[i] <-exp(sampAll[[i]]$hyperpar[["Log precision for nugget.id"]])
-        #   }
+          # if(inla_mod$family == "binomial"){
+          #   tau[i] <-exp(sampAll[[i]]$hyperpar[["Log precision for nugget.id"]])
+          # }
         # }
+        tau <- rep(NA, nsim)
         theta <- matrix(0, nsim, dim(AA)[1])
         for(i in 1:nsim){
           draw <- sampAll[[i]]$latent
@@ -361,6 +362,10 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           add.slope <- draw[AA$slope] * AA$tstar
           add.slope[is.na(add.slope)] <- 0
           theta[i,  ] <-  theta[i,  ] + add.slope
+
+          if(inla_mod$family == "binomial"){
+            tau[i] <-exp(sampAll[[i]]$hyperpar[["Log precision for nugget.id"]])
+          }
         }
 
         ########################
