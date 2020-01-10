@@ -277,12 +277,15 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         }
 
         if(is.null(weight.strata)){
-          warning("No strata weights has been supplied. Equal weights are used to calculate the overall estimates. Please interpret results with caution or use only the stratified estimates.", immediate.=TRUE)
+          warning("No strata weights has been supplied. Set all weights to 0.", immediate.=TRUE)
+          weight.strata <- expand.grid(region = colnames(Amat), frame = framelabels)
           for(tt in stratalabels.orig){
-            out2[, tt] <- 1/length(stratalabels.orig)
+            weight.strata[, tt] <- 0
           }
+          weight.strata.by <- "region"
+        }
 
-        }else if(weight.strata.by[1] == "Constant"){
+        if(weight.strata.by[1] == "Constant"){
           ## TODO: is this outdated?
           for(tt in stratalabels){
             out2[, tt] <- weight.strata[1, match(tt, colnames(weight.strata))]
