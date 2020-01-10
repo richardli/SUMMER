@@ -79,6 +79,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           other <- other[grep("strata", other)]
           other <- gsub("strata", "", other)
           stratalabels <- c(stratalabels, other)
+          stratalabels.orig <- c(stratalabels.orig, other)
           frame.strata <- (inla_mod$fit$.args$data)[, c("age", "age.idx", "age.rep.idx")]
           frame.strata <- unique(frame.strata)        
           frame.strata <- frame.strata[order(frame.strata$age.idx), ]
@@ -111,6 +112,9 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         weight.strata.by <- NULL
 
         if(!is.null(weight.strata)){
+          if((!"frame" %in% colnames(inla_mod$fit$.args$data)) && "frame" %in% colnames(weight.strata)){
+            stop("frame variable is not in the fitted model, but exists in the weight.strata data frame. Please remove the column from weight.strata and use a single set of weights (that are not specific to sampling frames).")
+          }
 
           if(!is.dynamic && sum(stratalabels %in% colnames(weight.strata)) != length(stratalabels)){
             stop(paste0("weight.strata argument not specified correctly. It requires the following columns: ", paste(stratalabels, collapse = ", ")))
@@ -166,6 +170,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
        }else{
           message("Use posterior draws from input.")
           sampAll <- draws
+          nsim <- length(draws)
        }
 
         fields <- rownames(sampAll[[1]]$latent)        
@@ -204,6 +209,8 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         #  AA.loc is the same  format as AA, but with location index
         AA.loc <- AA
         AA.loc$age  <- match(AA.loc$age, fields)
+        # For constant case, base strata will end up being NA here, which is fine.
+        if(!is.dynamic) AA.loc$strata <- paste0("strata", AA.loc$strata, ":1")
         AA.loc$strata  <- match(AA.loc$strata, fields)
         AA.loc$time.area  <- match(paste0("time.area:", AA.loc$time.area), fields)
         AA.loc$time.struct  <- match(paste0("time.struct:", AA.loc$time.struct), fields)
