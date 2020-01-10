@@ -661,7 +661,7 @@ if(family == "betabinomialna"){
  strata.all <- as.character(unique(exdat$strata))
  strata.base <- strata.all[strata.all%in%levels == FALSE]
 
-  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base))
+  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base, ar1 = ar1, strata.time.effect = strata.time.effect))
     
   }
 }
