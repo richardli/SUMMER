@@ -8,10 +8,13 @@
 #' @param Amat adjacency matrix
 #' @param nsim number of simulations
 #' @param weight.strata a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. 
+#' @param weight.frame a data frame with three columns, years, region, and the weight of each frame for the corresponding time period and region. 
 #' @param verbose logical indicator whether to print progress messages from inla.posterior.sample.
 #' @param mc number of monte carlo draws to approximate the marginal prevalence/hazards for binomial model. If mc = 0, analytical approximation is used. The analytical approximation is invalid for hazard modeling with more than one age groups.
 #' @param include_time_unstruct logical indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates.
 #' @param CI Desired level of credible intervals
+#' @param draws Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.  
+#' @param save.draws Logical indicator whether the raw posterior draws will be saved. Saved draws can be used to accelerate aggregations with different weights.
 #' @param ... additional configurations passed to inla.posterior.sample.
 #' 
 #' @return Results from RW2 model fit, including projection.
@@ -53,8 +56,7 @@
 #' 
 
 #' @export
-getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), 
-                            Amat = NULL, nsim = 1000, weight.strata = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, ...){
+getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), Amat = NULL, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, ...){
 
       years <- NA
       lowerCI <- (1 - CI) / 2
@@ -67,22 +69,56 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         warning("No spatial random effects in the model. Set Amat to NULL", immediate. = TRUE)
         Amat <- NULL
        }
+        is.dynamic <- as.logical(inla_mod$strata.time.effect)
+        if(length(is.dynamic) == 0) is.dynamic = FALSE
 
-        # check strata weights are properly specified
-        stratalabels <- inla_mod$strata.base
-        other <- rownames(inla_mod$fit$summary.fixed)
-        other <- other[grep("strata", other)]
-        other <- gsub("strata", "", other)
-        stratalabels <- c(stratalabels, other)
+        if(!is.dynamic){
+          # check strata weights are properly specified: static strata effect case
+          stratalabels <- stratalabels.orig <- inla_mod$strata.base
+          other <- rownames(inla_mod$fit$summary.fixed)
+          other <- other[grep("strata", other)]
+          other <- gsub("strata", "", other)
+          stratalabels <- c(stratalabels, other)
+          frame.strata <- (inla_mod$fit$.args$data)[, c("age", "age.idx", "age.rep.idx")]
+          frame.strata <- unique(frame.strata)        
+          frame.strata <- frame.strata[order(frame.strata$age.idx), ]
+          framelabels <- NA
+        }else{
+          # check strata weights are properly specified: dynamic strata effect case
+          # here we have (age group) x (frame-strata) with no base level 
+          if("frame" %in% colnames(inla_mod$fit$.args$data)){
+            frame.strata <- (inla_mod$fit$.args$data)[, c("age", "age.idx", "age.rep.idx", "strata", "frame")]
+            frame.strata <- unique(frame.strata)
+            frame.strata <- frame.strata[!is.na(frame.strata$frame), ]            
+            frame.strata$strata.orig <- NA
+            for(i in 1:dim(frame.strata)[1]){
+              frame.strata$strata.orig[i] <- gsub(paste0(frame.strata$frame[i], "-"), "", frame.strata$strata[i])
+            }
+          }else{
+            frame.strata <- (inla_mod$fit$.args$data)[, c("age", "age.idx", "strata", "age.rep.idx")]
+            frame.strata <- unique(frame.strata)
+            frame.strata$strata.orig <- frame.strata$strata
+          }
+          frame.strata <- frame.strata[order(frame.strata$age.idx), ]
+          stratalabels <- as.character(unique(frame.strata$strata))
+          stratalabels.orig <- as.character(unique(frame.strata$strata.orig))
+          framelabels <- as.character(unique(frame.strata$frame))
+        }
+       
         if(inla_mod$is.yearly) year_label <- c(year_range[1]:year_range[2], year_label)
         if(!inla_mod$is.yearly) year_label <- year_label
-
         err <- NULL
         weight.strata.by <- NULL
 
         if(!is.null(weight.strata)){
 
-          if(sum(stratalabels %in% colnames(weight.strata)) != length(stratalabels)) stop(paste0("weight.strata argument not specified correctly. It requires the following columns: ", paste(stratalabels, collapse = ", ")))
+          if(!is.dynamic && sum(stratalabels %in% colnames(weight.strata)) != length(stratalabels)){
+            stop(paste0("weight.strata argument not specified correctly. It requires the following columns: ", paste(stratalabels, collapse = ", ")))
+          }
+          if(is.dynamic && "frame" %in% colnames(frame.strata) && !("frame" %in% colnames(weight.strata))){
+            stop("frame column was provided in the fitted object but not the weights.")
+          }
+
 
            if(sum(c("region", "years") %in% colnames(weight.strata)) == 2){
               for(i in year_label){
@@ -122,10 +158,15 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           names(select)[i] <- cs[i]
        }
 
-
-       message("Starting posterior sampling...")
-        sampAll <- INLA::inla.posterior.sample(n = nsim, result = inla_mod$fit, intern = TRUE, selection = select, verbose = verbose, ...)
-       message("Finished posterior sampling, cleaning up results now...")
+       if(is.null(draws)){
+          message("Starting posterior sampling...")
+            sampAll <- INLA::inla.posterior.sample(n = nsim, result = inla_mod$fit, intern = TRUE, selection = select, verbose = verbose, ...)
+           message("Finished posterior sampling, cleaning up results now...")
+     
+       }else{
+          message("Use posterior draws from input.")
+          sampAll <- draws
+       }
 
         fields <- rownames(sampAll[[1]]$latent)        
         pred <- grep("Predictor", fields)
@@ -135,9 +176,14 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         if(length(region.unstruct)==0) region.struct <- region.struct[1:(length(region.struct)/2)]
         region.int <- grep("region.int", fields)
         time.area <- grep("time.area", fields)
-        age <- grep("age", fields)
-        age.nn <- inla_mod$age.n
-        strata <- grep("strata", fields)
+        age <- match(paste0("age", frame.strata$age, ":1"), fields)
+        age.nn <- inla_mod$age.n[frame.strata$age.idx]
+        if(!is.dynamic){
+          strata <- grep("strata", fields)
+        }else{
+          strata <- NULL
+        }
+        slope <- grep("time.slope.group", fields)
         T <- length(time.unstruct) 
         if(!is.null(Amat)){
             N <- dim(Amat)[1]          
@@ -146,6 +192,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         }
 
         # Handle replicated RW
+        # The static case: time.struct is of length age * T, here age is not always 6, can be age-frame-strata comb 
         time.struct <- grep("time.struct", fields)
         if(length(age) > 0){
           newindex <- rep(NA, T * length(age))
@@ -155,9 +202,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           }          
           time.struct <- time.struct[newindex]
         }
-
-        
-
+      
         if(length(age) == 0){
           age.length  <- 1
         }else{
@@ -167,43 +212,54 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
 
         # organize output
         out1 <- expand.grid(strata = stratalabels, time = 1:T, area = 1:N)
-        out2 <- expand.grid(time = 1:T, area = 1:N)
+        out2 <- expand.grid(frame = framelabels, time = 1:T, area = 1:N)
+        out3 <- expand.grid(time = 1:T, area = 1:N)
         out1$lower <- out1$upper <- out1$mean <- out1$median <- out1$variance <- NA
         out2$lower <- out2$upper <- out2$mean <- out2$median <- out2$variance <- NA
+        out3$lower <- out3$upper <- out3$mean <- out3$median <- out3$variance <- NA
         out1$years <- year_label[out1$time]
         out2$years <- year_label[out2$time]
+        out3$years <- year_label[out3$time]
         if(N > 1){              
           out1$region <- colnames(Amat)[out1$area]
           out2$region <- colnames(Amat)[out2$area]
+          out3$region <- colnames(Amat)[out3$area]
         }else{
-          out1$region <- out2$region <- "All"
+          out1$region <- out2$region <- out3$region <- "All"
         }
 
         if(is.null(weight.strata)){
           warning("No strata weights has been supplied. Equal weights are used to calculate the overall estimates. Please interpret results with caution or use only the stratified estimates.", immediate.=TRUE)
-          for(tt in stratalabels){
-            out2[, tt] <- 1/length(stratalabels)
+          for(tt in stratalabels.orig){
+            out2[, tt] <- 1/length(stratalabels.orig)
           }
 
-        }else if(weight.strata.by == "Constant"){
+        }else if(weight.strata.by[1] == "Constant"){
+          ## TODO: is this outdated?
           for(tt in stratalabels){
             out2[, tt] <- weight.strata[1, match(tt, colnames(weight.strata))]
           }
           strata.index <- match(stratalabels, colnames(out2))
         }else{
+          if(!is.na(framelabels[1])) weight.strata.by <- c(weight.strata.by, "frame")
           out2 <- merge(out2, weight.strata, by = weight.strata.by)
-          strata.index <- match(stratalabels, colnames(out2))
+          strata.index <- match(stratalabels.orig, colnames(out2))
           out2 <- out2[with(out2, order(area, time)), ]
         }
       
 
         ## T blocks, each with region 1 to N
         theta <- matrix(0, nsim, T * N)
-        ## Age blocks, each with age 1 to T
+        ## Age blocks, each with time 1 to T
         theta.rw <- matrix(NA, nsim, age.length * T)
         tau <- rep(NA, nsim)
         ## K blocks, each with age 1 to G
-        beta <- matrix(NA, nsim, length(stratalabels) * age.length)
+        if(is.dynamic){
+          # dynamic case age.length includes strata interactions already
+          beta <- matrix(NA, nsim, age.length)
+        }else{
+          beta <- matrix(NA, nsim, length(stratalabels) * age.length)
+        }
 
         time.area.order <- inla_mod$time.area[with(inla_mod$time.area, order( time.unstruct, region_number)), "time.area"]
 
@@ -217,18 +273,27 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           }
           if(include_time_unstruct) theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[time.unstruct], each = N)
           if(N > 1) theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[region.struct], T)
+         
           theta.rw[i, ] <- sampAll[[i]]$latent[time.struct]
+          if(!is.null(slope)){
+             tstar <- rep(1:T, length(inla_mod$age.rw.group))
+             tstar <- (tstar - T/2) / sd(1:T)
+             theta.rw[i, ] <- theta.rw[i, ] + sampAll[[i]]$latent[slope][rep(inla_mod$age.rw.group, each=T)] * tstar
+          }
 
           if(length(region.unstruct)> 0){
             theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[region.unstruct], T)
           }
 
-          if(length(age) > 0){
+          if(length(age) > 0 && !is.dynamic){
               beta[i, ] <- rep(sampAll[[i]]$latent[age], length(stratalabels))
+          }else if(length(age) > 0){
+              beta[i, ] <- sampAll[[i]]$latent[age]
           }else{
             beta[i, ] <- 0
           }
 
+      
           if(length(strata) == length(stratalabels)){
               beta[i, ] <- beta[i, ] + rep(sampAll[[i]]$latent[strata], each = age.length)
           }else{
@@ -265,11 +330,19 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           for(i in 1:T){
             draws <- matrix(NA, nsim, length(stratalabels))
             # For each strata
-            for(k in 1:(length(stratalabels))){
+            for(k in 1:length(stratalabels)){
               # column add
-              # This is a matix of dimension nsim * age.length
+              # This is a matix of dimension nsim * age.length (in dynamic case, age.length = age x frame x strata)
               age.rw <- theta.rw[, (1:(T*age.length)) %% T == ifelse(i == T, 0, i)]  
-              draws.hazards <- theta[, j + (i-1)*N] + beta[, ((k-1)*age.length+1) :(k*age.length)] + age.rw            
+              if(!is.dynamic){
+                draws.hazards <- theta[, j + (i-1)*N] + beta[, ((k-1)*age.length+1) :(k*age.length)] + age.rw            
+              }else{
+                # First, ncol(draws.hazards) == nrow(frame.strata)
+                draws.hazards <- theta[, j + (i-1)*N] + beta + age.rw     
+                # Then subset to get only the specific frame-strata, sort because age.idx is sorted 
+                sub <- sort(which(frame.strata$strata == stratalabels[k]))
+                draws.hazards <- draws.hazards[, sub]   
+              }
               # Monte Carlo approximation of the marginal effects
               if(inla_mod$family == "binomial" && mc > 0){
                 # sd.temp <- matrix(1/sqrt(tau), nsim, mc)
@@ -300,31 +373,59 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
               index1 <- index1 + 1
             }
             # aggregate to time-area estimates
-            prop <- out2[index2, strata.index] 
-            draws <- apply(draws, 1, function(x, p){sum(x * p)}, prop)
-            out2[index2, c("lower", "median", "upper")] <- quantile(draws, c(lowerCI, 0.5, upperCI))
-            out2[index2, "mean"] <- mean(draws)
-            out2[index2, "variance"] <- var(draws)
-            index2 <- index2 + 1
+            index2 <- which(out2$area == j & out2$time == i)
+            draws0 <- NULL
+            for(k in 1:length(index2)){
+              prop <- out2[index2[k], strata.index]
+
+              if(is.na( out2$frame[index2[k]] )){
+                  cols <- match(stratalabels.orig, stratalabels)
+              }else{
+                  cols <- match(paste(out2$frame[index2[k]], stratalabels.orig, sep = "-"), stratalabels)
+              }
+
+              draws0[[k]] <- apply(draws[, cols], 1, function(x, p){sum(x * p)}, prop)
+              out2[index2[k], c("lower", "median", "upper")] <- quantile(draws0[[k]], c(lowerCI, 0.5, upperCI))
+              out2[index2[k], "mean"] <- mean(draws0[[k]])
+              out2[index2[k], "variance"] <- var(draws0[[k]])
+            }
+            if(!is.null(weight.frame)){
+                index3 <- which(out3$area == j & out3$time == i)
+                names(draws0) <- out2[index2, "frame"]
+                draws1 <- rep(0, nsim)
+                thisweight <- weight.frame[which(weight.frame$region == colnames(Amat)[j] & weight.frame$years == year_label[i]), ]
+                for(k in 1:length(draws0)){
+                  draws1 <- draws1 + draws0[[k]] * as.numeric(thisweight[names(draws0)[k]])
+                }
+                out3[index3, c("lower", "median", "upper")] <- quantile(draws1, c(lowerCI, 0.5, upperCI))
+                out3[index3, "mean"] <- mean(draws1)
+                out3[index3, "variance"] <- var(draws1)
+            }
           }
         }
-
+      
       out1$is.yearly <- !(out1$years %in% year_label)
       out1$years.num <- suppressWarnings(as.numeric(as.character(out1$years)))
       out2$is.yearly <- !(out2$years %in% year_label)
       out2$years.num <- suppressWarnings(as.numeric(as.character(out2$years)))
-   
-      # ## deal with 1 year case
-      # tmp <- as.numeric(strsplit(out1$years[out1$time == 1][1], "-")[[1]])
-      # if(tmp[1] == tmp[2]){
-      #     out1$years.num <- 1900 + tmp[1] + out1$time - 1
-      #     out2$years.num <- 1900 + tmp[1] + out2$time - 1
-      # }
+      out3$is.yearly <- !(out3$years %in% year_label)
+      out3$years.num <- suppressWarnings(as.numeric(as.character(out3$years)))
       out1$years <- factor(out1$years, year_label)
       out2$years <- factor(out2$years, year_label)
+      out3$years <- factor(out3$years, year_label)
       class(out1) <- c("SUMMERproj", "data.frame")
       class(out2) <- c("SUMMERproj", "data.frame")
-      return(list(overall = out2, stratified = out1)) 
+      class(out3) <- c("SUMMERproj", "data.frame")
+
+      out <- list(overall = out2, stratified = out1)
+      if(!is.null(weight.frame)){
+        out$final = out3
+      }
+      if(save.draws){
+        out$draws = sampAll
+      }
+
+      return(out) 
 
 
       ########################
