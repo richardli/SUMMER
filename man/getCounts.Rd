@@ -4,7 +4,8 @@
 \alias{getCounts}
 \title{Aggregate person-month data into counts and totals by groups.}
 \usage{
-getCounts(data, variables, by, ignore = NULL, addtotal = TRUE)
+getCounts(data, variables, by, ignore = NULL, addtotal = TRUE,
+  drop = FALSE)
 }
 \arguments{
 \item{data}{dataset in person-month format}
@@ -16,6 +17,8 @@ getCounts(data, variables, by, ignore = NULL, addtotal = TRUE)
 \item{ignore}{list of conditions not to impute 0. If left unspecified, any group levels not in the data will be imputed to have 0 counts.}
 
 \item{addtotal}{logical indicator of whether to add a column of group total counts.}
+
+\item{drop}{logical indicator of whether to drop all rows with total = 0.}
 }
 \value{
 data.frame of the ggregated counts.
