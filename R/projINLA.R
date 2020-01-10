@@ -169,22 +169,70 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
        }
 
         fields <- rownames(sampAll[[1]]$latent)        
-        pred <- grep("Predictor", fields)
-        time.unstruct <- grep("time.unstruct", fields)
-        region.struct <- grep("region.struct", fields)
-        region.unstruct <- grep("region.unstruct", fields)
-        if(length(region.unstruct)==0) region.struct <- region.struct[1:(length(region.struct)/2)]
-        region.int <- grep("region.int", fields)
-        time.area <- grep("time.area", fields)
+        T <- max(inla_mod$fit$.args$data$time.struct) 
+
+        # Construct the AA matrix for the  output data frame.
+        if(!"region.struct" %in% colnames(inla_mod$fit$.args$data)) inla_mod$fit$.args$data$region.struct = 1
+
+        rep.time <- length(unique(inla_mod$age.rw.group)) > 0
+        cols <- c("time.struct", "time.unstruct", "region.struct", "time.area", "strata", "age", "age.idx")
+        if(rep.time){
+          cols <- c(cols, "age.rep.idx")
+        } 
+        A <- unique(inla_mod$fit$.args$data[, cols])
+        # A might contain  missing  levels. Make an expanded version
+        # strata may be nested within age
+        if(inla_mod$strata.time.effect){
+          AA  <-  expand.grid(time.area = unique(A$time.area), 
+                              age = unique(A$age))
+          AA <- merge(AA, unique(A[, c("age", "strata")]), by = "age")
+        }else{
+          AA  <-  expand.grid(time.area = unique(A$time.area), 
+                            strata =  unique(A$strata),  
+                            age = unique(A$age))
+        }
+        AA <- merge(AA, unique(A[, c("time.struct", "time.unstruct", "region.struct",  "time.area")]), by = "time.area")
+       if(rep.time){ 
+          AA <- merge(AA, unique(A[, c("age", "age.idx", "age.rep.idx")]), by = "age")
+        }else{
+          AA <- merge(AA, unique(A[, c("age", "age.idx")]), by = "age")
+        }
+        if(rep.time){
+          AA$time.struct <- AA$time.struct + (AA$age.rep.idx - 1)  * T
+        }
+        AA$age <- paste0("age", AA$age, ":1")
+        #  AA.loc is the same  format as AA, but with location index
+        AA.loc <- AA
+        AA.loc$age  <- match(AA.loc$age, fields)
+        AA.loc$strata  <- match(AA.loc$strata, fields)
+        AA.loc$time.area  <- match(paste0("time.area:", AA.loc$time.area), fields)
+        AA.loc$time.struct  <- match(paste0("time.struct:", AA.loc$time.struct), fields)
+        AA.loc$region.struct  <- match(paste0("region.struct:", AA.loc$region.struct), fields)
+        AA.loc$time.unstruct  <- match(paste0("time.unstruct:", AA.loc$time.unstruct), fields)
+        if(!include_time_unstruct) AA.loc$time.unstruct <- NA
+        slope <- grep("time.slope.group", fields)
+        if(!is.null(slope)){
+           AA$tstar <- (AA$time.unstruct - T/2) / sd(1:T)
+           AA$slope  <- match(paste0("time.slope.group", AA$age.rep.idx, ":1"), fields)
+        }else{
+          AA$tstar <-  AA$slope <- NA
+        }
+        AA.loc$age.idx <- AA.loc$age.rep.idx <- NA
+
+        # time.unstruct <- grep("time.unstruct", fields)
+        # region.struct <- grep("region.struct", fields)
+        # region.unstruct <- grep("region.unstruct", fields)
+        # if(length(region.unstruct)==0) region.struct <- region.struct[1:(length(region.struct)/2)]
+        # region.int <- grep("region.int", fields)
+        # time.area <- grep("time.area", fields)
         age <- match(paste0("age", frame.strata$age, ":1"), fields)
         age.nn <- inla_mod$age.n[frame.strata$age.idx]
-        if(!is.dynamic){
-          strata <- grep("strata", fields)
-        }else{
-          strata <- NULL
-        }
-        slope <- grep("time.slope.group", fields)
-        T <- length(time.unstruct) 
+        # if(!is.dynamic){
+        #   strata <- grep("strata", fields)
+        # }else{
+        #   strata <- NULL
+        # }
+        # T <- length(time.unstruct) 
         if(!is.null(Amat)){
             N <- dim(Amat)[1]          
         }else{
@@ -192,16 +240,16 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         }
 
         # Handle replicated RW
-        # The static case: time.struct is of length age * T, here age is not always 6, can be age-frame-strata comb 
-        time.struct <- grep("time.struct", fields)
-        if(length(age) > 0){
-          newindex <- rep(NA, T * length(age))
-          for(i in 1:length(age)){
-            where <- ((inla_mod$age.rw.group[i] - 1) * T + 1) : (inla_mod$age.rw.group[i] * T)
-            newindex[((i-1)*T+1):(i*T)] <- where
-          }          
-          time.struct <- time.struct[newindex]
-        }
+        # # The static case: time.struct is of length age * T, here age is not always 6, can be age-frame-strata comb 
+        # time.struct <- grep("time.struct", fields)
+        # if(length(age) > 0){
+        #   newindex <- rep(NA, T * length(age))
+        #   for(i in 1:length(age)){
+        #     where <- ((inla_mod$age.rw.group[i] - 1) * T + 1) : (inla_mod$age.rw.group[i] * T)
+        #     newindex[((i-1)*T+1):(i*T)] <- where
+        #   }          
+        #   time.struct <- time.struct[newindex]
+        # }
       
         if(length(age) == 0){
           age.length  <- 1
@@ -248,62 +296,69 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         }
       
 
-        ## T blocks, each with region 1 to N
-        theta <- matrix(0, nsim, T * N)
-        ## Age blocks, each with time 1 to T
-        theta.rw <- matrix(NA, nsim, age.length * T)
-        tau <- rep(NA, nsim)
-        ## K blocks, each with age 1 to G
-        if(is.dynamic){
-          # dynamic case age.length includes strata interactions already
-          beta <- matrix(NA, nsim, age.length)
-        }else{
-          beta <- matrix(NA, nsim, length(stratalabels) * age.length)
-        }
+        # ## T blocks, each with region 1 to N
+        # theta <- matrix(0, nsim, T * N)
+        # ## Age blocks, each with time 1 to T
+        # theta.rw <- matrix(NA, nsim, age.length * T)
+        # tau <- rep(NA, nsim)
+        # ## K blocks, each with age 1 to G
+        # if(is.dynamic){
+        #   # dynamic case age.length includes strata interactions already
+        #   beta <- matrix(NA, nsim, age.length)
+        # }else{
+        #   beta <- matrix(NA, nsim, length(stratalabels) * age.length)
+        # }
 
-        time.area.order <- inla_mod$time.area[with(inla_mod$time.area, order( time.unstruct, region_number)), "time.area"]
+        # time.area.order <- inla_mod$time.area[with(inla_mod$time.area, order( time.unstruct, region_number)), "time.area"]
 
-        for(i in 1:nsim){
-          if(length(time.area)> 0){
-            theta[i, ] <- sampAll[[i]]$latent[time.area[time.area.order]]
-          }else if(length(region.int) > 0){
-            theta[i, ] <- sampAll[[i]]$latent[region.int]
-          }else{
-            theta[i, ] <- 0
-          }
-          if(include_time_unstruct) theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[time.unstruct], each = N)
-          if(N > 1) theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[region.struct], T)
+        # for(i in 1:nsim){
+        #   if(length(time.area)> 0){
+        #     theta[i, ] <- sampAll[[i]]$latent[time.area[time.area.order]]
+        #   }else if(length(region.int) > 0){
+        #     theta[i, ] <- sampAll[[i]]$latent[region.int]
+        #   }else{
+        #     theta[i, ] <- 0
+        #   }
+        #   if(include_time_unstruct) theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[time.unstruct], each = N)
+        #   if(N > 1) theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[region.struct], T)
          
-          theta.rw[i, ] <- sampAll[[i]]$latent[time.struct]
-          if(!is.null(slope)){
-             tstar <- rep(1:T, length(inla_mod$age.rw.group))
-             tstar <- (tstar - T/2) / sd(1:T)
-             theta.rw[i, ] <- theta.rw[i, ] + sampAll[[i]]$latent[slope][rep(inla_mod$age.rw.group, each=T)] * tstar
-          }
+        #   theta.rw[i, ] <- sampAll[[i]]$latent[time.struct]
+        #   if(!is.null(slope)){
+        #      tstar <- rep(1:T, length(inla_mod$age.rw.group))
+        #      tstar <- (tstar - T/2) / sd(1:T)
+        #      theta.rw[i, ] <- theta.rw[i, ] + sampAll[[i]]$latent[slope][rep(inla_mod$age.rw.group, each=T)] * tstar
+        #   }
 
-          if(length(region.unstruct)> 0){
-            theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[region.unstruct], T)
-          }
+        #   if(length(region.unstruct)> 0){
+        #     theta[i, ] <- theta[i, ] + rep(sampAll[[i]]$latent[region.unstruct], T)
+        #   }
 
-          if(length(age) > 0 && !is.dynamic){
-              beta[i, ] <- rep(sampAll[[i]]$latent[age], length(stratalabels))
-          }else if(length(age) > 0){
-              beta[i, ] <- sampAll[[i]]$latent[age]
-          }else{
-            beta[i, ] <- 0
-          }
+        #   if(length(age) > 0 && !is.dynamic){
+        #       beta[i, ] <- rep(sampAll[[i]]$latent[age], length(stratalabels))
+        #   }else if(length(age) > 0){
+        #       beta[i, ] <- sampAll[[i]]$latent[age]
+        #   }else{
+        #     beta[i, ] <- 0
+        #   }
 
       
-          if(length(strata) == length(stratalabels)){
-              beta[i, ] <- beta[i, ] + rep(sampAll[[i]]$latent[strata], each = age.length)
-          }else{
-              beta[i, ] <- beta[i, ] + rep(c(0, sampAll[[i]]$latent[strata]), each = age.length)
-          }
-          if(inla_mod$family == "binomial"){
-            tau[i] <-exp(sampAll[[i]]$hyperpar[["Log precision for nugget.id"]])
-          }
+        #   if(length(strata) == length(stratalabels)){
+        #       beta[i, ] <- beta[i, ] + rep(sampAll[[i]]$latent[strata], each = age.length)
+        #   }else{
+        #       beta[i, ] <- beta[i, ] + rep(c(0, sampAll[[i]]$latent[strata]), each = age.length)
+        #   }
+        #   if(inla_mod$family == "binomial"){
+        #     tau[i] <-exp(sampAll[[i]]$hyperpar[["Log precision for nugget.id"]])
+        #   }
+        # }
+        theta <- matrix(0, nsim, dim(AA)[1])
+        for(i in 1:nsim){
+          draw <- sampAll[[i]]$latent
+          theta[i,  ] <-  apply(AA.loc, 1, function(x, ff){sum(ff[x], na.rm=TRUE)}, draw)
+          add.slope <- draw[AA$slope] * AA$tstar
+          add.slope[is.na(add.slope)] <- 0
+          theta[i,  ] <-  theta[i,  ] + add.slope
         }
-
 
         ########################
         ## Beta-Binomial methods
@@ -312,8 +367,8 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           # again, column operation here
           k <- 16 * sqrt(3) / 15 / base::pi
           theta <- theta / sqrt(1 + k^2 / tau)
-          theta.rw <- theta.rw / sqrt(1 + k^2 / tau)
-          beta <- beta / sqrt(1 + k^2 / tau)
+          # theta.rw <- theta.rw / sqrt(1 + k^2 / tau)
+          # beta <- beta / sqrt(1 + k^2 / tau)
         }
 
         # Put hazards together
@@ -328,26 +383,17 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           }
 
           for(i in 1:T){
-            draws <- matrix(NA, nsim, length(stratalabels))
+            sub <-  which(AA$time.unstruct==i & AA$region.struct == j)
+            AA.sub <- AA[sub, ] 
+            draws.sub <- theta[, sub]
+            draws.sub.agg <- matrix(NA, nsim, length(stratalabels))
             # For each strata
             for(k in 1:length(stratalabels)){
-              # column add
-              # This is a matix of dimension nsim * age.length (in dynamic case, age.length = age x frame x strata)
-              age.rw <- theta.rw[, (1:(T*age.length)) %% T == ifelse(i == T, 0, i)]  
-              if(!is.dynamic){
-                draws.hazards <- theta[, j + (i-1)*N] + beta[, ((k-1)*age.length+1) :(k*age.length)] + age.rw            
-              }else{
-                # First, ncol(draws.hazards) == nrow(frame.strata)
-                draws.hazards <- theta[, j + (i-1)*N] + beta + age.rw     
-                # Then subset to get only the specific frame-strata, sort because age.idx is sorted 
-                sub <- sort(which(frame.strata$strata == stratalabels[k]))
-                draws.hazards <- draws.hazards[, sub]   
-              }
+              strata.sub <- which(AA.sub$strata == stratalabels[k])
+              draws.hazards <- draws.sub[, strata.sub]
               # Monte Carlo approximation of the marginal effects
               if(inla_mod$family == "binomial" && mc > 0){
-                # sd.temp <- matrix(1/sqrt(tau), nsim, mc)
-                # err.temp <- matrix(stats::rnorm(nsim*mc, mean = matrix(0, nsim, mc), sd = sd.temp), nsim, mc)
-                for(tt in 1:age.length){
+                for(tt in 1:dim(draws.hazards)[2]){
                     draws.temp <- matrix(draws.hazards[, tt], nsim, mc)
                     draws.temp <- expit(draws.temp + err.temp)
                     draws.hazards[, tt] <- apply(draws.temp, 1, mean)
@@ -355,52 +401,52 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
               }else{                 
                 draws.hazards <- expit(draws.hazards)
               }
-
-
-              if(!is.null(age.nn) && age.length > 1){
-                draws.mort <- (1 - draws.hazards[, 1])^(age.nn[1])
-                for(tt in 2:dim(draws.hazards)[2]){
-                    draws.mort <- draws.mort * (1 - draws.hazards[, tt])^(age.nn[tt])
-                }
-                draws.mort <- 1 - draws.mort
-              }else{
-                draws.mort <- draws.hazards
+              draws.mort <- rep(1, dim(draws.hazards)[1])
+              for(tt in 1:dim(draws.hazards)[2]){
+                draws.mort <- draws.mort * (1 - draws.hazards[, tt])^age.nn[AA.sub[strata.sub, "age.idx"][tt]]                
               }
-              draws[, k] <- draws.mort
+              draws.mort <- 1 - draws.mort
+              draws.sub.agg[, k] <- draws.mort
+              ## Strata specific output
+              index1 <- which(out1$time == i & out1$area == j & out1$strata == stratalabels[k])
               out1[index1, c("lower", "median", "upper")] <- quantile(draws.mort, c(lowerCI, 0.5, upperCI))
               out1[index1, "mean"] <- mean(draws.mort)
               out1[index1, "variance"] <- var(draws.mort)
-              index1 <- index1 + 1
             }
-            # aggregate to time-area estimates
+
+            # aggregate across strata
             index2 <- which(out2$area == j & out2$time == i)
-            draws0 <- NULL
+            draws.sub.agg.sum <- matrix(NA, nsim, length(index2))
             for(k in 1:length(index2)){
               prop <- out2[index2[k], strata.index]
-
               if(is.na( out2$frame[index2[k]] )){
                   cols <- match(stratalabels.orig, stratalabels)
               }else{
                   cols <- match(paste(out2$frame[index2[k]], stratalabels.orig, sep = "-"), stratalabels)
               }
 
-              draws0[[k]] <- apply(draws[, cols], 1, function(x, p){sum(x * p)}, prop)
-              out2[index2[k], c("lower", "median", "upper")] <- quantile(draws0[[k]], c(lowerCI, 0.5, upperCI))
-              out2[index2[k], "mean"] <- mean(draws0[[k]])
-              out2[index2[k], "variance"] <- var(draws0[[k]])
+              draws.sub.agg.sum[, k] <- apply(draws.sub.agg[, cols], 1, function(x, p){sum(x * p)}, prop)
+              out2[index2[k], c("lower", "median", "upper")] <- quantile(draws.sub.agg.sum[, k], c(lowerCI, 0.5, upperCI))
+              out2[index2[k], "mean"] <- mean(draws.sub.agg.sum[, k])
+              out2[index2[k], "variance"] <- var(draws.sub.agg.sum[, k])
             }
+
+            # aggregate across frame
             if(!is.null(weight.frame)){
                 index3 <- which(out3$area == j & out3$time == i)
-                names(draws0) <- out2[index2, "frame"]
-                draws1 <- rep(0, nsim)
+                colnames(draws.sub.agg.sum) <- out2[index2, "frame"]
+                draws.sub.agg.sum2 <- rep(0, nsim)
                 thisweight <- weight.frame[which(weight.frame$region == colnames(Amat)[j] & weight.frame$years == year_label[i]), ]
-                for(k in 1:length(draws0)){
-                  draws1 <- draws1 + draws0[[k]] * as.numeric(thisweight[names(draws0)[k]])
+
+                for(k in 1:dim(draws.sub.agg.sum)[2]){
+                  draws.sub.agg.sum2 <- draws.sub.agg.sum2 + draws.sub.agg.sum[, k] * as.numeric(thisweight[colnames(draws.sub.agg.sum)[k]])
                 }
-                out3[index3, c("lower", "median", "upper")] <- quantile(draws1, c(lowerCI, 0.5, upperCI))
-                out3[index3, "mean"] <- mean(draws1)
-                out3[index3, "variance"] <- var(draws1)
+                out3[index3, c("lower", "median", "upper")] <- quantile(draws.sub.agg.sum2, c(lowerCI, 0.5, upperCI))
+                out3[index3, "mean"] <- mean(draws.sub.agg.sum2)
+                out3[index3, "variance"] <- var(draws.sub.agg.sum2)
             }
+
+            # Area-time specific done
           }
         }
       
