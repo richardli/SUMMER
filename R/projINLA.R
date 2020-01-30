@@ -58,7 +58,7 @@
 #' @export
 getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), Amat = NULL, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, ...){
 
-      years <- NA
+      years <- region <- NA
       lowerCI <- (1 - CI) / 2
       upperCI <- 1 - lowerCI
       ########################
