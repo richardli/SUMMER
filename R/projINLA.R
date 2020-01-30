@@ -177,7 +177,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         T <- max(inla_mod$fit$.args$data$time.struct) 
 
         # Construct the AA matrix for the  output data frame.
-        if(!"region.struct" %in% colnames(inla_mod$fit$.args$data)) inla_mod$fit$.args$data$region.struct = 1
+        if(!"region.struct:1" %in% fields) inla_mod$fit$.args$data$region.struct = 1
 
         rep.time <- length(unique(inla_mod$age.rw.group)) > 0
         cols <- c("time.struct", "time.unstruct", "region.struct", "time.area", "strata", "age", "age.idx")
@@ -285,19 +285,33 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
 
         if(is.null(weight.strata)){
           warning("No strata weights has been supplied. Set all weights to 0.", immediate.=TRUE)
-          weight.strata <- expand.grid(region = colnames(Amat), frame = framelabels)
+          if(!is.null(Amat)){
+            weight.strata <- expand.grid(region = colnames(Amat), frame = framelabels)
+            weight.strata.by <- "region"
+          }else{
+            weight.strata <- expand.grid(frame = framelabels)
+            weight.strata.by <- "Constant"
+          }
           for(tt in stratalabels.orig){
             weight.strata[, tt] <- 0
           }
-          weight.strata.by <- "region"
         }
 
+        # if(weight.strata.by[1] == "Constant" && ){
+        #   ## TODO: is this outdated?
+        #   for(tt in stratalabels){
+        #     out2[, tt] <- weight.strata[1, match(tt, colnames(weight.strata))]
+        #   }
+        #   strata.index <- match(stratalabels, colnames(out2))
+        # } 
+
         if(weight.strata.by[1] == "Constant"){
-          ## TODO: is this outdated?
-          for(tt in stratalabels){
-            out2[, tt] <- weight.strata[1, match(tt, colnames(weight.strata))]
+          if("frame" %in% colnames(weight.strata)){
+            out2 <- merge(out2, weight.strata, by = 'frame')
+          }else{
+            out2 <- cbind(out2, data.frame(weight.strata))
           }
-          strata.index <- match(stratalabels, colnames(out2))
+          strata.index <- match(stratalabels.orig, colnames(out2))
         }else{
           if(!is.na(framelabels[1])) weight.strata.by <- c(weight.strata.by, "frame")
           out2 <- merge(out2, weight.strata, by = weight.strata.by)
@@ -390,6 +404,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         draw.temp <- draws.hazards <- NA
         index1 <- 1
         index2 <- 1
+        if(N == 1 && AA$region.struct[1] == 0) AA$region.struct <- 1
         for(j in 1:N){
           # Monte Carlo approximation of the marginal effects that are shared across time
           if(inla_mod$family == "binomial" && mc > 0){
@@ -451,10 +466,12 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
                 index3 <- which(out3$area == j & out3$time == i)
                 colnames(draws.sub.agg.sum) <- out2[index2, "frame"]
                 draws.sub.agg.sum2 <- rep(0, nsim)
-                thisweight <- weight.frame[which(weight.frame$region == colnames(Amat)[j] & weight.frame$years == year_label[i]), ]
+                this.weight <- weight.frame
+                if("region" %in% colnames(weight.frame)) this.weight <- subset(this.weight, region == colnames(Amat)[j])
+                if("years" %in% colnames(weight.frame)) this.weight <- subset(this.weight, years == year_label[i])
 
                 for(k in 1:dim(draws.sub.agg.sum)[2]){
-                  draws.sub.agg.sum2 <- draws.sub.agg.sum2 + draws.sub.agg.sum[, k] * as.numeric(thisweight[colnames(draws.sub.agg.sum)[k]])
+                  draws.sub.agg.sum2 <- draws.sub.agg.sum2 + draws.sub.agg.sum[, k] * as.numeric(this.weight[colnames(draws.sub.agg.sum)[k]])
                 }
                 out3[index3, c("lower", "median", "upper")] <- quantile(draws.sub.agg.sum2, c(lowerCI, 0.5, upperCI))
                 out3[index3, "mean"] <- mean(draws.sub.agg.sum2)

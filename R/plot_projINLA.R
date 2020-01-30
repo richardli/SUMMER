@@ -105,7 +105,7 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
   }
 
   # deal with 1 year period
-  period.1yr <- diff(unique(x$years.num[x$is.yearly == FALSE]))[1] == 1
+  period.1yr <- diff(sort(unique(x$years.num[x$is.yearly == FALSE])))[1] == 1
   if(sum(is.na(x$years.num)) == length(x$years.num)) period.1yr = FALSE
 
   is.periods <- x$years %in% year_label

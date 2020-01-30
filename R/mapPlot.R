@@ -22,6 +22,7 @@
 #' @param add.adj logical indicator to add edges between connected regions.
 #' @param color.adj color of the adjacency matrix edges.
 #' @param alpha.adj alpha level (transparency) of the adjacency matrix edges.
+#' @param direction Direction of the color scheme. It can be either 1 (smaller values are darker) or -1 (higher values are darker). Default is set to 1.
 #' @importFrom sp proj4string
 #' @importFrom shadowtext geom_shadowtext
 #' @importFrom sp Polygon
@@ -51,7 +52,7 @@
 #' }
 #' 
 #' @export
-mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE, border = "gray20", ncol = NULL, ylim = NULL, legend.label = NULL,  per1000 = FALSE, clean = TRUE, size.label = 2, add.adj = FALSE, color.adj = "red", alpha.adj = 0.85){
+mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE, border = "gray20", ncol = NULL, ylim = NULL, legend.label = NULL,  per1000 = FALSE, clean = TRUE, size.label = 2, add.adj = FALSE, color.adj = "red", alpha.adj = 0.85, direction = 1){
     value <- group <- lat <- long <- x0 <- x1 <- y0 <- y1 <- id <- name <- variable <- NULL
 
     # Simple Map Plot
@@ -153,9 +154,9 @@ mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data,
         legend.label <- "Value"
     }
     if(!is.null(ylim)){
-        g <- g + ggplot2::scale_fill_viridis_c(legend.label, lim = ylim)
+        g <- g + ggplot2::scale_fill_viridis_c(legend.label, lim = ylim, direction = direction)
     }else{
-        g <- g + ggplot2::scale_fill_viridis_c(legend.label)
+        g <- g + ggplot2::scale_fill_viridis_c(legend.label, direction = direction)
     } 
     if(has.coord) g <- g + ggplot2::coord_map()
 

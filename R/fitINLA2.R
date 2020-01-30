@@ -69,6 +69,9 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     if(sum(rownames(Amat) != colnames(Amat)) > 0){
         stop("Row and column names of Amat needs to be the same.")
     }
+  }else{
+    Amat <- matrix(1,1,1)
+    colnames(Amat) <- rownames(Amat) <- "All"
   }
 
   # get around CRAN check of using un-exported INLA functions
@@ -159,6 +162,8 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
             data$survey.id <-match(data$survey2, survey.table$survey)
           }
       }
+  }else{
+    survey.table <- NULL
   }
   stratalevels <- unique(data$strata)
 
@@ -299,12 +304,10 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
 
 
   if(is.null(formula)){
-        period.constr <- NULL
-        # Tmax <- length(year_label)            
-        # if(rw == 2) period.constr <- list(A = matrix(c(rep(1, Tmax)), 1, Tmax), e = 0)
+
         if(rw %in% c(1, 2) == FALSE) stop("Random walk only support rw = 1 or 2.")
    
-     ## ---------------------------------------------------------
+    ## ---------------------------------------------------------
     ## Setup PC prior model
     ## ---------------------------------------------------------
     if(tolower(hyper) == "pc"){
@@ -315,41 +318,60 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         hyperar1 = list(theta1 = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
                         rho = list(prior = "pc.cor1", param = c(0.7, 0.9)))
         ## -----------------------
-        ## Period + National + PC
+        ##  National + PC
+        ##  TODO: AR1 in this case
         ## ----------------------- 
         if(is.null(geo)){
-          if(replicate.rw){
-              formula <- Y ~
-                            f(time.struct,model=paste0("rw", rw), constr = TRUE,  extraconstr = period.constr, hyper = hyperpc1, replicate =  age.rep.idx) + 
-                            f(time.unstruct,model="iid", hyper = hyperpc1) 
+
+          if(replicate.rw && (!ar1)){
+              # Replicated RW
+              formula <- Y ~ f(time.struct,model=paste0("rw", rw), constr = TRUE,  extraconstr = NULL, hyper = hyperpc1, replicate =  age.rep.idx)  
+          }else if(!ar1){
+              # Single RW
+              formula <- Y ~ f(time.struct,model=paste0("rw", rw), constr = TRUE,  extraconstr = NULL, hyper = hyperpc1)          
+          }else if(replicate.rw && ar1){
+            # Replicated AR1
+            formula <- Y ~  f(time.struct, model="ar1", hyper = hyperar1, constr = TRUE, extraconstr = NULL, values = 1:N, replicate =  age.rep.idx) 
           }else{
-              formula <- Y ~
-                            f(time.struct,model=paste0("rw", rw), constr = TRUE,  extraconstr = period.constr, hyper = hyperpc1) + 
-                            f(time.unstruct,model="iid", hyper = hyperpc1)             
+            # Single AR1
+           formula <- Y ~  f(time.struct, model="ar1", hyper = hyperar1, constr = TRUE, extraconstr = NULL, values = 1:N) 
+
           }
+          # AR1 add slope
+          if(ar1){
+            tmp <- paste(slope.fixed.names, collapse = " + ")
+            formula <- as.formula(paste(c(formula, tmp), collapse = "+"))
+          }
+          # Add IID
+          formula <- update(formula, ~. + 
+                  f(time.unstruct,model="iid", hyper = hyperpc1, values = 1:N))
+
         ## -------------------------
-        ## Period + Subnational + PC
+        ## Subnational + PC
         ## ------------------------- 
         }else if(!is.null(geo)){
+
 
              if(replicate.rw && (!ar1)){
               # Replicated RW
               formula <- Y ~ 
-                f(time.struct, model=paste0("rw", rw), hyper = hyperpc1, scale.model = TRUE, extraconstr = period.constr, values = 1:N, replicate =  age.rep.idx) 
+                f(time.struct, model=paste0("rw", rw), hyper = hyperpc1, scale.model = TRUE, extraconstr = NULL, values = 1:N, replicate =  age.rep.idx) 
 
              }else if(!ar1){
               # Single RW
                formula <- Y ~ 
-                f(time.struct, model=paste0("rw", rw), hyper = hyperpc1, scale.model = TRUE, extraconstr = period.constr, values = 1:N) 
+                f(time.struct, model=paste0("rw", rw), hyper = hyperpc1, scale.model = TRUE, extraconstr = NULL, values = 1:N) 
              }else if(replicate.rw && ar1){
               # Replicated AR1
                formula <- Y ~ 
-                f(time.struct, model="ar1", hyper = hyperar1, constr = TRUE, extraconstr = period.constr, values = 1:N, replicate =  age.rep.idx) 
+                f(time.struct, model="ar1", hyper = hyperar1, constr = TRUE, extraconstr = NULL, values = 1:N, replicate =  age.rep.idx) 
              }else{
-              # Single RW
+              # Single AR1
               formula <- Y ~ 
-                f(time.struct, model="ar1", hyper = hyperar1, constr = TRUE, extraconstr = period.constr, values = 1:N) 
+                f(time.struct, model="ar1", hyper = hyperar1, constr = TRUE, extraconstr = NULL, values = 1:N) 
              }
+
+            # AR1 add slope
              if(ar1){
                 tmp <- paste(slope.fixed.names, collapse = " + ")
                 formula <- as.formula(paste(c(formula, tmp), collapse = "+"))
@@ -360,6 +382,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                   f(time.unstruct,model="iid", hyper = hyperpc1, values = 1:N) + 
                   f(region.struct, graph=Amat,model="bym2", hyper = hyperpc2, scale.model = TRUE, adjust.for.con.comp = TRUE)) 
 
+            # Interaction models 
             if(type.st == 1){
                 formula <- update(formula, ~. + 
                     f(time.area,model="iid", hyper = hyperpc1))
@@ -376,69 +399,53 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                     f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="iid"), hyper = hyperpc1, scale.model = TRUE, adjust.for.con.comp = TRUE))
             }else{
                 
-
               # defines type IV explicitly with constraints
               # Use time.area as index
               # S blocks each with time 1:T (in this code, 1:N)
-              # UPDATE!
-
-             inla.rw = utils::getFromNamespace("inla.rw", "INLA")
-             R2 <- inla.rw(N, order = rw, scale.model=TRUE, sparse=TRUE)
-             R4 = Amat
-            if(sum(R4 > 0 & R4 < 1) != 0){
-              for(row in 1:nrow(R4)){
-                idx <- which(R4[row,] > 0 & R4[row,] < 1)
-                R4[row,idx] <- 1
+               inla.rw = utils::getFromNamespace("inla.rw", "INLA")
+               R2 <- inla.rw(N, order = rw, scale.model=TRUE, sparse=TRUE)
+               R4 = Amat
+              if(sum(R4 > 0 & R4 < 1) != 0){
+                for(row in 1:nrow(R4)){
+                  idx <- which(R4[row,] > 0 & R4[row,] < 1)
+                  R4[row,idx] <- 1
+                }
               }
-            }
-             diag(R4) <- 0
-             diag <- apply(R4, 1, sum)
-             R4[R4 != 0] <- -1
-             diag(R4) <- diag
-             R4 <- INLA::inla.scale.model(R4, constr = list(A=matrix(1,1,dim(R4)[1]), e=0))
-             R <- R4 %x% R2
-             tmp <- matrix(0, S, N * S)
-             for(i in 1:S){
-               tmp[i, ((i-1)*N + 1) : (i*N)] <- 1
-             }
-             tmp2 <- matrix(0, N, N * S)
-             for(i in 1:N){
-                tmp2[i , which((1:(N*S)) %% N == i-1)] <- 1
-             }
-             tmp <- rbind(tmp, tmp2)
-
-
-             # if(rw == 2){
-             #  tmp3 <- matrix(0, S, N*S)
-             #  for(i in 1:S){
-             #   tmp3[i, ((i-1)*N + 1) : (i*N)] <- 1:N
-             #  }
-             #  tmp <- rbind(tmp, tmp3)
-             # }
-
-             constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
+               diag(R4) <- 0
+               diag <- apply(R4, 1, sum)
+               R4[R4 != 0] <- -1
+               diag(R4) <- diag
+               R4 <- INLA::inla.scale.model(R4, constr = list(A=matrix(1,1,dim(R4)[1]), e=0))
+               R <- R4 %x% R2
+               tmp <- matrix(0, S, N * S)
+               for(i in 1:S){
+                 tmp[i, ((i-1)*N + 1) : (i*N)] <- 1
+               }
+               tmp2 <- matrix(0, N, N * S)
+               for(i in 1:N){
+                  tmp2[i , which((1:(N*S)) %% N == i-1)] <- 1
+               }
+               tmp <- rbind(tmp, tmp2)
+               constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
              
              # if(family == "betabinomialna"){
              # formula <- update(formula, ~. + 
              #        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1na, initial=10))
+
+             # Interaction with AR1  
              if(ar1){
               formula <- update(formula, ~. + 
                    f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="ar1", hyper = hyperar1), scale.model = TRUE, adjust.for.con.comp = TRUE)) 
-             }else if(family != "betabinomialna"){
-                formula <- update(formula, ~. + 
-                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1))              
              }else{
                  formula <- update(formula, ~. + 
-                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1na, initial=10))
+                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1na))
              }
-
-
+             # END of type IV specification
             }
           
-        ## ------------------------- 
-        ## Yearly + Subnational + PC
-        ## ------------------------- 
+        # END of subnational model specification
         }
+
         if(survey.effect){
           formula <- update(formula, ~. + f(survey.id, model = "iid", extraconstr = list(A = survey.A, e = survey.e), hyper = list(theta = list(initial=log(0.001), fixed=TRUE))))
         }
@@ -453,7 +460,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         if(is.null(geo)){
             if(replicate.rw){
               formula <- Y ~
-                f(time.struct,model=paste0("rw", rw),param=c(a.rw,b.rw), constr = TRUE, extraconstr = period.constr, hyper = hyperpc1, replicate =  age.rep.idx)  + 
+                f(time.struct,model=paste0("rw", rw),param=c(a.rw,b.rw), constr = TRUE, extraconstr = NULL, hyper = hyperpc1, replicate =  age.rep.idx)  + 
                 f(time.unstruct,model="iid",param=c(a.iid,b.iid)) 
 
             }else{
@@ -465,10 +472,10 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         }else{
           if(replicate.rw){
             formula <- Y ~
-                  f(time.struct,model=paste0("rw", rw), param=c(a.rw,b.rw), scale.model = TRUE, extraconstr = period.constr)  
+                  f(time.struct,model=paste0("rw", rw), param=c(a.rw,b.rw), scale.model = TRUE, extraconstr = NULL)  
           }else{
             formula <- Y ~
-                  f(time.struct,model=paste0("rw", rw), param=c(a.rw,b.rw), scale.model = TRUE, extraconstr = period.constr)  
+                  f(time.struct,model=paste0("rw", rw), param=c(a.rw,b.rw), scale.model = TRUE, extraconstr = NULL)  
           }
           formula <- update(formula,  ~. +
                   f(time.unstruct,model="iid",param=c(a.iid,b.iid)) + 
@@ -600,11 +607,17 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   tmp$years <- years$year[match(tmp$time.struct, years$year_number)]
   tmp$region_number <- tmp$region.int <- tmp$region.unstruct <- tmp$region.struct
   tmp$region <- colnames(Amat)[tmp$region.struct]
-  tmp <- tmp[, colnames(tmp) != "time.area"]
-  tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
-  tmp <- subset(tmp, tmp$time.area %in% exdat$time.area == FALSE)
+  if(!is.null(geo)){
+    tmp <- tmp[, colnames(tmp) != "time.area"]
+    tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
+    tmp <- subset(tmp, tmp$time.area %in% exdat$time.area == FALSE)
+  }
   # remove contents in other columns
-  created <- c("region.struct", "region_number", "region.unstruct", "region.int", "region", "time.struct", "time.unstruct", "time.int", "time.area", "years", "age", "strata")
+  if(!is.null(geo)){
+    created <- c("region.struct", "region_number", "region.unstruct", "region.int", "region", "time.struct", "time.unstruct", "time.int", "time.area", "years", "age", "strata")
+  }else{
+      created <- c("time.struct", "time.unstruct", "time.int",  "years", "age", "strata")
+  }
   tmp[, colnames(tmp) %in% created == FALSE] <- NA
   exdat <- rbind(exdat, tmp)
 
