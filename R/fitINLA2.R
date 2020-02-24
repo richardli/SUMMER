@@ -96,6 +96,15 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   if(ar1 && hyper=="gamma"){
     stop("AR1 model only implemented with PC priors for now.")
   }
+  
+  has.strata <- TRUE
+
+  if("strata" %in% colnames(data) == FALSE || sum(!is.na(data$strata)) == 0){
+    has.strata <- FALSE
+    data$strata <- ""
+    strata.time.effect <- FALSE
+    message("The input data contains no strata. Please makes sure this correctly reflects the sampling design.")
+  }
 
   multi.frame <- FALSE
   if("frame" %in% colnames(data)){
@@ -167,6 +176,8 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   }
   stratalevels <- unique(data$strata)
 
+
+  # If only one strata, this becomes the overall trend
   if(strata.time.effect){
     if(is.null(data$strata)) stop("No strata column in the data.")
     ## Update here age -> age x strata to allow stratum-specific trends
@@ -557,7 +568,11 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         # In this case, age is age x strata already
         formula <- update(formula, ~. -1 + age) 
     }else{
-        formula <- update(formula, ~. -1 + age + strata)
+        if(has.strata){
+          formula <- update(formula, ~. -1 + age + strata)
+        }else{
+          formula <- update(formula, ~. -1 + age) 
+        }
     }
     if(!is.null(bias.adj)){
       if(is.null(bias.adj.by)) stop("bias.adj.by argument is not specified. Please specify which bias adjustment factors are specified by which columns. ")
@@ -621,7 +636,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   tmp[, colnames(tmp) %in% created == FALSE] <- NA
   exdat <- rbind(exdat, tmp)
 
-  exdat$strata <- factor(exdat$strata, levels = stratalevels)
+  if(has.strata) exdat$strata <- factor(exdat$strata, levels = stratalevels)
   if(!is.null(age.groups)){
       exdat$age <- factor(exdat$age, levels = age.groups)    
   }else{
@@ -671,7 +686,8 @@ if(family == "betabinomialna"){
  # find the name for baseline strata
  levels <- grep("strata", rownames(fit$summary.fixed))   
  levels <- gsub("strata", "", rownames(fit$summary.fixed)[levels])
- strata.all <- as.character(unique(exdat$strata))
+ strata.all <- ""
+ if(has.strata) strata.all <- as.character(unique(exdat$strata))
  strata.base <- strata.all[strata.all%in%levels == FALSE]
 
   return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base, ar1 = ar1, strata.time.effect = strata.time.effect))

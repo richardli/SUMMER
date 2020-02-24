@@ -74,7 +74,11 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
 
         if(!is.dynamic){
           # check strata weights are properly specified: static strata effect case
-          stratalabels <- stratalabels.orig <- inla_mod$strata.base
+          stratalabels <- stratalabels.orig <- inla_mod$strata.base                  
+          if(length(stratalabels) == 1 && stratalabels[1] == ""){
+            stratalabels <-  "strata_all"
+            stratalabels.orig <- "strata_all"
+          }
           other <- rownames(inla_mod$fit$summary.fixed)
           other <- other[grep("strata", other)]
           other <- gsub("strata", "", other)
@@ -195,6 +199,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           AA  <-  expand.grid(time.area = unique(A$time.area), 
                             strata =  unique(A$strata),  
                             age = unique(A$age))
+          if(sum(AA$strata != "") == 0) AA$strata <- "strata_all"
         }
         AA <- merge(AA, unique(A[, c("time.struct", "time.unstruct", "region.struct",  "time.area")]), by = "time.area")
        if(rep.time){ 
@@ -284,16 +289,21 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         }
 
         if(is.null(weight.strata)){
-          warning("No strata weights has been supplied. Set all weights to 0.", immediate.=TRUE)
+          if(length(stratalabels) > 1){
+              warning("No strata weights has been supplied. Set all weights to 0.", immediate.=TRUE)
+          }else{
+              warning("No stratification. Set all weights to 1.", immediate.=TRUE)
+          }
           if(!is.null(Amat)){
             weight.strata <- expand.grid(region = colnames(Amat), frame = framelabels)
             weight.strata.by <- "region"
           }else{
-            weight.strata <- expand.grid(frame = framelabels)
+            weight.strata <- data.frame(frame = framelabels)
             weight.strata.by <- "Constant"
           }
+          
           for(tt in stratalabels.orig){
-            weight.strata[, tt] <- 0
+            weight.strata[, tt] <- ifelse(length(stratalabels) > 1, 0, 1)
           }
         }
 
@@ -314,7 +324,12 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           strata.index <- match(stratalabels.orig, colnames(out2))
         }else{
           if(!is.na(framelabels[1])) weight.strata.by <- c(weight.strata.by, "frame")
-          out2 <- merge(out2, weight.strata, by = weight.strata.by)
+          
+          if(sum(!is.na(out2$frame)) == 0){
+            out2 <- merge(out2[, colnames(out2)!="frame"], weight.strata, by = weight.strata.by)
+          }else{
+            out2 <- merge(out2, weight.strata, by = weight.strata.by)
+          } 
           strata.index <- match(stratalabels.orig, colnames(out2))
           out2 <- out2[with(out2, order(area, time)), ]
         }
@@ -455,7 +470,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
                   cols <- match(paste(out2$frame[index2[k]], stratalabels.orig, sep = "-"), stratalabels)
               }
 
-              draws.sub.agg.sum[, k] <- apply(draws.sub.agg[, cols], 1, function(x, p){sum(x * p)}, prop)
+              draws.sub.agg.sum[, k] <- apply(draws.sub.agg[, cols, drop=FALSE], 1, function(x, p){sum(x * p)}, prop)
               out2[index2[k], c("lower", "median", "upper")] <- quantile(draws.sub.agg.sum[, k], c(lowerCI, 0.5, upperCI))
               out2[index2[k], "mean"] <- mean(draws.sub.agg.sum[, k])
               out2[index2[k], "variance"] <- var(draws.sub.agg.sum[, k])
