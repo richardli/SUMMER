@@ -9,11 +9,6 @@
 data(malawiMap)
 }
 \description{
-Shapefiles are from 2015 Kalawi Admin 2 regions provided by DHS. The Likoma island is included in this shapefile. The Admin 2 region names are in the ADM2_EN field.
-}
-\details{
-\itemize{
- \item geo Geographic map files
-}
+SpatialPolygonsDataFrame objects that reflect the Admin 2 regions in Malawi, including the Likoma island. The Admin 2 region names are in the ADM2_EN field.
 }
 \keyword{datasets}
