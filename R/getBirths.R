@@ -72,8 +72,10 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables =
   # e.g., if last period 15-19, min.last.period = 3
   #       determine if max year is at least 2017
   if(min.last.period > 0){
-    if(max(test$year) < year.cut[length(year.cut)-1] + min.last.period - 1){
-        test <- test[test$year < year.cut[length(year.cut)-1], ]
+    # year.last.start <- year.cut[length(year.cut)-1] 
+    year.last.start <- max(year.cut[year.cut <= max(test$year)])
+    if(max(test$year) < year.last.start + min.last.period - 1){
+        test <- test[test$year < year.last.start, ]
     }
   }
   
