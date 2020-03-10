@@ -98,9 +98,9 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
     }
     if(!is.null(option.add$by)){
       x$Comparisons <- x[, option.add$by]
-        if(sum(is.na(x$Comparisons)) == dim(x)[1]) x$Comparisons <- "Direct"
+        if(sum(is.na(x$Comparisons)) == dim(x)[1]) x$Comparisons <- ifelse(is.null(label.add), "Direct", label.add)
     }else{
-        x$Comparisons <- "Direct"
+        x$Comparisons <-  ifelse(is.null(label.add), "Direct", label.add)
     }
   }
 
