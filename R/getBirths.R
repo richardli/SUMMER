@@ -123,8 +123,8 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables =
       year.cut3[year.cut3 >= 100] <- as.character(year.cut3[year.cut3 >= 100] - 100)
       year.cut3[as.numeric(year.cut3) < 10] <- paste0("0", year.cut3[as.numeric(year.cut3) < 10])
 
-      test$time <- paste(year.cut[1], year.cut[2] - 1, sep = "-")
-      year.bin <- paste(year.cut[1], year.cut[2] - 1, sep = "-")
+      test$time <- paste(year.cut2[1], year.cut3[2], sep = "-")
+      year.bin <- paste(year.cut2[1], year.cut3[2], sep = "-")
       for(i in 2:(length(year.cut)-1)){
         test$time[test$year >= year.cut[i] & test$year < year.cut[i+1]] <- paste(year.cut2[i], year.cut3[i+1], sep = "-")
         year.bin <- c(year.bin, paste(year.cut2[i], year.cut3[i+1], sep = "-"))
