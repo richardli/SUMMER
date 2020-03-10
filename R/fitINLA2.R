@@ -23,8 +23,8 @@
 #' @param formula INLA formula.  See vignette for example of using customized formula.
 #' @param year_label string vector of year names
 #' @param priors priors from \code{\link{simhyper}}
-#' @param rw Take values 1 or 2, indicating the order of random walk.
-#' @param ar1 Logical indicator for replacing random walk components with an autoregressive component with lag 1.
+#' @param rw Take values 0, 1 or 2, indicating the order of random walk. If rw = 0, the autoregressive process is used instead of the random walk in the main trend. See the description of the argument ar for details.
+#' @param ar Order of the autoregressive component. If ar is specified to be positive integer, the random walk components will be replaced by AR(p) terms in the interaction part. The main temporal trend remains to be random walk of order rw unless rw = 0.
 #' @param type.st type for space-time interaction
 #' @param survey.effect logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0. 
 #' @param strata.time.effect logical indicator whether to include strata specific temporal trends. 
@@ -55,10 +55,18 @@
 #' 
 #' 
 
-fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, ar1 = FALSE, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, ...){
+fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, ar = 0, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, ...){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
+
+  is.ar <- ar > 0 
+  is.main.ar <- rw == 0
+  if(is.ar) message("ar > 0: using the AR(p) process for the space-time interaction component.")
+  if(rw %in% c(0, 1, 2) == FALSE) stop("Random walk only support rw = 1 or 2.")
+  if(rw == 0) message("rw = 0: using the AR(p) process for the main temporal trend component.")
+
+
   if(!is.null(Amat)){
     if(is.null(rownames(Amat))){
         stop("Row names of Amat needs to be specified to region names.")
@@ -93,7 +101,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     age.n <- 1
     age.rw.group <- 1
   }
-  if(ar1 && hyper=="gamma"){
+  if(is.ar && hyper=="gamma"){
     stop("AR1 model only implemented with PC priors for now.")
   }
   
@@ -295,7 +303,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     # exdat <- merge(exdat, cluster.time, by.x = c("cluster", "time.struct"), by.y = c("cluster", "time"))
     # # exdat$nugget.id <- 1:dim(exdat)[1]
 
-    if(ar1){
+    if(is.ar){
       exdat$time.slope <- exdat$time.struct 
       center <- N/2 + 1e-5 # avoid exact zero in the lincomb creation
       exdat$time.slope <- (exdat$time.slope  - center) / (sd(1:N))
@@ -315,8 +323,6 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
 
 
   if(is.null(formula)){
-
-        if(rw %in% c(1, 2) == FALSE) stop("Random walk only support rw = 1 or 2.")
    
     ## ---------------------------------------------------------
     ## Setup PC prior model
@@ -326,29 +332,31 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         hyperpc1na <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
         hyperpc2 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
                          phi = list(prior = 'pc', param = c(pc.u.phi , pc.alpha.phi)))
-        hyperar1 = list(rho = list(prior = "pc.cor1", param = c(0.7, 0.9)))
+        hyperar1 = list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
+                        theta2 = list(prior = "pc.cor1", param = c(0.7, 0.9)))
+        hyperar2 = list(theta2 = list(prior = "pc.cor1", param = c(0.7, 0.9)))
         ## -----------------------
         ##  National + PC
         ##  TODO: AR1 in this case
         ## ----------------------- 
         if(is.null(geo)){
 
-          if(replicate.rw && (!ar1)){
+          if(replicate.rw && (!is.main.ar)){
               # Replicated RW
               formula <- Y ~ f(time.struct,model=paste0("rw", rw), constr = TRUE,  extraconstr = NULL, hyper = hyperpc1, replicate =  age.rep.idx)  
-          }else if(!ar1){
+          }else if(!is.main.ar){
               # Single RW
               formula <- Y ~ f(time.struct,model=paste0("rw", rw), constr = TRUE,  extraconstr = NULL, hyper = hyperpc1)          
-          }else if(replicate.rw && ar1){
+          }else if(replicate.rw && is.main.ar){
             # Replicated AR1
-            formula <- Y ~  f(time.struct, model="ar1", hyper = hyperar1, constr = TRUE, extraconstr = NULL, values = 1:N, replicate =  age.rep.idx) 
+            formula <- Y ~  f(time.struct, model="ar", order=ar, hyper = hyperar1, constr = TRUE, extraconstr = NULL, values = 1:N, replicate =  age.rep.idx) 
           }else{
             # Single AR1
-           formula <- Y ~  f(time.struct, model="ar1", hyper = hyperar1, constr = TRUE, extraconstr = NULL, values = 1:N) 
+           formula <- Y ~  f(time.struct, model="ar", order=ar, hyper = hyperar1, constr = TRUE, extraconstr = NULL, values = 1:N) 
 
           }
           # AR1 add slope
-          if(ar1){
+          if(is.main.ar){
             tmp <- paste(slope.fixed.names, collapse = " + ")
             formula <- as.formula(paste(c(formula, tmp), collapse = "+"))
           }
@@ -362,27 +370,27 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         }else if(!is.null(geo)){
 
 
-             if(replicate.rw && (!ar1)){
+             if(replicate.rw && (!is.main.ar)){
               # Replicated RW
               formula <- Y ~ 
                 f(time.struct, model=paste0("rw", rw), hyper = hyperpc1, scale.model = TRUE, extraconstr = NULL, values = 1:N, replicate =  age.rep.idx) 
 
-             }else if(!ar1){
+             }else if(!is.main.ar){
               # Single RW
                formula <- Y ~ 
                 f(time.struct, model=paste0("rw", rw), hyper = hyperpc1, scale.model = TRUE, extraconstr = NULL, values = 1:N) 
-             }else if(replicate.rw && ar1){
+             }else if(replicate.rw && is.main.ar){
               # Replicated AR1
                formula <- Y ~ 
-                f(time.struct, model="ar1", hyper = hyperar1, constr = TRUE, extraconstr = NULL, values = 1:N, replicate =  age.rep.idx) 
+                f(time.struct, model="ar", order=ar, hyper = hyperar1, constr = TRUE, extraconstr = NULL, values = 1:N, replicate =  age.rep.idx) 
              }else{
               # Single AR1
               formula <- Y ~ 
-                f(time.struct, model="ar1", hyper = hyperar1, constr = TRUE, extraconstr = NULL, values = 1:N) 
+                f(time.struct, model="ar", order=ar, hyper = hyperar1, constr = TRUE, extraconstr = NULL, values = 1:N) 
              }
 
             # AR1 add slope
-             if(ar1){
+             if(is.main.ar){
                 tmp <- paste(slope.fixed.names, collapse = " + ")
                 formula <- as.formula(paste(c(formula, tmp), collapse = "+"))
              }
@@ -397,56 +405,56 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                 formula <- update(formula, ~. + 
                     f(time.area,model="iid", hyper = hyperpc1))
             }else if(type.st == 2){
-                if(!ar1){
+                if(!is.ar){
                   formula <- update(formula, ~. + 
                     f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1,  adjust.for.con.comp = TRUE))
                 }else{
                     formula <- update(formula, ~. + 
-                    f(region.int,model="iid", group=time.int,control.group=list(model="ar1", hyper = hyperar1), scale.model = TRUE, adjust.for.con.comp = TRUE))
+                    f(region.int,model="iid", group=time.int,control.group=list(model="ar", order = ar, hyper = hyperar2), scale.model = TRUE, adjust.for.con.comp = TRUE))
                 }
             }else if(type.st == 3){
                 formula <- update(formula, ~. + 
                     f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="iid"), hyper = hyperpc1, scale.model = TRUE, adjust.for.con.comp = TRUE))
             }else{
                 
-              # defines type IV explicitly with constraints
-              # Use time.area as index
-              # S blocks each with time 1:T (in this code, 1:N)
-               inla.rw = utils::getFromNamespace("inla.rw", "INLA")
-               R2 <- inla.rw(N, order = rw, scale.model=TRUE, sparse=TRUE)
-               R4 = Amat
-              if(sum(R4 > 0 & R4 < 1) != 0){
-                for(row in 1:nrow(R4)){
-                  idx <- which(R4[row,] > 0 & R4[row,] < 1)
-                  R4[row,idx] <- 1
-                }
-              }
-               diag(R4) <- 0
-               diag <- apply(R4, 1, sum)
-               R4[R4 != 0] <- -1
-               diag(R4) <- diag
-               R4 <- INLA::inla.scale.model(R4, constr = list(A=matrix(1,1,dim(R4)[1]), e=0))
-               R <- R4 %x% R2
-               tmp <- matrix(0, S, N * S)
-               for(i in 1:S){
-                 tmp[i, ((i-1)*N + 1) : (i*N)] <- 1
-               }
-               tmp2 <- matrix(0, N, N * S)
-               for(i in 1:N){
-                  tmp2[i , which((1:(N*S)) %% N == i-1)] <- 1
-               }
-               tmp <- rbind(tmp, tmp2)
-               constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
-             
-             # if(family == "betabinomialna"){
-             # formula <- update(formula, ~. + 
-             #        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1na, initial=10))
-
              # Interaction with AR1  
-             if(ar1){
+             if(is.ar){
               formula <- update(formula, ~. + 
-                   f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="ar1", hyper = hyperar1), scale.model = TRUE, adjust.for.con.comp = TRUE)) 
+                   f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="ar", order = ar, hyper = hyperar2), scale.model = TRUE, adjust.for.con.comp = TRUE)) 
              }else{
+                # defines type IV explicitly with constraints
+                # Use time.area as index
+                # S blocks each with time 1:T (in this code, 1:N)
+                 inla.rw = utils::getFromNamespace("inla.rw", "INLA")
+                 R2 <- inla.rw(N, order = rw, scale.model=TRUE, sparse=TRUE)
+                 R4 = Amat
+                if(sum(R4 > 0 & R4 < 1) != 0){
+                  for(row in 1:nrow(R4)){
+                    idx <- which(R4[row,] > 0 & R4[row,] < 1)
+                    R4[row,idx] <- 1
+                  }
+                }
+                 diag(R4) <- 0
+                 diag <- apply(R4, 1, sum)
+                 R4[R4 != 0] <- -1
+                 diag(R4) <- diag
+                 R4 <- INLA::inla.scale.model(R4, constr = list(A=matrix(1,1,dim(R4)[1]), e=0))
+                 R <- R4 %x% R2
+                 tmp <- matrix(0, S, N * S)
+                 for(i in 1:S){
+                   tmp[i, ((i-1)*N + 1) : (i*N)] <- 1
+                 }
+                 tmp2 <- matrix(0, N, N * S)
+                 for(i in 1:N){
+                    tmp2[i , which((1:(N*S)) %% N == i-1)] <- 1
+                 }
+                 tmp <- rbind(tmp, tmp2)
+                 constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
+               
+                 # if(family == "betabinomialna"){
+                 # formula <- update(formula, ~. + 
+                 #        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1na, initial=10))
+
                  formula <- update(formula, ~. + 
                     f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1na))
              }
@@ -644,7 +652,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   exdat$age.idx <- match(exdat$age, age.groups)
   exdat$age.rep.idx <- age.rw.group[exdat$age.idx]
 
-if(ar1){
+if(is.ar){
   # get lincombs of the design matrix for the temporal effects under AR1
   ## TODO
 
@@ -689,7 +697,7 @@ if(family == "betabinomialna"){
  if(has.strata) strata.all <- as.character(unique(exdat$strata))
  strata.base <- strata.all[strata.all%in%levels == FALSE]
 
-  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base, ar1 = ar1, strata.time.effect = strata.time.effect))
+  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base, rw = rw, ar = ar, strata.time.effect = strata.time.effect))
     
   }
 }
