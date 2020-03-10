@@ -326,8 +326,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         hyperpc1na <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
         hyperpc2 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
                          phi = list(prior = 'pc', param = c(pc.u.phi , pc.alpha.phi)))
-        hyperar1 = list(theta1 = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
-                        rho = list(prior = "pc.cor1", param = c(0.7, 0.9)))
+        hyperar1 = list(rho = list(prior = "pc.cor1", param = c(0.7, 0.9)))
         ## -----------------------
         ##  National + PC
         ##  TODO: AR1 in this case

@@ -415,10 +415,10 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar1 = FAL
     ## ---------------------------------------------------------
     if(tolower(hyper) == "pc"){
         hyperpc1 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
+        hyperpc1.interact <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
         hyperpc2 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
                          phi = list(prior = 'pc', param = c(pc.u.phi , pc.alpha.phi)))
-        hyperar1 = list(theta1 = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
-                        rho = list(prior = "pc.cor1", param = c(0.7, 0.9)))
+        hyperar1 = list(rho = list(prior = "pc.cor1", param = c(0.7, 0.9)))
         ## -----------------------
         ## Period + National + PC
         ## ----------------------- 
@@ -450,19 +450,19 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar1 = FAL
 
             if(type.st == 1){
                 formula <- update(formula, ~. + 
-                    f(time.area,model="iid", hyper = hyperpc1))
+                    f(time.area,model="iid", hyper = hyperpc1.interact))
             }else if(type.st == 2){
                 if(!ar1){
                   formula <- update(formula, ~. + 
-                    f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1,  adjust.for.con.comp = TRUE))
+                    f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1.interact))
                 }else{
                     formula <- update(formula, ~. + 
-                    f(region.int,model="iid", group=time.int,control.group=list(model="ar1", hyper = hyperar1), scale.model = TRUE, adjust.for.con.comp = TRUE))
+                    f(region.int,model="iid", group=time.int,control.group=list(model="ar1", hyper = hyperar1)))
                 }
 
             }else if(type.st == 3){
                 formula <- update(formula, ~. + 
-                    f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="iid"), hyper = hyperpc1, scale.model = TRUE, adjust.for.con.comp = TRUE))
+                    f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="iid"), hyper = hyperpc1.interact, scale.model = TRUE, adjust.for.con.comp = TRUE))
             }else{
 
 
@@ -492,15 +492,12 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar1 = FAL
              tmp <- rbind(tmp, tmp2)
              constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
              
-
-             formula <- update(formula, ~. + 
-                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1))
               if(ar1){
                 formula <- update(formula, ~. + 
-                     f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="ar1", hyper = hyperar1), scale.model = TRUE, adjust.for.con.comp = TRUE)) 
+                     f(region.int, model="besag", graph = Amat, group=time.int, control.group=list(model="ar1", hyper = hyperar1), hyper = hyperpc1.interact, scale.model = TRUE, adjust.for.con.comp = TRUE)) 
                }else{
                   formula <- update(formula, ~. + 
-                      f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1))              
+                      f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1.interact))              
                }
             }
           
@@ -678,84 +675,75 @@ if(ar1){
           lincombs.info[index, c("District", "Year")] <- c(j,i)
           # BYM model under Gamma prior
           if(hyper == "gamma"){
-            if(is.yearly || type.st%in% c(1, 4)){
-              if(ar1){
+            if(ar1 && type.st == 1){
                 tmplin <- list("(Intercept)" = 1,
-                                time.area = spacetime,
-                                time.struct= time ,
-                                time.unstruct= time,
-                                region.struct = area,
-                                time.slope = (i - center)/sd(1:N))
-                 assign(object.name, INLA::inla.make.lincomb(c(tmplin, XX)))
-                }else{
-                 assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
-                                                    time.area = spacetime,
-                                                    time.struct= time ,
-                                                    time.unstruct= time,
-                                                    region.struct = area,
-                                                    region.unstruct = area), 
-                                                    XX)))                
-              }
-            }else{
-              newidx <- rep(0, j + (i - 1) * region_count)
-              newidx[j + (i - 1) * region_count] <- 1
-              if(ar1){
-                tmplin <- list("(Intercept)" = 1,
-                                  time.struct= time ,
-                                  time.unstruct= time,
-                                  region.struct = area,
-                                  region.unstruct = area,
-                                  region.int = newidx,
-                                  time.slope = (i - center)/sd(1:N))
-                 assign(object.name, INLA::inla.make.lincomb(c(tmplin, XX)))
-                }else{
-                  assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
-                                                    time.struct= time ,
-                                                    time.unstruct= time,
-                                                    region.struct = area,
-                                                    region.unstruct = area,
-                                                    region.int = newidx), 
-                                                    XX)))
-                }
-            }
-          # BYM2 model under PC prior
-          }else{
-            if(is.yearly || type.st %in% c(1, 4)){
-                if(ar1){
-                 tmplin <- list("(Intercept)" = 1,
                                 time.area = spacetime,
                                 time.struct= time ,
                                 time.unstruct= time,
                                 region.struct = area, 
                                 time.slope = (i - center)/sd(1:N))
                  assign(object.name, INLA::inla.make.lincomb(c(tmplin, XX)))
-                }else{
+            }else if(ar1){
+                tmplin <- list("(Intercept)" = 1,
+                                region.int = area,
+                                time.struct= time ,
+                                time.unstruct= time,
+                                region.struct = area,
+                                time.slope = (i - center)/sd(1:N))
+                 assign(object.name, INLA::inla.make.lincomb(c(tmplin, XX)))
+            }else if(is.yearly || type.st%in% c(1, 4)){
+                 assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
+                                                    time.area = spacetime,
+                                                    time.struct= time ,
+                                                    time.unstruct= time,
+                                                    region.struct = area,
+                                                    region.unstruct = area), 
+                                                    XX)))    
+            }else{
+              newidx <- rep(0, j + (i - 1) * region_count)
+              newidx[j + (i - 1) * region_count] <- 1
+              assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
+                                                    time.struct= time ,
+                                                    time.unstruct= time,
+                                                    region.struct = area,
+                                                    region.unstruct = area,
+                                                    region.int = newidx), 
+                                                    XX)))
+            }
+          # BYM2 model under PC prior
+          }else{
+            if(ar1 && type.st == 1){
+                tmplin <- list("(Intercept)" = 1,
+                                time.area = spacetime,
+                                time.struct= time ,
+                                time.unstruct= time,
+                                region.struct = area, 
+                                time.slope = (i - center)/sd(1:N))
+                 assign(object.name, INLA::inla.make.lincomb(c(tmplin, XX)))
+            }else if(ar1){
+                tmplin <- list("(Intercept)" = 1,
+                                region.int = area,
+                                time.struct= time ,
+                                time.unstruct= time,
+                                region.struct = area,
+                                time.slope = (i - center)/sd(1:N))
+                 assign(object.name, INLA::inla.make.lincomb(c(tmplin, XX)))
+            }else if(is.yearly || type.st %in% c(1, 4)){
                  assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
                                       time.area = spacetime,
                                       time.struct= time ,
                                       time.unstruct= time,
                                       region.struct = area), 
                                       XX)))
-                }
             }else{
               newidx <- rep(0, j + (i - 1) * region_count)
               newidx[j + (i - 1) * region_count] <- 1
-              if(ar1){
-                tmplin <- list("(Intercept)" = 1,
-                                time.struct= time ,
-                                time.unstruct= time,
-                                region.struct = area,
-                                region.int = newidx,
-                                time.slope = (i - center)/sd(1:N))
-                 assign(object.name, INLA::inla.make.lincomb(c(tmplin, XX)))
-                }else{
-                  assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
+              assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
                                                     time.struct= time ,
                                                     time.unstruct= time,
                                                     region.struct = area,
                                                     region.int = newidx), 
                                                     XX)))
-                }
             }
           }
            
