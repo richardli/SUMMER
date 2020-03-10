@@ -430,12 +430,12 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           for(i in 1:T){
             sub <-  which(AA$time.unstruct==i & AA$region.struct == j)
             AA.sub <- AA[sub, ] 
-            draws.sub <- theta[, sub]
+            draws.sub <- theta[, sub, drop = FALSE]
             draws.sub.agg <- matrix(NA, nsim, length(stratalabels))
             # For each strata
             for(k in 1:length(stratalabels)){
               strata.sub <- which(AA.sub$strata == stratalabels[k])
-              draws.hazards <- draws.sub[, strata.sub]
+              draws.hazards <- draws.sub[, strata.sub, drop=FALSE]
               # Monte Carlo approximation of the marginal effects
               if(inla_mod$family == "binomial" && mc > 0){
                 for(tt in 1:dim(draws.hazards)[2]){
