@@ -8,7 +8,7 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
   age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"),
   age.n = c(1, 11, 12, 12, 12, 12), age.rw.group = 1:6, Amat, geo,
   bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2,
-  ar1 = FALSE, year_label, priors = NULL, type.st = 4,
+  ar = 0, year_label, priors = NULL, type.st = 4,
   survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc",
   "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5,
   pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL,
@@ -46,9 +46,9 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 
 \item{formula}{INLA formula.  See vignette for example of using customized formula.}
 
-\item{rw}{Take values 1 or 2, indicating the order of random walk.}
+\item{rw}{Take values 0, 1 or 2, indicating the order of random walk. If rw = 0, the autoregressive process is used instead of the random walk in the main trend. See the description of the argument ar for details.}
 
-\item{ar1}{Logical indicator for replacing random walk components with an autoregressive component with lag 1.}
+\item{ar}{Order of the autoregressive component. If ar is specified to be positive integer, the random walk components will be replaced by AR(p) terms in the interaction part. The main temporal trend remains to be random walk of order rw unless rw = 0.}
 
 \item{year_label}{string vector of year names}
 

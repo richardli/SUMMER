@@ -25,9 +25,9 @@ fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0,
 
 \item{formula}{INLA formula. See vignette for example of using customized formula.}
 
-\item{rw}{Take values 1 or 2, indicating the order of random walk.}
+\item{rw}{Take values 0, 1 or 2, indicating the order of random walk. If rw = 0, the autoregressive process is used instead of the random walk in the main trend. See the description of the argument ar for details.}
 
-\item{ar}{Order of the autoregressive component. If ar is specified to be positive integer, the random walk components will be replaced by AR(p) terms in the interaction part. The main temporal trend remains to be random walk of order rw.}
+\item{ar}{Order of the autoregressive component. If ar is specified to be positive integer, the random walk components will be replaced by AR(p) terms in the interaction part. The main temporal trend remains to be random walk of order rw unless rw = 0.}
 
 \item{is.yearly}{Logical indicator for fitting yearly or period model.}
 
