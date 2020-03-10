@@ -9,7 +9,7 @@ getSmoothed(inla_mod, year_range = c(1985, 2019),
   "15-19"), Amat = NULL, nsim = 1000, weight.strata = NULL,
   weight.frame = NULL, verbose = FALSE, mc = 0,
   include_time_unstruct = FALSE, CI = 0.95, draws = NULL,
-  save.draws = FALSE, ...)
+  save.draws = FALSE, save.draws.est = FALSE, ...)
 }
 \arguments{
 \item{inla_mod}{output from \code{\link{fitINLA}}}
@@ -37,6 +37,8 @@ getSmoothed(inla_mod, year_range = c(1985, 2019),
 \item{draws}{Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.}
 
 \item{save.draws}{Logical indicator whether the raw posterior draws will be saved. Saved draws can be used to accelerate aggregations with different weights.}
+
+\item{save.draws.est}{Logical indicator whether the posterior draws of the estimates will be saved.}
 
 \item{...}{additional configurations passed to inla.posterior.sample.}
 }

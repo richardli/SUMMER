@@ -15,6 +15,7 @@
 #' @param CI Desired level of credible intervals
 #' @param draws Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.  
 #' @param save.draws Logical indicator whether the raw posterior draws will be saved. Saved draws can be used to accelerate aggregations with different weights.
+#' @param save.draws.est Logical indicator whether the posterior draws of the estimates will be saved.
 #' @param ... additional configurations passed to inla.posterior.sample.
 #' 
 #' @return Results from RW2 model fit, including projection.
@@ -56,7 +57,7 @@
 #' 
 
 #' @export
-getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), Amat = NULL, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, ...){
+getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), Amat = NULL, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, save.draws.est = FALSE, ...){
 
       years <- region <- NA
       lowerCI <- (1 - CI) / 2
@@ -423,6 +424,8 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
 
         # Put hazards together
         draw.temp <- draws.hazards <- NA
+        draws.est <- NULL
+        index.draws.est <- 1
         index1 <- 1
         index2 <- 1
         if(N == 1 && AA$region.struct[1] == 0) AA$region.struct <- 1
@@ -460,6 +463,11 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
               draws.sub.agg[, k] <- draws.mort
               ## Strata specific output
               index1 <- which(out1$time == i & out1$area == j & out1$strata == stratalabels[k])
+              
+              if(save.draws.est){
+                  draws.est[[index.draws.est]] <- list(years = year_label[i], region = colnames(Amat)[j], strata = stratalabels[k], draws = draws.mort)
+                  index.draws.est <- index.draws.est + 1
+              }
               out1[index1, c("lower", "median", "upper")] <- quantile(draws.mort, c(lowerCI, 0.5, upperCI))
               out1[index1, "mean"] <- mean(draws.mort)
               out1[index1, "variance"] <- var(draws.mort)
@@ -522,6 +530,9 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
       }
       if(save.draws){
         out$draws = sampAll
+      }
+      if(save.draws.est){
+        out$draws.est <- draws.est
       }
 
       return(out) 
