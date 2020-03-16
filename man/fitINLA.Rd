@@ -8,11 +8,12 @@ fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0,
   is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5,
   na.rm = TRUE, priors = NULL, type.st = 1, survey.effect = FALSE,
   hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01,
-  pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL,
-  a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL,
-  options = list(dic = T, mlik = T, cpo = T, openmp.strategy =
-  "default"), control.inla = list(strategy = "adaptive", int.strategy =
-  "auto"), verbose = FALSE)
+  pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7,
+  pc.alpha.cor = 0.9, a.iid = NULL, b.iid = NULL, a.rw = NULL,
+  b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic =
+  T, mlik = T, cpo = T, openmp.strategy = "default"),
+  control.inla = list(strategy = "adaptive", int.strategy = "auto"),
+  verbose = FALSE)
 }
 \arguments{
 \item{data}{Combined dataset}
@@ -54,6 +55,10 @@ fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0,
 \item{pc.u.phi}{hyperparameter U for the PC prior on the mixture probability phi in BYM2 model.}
 
 \item{pc.alpha.phi}{hyperparameter alpha for the PC prior on the mixture probability phi in BYM2 model.}
+
+\item{pc.u.cor}{hyperparameter U for the PC prior on the autocorrelation parameter in the AR prior, i.e. Prob(cor > pc.u.cor) = pc.alpha.cor.}
+
+\item{pc.alpha.cor}{hyperparameter alpha for the PC prior on the autocorrelation parameter in the AR prior.}
 
 \item{a.iid}{hyperparameter for i.i.d random effects.}
 
