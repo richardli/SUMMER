@@ -33,12 +33,16 @@
 #' @param pc.alpha hyperparameter alpha for the PC prior on precisions.
 #' @param pc.u.phi hyperparameter U for the PC prior on the mixture probability phi in BYM2 model.
 #' @param pc.alpha.phi hyperparameter alpha for the PC prior on the mixture probability phi in BYM2 model.
+#' @param pc.u.cor hyperparameter U for the PC prior on the autocorrelation parameter in the AR prior, i.e. Prob(cor > pc.u.cor) = pc.alpha.cor.
+#' @param pc.alpha.cor hyperparameter alpha for the PC prior on the autocorrelation parameter in the AR prior.
 #' @param a.iid hyperparameter for i.i.d random effects.
 #' @param b.iid hyperparameter for i.i.d random effects.
 #' @param a.rw hyperparameter for RW 1 or 2 random effects.
 #' @param b.rw hyperparameter for RW 1 or 2random effects.
 #' @param a.icar hyperparameter for ICAR random effects.
 #' @param b.icar hyperparameter for ICAR random effects.
+#' @param overdisp.mean hyperparameter for the betabinomial likelihood. Mean of the over-dispersion parameter on the logit scale. 
+#' @param overdisp.prec hyperparameter for the betabinomial likelihood. Precision of the over-dispersion parameter on the logit scale. 
 #' @param options list of options to be passed to control.compute() in the inla() function.
 #' @param control.inla list of options to be passed to control.inla() in the inla() function. Default to the "adaptive" integration strategy.
 #' @param verbose logical indicator to print out detailed inla() intermediate steps.
@@ -55,7 +59,7 @@
 #' 
 #' 
 
-fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, ar = 0, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, ...){
+fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, ar = 0, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, ...){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
@@ -333,8 +337,8 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         hyperpc2 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
                          phi = list(prior = 'pc', param = c(pc.u.phi , pc.alpha.phi)))
         hyperar1 = list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
-                        theta2 = list(prior = "pc.cor1", param = c(0.7, 0.9)))
-        hyperar2 = list(theta2 = list(prior = "pc.cor1", param = c(0.7, 0.9)))
+                        theta2 = list(prior = "pc.cor1", param = c(pc.u.cor, pc.alpha.cor)))
+        hyperar2 = list(theta2 = list(prior = "pc.cor1", param = c(pc.u.cor, pc.alpha.cor)))
         ## -----------------------
         ##  National + PC
         ##  TODO: AR1 in this case
@@ -687,7 +691,13 @@ if(family == "betabinomialna"){
     # fit <- INLA::inla(formula, family = family, control.compute = options, data = exdat, control.predictor = list(compute = FALSE), Ntrials = exdat$total, scale = exdat$s, lincomb = NULL, control.inla =control.inla, verbose = verbose)
 
   }else{
-    fit <- INLA::inla(formula, family = family, control.compute = options, data = exdat, control.predictor = list(compute = FALSE), Ntrials = exdat$total, lincomb = NULL, control.inla = control.inla, verbose = verbose, ...)
+    control.family <- NULL
+    if(family == "betabinomial"){
+      control.family <- list(hyper = list(rho = list(param = c(overdisp.mean, overdisp.prec))))
+      fit <- INLA::inla(formula, family = family, control.compute = options, control.family = control.family, data = exdat, control.predictor = list(compute = FALSE), Ntrials = exdat$total, lincomb = NULL, control.inla = control.inla, verbose = verbose, ...)
+    }else{
+      fit <- INLA::inla(formula, family = family, control.compute = options, data = exdat, control.predictor = list(compute = FALSE), Ntrials = exdat$total, lincomb = NULL, control.inla = control.inla, verbose = verbose, ...)
+    } 
   }  
 
  # find the name for baseline strata

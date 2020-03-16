@@ -11,10 +11,12 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
   ar = 0, year_label, priors = NULL, type.st = 4,
   survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc",
   "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5,
-  pc.alpha.phi = 2/3, a.iid = NULL, b.iid = NULL, a.rw = NULL,
-  b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(config
-  = TRUE), control.inla = list(strategy = "adaptive", int.strategy =
-  "auto"), verbose = FALSE, ...)
+  pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,
+  a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL,
+  a.icar = NULL, b.icar = NULL, overdisp.mean = 0,
+  overdisp.prec = 0.4, options = list(config = TRUE),
+  control.inla = list(strategy = "adaptive", int.strategy = "auto"),
+  verbose = FALSE, ...)
 }
 \arguments{
 \item{data}{count data of person-months with the following columns
@@ -70,6 +72,10 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 
 \item{pc.alpha.phi}{hyperparameter alpha for the PC prior on the mixture probability phi in BYM2 model.}
 
+\item{pc.u.cor}{hyperparameter U for the PC prior on the autocorrelation parameter in the AR prior, i.e. Prob(cor > pc.u.cor) = pc.alpha.cor.}
+
+\item{pc.alpha.cor}{hyperparameter alpha for the PC prior on the autocorrelation parameter in the AR prior.}
+
 \item{a.iid}{hyperparameter for i.i.d random effects.}
 
 \item{b.iid}{hyperparameter for i.i.d random effects.}
@@ -81,6 +87,10 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 \item{a.icar}{hyperparameter for ICAR random effects.}
 
 \item{b.icar}{hyperparameter for ICAR random effects.}
+
+\item{overdisp.mean}{hyperparameter for the betabinomial likelihood. Mean of the over-dispersion parameter on the logit scale.}
+
+\item{overdisp.prec}{hyperparameter for the betabinomial likelihood. Precision of the over-dispersion parameter on the logit scale.}
 
 \item{options}{list of options to be passed to control.compute() in the inla() function.}
 
