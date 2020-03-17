@@ -225,6 +225,12 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         if(!is.dynamic) AA.loc$strata <- paste0("strata", AA.loc$strata, ":1")
         AA.loc$strata  <- match(AA.loc$strata, fields)
         AA.loc$time.area  <- match(paste0("time.area:", AA.loc$time.area), fields)
+        # Update time.area as the row index of the correct samples
+        # when region.int and time.int is used
+        if("region.int:1" %in% rownames(sampAll[[1]]$latent)){
+          AA.loc$time.area <- (AA.loc$time.struct - 1) * dim(Amat)[1] + AA.loc$region.struct
+          AA.loc$time.area  <- match(paste0("region.int:", AA.loc$time.area), fields)
+        }
         AA.loc$time.struct  <- match(paste0("time.struct:", AA.loc$time.struct), fields)
         AA.loc$region.struct  <- match(paste0("region.struct:", AA.loc$region.struct), fields)
         AA.loc$time.unstruct  <- match(paste0("time.unstruct:", AA.loc$time.unstruct), fields)
