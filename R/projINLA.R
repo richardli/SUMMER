@@ -57,7 +57,7 @@
 #' 
 
 #' @export
-getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), Amat = NULL, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, save.draws.est = FALSE, ...){
+getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), Amat = NULL, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, save.draws.est = FALSE, include_subnational = TRUE, ...){
 
       years <- region <- NA
       lowerCI <- (1 - CI) / 2
@@ -243,6 +243,12 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           AA$tstar <-  AA$slope <- NA
         }
         AA.loc$age.idx <- AA.loc$age.rep.idx <- NA
+
+
+        if(!include_subnational){
+          AA.loc$time.area <- NA
+          AA.loc$region.struct <- NA
+        }
 
         # time.unstruct <- grep("time.unstruct", fields)
         # region.struct <- grep("region.struct", fields)
