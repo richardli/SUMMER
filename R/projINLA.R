@@ -228,7 +228,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         # Update time.area as the row index of the correct samples
         # when region.int and time.int is used
         if("region.int:1" %in% rownames(sampAll[[1]]$latent)){
-          AA.loc$time.area <- (AA.loc$time.struct - 1) * dim(Amat)[1] + AA.loc$region.struct
+          AA.loc$time.area <- (AA.loc$time.unstruct - 1) * dim(Amat)[1] + AA.loc$region.struct
           AA.loc$time.area  <- match(paste0("region.int:", AA.loc$time.area), fields)
         }
         AA.loc$time.struct  <- match(paste0("time.struct:", AA.loc$time.struct), fields)
@@ -338,7 +338,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         }else{
           if(length(framelabels) > 1) weight.strata.by <- c(weight.strata.by, "frame")
           
-          if(sum(!is.na(out2$frame)) == 0){
+          if(sum(out2$frame != "frame_all") == 0){
             out2 <- merge(out2[, colnames(out2)!="frame"], weight.strata, by = weight.strata.by)
           }else{
             out2 <- merge(out2, weight.strata, by = weight.strata.by)
