@@ -4,7 +4,7 @@ Spatio-temporal Under-five Mortality Models of Estimation in R
 [![Build Status](https://travis-ci.org/bryandmartin/SUMMER.svg?branch=master)](https://travis-ci.org/bryandmartin/SUMMER) [![](https://cranlogs.r-pkg.org/badges/SUMMER)](https://cran.r-project.org/package=SUMMER) [![](https://cranlogs.r-pkg.org/badges/grand-total/SUMMER?color=orange)](https://cran.r-project.org/package=SUMMER)
 
 ## Major update (version 0.3.0)
-Version 0.3.0 contains some major updates from the previous versions. Some of the substantial change to existing functions are listed here. For a complete log of changes, see the [News](https://github.com/bryandmartin/SUMMER/blob/master/NEWS.md) section.
+Version 0.3.0 contains some major updates from the previous versions. Some of the substantial changes to existing functions are listed here. For a complete log of changes, see the [News](https://github.com/bryandmartin/SUMMER/blob/master/NEWS.md) section.
 
 #### Function name changes
 The following functions have been renamed. Most of the function arguments remain the same:
