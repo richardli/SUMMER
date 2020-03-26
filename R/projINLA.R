@@ -586,8 +586,9 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         for(j in 1:length(region_names)){
             index <- lincombs.info$Index[lincombs.info$District == region_nums[j] & lincombs.info$Year == i]
             tmp.logit <- INLA::inla.rmarginal(nsim, mod$marginals.lincomb.derived[[index]])
-            marg <- INLA::inla.tmarginal(expit, mod$marginals.lincomb.derived[[index]])
-            tmp <- INLA::inla.rmarginal(nsim, marg)
+            # marg <- INLA::inla.tmarginal(expit, mod$marginals.lincomb.derived[[index]])
+            # tmp <- INLA::inla.rmarginal(nsim, marg)
+            tmp <- expit(tmp.logit)
 
             results$median[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::median(tmp)
             results$upper[results$District == region_nums[j] & results$Year == timelabel.yearly[i]] <- stats::quantile(tmp, upperCI)
