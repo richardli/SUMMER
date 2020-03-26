@@ -18,7 +18,7 @@ The following functions have been renamed. Most of the function arguments remain
 The following new functions are added:
 
 + ``getDiag``: produce diagnostic plots for the fitted model.
-+ ``getAdjusted``: produce adjusted estimates for a fitted model
++ ``getAdjusted``: produce adjusted estimates for a fitted model.
 + ``getAmat``: automatic extract spatial adjacency matrix from the polygon file.
 + ``hatchPlot``: plot variables on a map with hatching indicating the width of the credible interval.
 
