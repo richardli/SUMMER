@@ -12,11 +12,11 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
   survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc",
   "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5,
   pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,
-  a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL,
-  a.icar = NULL, b.icar = NULL, overdisp.mean = 0,
-  overdisp.prec = 0.4, options = list(config = TRUE),
-  control.inla = list(strategy = "adaptive", int.strategy = "auto"),
-  verbose = FALSE, ...)
+  pc.st.u = NA, pc.st.alpha = NA, a.iid = NULL, b.iid = NULL,
+  a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL,
+  overdisp.mean = 0, overdisp.prec = 0.4, options = list(config =
+  TRUE), control.inla = list(strategy = "adaptive", int.strategy =
+  "auto"), verbose = FALSE, ...)
 }
 \arguments{
 \item{data}{count data of person-months with the following columns
@@ -75,6 +75,10 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 \item{pc.u.cor}{hyperparameter U for the PC prior on the autocorrelation parameter in the AR prior, i.e. Prob(cor > pc.u.cor) = pc.alpha.cor.}
 
 \item{pc.alpha.cor}{hyperparameter alpha for the PC prior on the autocorrelation parameter in the AR prior.}
+
+\item{pc.st.u}{hyperparameter U for the PC prior on precisions for the interaction term.}
+
+\item{pc.st.alpha}{hyperparameter alpha for the PC prior on precisions for the interaction term.}
 
 \item{a.iid}{hyperparameter for i.i.d random effects.}
 

@@ -25,6 +25,8 @@
 #' @param pc.alpha.phi hyperparameter alpha for the PC prior on the mixture probability phi in BYM2 model.
 #' @param pc.u.cor hyperparameter U for the PC prior on the autocorrelation parameter in the AR prior, i.e. Prob(cor > pc.u.cor) = pc.alpha.cor.
 #' @param pc.alpha.cor hyperparameter alpha for the PC prior on the autocorrelation parameter in the AR prior.
+#' @param pc.st.u hyperparameter U for the PC prior on precisions for the interaction term.
+#' @param pc.st.alpha hyperparameter alpha for the PC prior on precisions for the interaction term.
 #' @param a.iid hyperparameter for i.i.d random effects.
 #' @param b.iid hyperparameter for i.i.d random effects.
 #' @param a.rw hyperparameter for RW 1 or 2 random effects.
@@ -74,7 +76,7 @@
 #' 
 #' }
 #' @export
-fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo = T, openmp.strategy = 'default'), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE){
+fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo = T, openmp.strategy = 'default'), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, pc.st.u = NA, pc.st.alpha = NA){
 
   is.ar <- ar > 0 
   is.main.ar <- rw == 0
@@ -421,7 +423,9 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, i
     ## ---------------------------------------------------------
     if(tolower(hyper) == "pc"){
         hyperpc1 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
-        hyperpc1.interact <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
+        pc.st.u <- ifelse(is.na(pc.st.u), pc.u, pc.st.u)
+        pc.st.alpha <- ifelse(is.na(pc.st.alpha), pc.alpha, pc.st.alpha)
+        hyperpc1.interact <- list(prec = list(prior = "pc.prec", param = c(pc.st.u , pc.st.alpha)))
         hyperpc2 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
                          phi = list(prior = 'pc', param = c(pc.u.phi , pc.alpha.phi)))
         hyperar1 = list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
@@ -465,7 +469,7 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, i
                     f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1.interact))
                 }else{
                     formula <- update(formula, ~. + 
-                    f(region.int,model="iid", group=time.int,control.group=list(model="ar", order = ar, hyper = hyperar2)))
+                    f(region.int,model="iid", hyper = hyperpc1.interact, group=time.int,control.group=list(model="ar", order = ar, hyper = hyperar2)))
                 }
 
             }else if(type.st == 3){

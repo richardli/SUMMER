@@ -13,7 +13,7 @@ fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0,
   b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic =
   T, mlik = T, cpo = T, openmp.strategy = "default"),
   control.inla = list(strategy = "adaptive", int.strategy = "auto"),
-  verbose = FALSE)
+  verbose = FALSE, pc.st.u = NA, pc.st.alpha = NA)
 }
 \arguments{
 \item{data}{Combined dataset}
@@ -77,6 +77,10 @@ fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0,
 \item{control.inla}{list of options to be passed to control.inla() in the inla() function. Default to the "adaptive" integration strategy.}
 
 \item{verbose}{logical indicator to print out detailed inla() intermediate steps.}
+
+\item{pc.st.u}{hyperparameter U for the PC prior on precisions for the interaction term.}
+
+\item{pc.st.alpha}{hyperparameter alpha for the PC prior on precisions for the interaction term.}
 }
 \value{
 INLA model fit using the provided formula, country summary data, and geographic data

@@ -35,6 +35,8 @@
 #' @param pc.alpha.phi hyperparameter alpha for the PC prior on the mixture probability phi in BYM2 model.
 #' @param pc.u.cor hyperparameter U for the PC prior on the autocorrelation parameter in the AR prior, i.e. Prob(cor > pc.u.cor) = pc.alpha.cor.
 #' @param pc.alpha.cor hyperparameter alpha for the PC prior on the autocorrelation parameter in the AR prior.
+#' @param pc.st.u hyperparameter U for the PC prior on precisions for the interaction term.
+#' @param pc.st.alpha hyperparameter alpha for the PC prior on precisions for the interaction term.
 #' @param a.iid hyperparameter for i.i.d random effects.
 #' @param b.iid hyperparameter for i.i.d random effects.
 #' @param a.rw hyperparameter for RW 1 or 2 random effects.
@@ -59,7 +61,7 @@
 #' 
 #' 
 
-fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, ar = 0, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, ...){
+fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, ar = 0, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, ...){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
@@ -333,12 +335,14 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     ## ---------------------------------------------------------
     if(tolower(hyper) == "pc"){
         hyperpc1 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
-        hyperpc1na <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
         hyperpc2 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
                          phi = list(prior = 'pc', param = c(pc.u.phi , pc.alpha.phi)))
         hyperar1 = list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
                         theta2 = list(prior = "pc.cor1", param = c(pc.u.cor, pc.alpha.cor)))
         hyperar2 = list(theta2 = list(prior = "pc.cor1", param = c(pc.u.cor, pc.alpha.cor)))
+        pc.st.u <- ifelse(is.na(pc.st.u), pc.u, pc.st.u)
+        pc.st.alpha <- ifelse(is.na(pc.st.alpha), pc.alpha, pc.st.alpha)
+        hyperpc1.interact <- list(prec = list(prior = "pc.prec", param = c(pc.st.u , pc.st.alpha)))
         ## -----------------------
         ##  National + PC
         ##  TODO: AR1 in this case
@@ -407,24 +411,24 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
             # Interaction models 
             if(type.st == 1){
                 formula <- update(formula, ~. + 
-                    f(time.area,model="iid", hyper = hyperpc1))
+                    f(time.area,model="iid", hyper = hyperpc1.interact))
             }else if(type.st == 2){
                 if(!is.ar){
                   formula <- update(formula, ~. + 
-                    f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1,  adjust.for.con.comp = TRUE))
+                    f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1.interact,  adjust.for.con.comp = TRUE))
                 }else{
                     formula <- update(formula, ~. + 
-                    f(region.int,model="iid", group=time.int,control.group=list(model="ar", order = ar, hyper = hyperar2), scale.model = TRUE, adjust.for.con.comp = TRUE))
+                    f(region.int,model="iid", hyper = hyperpc1.interact, group=time.int,control.group=list(model="ar", order = ar, hyper = hyperar2), scale.model = TRUE, adjust.for.con.comp = TRUE))
                 }
             }else if(type.st == 3){
                 formula <- update(formula, ~. + 
-                    f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="iid"), hyper = hyperpc1, scale.model = TRUE, adjust.for.con.comp = TRUE))
+                    f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="iid"), hyper = hyperpc1.interact, scale.model = TRUE, adjust.for.con.comp = TRUE))
             }else{
                 
              # Interaction with AR1  
              if(is.ar){
               formula <- update(formula, ~. + 
-                   f(region.int, model="besag", graph = Amat, group=time.int,control.group=list(model="ar", order = ar, hyper = hyperar2), scale.model = TRUE, adjust.for.con.comp = TRUE)) 
+                   f(region.int, model="besag", hyper = hyperpc1.interact, graph = Amat, group=time.int,control.group=list(model="ar", order = ar, hyper = hyperar2), scale.model = TRUE, adjust.for.con.comp = TRUE)) 
              }else{
                 # defines type IV explicitly with constraints
                 # Use time.area as index
@@ -455,12 +459,8 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                  tmp <- rbind(tmp, tmp2)
                  constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
                
-                 # if(family == "betabinomialna"){
-                 # formula <- update(formula, ~. + 
-                 #        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1na, initial=10))
-
-                 formula <- update(formula, ~. + 
-                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1na))
+                  formula <- update(formula, ~. + 
+                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1.interact))
              }
              # END of type IV specification
             }
