@@ -23,9 +23,9 @@ getSmoothed(inla_mod, year_range = c(1985, 2019),
 
 \item{nsim}{number of simulations}
 
-\item{weight.strata}{a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region.}
+\item{weight.strata}{a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. This argument specifies the weights for strata-specific estimates on the probability scale.}
 
-\item{weight.frame}{a data frame with three columns, years, region, and the weight of each frame for the corresponding time period and region.}
+\item{weight.frame}{a data frame with three columns, years, region, and the weight of each frame for the corresponding time period and region. This argument specifies the weights for frame-specific estimates on the logit scale. Notice this is different from weight.strata argument.}
 
 \item{verbose}{logical indicator whether to print progress messages from inla.posterior.sample.}
 

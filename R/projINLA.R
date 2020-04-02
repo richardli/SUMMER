@@ -7,8 +7,8 @@
 #' @param year_label vector of year string vector
 #' @param Amat adjacency matrix
 #' @param nsim number of simulations
-#' @param weight.strata a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. 
-#' @param weight.frame a data frame with three columns, years, region, and the weight of each frame for the corresponding time period and region. 
+#' @param weight.strata a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. This argument specifies the weights for strata-specific estimates on the probability scale. 
+#' @param weight.frame a data frame with three columns, years, region, and the weight of each frame for the corresponding time period and region. This argument specifies the weights for frame-specific estimates on the logit scale. Notice this is different from weight.strata argument. 
 #' @param verbose logical indicator whether to print progress messages from inla.posterior.sample.
 #' @param mc number of monte carlo draws to approximate the marginal prevalence/hazards for binomial model. If mc = 0, analytical approximation is used. The analytical approximation is invalid for hazard modeling with more than one age groups.
 #' @param include_time_unstruct logical indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates.
@@ -513,7 +513,9 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
                 if("years" %in% colnames(weight.frame)) this.weight <- subset(this.weight, years == year_label[i])
 
                 for(k in 1:dim(draws.sub.agg.sum)[2]){
-                  draws.sub.agg.sum2 <- draws.sub.agg.sum2 + draws.sub.agg.sum[, k] * as.numeric(this.weight[colnames(draws.sub.agg.sum)[k]])
+                  # aggregation on the probability scale, no longer used
+                  # draws.sub.agg.sum2 <- draws.sub.agg.sum2 + draws.sub.agg.sum[, k] * as.numeric(this.weight[colnames(draws.sub.agg.sum)[k]])
+                  draws.sub.agg.sum2 <- expit(logit(draws.sub.agg.sum2) + logit(draws.sub.agg.sum[, k]) * as.numeric(this.weight[colnames(draws.sub.agg.sum)[k]]))
                 }
                 out3[index3, c("lower", "median", "upper")] <- quantile(draws.sub.agg.sum2, c(lowerCI, 0.5, upperCI))
                 out3[index3, "mean"] <- mean(draws.sub.agg.sum2)
