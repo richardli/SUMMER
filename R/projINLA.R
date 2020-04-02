@@ -515,8 +515,9 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
                 for(k in 1:dim(draws.sub.agg.sum)[2]){
                   # aggregation on the probability scale, no longer used
                   # draws.sub.agg.sum2 <- draws.sub.agg.sum2 + draws.sub.agg.sum[, k] * as.numeric(this.weight[colnames(draws.sub.agg.sum)[k]])
-                  draws.sub.agg.sum2 <- expit(logit(draws.sub.agg.sum2) + logit(draws.sub.agg.sum[, k]) * as.numeric(this.weight[colnames(draws.sub.agg.sum)[k]]))
+                  draws.sub.agg.sum2 <- draws.sub.agg.sum2 + logit(draws.sub.agg.sum[, k]) * as.numeric(this.weight[colnames(draws.sub.agg.sum)[k]])
                 }
+                draws.sub.agg.sum2 <- expit(draws.sub.agg.sum2)
                 out3[index3, c("lower", "median", "upper")] <- quantile(draws.sub.agg.sum2, c(lowerCI, 0.5, upperCI))
                 out3[index3, "mean"] <- mean(draws.sub.agg.sum2)
                 out3[index3, "variance"] <- var(draws.sub.agg.sum2)
