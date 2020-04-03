@@ -26,6 +26,7 @@
 #' @param rw Take values 0, 1 or 2, indicating the order of random walk. If rw = 0, the autoregressive process is used instead of the random walk in the main trend. See the description of the argument ar for details.
 #' @param ar Order of the autoregressive component. If ar is specified to be positive integer, the random walk components will be replaced by AR(p) terms in the interaction part. The main temporal trend remains to be random walk of order rw unless rw = 0.
 #' @param type.st type for space-time interaction
+#' @param st.rw Take values 1 or 2, indicating the order of random walk for the interaction term. If not specified, it will take the same order as the argument rw in the main effect. Notice that this argument is only used if ar is set to 0.
 #' @param survey.effect logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0. 
 #' @param strata.time.effect logical indicator whether to include strata specific temporal trends. 
 #' @param hyper which hyperpriors to use. Default to be using the PC prior ("pc"). 
@@ -61,7 +62,7 @@
 #' 
 #' 
 
-fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, ar = 0, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, ...){
+fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, ar = 0, st.rw = NULL, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, ...){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
@@ -71,7 +72,8 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   if(is.ar) message("ar > 0: using the AR(p) process for the space-time interaction component.")
   if(rw %in% c(0, 1, 2) == FALSE) stop("Random walk only support rw = 1 or 2.")
   if(rw == 0) message("rw = 0: using the AR(p) process for the main temporal trend component.")
-
+  if(is.null(st.rw)) st.rw <- rw
+  if(!is.ar  && st.rw != rw) message("The main effect is random walk of order ", rw, ", and the interaction effects are random walks of order", st.rw)
 
   if(!is.null(Amat)){
     if(is.null(rownames(Amat))){
@@ -415,7 +417,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
             }else if(type.st == 2){
                 if(!is.ar){
                   formula <- update(formula, ~. + 
-                    f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", rw), scale.model = TRUE), hyper = hyperpc1.interact,  adjust.for.con.comp = TRUE))
+                    f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", st.rw), scale.model = TRUE), hyper = hyperpc1.interact,  adjust.for.con.comp = TRUE))
                 }else{
                     formula <- update(formula, ~. + 
                     f(region.int,model="iid", hyper = hyperpc1.interact, group=time.int,control.group=list(model="ar", order = ar, hyper = hyperar2), scale.model = TRUE, adjust.for.con.comp = TRUE))
@@ -434,7 +436,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                 # Use time.area as index
                 # S blocks each with time 1:T (in this code, 1:N)
                  inla.rw = utils::getFromNamespace("inla.rw", "INLA")
-                 R2 <- inla.rw(N, order = rw, scale.model=TRUE, sparse=TRUE)
+                 R2 <- inla.rw(N, order = st.rw, scale.model=TRUE, sparse=TRUE)
                  R4 = Amat
                 if(sum(R4 > 0 & R4 < 1) != 0){
                   for(row in 1:nrow(R4)){
@@ -507,7 +509,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
             if(type.st == 1){
                 formula <- update(formula, ~. + f(time.area,model="iid", param=c(a.iid,b.iid)))
             }else if(type.st == 2){
-                formula <- update(formula, ~. + f(region.int,model="iid", group=time.int,control.group=list(model="rw2", scale.model = TRUE), param=c(a.iid,b.iid)))
+                formula <- update(formula, ~. + f(region.int,model="iid", group=time.int,control.group=list(model=paste("rw", st.rw), scale.model = TRUE), param=c(a.iid,b.iid)))
             }else if(type.st == 3){
                 formula <- update(formula, ~. + f(region.int,model="besag", graph = Amat, group=time.int,control.group=list(model="iid"),param=c(a.iid,b.iid), scale.model = TRUE, adjust.for.con.comp = TRUE))
             }else{
@@ -520,7 +522,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                  # nc2 sum-to-zero constraints for each of the connected components of size >= 2. Scaled so that the geometric mean of the marginal variances in each connected component of size >= 2 is 1, and modified so that singletons have a standard Normal distribution.
 
                 inla.rw = utils::getFromNamespace("inla.rw", "INLA")
-                R2 <- inla.rw(N, order = rw, scale.model=TRUE, sparse=TRUE)
+                R2 <- inla.rw(N, order = st.rw, scale.model=TRUE, sparse=TRUE)
                 R4 = Amat
                 if(sum(R4 > 0 & R4 < 1) != 0){
                   for(row in 1:nrow(R4)){
