@@ -464,7 +464,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                  constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
                
                   formula <- update(formula, ~. + 
-                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), hyper = hyperpc1.interact))
+                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - 1), hyper = hyperpc1.interact))
              }
              # END of type IV specification
             }
@@ -564,10 +564,10 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                 
                 if(family == "betabinomialna"){
                  formula <- update(formula, ~. + 
-                        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), param=c(a.iid,b.iid), initial=10))
+                        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - 1), param=c(a.iid,b.iid), initial=10))
                  }else{
                  formula <- update(formula, ~. + 
-                        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - rw)*(S - 1), param=c(a.iid,b.iid)))            
+                        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - 1), param=c(a.iid,b.iid)))            
                  }
             }
          
