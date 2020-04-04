@@ -12,11 +12,12 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
   survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc",
   "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5,
   pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,
-  pc.st.u = NA, pc.st.alpha = NA, a.iid = NULL, b.iid = NULL,
-  a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL,
-  overdisp.mean = 0, overdisp.prec = 0.4, options = list(config =
-  TRUE), control.inla = list(strategy = "adaptive", int.strategy =
-  "auto"), verbose = FALSE, ...)
+  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA,
+  pc.st.slope.alpha = NA, a.iid = NULL, b.iid = NULL, a.rw = NULL,
+  b.rw = NULL, a.icar = NULL, b.icar = NULL, overdisp.mean = 0,
+  overdisp.prec = 0.4, options = list(config = TRUE),
+  control.inla = list(strategy = "adaptive", int.strategy = "auto"),
+  verbose = FALSE, ...)
 }
 \arguments{
 \item{data}{count data of person-months with the following columns
@@ -81,6 +82,10 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 \item{pc.st.u}{hyperparameter U for the PC prior on precisions for the interaction term.}
 
 \item{pc.st.alpha}{hyperparameter alpha for the PC prior on precisions for the interaction term.}
+
+\item{pc.st.slope.u}{hyperparameter U for the PC prior on precisions for the area-level random slope. If both pc.st.slope.u and pc.st.slope.alpha are not NA, an area-level random slope with iid prior will be added to the moddel.}
+
+\item{pc.st.slope.alpha}{hyperparameter alpha for the PC prior on precisions for the area-level random slope. If both pc.st.slope.u and pc.st.slope.alpha are not NA, an area-level random slope with iid prior will be added to the moddel.}
 
 \item{a.iid}{hyperparameter for i.i.d random effects.}
 

@@ -28,7 +28,7 @@
 #' @param type.st type for space-time interaction
 #' @param st.rw Take values 1 or 2, indicating the order of random walk for the interaction term. If not specified, it will take the same order as the argument rw in the main effect. Notice that this argument is only used if ar is set to 0.
 #' @param survey.effect logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0. 
-#' @param strata.time.effect logical indicator whether to include strata specific temporal trends. 
+#' @param strata.time.effect logical indicator whether to include strata specific temporal trends.  
 #' @param hyper which hyperpriors to use. Default to be using the PC prior ("pc"). 
 #' @param pc.u hyperparameter U for the PC prior on precisions.
 #' @param pc.alpha hyperparameter alpha for the PC prior on precisions.
@@ -38,6 +38,8 @@
 #' @param pc.alpha.cor hyperparameter alpha for the PC prior on the autocorrelation parameter in the AR prior.
 #' @param pc.st.u hyperparameter U for the PC prior on precisions for the interaction term.
 #' @param pc.st.alpha hyperparameter alpha for the PC prior on precisions for the interaction term.
+#' @param pc.st.slope.u hyperparameter U for the PC prior on precisions for the area-level random slope. If both pc.st.slope.u and pc.st.slope.alpha are not NA, an area-level random slope with iid prior will be added to the moddel.
+#' @param pc.st.slope.alpha hyperparameter alpha for the PC prior on precisions for the area-level random slope. If both pc.st.slope.u and pc.st.slope.alpha are not NA, an area-level random slope with iid prior will be added to the moddel.
 #' @param a.iid hyperparameter for i.i.d random effects.
 #' @param b.iid hyperparameter for i.i.d random effects.
 #' @param a.rw hyperparameter for RW 1 or 2 random effects.
@@ -62,7 +64,7 @@
 #' 
 #' 
 
-fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, ar = 0, st.rw = NULL, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, ...){
+fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, ar = 0, st.rw = NULL, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, ...){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
@@ -73,7 +75,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   if(rw %in% c(0, 1, 2) == FALSE) stop("Random walk only support rw = 1 or 2.")
   if(rw == 0) message("rw = 0: using the AR(p) process for the main temporal trend component.")
   if(is.null(st.rw)) st.rw <- rw
-  if(!is.ar  && st.rw != rw) message("The main effect is random walk of order ", rw, ", and the interaction effects are random walks of order", st.rw)
+  if(!is.ar  && st.rw != rw) message("The main effect is random walk of order ", rw, ", and the interaction effects are random walks of order ", st.rw)
 
   if(!is.null(Amat)){
     if(is.null(rownames(Amat))){
@@ -467,12 +469,24 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
              # END of type IV specification
             }
           
+            if(!is.na(pc.st.slope.u) && !is.na(pc.st.slope.alpha)){
+              message("Region-level random slopes are added to the interaction model")
+              hyperpc.slope <-  list(prec = list(prior = "pc.prec", param = c(pc.st.slope.u, pc.st.slope.alpha)))
+              exdat$st.slope <- exdat$time.struct 
+              center <- N/2 + 1e-5 
+              exdat$st.slope <- (exdat$st.slope  - center) / (sd(1:N))
+              exdat$st.slope.id <- exdat$region.struct
+              formula <- update(formula, ~. + f(st.slope.id, st.slope, model = "iid", hyper = hyperpc.slope))
+            }
+          
         # END of subnational model specification
         }
 
         if(survey.effect){
           formula <- update(formula, ~. + f(survey.id, model = "iid", extraconstr = list(A = survey.A, e = survey.e), hyper = list(theta = list(initial=log(0.001), fixed=TRUE))))
         }
+
+
 
     ## ---------------------------------------------------------
     ## Setup Gamma prior model
@@ -632,6 +646,16 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   tmp <- exdat[rep(1, dim(Amat)[1]*N), ]
   tmp[, c("region.struct", "time.struct")] <- expand.grid(region.struct = 1:dim(Amat)[1], time.struct = 1:N)
   tmp$time.unstruct <- tmp$time.int <- tmp$time.struct
+  created <- NULL
+  if("time.slope" %in% colnames(exdat)){
+    tmp$time.slope <- (tmp$time.unstruct  - center) / (sd(1:N))
+    created <- c(created, "time.slope")
+  }
+  if("st.slope" %in% colnames(exdat)){
+    tmp$st.slope <- (tmp$time.unstruct  - center) / (sd(1:N))   
+    tmp$st.slope.id <- tmp$region.struct
+    created <- c(created, "st.slope", "st.slope.id") 
+  } 
   tmp$years <- years$year[match(tmp$time.struct, years$year_number)]
   tmp$region_number <- tmp$region.int <- tmp$region.unstruct <- tmp$region.struct
   tmp$region <- colnames(Amat)[tmp$region.struct]
@@ -642,9 +666,9 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   }
   # remove contents in other columns
   if(!is.null(geo)){
-    created <- c("region.struct", "region_number", "region.unstruct", "region.int", "region", "time.struct", "time.unstruct", "time.int", "time.area", "years", "age", "strata")
+    created <- c(created, "region.struct", "region_number", "region.unstruct", "region.int", "region", "time.struct", "time.unstruct", "time.int", "time.area", "years", "age", "strata")
   }else{
-      created <- c("time.struct", "time.unstruct", "time.int",  "years", "age", "strata")
+      created <- c(created, "time.struct", "time.unstruct", "time.int",  "years", "age", "strata")
   }
   tmp[, colnames(tmp) %in% created == FALSE] <- NA
   exdat <- rbind(exdat, tmp)

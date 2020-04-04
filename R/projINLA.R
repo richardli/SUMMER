@@ -243,6 +243,13 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         }else{
           AA$tstar <-  AA$slope <- NA
         }
+        st.slope <- grep("st.slope.id", fields)
+        if(!is.null(st.slope)){
+           AA$ststar <- (AA$time.unstruct - T/2) / sd(1:T)
+           AA$st.slope  <- match(paste0("st.slope.id:", AA$region.struct), fields)
+        }else{
+           AA$ststar <-  AA$st.slope <- NA
+        }
         AA.loc$age.idx <- AA.loc$age.rep.idx <- NA
 
 
@@ -417,7 +424,9 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           theta[i,  ] <-  apply(AA.loc, 1, function(x, ff){sum(ff[x], na.rm=TRUE)}, draw)
           add.slope <- draw[AA$slope] * AA$tstar
           add.slope[is.na(add.slope)] <- 0
-          theta[i,  ] <-  theta[i,  ] + add.slope
+          add.slope.st <- draw[AA$st.slope] * AA$ststar
+          add.slope.st[is.na(add.slope.st)] <- 0
+          theta[i,  ] <-  theta[i,  ] + add.slope + add.slope.st
 
           if(inla_mod$family == "binomial"){
             tau[i] <-exp(sampAll[[i]]$hyperpar[["Log precision for nugget.id"]])
