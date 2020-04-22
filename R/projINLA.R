@@ -90,7 +90,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           frame.strata <- unique(frame.strata)        
           frame.strata <- frame.strata[order(frame.strata$age.idx), ]
           framelabels <- "frame_all"
-          exists.frame <- FALSE
+          multi.frame <- FALSE
         }else{
           # check strata weights are properly specified: dynamic strata effect case
           # here we have (age group) x (frame-strata) with no base level 
@@ -111,10 +111,14 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           stratalabels <- as.character(unique(frame.strata$strata))
           stratalabels.orig <- as.character(unique(frame.strata$strata.orig))
           framelabels <- as.character(unique(frame.strata$frame))
-          exists.frame <- TRUE 
+         
           if(length(framelabels)==0){
             framelabels <- "frame_all"
-            exists.frame <- FALSE
+            multi.frame <- FALSE
+          }else if(length(framelabels)==1){
+            multi.frame <- FALSE
+          }else{
+            multi.frame <- TRUE
           }
         }
        
@@ -500,7 +504,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
             draws.sub.agg.sum <- matrix(NA, nsim, length(index2))
             for(k in 1:length(index2)){
               prop <- out2[index2[k], strata.index]
-              if(!exists.frame){
+              if(!multi.frame){
                   cols <- match(stratalabels.orig, stratalabels)
               }else{
                   cols <- match(paste(out2$frame[index2[k]], stratalabels.orig, sep = "-"), stratalabels)

@@ -140,7 +140,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   ## This is checked here
   if(survey.effect){
       if("survey" %in% colnames(data) == FALSE){
-          warning("survey.effect is set to TRUE, but no survey column in the input data")
+          warning("survey.effect is set to TRUE, but no survey column in the input data. Reset survey.effect to FALSE", immediate.=TRUE)
           survey.effect <- FALSE
           survey.table <- NULL
       }else if(!multi.frame){
@@ -152,6 +152,10 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
           data$survey.id <- match(data$survey2, survey.table$survey)
           survey.A <- matrix(1, 1, survey_count)
           survey.e <- 0
+          if(survey_count == 1){
+            warning("survey.effect is set to TRUE, but there is only one survey. Reset survey.effect to FALSE", immediate.=TRUE)
+            survey.effect <- FALSE
+          }
 
       }else{
           # If there are frames, may need to remove survey effects
