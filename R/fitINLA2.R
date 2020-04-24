@@ -90,6 +90,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   }else{
     Amat <- matrix(1,1,1)
     colnames(Amat) <- rownames(Amat) <- "All"
+    if("region" %in% colnames(data) == FALSE) data$region <- "All"
   }
 
   # get around CRAN check of using un-exported INLA functions
