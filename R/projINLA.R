@@ -353,12 +353,11 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
             out2 <- cbind(out2, data.frame(weight.strata))
           }
           strata.index <- match(stratalabels.orig, colnames(out2))
-        }else{
-          if(length(framelabels) > 1) weight.strata.by <- c(weight.strata.by, "frame")
-          
-          if(sum(out2$frame != "frame_all") == 0){
+        }else{          
+          if(length(framelabels)  == 1){
             out2 <- merge(out2[, colnames(out2)!="frame"], weight.strata, by = weight.strata.by)
           }else{
+            weight.strata.by <- c(weight.strata.by, "frame")
             out2 <- merge(out2, weight.strata, by = weight.strata.by)
           } 
           strata.index <- match(stratalabels.orig, colnames(out2))
