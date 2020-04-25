@@ -31,7 +31,7 @@ getSmoothed(inla_mod, year_range = c(1985, 2019),
 
 \item{mc}{number of monte carlo draws to approximate the marginal prevalence/hazards for binomial model. If mc = 0, analytical approximation is used. The analytical approximation is invalid for hazard modeling with more than one age groups.}
 
-\item{include_time_unstruct}{logical indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates.}
+\item{include_time_unstruct}{Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates. Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included. Alternatively, if this is specified as a vector of   subset of year labels (as in the year_label argument), only the unstructured terms in the corresponding time periods will be added to the prediction.}
 
 \item{CI}{Desired level of credible intervals}
 
