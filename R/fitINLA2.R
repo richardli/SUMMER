@@ -443,6 +443,8 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                 # Use time.area as index
                 # S blocks each with time 1:T (in this code, 1:N)
                  inla.rw = utils::getFromNamespace("inla.rw", "INLA")
+                 inla.scale.model.bym = utils::getFromNamespace("inla.scale.model.bym", "INLA")
+                 inla.bym.constr.internal = utils::getFromNamespace("inla.bym.constr.internal", "INLA")
                  R2 <- inla.rw(N, order = st.rw, scale.model=TRUE, sparse=TRUE)
                  R4 = Amat
                 if(sum(R4 > 0 & R4 < 1) != 0){
@@ -455,21 +457,31 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                  diag <- apply(R4, 1, sum)
                  R4[R4 != 0] <- -1
                  diag(R4) <- diag
-                 R4 <- INLA::inla.scale.model(R4, constr = list(A=matrix(1,1,dim(R4)[1]), e=0))
+                 Q1 <- inla.bym.constr.internal(R4, adjust.for.con.comp = TRUE)
+                 R4 <- inla.scale.model.bym(R4, adjust.for.con.comp = TRUE)
                  R <- R4 %x% R2
                  tmp <- matrix(0, S, N * S)
                  for(i in 1:S){
                    tmp[i, ((i-1)*N + 1) : (i*N)] <- 1
                  }
-                 tmp2 <- matrix(0, N, N * S)
-                 for(i in 1:N){
-                    tmp2[i , which((1:(N*S)) %% N == i-1)] <- 1
+                 # tmp2 <- matrix(0, N, N * S)
+                 # for(i in 1:N){
+                 #    tmp2[i , which((1:(N*S)) %% N == i-1)] <- 1
+                 # }
+                 ## Sum-to-zero over connected components
+                 tmp2 <- matrix(0, N * Q1$rankdef, N * S)
+                 for(j in  1:Q1$rankdef){
+                   for(i in 1:N){
+                      this_t_i <- which((1:(N*S)) %% N == i-1)
+                      this_t_i <- this_t_i[Q1$constr$A[j, ] == 1]
+                      tmp2[i + (j-1)*N , this_t_i] <- 1
+                   }
                  }
                  tmp <- rbind(tmp, tmp2)
                  constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
                
                   formula <- update(formula, ~. + 
-                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - 1), hyper = hyperpc1.interact))
+                    f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - Q1$rankdef), hyper = hyperpc1.interact))
              }
              # END of type IV specification
             }
@@ -539,40 +551,50 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                  # S blocks each with time 1:T (in this code, 1:N)
                  # UPDATE for connected components:
                  # nc2 sum-to-zero constraints for each of the connected components of size >= 2. Scaled so that the geometric mean of the marginal variances in each connected component of size >= 2 is 1, and modified so that singletons have a standard Normal distribution.
-
-                inla.rw = utils::getFromNamespace("inla.rw", "INLA")
-                R2 <- inla.rw(N, order = st.rw, scale.model=TRUE, sparse=TRUE)
-                R4 = Amat
+                 inla.rw = utils::getFromNamespace("inla.rw", "INLA")
+                 inla.scale.model.bym = utils::getFromNamespace("inla.scale.model.bym", "INLA")
+                 inla.bym.constr.internal = utils::getFromNamespace("inla.bym.constr.internal", "INLA")
+                 R2 <- inla.rw(N, order = st.rw, scale.model=TRUE, sparse=TRUE)
+                 R4 = Amat
                 if(sum(R4 > 0 & R4 < 1) != 0){
                   for(row in 1:nrow(R4)){
                     idx <- which(R4[row,] > 0 & R4[row,] < 1)
                     R4[row,idx] <- 1
                   }
                 }
-              
-                diag(R4) <- 0
-                diag <- apply(R4, 1, sum)
-                R4[R4 != 0] <- -1
-                diag(R4) <- diag
-                R4 <- INLA::inla.scale.model(R4, constr = list(A=matrix(1,1,dim(R4)[1]), e=0))
+                 diag(R4) <- 0
+                 diag <- apply(R4, 1, sum)
+                 R4[R4 != 0] <- -1
+                 diag(R4) <- diag
+                 Q1 <- inla.bym.constr.internal(R4, adjust.for.con.comp = TRUE)
+                 R4 <- inla.scale.model.bym(R4, adjust.for.con.comp = TRUE)
                 R <- R4 %x% R2
                 tmp <- matrix(0, S, N * S)
                 for(i in 1:S){
                   tmp[i, ((i-1)*N + 1) : (i*N)] <- 1
                 }
-                tmp2 <- matrix(0, N, N * S)
-                for(i in 1:N){
-                   tmp2[i , which((1:(N*S)) %% N == i-1)] <- 1
-                }
+                # tmp2 <- matrix(0, N, N * S)
+                 # for(i in 1:N){
+                 #    tmp2[i , which((1:(N*S)) %% N == i-1)] <- 1
+                 # }
+                 ## Sum-to-zero over connected components
+                 tmp2 <- matrix(0, N * Q1$rankdef, N * S)
+                 for(j in  1:Q1$rankdef){
+                   for(i in 1:N){
+                      this_t_i <- which((1:(N*S)) %% N == i-1)
+                      this_t_i <- this_t_i[Q1$constr$A[j, ] == 1]
+                      tmp2[i + (j-1)*N , this_t_i] <- 1
+                   }
+                 }
                 tmp <- rbind(tmp, tmp2)
                 constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
                 
                 if(family == "betabinomialna"){
                  formula <- update(formula, ~. + 
-                        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - 1), param=c(a.iid,b.iid), initial=10))
+                        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - Q1$rankdef), param=c(a.iid,b.iid), initial=10))
                  }else{
                  formula <- update(formula, ~. + 
-                        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - 1), param=c(a.iid,b.iid)))            
+                        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - Q1$rankdef), param=c(a.iid,b.iid)))            
                  }
             }
          
