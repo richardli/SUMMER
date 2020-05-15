@@ -691,14 +691,18 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
     tmp <- subset(tmp, tmp$time.area %in% exdat$time.area == FALSE)
   }
-  # remove contents in other columns
-  if(!is.null(geo)){
-    created <- c(created, "region.struct", "region_number", "region.unstruct", "region.int", "region", "time.struct", "time.unstruct", "time.int", "time.area", "years", "age", "strata")
-  }else{
-      created <- c(created, "time.struct", "time.unstruct", "time.int",  "years", "age", "strata")
+  # If need filler data
+  if(dim(tmp)[1] > 0){
+      # remove contents in other columns
+      if(!is.null(geo)){
+        created <- c(created, "region.struct", "region_number", "region.unstruct", "region.int", "region", "time.struct", "time.unstruct", "time.int", "time.area", "years", "age", "strata")
+      }else{
+          created <- c(created, "time.struct", "time.unstruct", "time.int",  "years", "age", "strata")
+      }
+      tmp[, colnames(tmp) %in% created == FALSE] <- NA
+      exdat <- rbind(exdat, tmp)
   }
-  tmp[, colnames(tmp) %in% created == FALSE] <- NA
-  exdat <- rbind(exdat, tmp)
+
 
   if(has.strata) exdat$strata <- factor(exdat$strata, levels = stratalevels)
   if(!is.null(age.groups)){
