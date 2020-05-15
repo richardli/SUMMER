@@ -1,3 +1,8 @@
+
+# The following functions are tested in this file:
+#     expit()
+#     logit()
+
 test_that("Expit works", {
   expect_equal(expit(2), exp(2)/(1 + exp(2)))
   expect_equal(expit(-2), exp(-2)/(1 + exp(-2)))
