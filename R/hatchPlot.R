@@ -71,10 +71,11 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
         stop("values need to be specified for long format input.")
     }
     if (!is.long) {
-        data <- data[, c(variables, by.data)]
-        data <- reshape2::melt(data)
-        data$variable <- factor(data$variable, levels = variables)
-        levels(data$variable) <- labels
+        data2 <- data[, c(variables, by.data)]
+        data2 <- reshape2::melt(data2)
+        data2$variable <- factor(data2$variable, levels = variables)
+        levels(data2$variable) <- labels
+        data <- merge(data2, data, all.x=TRUE)
     }else {
         data$value <- data[, values]
         data$variable <- data[, variables]
