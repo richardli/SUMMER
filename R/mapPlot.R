@@ -52,7 +52,7 @@
 #' }
 #' 
 #' @export
-mapPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE, border = "gray20", ncol = NULL, ylim = NULL, legend.label = NULL,  per1000 = FALSE, clean = TRUE, size.label = 2, add.adj = FALSE, color.adj = "red", alpha.adj = 0.85, direction = 1){
+mapPlot <- function(data = NULL, variables, values = NULL, labels = NULL, geo, by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE, border = "gray20", ncol = NULL, ylim = NULL, legend.label = NULL,  per1000 = FALSE, clean = TRUE, size.label = 2, add.adj = FALSE, color.adj = "red", alpha.adj = 0.85, direction = 1){
     value <- group <- lat <- long <- x0 <- x1 <- y0 <- y1 <- id <- name <- variable <- NULL
 
     # Simple Map Plot
