@@ -5,7 +5,7 @@
 #' Normal or binary variables are currently supported. For binary variables, the logit transformation is performed on the direct estimates of probabilities, and a Gaussian additive model is fitted on the logit scale using INLA.
 #' 
 #' @param data data frame with region and strata information.
-#' @param geo Geo file
+#' @param geo Geo file, optional.
 #' @param Amat Adjacency matrix for the regions
 #' @param X Covariate matrix with the first column being the region names. Currently only supporting static region-level covariates.
 #' @param responseType Type of the response variable, currently supports 'binary' (default with logit link function) or 'gaussian'. 
@@ -58,7 +58,7 @@
 #' @export
 
 
-fitGeneric <- function(data, geo, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, FUN=NULL, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1){
+fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, FUN=NULL, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1){
 
     svy <- TRUE
 	if(!is.data.frame(data)){
@@ -298,7 +298,21 @@ fitGeneric <- function(data, geo, Amat, X = NULL, responseType = c("binary", "ga
         }
       
     }
-   return(list(HT = dat[, !colnames(dat) %in% c("region.struct", "region.unstruct", "region.int", "time.struct", "time.unstruct", "time.int")],
+
+   # organize output nicer 
+   HT <- dat[, !colnames(dat) %in% c("region.struct", "region.unstruct", "region.int", "time.struct", "time.unstruct", "time.int")]
+   HT <- cbind(region=HT[, "region"], HT[, colnames(HT) != "region"])
+   if("time" %in% names(HT)){
+       HT <- cbind(region=HT[, "region"], 
+                   time=HT[, "time"], 
+                   HT[, !(colnames(HT) %in% c("region", "time"))])
+   }
+   for(i in 1:dim(HT)[2]) HT[is.nan(HT[,i]), i] <- NA
+   if(sum(!is.na(HT$n)) == 0) HT <- HT[, colnames(HT) != "n"]
+   if(sum(!is.na(HT$y)) == 0) HT <- HT[, colnames(HT) != "y"]
+   if(sum(!is.na(proj$time)) == 0) proj <- proj[, colnames(proj) != "time"]
+
+   return(list(HT = HT,
                smooth = proj, 
                fit = fit, 
                CI = CI,
