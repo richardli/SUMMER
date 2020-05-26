@@ -4,8 +4,8 @@
 \alias{mapPlot}
 \title{Makes map plot.}
 \usage{
-mapPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
-  by.geo, is.long = FALSE, size = 0.5, removetab = FALSE,
+mapPlot(data = NULL, variables, values = NULL, labels = NULL, geo,
+  by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE,
   border = "gray20", ncol = NULL, ylim = NULL, legend.label = NULL,
   per1000 = FALSE, clean = TRUE, size.label = 2, add.adj = FALSE,
   color.adj = "red", alpha.adj = 0.85, direction = 1)

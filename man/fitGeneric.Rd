@@ -4,9 +4,9 @@
 \alias{fitGeneric}
 \title{Fit space-time smoothing models for a generic outcome from complex surveys.}
 \usage{
-fitGeneric(data, geo, Amat, X = NULL, responseType = c("binary",
-  "gaussian")[1], responseVar, strataVar = "strata",
-  weightVar = "weights", regionVar = "region",
+fitGeneric(data, geo = NULL, Amat, X = NULL,
+  responseType = c("binary", "gaussian")[1], responseVar,
+  strataVar = "strata", weightVar = "weights", regionVar = "region",
   clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01,
   pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, FUN = NULL,
   formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1],
@@ -15,7 +15,7 @@ fitGeneric(data, geo, Amat, X = NULL, responseType = c("binary",
 \arguments{
 \item{data}{data frame with region and strata information.}
 
-\item{geo}{Geo file}
+\item{geo}{Geo file, optional.}
 
 \item{Amat}{Adjacency matrix for the regions}
 
