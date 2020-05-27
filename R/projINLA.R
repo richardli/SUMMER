@@ -223,6 +223,10 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           AA$time.struct <- AA$time.struct + (AA$age.rep.idx - 1)  * T
         }
         AA$age <- paste0("age", AA$age, ":1")
+
+        # When there's only one age group, fitINLA2 uses the generic intercept
+        if(length(unique(AA$age)) == 1) AA$age <- "(Intercept):1"
+
         #  AA.loc is the same  format as AA, but with location index
         AA.loc <- AA
         AA.loc$age  <- match(AA.loc$age, fields)
