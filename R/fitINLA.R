@@ -4,7 +4,7 @@
 #' 
 #'
 #' @param data Combined dataset
-#' @param geo Geo file
+#' @param geo Spatial polygon file, legacy parameter from previous versions of the package.
 #' @param Amat Adjacency matrix for the regions
 #' @param X Covariate matrix. It must contain either a column with name "region", or a column with name "years", or both. The covariates must not have missing values for all regions (if varying in space) and all time periods (if varying in time). The rest of the columns are treated as covariates in the mean model.
 #' @param formula INLA formula. See vignette for example of using customized formula.
@@ -60,14 +60,14 @@
 #' 
 #' #  national model
 #' years.all <- c(years, "15-19")
-#' fit1 <- fitINLA(data = data, geo = NULL, Amat = NULL, 
+#' fit1 <- fitINLA(data = data, Amat = NULL, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
 #'   rw = 2, is.yearly=FALSE, m = 5)
 #' out1 <- getSmoothed(fit1)
 #' plot(out1, is.subnational=FALSE)
 #' 
 #' #  subnational model
-#' fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+#' fit2 <- fitINLA(data = data, Amat = mat, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
 #'   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
 #' out2 <- getSmoothed(fit2, Amat = mat)
@@ -76,7 +76,11 @@
 #' 
 #' }
 #' @export
-fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo = T, openmp.strategy = 'default'), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, pc.st.u = NA, pc.st.alpha = NA){
+fitINLA <- function(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0, is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5, na.rm = TRUE, priors = NULL, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic = T, mlik = T, cpo = T, openmp.strategy = 'default'), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, pc.st.u = NA, pc.st.alpha = NA, geo = NULL){
+
+  if(!is.null(geo)){
+    message("Argument geo is no longer necessary in the fitINLA2 function. Only Amat is needed.")
+  }
 
   is.ar <- ar > 0 
   is.main.ar <- rw == 0
@@ -129,10 +133,10 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, i
     ## ---------------------------------------------------------
     ## Common Setup
     ## --------------------------------------------------------- 
-    if(is.null(geo)){
+    if(is.null(Amat)){
       data <- data[which(data$region == "All"), ]
       if(length(data) == 0){
-        stop("No geographics specified and no observation labeled 'All' either.")
+        stop("Spatial adjacency matrix is not provided and no observation labeled 'All' either.")
       }
     } else{
       data <- data[which(data$region != "All"), ]
@@ -162,7 +166,7 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, i
         data <- data[-to_remove, ]
     }
     #################################################################### get the list of region and numeric index in one data frame
-    if(is.null(geo)){
+    if(is.null(Amat)){
       region_names <- regions <- "All"
       region_count <- S <- 1
       dat <- cbind(data, region_number = 0)
@@ -210,7 +214,7 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, i
                                              tau = exp(10),
                                              u0 = pc.u,
                                              alpha0 = pc.alpha) 
-      if(!is.null(geo)){
+      if(!is.null(Amat)){
          st.model <- INLA::inla.rgeneric.define(model = st.new,
                                        n = n, 
                                        m = m,
@@ -289,7 +293,7 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, i
     }
     time.area <- data.frame(region_number = x[, 2], time.unstruct = x[, 1], time.area = c(1:nrow(x)))
     # fix for 0 instead of 1 when no geo file provided
-    if(is.null(geo)){
+    if(is.null(Amat)){
       time.area$region_number <- 0
     }
     ################################################################## get the number of surveys
@@ -311,7 +315,7 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, i
       newdata$survey.id <- NA
       survey.table <- NULL
     }
-    if(!is.null(geo)){
+    if(!is.null(Amat)){
       newdata <- merge(newdata, time.area, by = c("region_number", "time.unstruct"))
     }else{
       newdata$time.area <- NA
@@ -434,7 +438,7 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, i
         ## -----------------------
         ## Period + National + PC
         ## ----------------------- 
-        if(!is.yearly && is.null(geo)){
+        if(!is.yearly && is.null(Amat)){
 
               formula <- logit.est ~ 
                             f(time.struct,model=paste0("rw", rw), constr = TRUE,  extraconstr = period.constr, hyper = hyperpc1) + 
@@ -443,7 +447,7 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, i
         ## -----------------------
         ## Yearly + National + PC
         ## -----------------------
-        }else if(is.yearly && is.null(geo)){
+        }else if(is.yearly && is.null(Amat)){
 
           formula <- logit.est ~ 
               f(time.struct, model = rw.model.pc, diagonal = 1e-6, extraconstr = constr, values = 1:N) + 
@@ -453,7 +457,7 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, i
         ## -------------------------
         ## Period + Subnational + PC
         ## ------------------------- 
-        }else if(!is.yearly && (!is.null(geo))){
+        }else if(!is.yearly && (!is.null(Amat))){
 
             formula <- logit.est ~ 
                 f(time.struct, model=paste0("rw", rw), hyper = hyperpc1, scale.model = TRUE, extraconstr = period.constr)  + 
@@ -549,7 +553,7 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, i
         ## ------------------- 
         ## Period + National
         ## ------------------- 
-        if(!is.yearly && is.null(geo)){
+        if(!is.yearly && is.null(Amat)){
             formula <- logit.est ~ 
               f(time.struct,model=paste0("rw", rw),param=c(a.rw,b.rw), constr = TRUE)  + 
               f(time.unstruct,model="iid",param=c(a.iid,b.iid)) 
@@ -557,7 +561,7 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, i
         ## ------------------- 
         ## Yearly + National
         ## -------------------   
-        }else if(is.yearly && is.null(geo)){
+        }else if(is.yearly && is.null(Amat)){
            formula <- logit.est ~ 
                   f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + 
                   f(time.unstruct,model=iid.model) 
@@ -565,7 +569,7 @@ fitINLA <- function(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0, i
         ## ------------------- 
         ## Period + Subnational
         ## ------------------- 
-        }else if(!is.yearly && (!is.null(geo))){
+        }else if(!is.yearly && (!is.null(Amat))){
        
             formula <- logit.est ~ 
                   f(time.struct,model=paste0("rw", rw), param=c(a.rw,b.rw), scale.model = TRUE, extraconstr = period.constr)  + 
@@ -684,7 +688,7 @@ if(is.main.ar){
     ## ---------------------------------------------------------
     ## Subnational lincomb for projection
     ## ---------------------------------------------------------
-    if(!is.null(geo)){
+    if(!is.null(Amat)){
       lincombs.info <- data.frame(Index = 1:(region_count*N), District = NA, Year = NA)
       index <- 0
       for(j in 1:region_count){

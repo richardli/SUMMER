@@ -17,7 +17,7 @@
 #' @param age.rw.group vector indicating grouping of the ages groups. For example, if each age group is assigned a different random walk component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate random walk to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.
 #' @param family family of the model. This can be either binomial (with logistic normal prior), betabiniomial.
 #' @param Amat Adjacency matrix for the regions
-#' @param geo Geo file
+#' @param geo Spatial polygon file, legacy parameter from previous versions of the package.
 #' @param bias.adj the ratio of unadjusted mortality rates or age-group-specific hazards to the true rates or hazards. It needs to be a data frame that can be merged to thee outcome, i.e., with the same column names for time periods (for national adjustment), or time periods and region (for subnational adjustment). The column specifying the adjustment ratio should be named "ratio".
 #' @param bias.adj.by vector of the column names specifying how to merge the bias adjustment to the count data. For example, if bias adjustment factor is provided in bias.adj for each region and time, then bias.adj.by should be `c("region", "time")`.
 #' @param formula INLA formula.  See vignette for example of using customized formula.
@@ -64,10 +64,21 @@
 #' 
 #' 
 
-fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, geo, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, ar = 0, st.rw = NULL, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, ...){
+fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = 1:6, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, ar = 0, st.rw = NULL, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, ...){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
+
+  # add check: if user input options and forgot config, set it to TRUE
+  #            if user turned if explicitly, then leave it along
+  if(!"config" %in% names(options)){
+    message("config = TRUE is added to options so that posterior draws can be taken.")
+    options$config <- TRUE
+  }
+  if(!is.null(geo)){
+    message("Argument geo is no longer necessary in the fitINLA2 function. Only Amat is needed.")
+  }
+
 
   is.ar <- ar > 0 
   is.main.ar <- rw == 0
@@ -122,7 +133,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     has.strata <- FALSE
     data$strata <- ""
     strata.time.effect <- FALSE
-    message("The input data contains no strata. Please makes sure this correctly reflects the sampling design.")
+    message("The input data contains no strata. An unstratified model is fitted.")
   }
 
   multi.frame <- FALSE
@@ -234,7 +245,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     ## ---------------------------------------------------------
     ## Common Setup
     ## --------------------------------------------------------- 
-    if(!is.null(geo)){
+    if(!is.null(Amat)){
       data <- data[which(data$region != "All"), ]
     }  
     #################################################################### Re-calculate hyper-priors
@@ -260,7 +271,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     #     data <- data[-to_remove, ]
     # }
     # #################################################################### get the list of region and numeric index in one data frame
-    if(is.null(geo)){
+    if(is.null(Amat)){
       region_names <- regions <- "All"
       region_count <- S <- 1
       dat <- cbind(data, region_number = 0)
@@ -288,14 +299,14 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
       
     x <- expand.grid(1:N, 1:region_count)
     time.area <- data.frame(region_number = x[, 2], time.unstruct = x[, 1], time.area = c(1:nrow(x)))
-    # fix for 0 instead of 1 when no geo file provided
-    if(is.null(geo)){
+    # fix for 0 instead of 1 when no Amat file provided
+    if(is.null(Amat)){
       time.area$region_number <- 0
     }
    
     # -- merge these all into the data sets -- #
     newdata <- dat
-    if(!is.null(geo)){
+    if(!is.null(Amat)){
       newdata <- merge(newdata, time.area, 
         by = c("region_number", "time.unstruct"))
     }else{
@@ -356,7 +367,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         ##  National + PC
         ##  TODO: AR1 in this case
         ## ----------------------- 
-        if(is.null(geo)){
+        if(is.null(Amat)){
 
           if(replicate.rw && (!is.main.ar)){
               # Replicated RW
@@ -384,7 +395,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         ## -------------------------
         ## Subnational + PC
         ## ------------------------- 
-        }else if(!is.null(geo)){
+        }else if(!is.null(Amat)){
 
 
              if(replicate.rw && (!is.main.ar)){
@@ -512,7 +523,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         ## ------------------- 
         ## Period + National
         ## ------------------- 
-        if(is.null(geo)){
+        if(is.null(Amat)){
             if(replicate.rw){
               formula <- Y ~
                 f(time.struct,model=paste0("rw", rw),param=c(a.rw,b.rw), constr = TRUE, extraconstr = NULL, hyper = hyperpc1, replicate =  age.rep.idx)  + 
@@ -686,7 +697,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   tmp$years <- years$year[match(tmp$time.struct, years$year_number)]
   tmp$region_number <- tmp$region.int <- tmp$region.unstruct <- tmp$region.struct
   tmp$region <- colnames(Amat)[tmp$region.struct]
-  if(!is.null(geo)){
+  if(!is.null(Amat)){
     tmp <- tmp[, colnames(tmp) != "time.area"]
     tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
     tmp <- subset(tmp, tmp$time.area %in% exdat$time.area == FALSE)
@@ -694,7 +705,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   # If need filler data
   if(dim(tmp)[1] > 0){
       # remove contents in other columns
-      if(!is.null(geo)){
+      if(!is.null(Amat)){
         created <- c(created, "region.struct", "region_number", "region.unstruct", "region.int", "region", "time.struct", "time.unstruct", "time.int", "time.area", "years", "age", "strata")
       }else{
           created <- c(created, "time.struct", "time.unstruct", "time.int",  "years", "age", "strata")
@@ -709,6 +720,10 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
       exdat$age <- factor(exdat$age, levels = age.groups)    
   }else{
      formula <- update(formula, ~.-age)   
+  }
+  # if only one level, use the default intercept instead of age
+  if(length(age.groups) == 1){
+    formula <- update(formula, ~.-age + 1)   
   }
   exdat$age.idx <- match(exdat$age, age.groups)
   exdat$age.rep.idx <- age.rw.group[exdat$age.idx]

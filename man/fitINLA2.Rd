@@ -6,7 +6,7 @@
 \usage{
 fitINLA2(data, family = c("betabinomial", "binomial")[1],
   age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"),
-  age.n = c(1, 11, 12, 12, 12, 12), age.rw.group = 1:6, Amat, geo,
+  age.n = c(1, 11, 12, 12, 12, 12), age.rw.group = 1:6, Amat,
   bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2,
   ar = 0, st.rw = NULL, year_label, priors = NULL, type.st = 4,
   survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc",
@@ -17,7 +17,7 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
   b.rw = NULL, a.icar = NULL, b.icar = NULL, overdisp.mean = 0,
   overdisp.prec = 0.4, options = list(config = TRUE),
   control.inla = list(strategy = "adaptive", int.strategy = "auto"),
-  verbose = FALSE, ...)
+  verbose = FALSE, geo = NULL, ...)
 }
 \arguments{
 \item{data}{count data of person-months with the following columns
@@ -40,8 +40,6 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 \item{age.rw.group}{vector indicating grouping of the ages groups. For example, if each age group is assigned a different random walk component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate random walk to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.}
 
 \item{Amat}{Adjacency matrix for the regions}
-
-\item{geo}{Geo file}
 
 \item{bias.adj}{the ratio of unadjusted mortality rates or age-group-specific hazards to the true rates or hazards. It needs to be a data frame that can be merged to thee outcome, i.e., with the same column names for time periods (for national adjustment), or time periods and region (for subnational adjustment). The column specifying the adjustment ratio should be named "ratio".}
 
@@ -108,6 +106,8 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 \item{control.inla}{list of options to be passed to control.inla() in the inla() function. Default to the "adaptive" integration strategy.}
 
 \item{verbose}{logical indicator to print out detailed inla() intermediate steps.}
+
+\item{geo}{Spatial polygon file, legacy parameter from previous versions of the package.}
 
 \item{...}{arguments to be passed to the inla() function call.}
 }

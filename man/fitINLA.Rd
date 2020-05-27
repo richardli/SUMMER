@@ -4,7 +4,7 @@
 \alias{fitINLA}
 \title{Fit space-time smoothing models to mortality rates}
 \usage{
-fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0,
+fitINLA(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0,
   is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5,
   na.rm = TRUE, priors = NULL, type.st = 1, survey.effect = FALSE,
   hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01,
@@ -13,14 +13,12 @@ fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0,
   b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic =
   T, mlik = T, cpo = T, openmp.strategy = "default"),
   control.inla = list(strategy = "adaptive", int.strategy = "auto"),
-  verbose = FALSE, pc.st.u = NA, pc.st.alpha = NA)
+  verbose = FALSE, pc.st.u = NA, pc.st.alpha = NA, geo = NULL)
 }
 \arguments{
 \item{data}{Combined dataset}
 
 \item{Amat}{Adjacency matrix for the regions}
-
-\item{geo}{Geo file}
 
 \item{X}{Covariate matrix. It must contain either a column with name "region", or a column with name "years", or both. The covariates must not have missing values for all regions (if varying in space) and all time periods (if varying in time). The rest of the columns are treated as covariates in the mean model.}
 
@@ -81,6 +79,8 @@ fitINLA(data, Amat, geo, X = NULL, formula = NULL, rw = 2, ar = 0,
 \item{pc.st.u}{hyperparameter U for the PC prior on precisions for the interaction term.}
 
 \item{pc.st.alpha}{hyperparameter alpha for the PC prior on precisions for the interaction term.}
+
+\item{geo}{Spatial polygon file, legacy parameter from previous versions of the package.}
 }
 \value{
 INLA model fit using the provided formula, country summary data, and geographic data
@@ -107,14 +107,14 @@ data <- aggregateSurvey(data_multi)
 
 #  national model
 years.all <- c(years, "15-19")
-fit1 <- fitINLA(data = data, geo = NULL, Amat = NULL, 
+fit1 <- fitINLA(data = data, Amat = NULL, 
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=FALSE, m = 5)
 out1 <- getSmoothed(fit1)
 plot(out1, is.subnational=FALSE)
 
 #  subnational model
-fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+fit2 <- fitINLA(data = data, Amat = mat, 
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
 out2 <- getSmoothed(fit2, Amat = mat)
