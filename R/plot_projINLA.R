@@ -148,6 +148,8 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
     g <- g + ggplot2::geom_line(position = my.dodge)
     if(plot.CI & !is.null(color.CI)){
         g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .7, width = .05, position = my.dodge, color = color.CI, alpha = alpha.CI)
+    }else if(length(unique(x$region))==1){
+       g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .7, width = .05, position = my.dodge, color = "black", alpha = alpha.CI)
     }else if(is.null(color.CI)){
         g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project, color=region), size = .7, width = .05, position = my.dodge, alpha = alpha.CI)
     }
@@ -183,6 +185,6 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
     g <- g + ggplot2::ylab("U5MR (deaths per 1000 live births)")
   }
 
-  if(!is.null(label.add)) g <- g + ggplot2::scale_shape_discrete(label.add) 
+  if(!is.null(label.add)) g <- g + ggplot2::scale_shape_discrete("") 
   g
 }
