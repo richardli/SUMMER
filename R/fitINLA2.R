@@ -98,10 +98,12 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     if(sum(rownames(Amat) != colnames(Amat)) > 0){
         stop("Row and column names of Amat needs to be the same.")
     }
+    is.spatial <- TRUE
   }else{
     Amat <- matrix(1,1,1)
     colnames(Amat) <- rownames(Amat) <- "All"
     if("region" %in% colnames(data) == FALSE) data$region <- "All"
+    is.spatial <- FALSE
   }
 
   # get around CRAN check of using un-exported INLA functions
@@ -245,7 +247,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     ## ---------------------------------------------------------
     ## Common Setup
     ## --------------------------------------------------------- 
-    if(!is.null(Amat)){
+    if(dim(Amat)[1] != 1){
       data <- data[which(data$region != "All"), ]
     }  
     #################################################################### Re-calculate hyper-priors
@@ -271,7 +273,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     #     data <- data[-to_remove, ]
     # }
     # #################################################################### get the list of region and numeric index in one data frame
-    if(is.null(Amat)){
+    if(!is.spatial){
       region_names <- regions <- "All"
       region_count <- S <- 1
       dat <- cbind(data, region_number = 0)
@@ -300,13 +302,13 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     x <- expand.grid(1:N, 1:region_count)
     time.area <- data.frame(region_number = x[, 2], time.unstruct = x[, 1], time.area = c(1:nrow(x)))
     # fix for 0 instead of 1 when no Amat file provided
-    if(is.null(Amat)){
+    if(!is.spatial){
       time.area$region_number <- 0
     }
    
     # -- merge these all into the data sets -- #
     newdata <- dat
-    if(!is.null(Amat)){
+    if(dim(Amat)[1] != 1){
       newdata <- merge(newdata, time.area, 
         by = c("region_number", "time.unstruct"))
     }else{
@@ -367,7 +369,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         ##  National + PC
         ##  TODO: AR1 in this case
         ## ----------------------- 
-        if(is.null(Amat)){
+        if(!is.spatial){
 
           if(replicate.rw && (!is.main.ar)){
               # Replicated RW
@@ -395,7 +397,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         ## -------------------------
         ## Subnational + PC
         ## ------------------------- 
-        }else if(!is.null(Amat)){
+        }else if(dim(Amat)[1] != 1){
 
 
              if(replicate.rw && (!is.main.ar)){
@@ -523,7 +525,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
         ## ------------------- 
         ## Period + National
         ## ------------------- 
-        if(is.null(Amat)){
+        if(!is.spatial){
             if(replicate.rw){
               formula <- Y ~
                 f(time.struct,model=paste0("rw", rw),param=c(a.rw,b.rw), constr = TRUE, extraconstr = NULL, hyper = hyperpc1, replicate =  age.rep.idx)  + 
@@ -697,7 +699,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   tmp$years <- years$year[match(tmp$time.struct, years$year_number)]
   tmp$region_number <- tmp$region.int <- tmp$region.unstruct <- tmp$region.struct
   tmp$region <- colnames(Amat)[tmp$region.struct]
-  if(!is.null(Amat)){
+  if(dim(Amat)[1] != 1){
     tmp <- tmp[, colnames(tmp) != "time.area"]
     tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
     tmp <- subset(tmp, tmp$time.area %in% exdat$time.area == FALSE)
@@ -705,7 +707,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   # If need filler data
   if(dim(tmp)[1] > 0){
       # remove contents in other columns
-      if(!is.null(Amat)){
+      if(dim(Amat)[1] != 1){
         created <- c(created, "region.struct", "region_number", "region.unstruct", "region.int", "region", "time.struct", "time.unstruct", "time.int", "time.area", "years", "age", "strata")
       }else{
           created <- c(created, "time.struct", "time.unstruct", "time.int",  "years", "age", "strata")

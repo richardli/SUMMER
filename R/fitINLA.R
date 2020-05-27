@@ -108,6 +108,9 @@ fitINLA <- function(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0, is.yea
     if(sum(rownames(Amat) != colnames(Amat)) > 0){
         stop("Row and column names of Amat needs to be the same.")
     }
+    is.spatial <- TRUE
+  }else{
+    is.spatial <- FALSE
   }
 
   # get around CRAN check of using un-exported INLA functions
@@ -133,7 +136,7 @@ fitINLA <- function(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0, is.yea
     ## ---------------------------------------------------------
     ## Common Setup
     ## --------------------------------------------------------- 
-    if(is.null(Amat)){
+    if(!is.spatial){
       data <- data[which(data$region == "All"), ]
       if(length(data) == 0){
         stop("Spatial adjacency matrix is not provided and no observation labeled 'All' either.")
@@ -166,7 +169,7 @@ fitINLA <- function(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0, is.yea
         data <- data[-to_remove, ]
     }
     #################################################################### get the list of region and numeric index in one data frame
-    if(is.null(Amat)){
+    if(!is.spatial){
       region_names <- regions <- "All"
       region_count <- S <- 1
       dat <- cbind(data, region_number = 0)
@@ -214,7 +217,7 @@ fitINLA <- function(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0, is.yea
                                              tau = exp(10),
                                              u0 = pc.u,
                                              alpha0 = pc.alpha) 
-      if(!is.null(Amat)){
+      if(is.spatial){
          st.model <- INLA::inla.rgeneric.define(model = st.new,
                                        n = n, 
                                        m = m,
@@ -293,7 +296,7 @@ fitINLA <- function(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0, is.yea
     }
     time.area <- data.frame(region_number = x[, 2], time.unstruct = x[, 1], time.area = c(1:nrow(x)))
     # fix for 0 instead of 1 when no geo file provided
-    if(is.null(Amat)){
+    if(!is.spatial){
       time.area$region_number <- 0
     }
     ################################################################## get the number of surveys
@@ -315,7 +318,7 @@ fitINLA <- function(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0, is.yea
       newdata$survey.id <- NA
       survey.table <- NULL
     }
-    if(!is.null(Amat)){
+    if(is.spatial){
       newdata <- merge(newdata, time.area, by = c("region_number", "time.unstruct"))
     }else{
       newdata$time.area <- NA
@@ -392,11 +395,11 @@ fitINLA <- function(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0, is.yea
    if(!is.null(X)){
     exdat <- exdat[, colnames(exdat) %in% covariate.names == FALSE]
     Xnew <- expand.grid(time.struct = 1:N, region.struct = 1:S)
-    if(is.null(Amat)) Xnew$region.struct <- 0
+    if(!is.spatial) Xnew$region.struct <- 0
     Xnew[, covariate.names] <- NA
     for(i in 1:dim(Xnew)[1]){
       tt <- ifelse(Xnew$time.struct[i] > n, Xnew$time.struct[i] - n, (Xnew$time.struct[i]-1) %/% m + 1)
-      ii <- ifelse(is.null(Amat), 1, Xnew$region.struct[i])
+      ii <- ifelse(!is.spatial, 1, Xnew$region.struct[i])
       if("region" %in% by && (!"years" %in% by)){
         which <- which(X$region == region_names[ii])
       }else if((!"region" %in% by) && "years" %in% by){
@@ -438,7 +441,7 @@ fitINLA <- function(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0, is.yea
         ## -----------------------
         ## Period + National + PC
         ## ----------------------- 
-        if(!is.yearly && is.null(Amat)){
+        if(!is.yearly && !is.spatial){
 
               formula <- logit.est ~ 
                             f(time.struct,model=paste0("rw", rw), constr = TRUE,  extraconstr = period.constr, hyper = hyperpc1) + 
@@ -447,7 +450,7 @@ fitINLA <- function(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0, is.yea
         ## -----------------------
         ## Yearly + National + PC
         ## -----------------------
-        }else if(is.yearly && is.null(Amat)){
+        }else if(is.yearly && !is.spatial){
 
           formula <- logit.est ~ 
               f(time.struct, model = rw.model.pc, diagonal = 1e-6, extraconstr = constr, values = 1:N) + 
@@ -457,7 +460,7 @@ fitINLA <- function(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0, is.yea
         ## -------------------------
         ## Period + Subnational + PC
         ## ------------------------- 
-        }else if(!is.yearly && (!is.null(Amat))){
+        }else if(!is.yearly && (is.spatial)){
 
             formula <- logit.est ~ 
                 f(time.struct, model=paste0("rw", rw), hyper = hyperpc1, scale.model = TRUE, extraconstr = period.constr)  + 
@@ -553,7 +556,7 @@ fitINLA <- function(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0, is.yea
         ## ------------------- 
         ## Period + National
         ## ------------------- 
-        if(!is.yearly && is.null(Amat)){
+        if(!is.yearly && !is.spatial){
             formula <- logit.est ~ 
               f(time.struct,model=paste0("rw", rw),param=c(a.rw,b.rw), constr = TRUE)  + 
               f(time.unstruct,model="iid",param=c(a.iid,b.iid)) 
@@ -561,7 +564,7 @@ fitINLA <- function(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0, is.yea
         ## ------------------- 
         ## Yearly + National
         ## -------------------   
-        }else if(is.yearly && is.null(Amat)){
+        }else if(is.yearly && !is.spatial){
            formula <- logit.est ~ 
                   f(time.struct, model = rw.model, diagonal = 1e-6, extraconstr = constr, values = 1:N) + 
                   f(time.unstruct,model=iid.model) 
@@ -569,7 +572,7 @@ fitINLA <- function(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0, is.yea
         ## ------------------- 
         ## Period + Subnational
         ## ------------------- 
-        }else if(!is.yearly && (!is.null(Amat))){
+        }else if(!is.yearly && (is.spatial)){
        
             formula <- logit.est ~ 
                   f(time.struct,model=paste0("rw", rw), param=c(a.rw,b.rw), scale.model = TRUE, extraconstr = period.constr)  + 
@@ -688,7 +691,7 @@ if(is.main.ar){
     ## ---------------------------------------------------------
     ## Subnational lincomb for projection
     ## ---------------------------------------------------------
-    if(!is.null(Amat)){
+    if(is.spatial){
       lincombs.info <- data.frame(Index = 1:(region_count*N), District = NA, Year = NA)
       index <- 0
       for(j in 1:region_count){
