@@ -10,7 +10,7 @@
   data.add = NULL, option.add = list(point = NULL, lower = NULL, upper
   = NULL, by = NULL), color.add = "black", label.add = NULL,
   dodge.width = 1, plot.CI = NULL, per1000 = FALSE,
-  color.CI = "black", alpha.CI = 0.3, ...)
+  color.CI = NULL, alpha.CI = 0.5, ...)
 }
 \arguments{
 \item{x}{output from \code{\link{getSmoothed}}}
