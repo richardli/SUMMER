@@ -67,7 +67,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
       ## Binomial methods
       ########################
     if(!is.null(inla_mod$family)){
-       if("region.struct" %in% names(inla_mod$fit$summary.random) == FALSE){
+       if("region.struct" %in% names(inla_mod$fit$summary.random) == FALSE && !is.null(Amat)){
         warning("No spatial random effects in the model. Set Amat to NULL", immediate. = TRUE)
         Amat <- NULL
        }
