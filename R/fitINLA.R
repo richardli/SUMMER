@@ -1,4 +1,4 @@
-#' Fit space-time smoothing models to mortality rates 
+#' Fit space-time smoothed direct models to mortality rates 
 #' 
 #' 
 #' 

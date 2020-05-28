@@ -2,7 +2,7 @@
 % Please edit documentation in R/fitINLA.R
 \name{fitINLA}
 \alias{fitINLA}
-\title{Fit space-time smoothing models to mortality rates}
+\title{Fit space-time smoothed direct models to mortality rates}
 \usage{
 fitINLA(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0,
   is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5,
@@ -86,7 +86,7 @@ fitINLA(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0,
 INLA model fit using the provided formula, country summary data, and geographic data
 }
 \description{
-Fit space-time smoothing models to mortality rates
+Fit space-time smoothed direct models to mortality rates
 }
 \examples{
 \dontrun{
