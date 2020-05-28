@@ -114,6 +114,7 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
 
     if(is.null(hatch)){
       col.hatch <- viridis::viridis_pal(option="A")(11)[11]
+      if(direction == -1) col.hatch <- viridis::viridis_pal(option="A")(11)[1]
     }else{
       col.hatch <- hatch
     }
