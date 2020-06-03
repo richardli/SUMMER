@@ -24,6 +24,7 @@
 #' @param  timeVar The variable indicating time period. If set to NULL then the temporal model and space-time interaction model are ignored.
 #' @param time.model the model for temporal trends and interactions. It can be either "rw1" or "rw2".
 #' @param type.st can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.
+#' @param ... additional arguments passed to \code{svydesign} function.
 #' 
 #' 
 #' @return \item{HT}{Direct estimates}
@@ -58,7 +59,7 @@
 #' @export
 
 
-fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, FUN=NULL, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1){
+fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, FUN=NULL, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, ...){
 
     svy <- TRUE
 	if(!is.data.frame(data)){
@@ -139,7 +140,8 @@ fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binar
         				ids = stats::formula(clusterVar),
                         weights = ~weights0,
                         strata = ~strata0,
-                        data = data)
+                        data = data, 
+                        ...)
         if(!is.null(timeVar)){
             mean <- survey::svyby(formula=~response0, by=~region0+time0, design=design, survey::svymean)
             time.i <- mean$time0

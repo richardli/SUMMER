@@ -10,7 +10,7 @@ fitGeneric(data, geo = NULL, Amat, X = NULL,
   clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01,
   pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, FUN = NULL,
   formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1],
-  type.st = 1)
+  type.st = 1, ...)
 }
 \arguments{
 \item{data}{data frame with region and strata information.}
@@ -52,6 +52,8 @@ fitGeneric(data, geo = NULL, Amat, X = NULL,
 \item{time.model}{the model for temporal trends and interactions. It can be either "rw1" or "rw2".}
 
 \item{type.st}{can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.}
+
+\item{...}{additional arguments passed to \code{svydesign} function.}
 }
 \value{
 \item{HT}{Direct estimates}
