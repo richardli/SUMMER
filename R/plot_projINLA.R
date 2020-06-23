@@ -129,11 +129,11 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
   
   if(is.subnational){
     g <- ggplot2::ggplot(ggplot2::aes(x = years.num, y = median, ymin = lower, ymax = upper, color = region), data = x)
-    my.dodge <- ggplot2::position_dodge(width = dodge.width)
+    my.dodge <- ggplot2::position_dodge(width = dodge.width * ifelse(plot.CI, 1, 0))
   }else{
     dodge.width <- dodge.width / 5
     g <- ggplot2::ggplot(ggplot2::aes(x = years.num, y = median, ymin = lower, ymax = upper), data = x)
-    my.dodge <- ggplot2::position_dodge(width = dodge.width)
+    my.dodge <- ggplot2::position_dodge(width = dodge.width* ifelse(plot.CI, 1, 0))
   }
   if(!is.null(data.add)){
     my.dodgeadd <- ggplot2::position_dodge2(width = 0.15*dodge.width, padding = 0.1)
