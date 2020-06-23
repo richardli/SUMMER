@@ -143,10 +143,10 @@ fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binar
                         data = data, 
                         ...)
         if(!is.null(timeVar)){
-            mean <- survey::svyby(formula=~response0, by=~region0+time0, design=design, survey::svymean)
+            mean <- survey::svyby(formula=~response0, by=~region0+time0, design=design, survey::svymean, drop.empty.groups=FALSE)
             time.i <- mean$time0
         }else{
-            mean <- survey::svyby(formula=~response0, by=~region0, design=design, survey::svymean)
+            mean <- survey::svyby(formula=~response0, by=~region0, design=design, survey::svymean, drop.empty.groups=FALSE)
         }
         name.i <- mean$region0            
         p.i <- mean$response0
