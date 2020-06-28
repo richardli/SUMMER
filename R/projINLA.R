@@ -117,6 +117,8 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
             multi.frame <- FALSE
           }else if(length(framelabels)==1){
             multi.frame <- FALSE
+          }else if(sum(frame.strata$frame != frame.strata$strata) == 0){
+            multi.frame <- FALSE
           }else{
             multi.frame <- TRUE
           }
