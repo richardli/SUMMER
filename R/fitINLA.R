@@ -45,14 +45,14 @@
 #' 
 #' #  national model
 #' years.all <- c(years, "15-19")
-#' fit1 <- fitINLA(data = data, Amat = NULL, 
+#' fit1 <- smoothDirect(data = data, Amat = NULL, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
 #'   rw = 2, is.yearly=FALSE, m = 5)
 #' out1 <- getSmoothed(fit1)
 #' plot(out1, is.subnational=FALSE)
 #' 
 #' #  subnational model
-#' fit2 <- fitINLA(data = data, Amat = DemoMap$Amat, 
+#' fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
 #'   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
 #' out2 <- getSmoothed(fit2, Amat = mat)
@@ -61,10 +61,10 @@
 #' 
 #' }
 #' @export
-fitINLA <- function(data, Amat, X = NULL, formula = NULL, time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, year_label, year_range = c(1980, 2014), is.yearly=TRUE, m = 5, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA, pc.st.alpha = NA, options = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy = 'default'), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL){
+smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, year_label, year_range = c(1980, 2014), is.yearly=TRUE, m = 5, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA, pc.st.alpha = NA, options = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy = 'default'), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL){
 
   if(!is.null(geo)){
-    message("Argument geo is deprecated in the fitINLA2 function. Only Amat is needed.")
+    message("Argument geo is deprecated in the smoothDirect function. Only Amat is needed.")
   }
 
 

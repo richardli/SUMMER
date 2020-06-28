@@ -2,7 +2,7 @@
 #' 
 #' 
 #'
-#' @param inla_mod output from \code{\link{fitINLA}}
+#' @param inla_mod output from \code{\link{smoothDirect}}
 #' @param year_range range corresponding to year label
 #' @param year_label vector of year string vector
 #' @param Amat adjacency matrix
@@ -40,14 +40,14 @@
 #' 
 #' #  national model
 #' years.all <- c(years, "15-19")
-#' fit1 <- fitINLA(data = data, Amat = NULL, 
+#' fit1 <- smoothDirect(data = data, Amat = NULL, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
 #'   rw = 2, is.yearly=FALSE, m = 5)
 #' out1 <- getSmoothed(fit1)
 #' plot(out1, is.subnational=FALSE)
 #' 
 #' #  subnational model
-#' fit2 <- fitINLA(data = data, Amat = mat, 
+#' fit2 <- smoothDirect(data = data, Amat = mat, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
 #'   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
 #' out2 <- getSmoothed(fit2, Amat = mat)
@@ -226,7 +226,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         }
         AA$age <- paste0("age", AA$age, ":1")
 
-        # When there's only one age group, fitINLA2 uses the generic intercept
+        # When there's only one age group, smoothCluster uses the generic intercept
         if(length(unique(AA$age)) == 1) AA$age <- "(Intercept):1"
 
         #  AA.loc is the same  format as AA, but with location index

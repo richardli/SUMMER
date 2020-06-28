@@ -9,7 +9,7 @@ getDiag(inla_mod, field = c("space", "time", "spacetime")[1],
   "00-04", "05-09", "10-14", "15-19"), Amat = NULL, CI = 0.95)
 }
 \arguments{
-\item{inla_mod}{output from \code{\link{fitINLA}}}
+\item{inla_mod}{output from \code{\link{smoothDirect}}}
 
 \item{field}{which random effects to plot. It can be one of the following: space, time, and spacetime.}
 
@@ -47,7 +47,7 @@ Make diagnostic plots
   
   #  national model
   years.all <- c(years, "15-19")
-  fit1 <- fitINLA(data = data, geo = DemoMap$geo, Amat = DemoMap$Amat, 
+  fit1 <- smoothDirect(data = data, geo = DemoMap$geo, Amat = DemoMap$Amat, 
     year_label = years.all, year_range = c(1985, 2019), 
     rw = 2, is.yearly=FALSE, m = 5)
 random.time <- getDiag(fit1, field = "time", year_label = years.all, #' year_range = c(1985, 2019))

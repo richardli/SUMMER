@@ -12,7 +12,7 @@ getSmoothedDensity(inla_mod = NULL, results = NULL,
   ncol = 4, per1000 = FALSE, order = 0, ...)
 }
 \arguments{
-\item{inla_mod}{output from \code{\link{fitINLA}}}
+\item{inla_mod}{output from \code{\link{smoothDirect}}}
 
 \item{results}{output from \code{\link{getSmoothedDensity}}. This argument can be specified to avoid calculating densities again when only the visualization changes.}
 
@@ -68,7 +68,7 @@ data <- aggregateSurvey(data_multi)
 
 #  national model
 years.all <- c(years, "15-19")
-fit1 <- fitINLA(data = data, geo = NULL, Amat = NULL, 
+fit1 <- smoothDirect(data = data, geo = NULL, Amat = NULL, 
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=FALSE, m = 5)
 ## Plot marginal posterior densities over time
@@ -77,7 +77,7 @@ ncol = 4, byyear = FALSE)
 density$g
 
 #  subnational model
-fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+fit2 <- smoothDirect(data = data, geo = geo, Amat = mat, 
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=TRUE, m = 5, type.st = 1)
 

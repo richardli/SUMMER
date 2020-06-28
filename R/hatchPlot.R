@@ -41,7 +41,7 @@
 #'   ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 #' data <- aggregateSurvey(data_multi)
 #' 
-#' fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+#' fit2 <- smoothDirect(data = data, geo = geo, Amat = mat, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
 #'   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
 #' out2 <- getSmoothed(fit2, Amat = mat)

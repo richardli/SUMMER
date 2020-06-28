@@ -1,6 +1,6 @@
 #' Make diagnostic plots
 #' 
-#' @param inla_mod output from \code{\link{fitINLA}}
+#' @param inla_mod output from \code{\link{smoothDirect}}
 #' @param field which random effects to plot. It can be one of the following: space, time, and spacetime.
 #' @param year_range Entire range of the years (inclusive) defined in year_label. To be deprecated and imputed from the fitted object in the next version of SUMMER.
 #' @param year_label vector of year string vector
@@ -29,7 +29,7 @@
 #'   
 #'   #  national model
 #'   years.all <- c(years, "15-19")
-#'   fit1 <- fitINLA(data = data, geo = DemoMap$geo, Amat = DemoMap$Amat, 
+#'   fit1 <- smoothDirect(data = data, geo = DemoMap$geo, Amat = DemoMap$Amat, 
 #'     year_label = years.all, year_range = c(1985, 2019), 
 #'     rw = 2, is.yearly=FALSE, m = 5)
 #' random.time <- getDiag(fit1, field = "time", year_label = years.all, #' year_range = c(1985, 2019))

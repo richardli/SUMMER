@@ -33,13 +33,13 @@
 #' \item{CI}{input argument}
 #' \item{responseType}{input argument}
 #' \item{FUN}{input argument}
-#' @seealso \code{\link{getDirectList}}, \code{\link{fitINLA}}
+#' @seealso \code{\link{getDirectList}}, \code{\link{smoothDirect}}
 #' @importFrom stats median quantile sd var aggregate as.formula
 #' @examples
 #' \dontrun{
 #' data(DemoData2)
 #' data(DemoMap2)
-#' fit <- fitGeneric(data=DemoData2,  
+#' fit <- smoothSurvey(data=DemoData2,  
 #' Amat=DemoMap2$Amat, responseType="binary", 
 #' responseVar="tobacco.use", strataVar="strata", 
 #' weightVar="weights", regionVar="region", 
@@ -47,7 +47,7 @@
 #' 
 #' # Example with region-level covariates
 #'  Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
-#'  fit <- fitGeneric(data=DemoData2,  
+#'  fit <- smoothSurvey(data=DemoData2,  
 #'   Amat=DemoMap2$Amat, responseType="binary", 
 #'   X = Xmat,
 #'   responseVar="tobacco.use", strataVar="strata", 
@@ -57,7 +57,7 @@
 #' @export
 
 
-fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, ...){
+smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, ...){
 
     svy <- TRUE
 	if(!is.data.frame(data)){

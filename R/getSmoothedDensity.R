@@ -2,7 +2,7 @@
 #' 
 #' 
 #'
-#' @param inla_mod output from \code{\link{fitINLA}}
+#' @param inla_mod output from \code{\link{smoothDirect}}
 #' @param results output from \code{\link{getSmoothedDensity}}. This argument can be specified to avoid calculating densities again when only the visualization changes.
 #' @param year_range range corresponding to year label
 #' @param year_label vector of year string vector
@@ -39,7 +39,7 @@
 #' 
 #' #  national model
 #' years.all <- c(years, "15-19")
-#' fit1 <- fitINLA(data = data, geo = NULL, Amat = NULL, 
+#' fit1 <- smoothDirect(data = data, geo = NULL, Amat = NULL, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
 #'   rw = 2, is.yearly=FALSE, m = 5)
 #' ## Plot marginal posterior densities over time
@@ -48,7 +48,7 @@
 #' density$g
 #' 
 #' #  subnational model
-#' fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+#' fit2 <- smoothDirect(data = data, geo = geo, Amat = mat, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
 #'   rw = 2, is.yearly=TRUE, m = 5, type.st = 1)
 #' 

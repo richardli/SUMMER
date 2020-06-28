@@ -13,7 +13,7 @@ getSmoothed(inla_mod, year_range = c(1985, 2019),
   include_subnational = TRUE, ...)
 }
 \arguments{
-\item{inla_mod}{output from \code{\link{fitINLA}}}
+\item{inla_mod}{output from \code{\link{smoothDirect}}}
 
 \item{year_range}{range corresponding to year label}
 
@@ -70,14 +70,14 @@ data <- aggregateSurvey(data_multi)
 
 #  national model
 years.all <- c(years, "15-19")
-fit1 <- fitINLA(data = data, Amat = NULL, 
+fit1 <- smoothDirect(data = data, Amat = NULL, 
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=FALSE, m = 5)
 out1 <- getSmoothed(fit1)
 plot(out1, is.subnational=FALSE)
 
 #  subnational model
-fit2 <- fitINLA(data = data, Amat = mat, 
+fit2 <- smoothDirect(data = data, Amat = mat, 
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
 out2 <- getSmoothed(fit2, Amat = mat)
