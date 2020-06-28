@@ -105,7 +105,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
 
 
     # get around CRAN check of using un-exported INLA functions
-  rate0 <- shape0 <- my.cache <- inla.as.sparse <- type <- strata <- rescale_U <- sim_alpha <- NULL
+  rate0 <- shape0 <- my.cache <- inla.as.sparse <- type <- strata <- rescale_U <- sim_alpha <- pc.st.slope.prec.u <- NULL
 
   if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
     stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
@@ -677,8 +677,6 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
               pc.st.slope.prec.u <- rescale_U(pc.st.slope.u, pc.st.slope.alpha, t.range, tol = 1e-4)
               hyperpc.slope <-  list(prec = list(prior = "pc.prec", param = c(pc.st.slope.prec.u, pc.st.slope.alpha)))
               formula <- update(formula, ~. + f(st.slope.id, st.slope, model = "iid", hyper = hyperpc.slope))
-            }else{
-              pc.st.slope.prec.u <- NA
             }
           
         # END of subnational model specification
