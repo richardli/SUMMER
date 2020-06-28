@@ -183,13 +183,12 @@ fitINLA <- function(data, Amat, X = NULL, formula = NULL, time.model = c("rw1", 
 
     #################################################################### Re-calculate hyper-priors      
     priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, nperiod = length(year_label), only.iid = TRUE)
-    
-    if(is.null(a.iid)) a.iid <- priors$a.iid
-    if(is.null(b.iid)) b.iid <- priors$b.iid
-    if(is.null(a.rw)) a.rw <- priors$a.iid
-    if(is.null(b.rw)) b.rw <- priors$b.iid
-    if(is.null(a.icar)) a.icar <- priors$a.iid
-    if(is.null(b.icar)) b.icar <- priors$b.iid
+    a.iid <- priors$a.iid
+    b.iid <- priors$b.iid
+    a.rw <- priors$a.iid
+    b.rw <- priors$b.iid
+    a.icar <- priors$a.iid
+    b.icar <- priors$b.iid
     
     #################################################################### # remove NA rows? e.g. if no 10-14 available
       na.count <- apply(data, 1, function(x) {
