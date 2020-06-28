@@ -6,6 +6,7 @@ Version 1.0.0 (2020-07-01)
     + ``fitINLA`` is now ``smoothDirect``
     + ``fitINLA2`` is now ``smoothCluster``
     + Major changes to how temporal models are specified with `time.model` and `st.time.model`.
+    + More interpretable parameterization of slope and random slopes.
     + Major changes to remove unnecessary function arguments, e.g., ``geo`` in various functions
     + Previous function name and argument syntax remain to work as before, but may not receive high priority in maintenance in the future.  
 + More extensions in both smoothed direct and cluster level models.

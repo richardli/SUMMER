@@ -105,7 +105,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
 
 
     # get around CRAN check of using un-exported INLA functions
-  rate0 <- shape0 <- my.cache <- inla.as.sparse <- type <- strata <- NULL
+  rate0 <- shape0 <- my.cache <- inla.as.sparse <- type <- strata <- rescale_U <- sim_alpha <- NULL
 
   if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
     stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
@@ -621,7 +621,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
                   sim_alpha <- function(ustar, u0, alpha, t.range){
                         precVal = INLA::inla.pc.rprec(1e6, u = ustar, alpha = alpha)
                         stdDev = 1/sqrt(precVal)
-                        betaSim = rnorm(1e6, mean = 0, sd = stdDev)
+                        betaSim = stats::rnorm(1e6, mean = 0, sd = stdDev)
                         betaSim = abs(betaSim) * t.range 
                         alpha1 <- sum(betaSim > u0) / length(betaSim)
                         return(alpha1)
