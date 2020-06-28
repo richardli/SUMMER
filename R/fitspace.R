@@ -5,8 +5,8 @@
 #' Normal or binary variables are currently supported. For binary variables, the logit transformation is performed on the direct estimates of probabilities, and a Gaussian additive model is fitted on the logit scale using INLA.
 #' 
 #' @param data data frame with region and strata information.
-#' @param geo Geo file, optional.
-#' @param Amat Adjacency matrix for the regions
+#' @param geo Deprecated argument from early versions.
+#' @param Amat Adjacency matrix for the regions.
 #' @param X Covariate matrix with the first column being the region names. Currently only supporting static region-level covariates.
 #' @param responseType Type of the response variable, currently supports 'binary' (default with logit link function) or 'gaussian'. 
 #' @param responseVar the response variable
@@ -19,7 +19,6 @@
 #' @param pc.u.phi hyperparameter U for the PC prior on the mixture probability phi in BYM2 model.
 #' @param pc.alpha.phi hyperparameter alpha for the PC prior on the mixture probability phi in BYM2 model.
 #' @param CI the desired posterior credible interval to calculate
-#' @param FUN the function to transform the posterior draws. Default to be identify function for normal variable and inverse logit transformation for binomial variables
 #' @param formula a string of user-specified random effects model to be used in the INLA call
 #' @param  timeVar The variable indicating time period. If set to NULL then the temporal model and space-time interaction model are ignored.
 #' @param time.model the model for temporal trends and interactions. It can be either "rw1" or "rw2".
@@ -30,7 +29,6 @@
 #' @return \item{HT}{Direct estimates}
 #' \item{smooth}{Spatially smoothed estimates}
 #' \item{fit}{a fitted INLA object}
-#' \item{geo}{input argument}
 #' \item{Amat}{input argument}
 #' \item{CI}{input argument}
 #' \item{responseType}{input argument}
@@ -41,7 +39,7 @@
 #' \dontrun{
 #' data(DemoData2)
 #' data(DemoMap2)
-#' fit <- fitGeneric(data=DemoData2, geo=DemoMap2$geo, 
+#' fit <- fitGeneric(data=DemoData2,  
 #' Amat=DemoMap2$Amat, responseType="binary", 
 #' responseVar="tobacco.use", strataVar="strata", 
 #' weightVar="weights", regionVar="region", 
@@ -49,7 +47,7 @@
 #' 
 #' # Example with region-level covariates
 #'  Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
-#'  fit <- fitGeneric(data=DemoData2, geo=DemoMap2$geo, 
+#'  fit <- fitGeneric(data=DemoData2,  
 #'   Amat=DemoMap2$Amat, responseType="binary", 
 #'   X = Xmat,
 #'   responseVar="tobacco.use", strataVar="strata", 
@@ -59,7 +57,7 @@
 #' @export
 
 
-fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, FUN=NULL, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, ...){
+fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, ...){
 
     svy <- TRUE
 	if(!is.data.frame(data)){
@@ -93,15 +91,15 @@ fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binar
         message("cluster not specified. Ignoring sample design")
         svy <- FALSE
     }
-    if(is.null(FUN)){
-        if(responseType == "binary"){
-            message("FUN is not specified, default to be expit()")
-            FUN <- expit
-        }else if(responseType == "gaussian"){
-            message("FUN is not specified, default to be no transformation")
-            FUN <- function(x){x}
-        }
+    # if(is.null(FUN)){
+    if(responseType == "binary"){
+        # message("FUN is not specified, default to be expit()")
+        FUN <- expit
+    }else if(responseType == "gaussian"){
+        # message("FUN is not specified, default to be no transformation")
+        FUN <- function(x){x}
     }
+    # }
     if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
     stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
   }
@@ -193,12 +191,12 @@ fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binar
         y <- mean$y
     }
 
-    dat <- data.frame(HT.est = ht, 
-                      HT.sd = ht.v ^ 0.5,
-                      HT.variance = ht.v,
-                      HT.prec = ht.prec,
-                      HT.est.original = p.i,
-                      HT.variance.original = var.i, 
+    dat <- data.frame(
+                      HT.est = p.i,
+                      HT.var = var.i, 
+                      HT.logit.est = ht,
+                      HT.logit.var = ht.v, 
+                      HT.logit.prec = ht.prec,  
                       n = n, 
                       y = y)
     if(!is.null(timeVar)){
@@ -210,7 +208,7 @@ fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binar
     # dat <- dat[match(rownames(Amat), regnames), ]
     dat$region <- as.character(name.i)
     dat$region.unstruct <- dat$region.struct <- dat$region.int <-  match(dat$region, rownames(Amat))
-    dat$HT.est[is.infinite(abs(dat$HT.est))] <- NA
+    dat$HT.logit.est[is.infinite(abs(dat$HT.logit.est))] <- NA
     if(!is.null(timeVar)){
         dat <- dat[order(dat[, "time.struct"], dat[, "region.struct"]), ]
     }else{
@@ -221,7 +219,7 @@ fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binar
     if(!svy && responseType == "binary"){
         formulatext <- "y ~ 1"
     }else{
-        formulatext <- "HT.est ~ 1"
+        formulatext <- "HT.logit.est ~ 1"
     }
     if(!is.null(X)){
         X <- data.frame(X)        
@@ -257,7 +255,7 @@ fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binar
     }else if(!svy && responseType == "gaussian"){
         fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     }else{
-         fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+         fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.logit.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     }
     
 
@@ -268,35 +266,37 @@ fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binar
         n <- n * max(dat$time.struct)
         temp <- dat$time[1:n]
     }
-    proj <- data.frame(region=dat$region[1:n], time = temp, mean=NA, variance=NA, median=NA, lower=NA, upper=NA, mean.original=NA, variance.original=NA, median.original=NA, lower.original=NA, upper.original=NA)
+    proj <- data.frame(region=dat$region[1:n], time = temp, mean=NA, var=NA, median=NA, lower=NA, upper=NA, logit.mean=NA, logit.var=NA, logit.median=NA, logit.lower=NA, logit.upper=NA)
     for(i in 1:n){
         tmp <- matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[i]]))
         if(!svy && responseType == "binary"){
            tmp2 <- tmp
+            proj[i, "logit.mean"] <- mean(tmp2)
+            proj[i, "logit.var"] <- var(tmp2)
+            proj[i, "logit.lower"] <- quantile(tmp2, (1-CI)/2)
+            proj[i, "logit.upper"] <- quantile(tmp2, 1-(1-CI)/2)
+            proj[i, "logit.median"] <- median(tmp2)
+
+            proj[i, "mean"] <- fit$summary.fitted.values[i, "mean"]
+            proj[i, "var"] <- fit$summary.fitted.values[i, "sd"]^2
+            proj[i, "lower"] <- fit$summary.fitted.values[i, 3]
+            proj[i, "upper"] <- fit$summary.fitted.values[i, 5]
+            proj[i, "median"] <- fit$summary.fitted.values[i, "0.5quant"]  
+        }else{
+            tmp2 <- apply(tmp, 2, FUN)
             proj[i, "mean"] <- mean(tmp2)
-            proj[i, "variance"] <- var(tmp2)
+            proj[i, "var"] <- var(tmp2)
             proj[i, "lower"] <- quantile(tmp2, (1-CI)/2)
             proj[i, "upper"] <- quantile(tmp2, 1-(1-CI)/2)
             proj[i, "median"] <- median(tmp2)
 
-            proj[i, "mean.original"] <- fit$summary.fitted.values[i, "mean"]
-            proj[i, "variance.original"] <- fit$summary.fitted.values[i, "sd"]^2
-            proj[i, "lower.original"] <- fit$summary.fitted.values[i, 3]
-            proj[i, "upper.original"] <- fit$summary.fitted.values[i, 5]
-            proj[i, "median.original"] <- fit$summary.fitted.values[i, "0.5quant"]  
-        }else{
-           tmp2 <- apply(tmp, 2, FUN)
-            proj[i, "mean.original"] <- mean(tmp2)
-            proj[i, "variance.original"] <- var(tmp2)
-            proj[i, "lower.original"] <- quantile(tmp2, (1-CI)/2)
-            proj[i, "upper.original"] <- quantile(tmp2, 1-(1-CI)/2)
-            proj[i, "median.original"] <- median(tmp2)
-
-            proj[i, "mean"] <- fit$summary.fitted.values[i, "mean"]
-            proj[i, "variance"] <- fit$summary.fitted.values[i, "sd"]^2
-            proj[i, "lower"] <- fit$summary.fitted.values[i, 3]
-            proj[i, "upper"] <- fit$summary.fitted.values[i, 5]
-            proj[i, "median"] <- fit$summary.fitted.values[i, "0.5quant"]  
+            if(responseType == "binary"){
+                proj[i, "logit.mean"] <- fit$summary.fitted.values[i, "mean"]
+                proj[i, "logit.var"] <- fit$summary.fitted.values[i, "sd"]^2
+                proj[i, "logit.lower"] <- fit$summary.fitted.values[i, 3]
+                proj[i, "logit.upper"] <- fit$summary.fitted.values[i, 5]
+                proj[i, "logit.median"] <- fit$summary.fitted.values[i, "0.5quant"]  
+            }
         }
       
     }
@@ -313,14 +313,16 @@ fitGeneric <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binar
    if(sum(!is.na(HT$n)) == 0) HT <- HT[, colnames(HT) != "n"]
    if(sum(!is.na(HT$y)) == 0) HT <- HT[, colnames(HT) != "y"]
    if(sum(!is.na(proj$time)) == 0) proj <- proj[, colnames(proj) != "time"]
+   if(responseType == "gaussian"){
+        HT <- HT[, !colnames(HT) %in% c("HT.logit.est", "HT.logit.var", "HT.logit.prec")]
+        proj <- proj[, !colnames(HT) %in% c("logit.mean", "logit.var", "logit.median", "logit.lower", "logit.upper")]
+   }
 
    return(list(HT = HT,
                smooth = proj, 
                fit = fit, 
                CI = CI,
                Amat = Amat,
-               geo = geo,
                responseType = responseType,
-               FUN = FUN, 
                formula = formula))
 }
