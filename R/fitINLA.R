@@ -72,7 +72,8 @@ smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("r
   if(!is.null(rw) || !is.null(ar)){
     message("Argument rw and ar have been deprecated in version 1.0.0. They still work as intended for now. In the future, use time.model and st.time.model to specify temporal components\n e.g., time.model = 'rw2', st.time.model = 'rw2'")
     if(is.null(ar)) ar <- 0
-    if(is.null(st.rw)) st.rw <- rw
+    if(is.null(rw)) rw <- 2
+    st.rw <- rw
     st.ar <- ar    
     is.ar <- ar > 0 
     is.main.ar <- rw == 0

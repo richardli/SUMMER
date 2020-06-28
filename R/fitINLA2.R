@@ -127,6 +127,8 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     st.ar <- ar
     is.ar <- ar > 0 
     is.main.ar <- rw == 0
+    message("--------------------------------", appendLF=FALSE)
+
     if(is.ar) message("ar > 0: using the AR(p) process for the space-time interaction component.")
     if(rw %in% c(0, 1, 2) == FALSE) stop("Random walk only support rw = 1 or 2.")
     if(rw == 0) message("rw = 0: using the AR(p) process for the main temporal trend component.")
