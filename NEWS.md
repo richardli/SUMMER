@@ -8,7 +8,9 @@ Version 1.0.0 (2020-07-01)
     + Major changes to how temporal models are specified with `time.model` and `st.time.model`.
     + Major changes to remove unnecessary function arguments, e.g., ``geo`` in various functions
     + Previous function name and argument syntax remain to work as before, but may not receive high priority in maintenance in the future.  
-+ Major update to output data columns.
++ More extensions in both smoothed direct and cluster level models.
++ Extensive minor improvements in functions.
++ New vignettes!
 
 Version 0.3.1 (2019-10-23) 
 ==========================
