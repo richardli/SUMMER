@@ -1,6 +1,14 @@
 # SUMMER - changes
-Version 1.0.0 (2020-06-01) 
+Version 1.0.0 (2020-07-01) 
 ==========================
++ Major updates to functions.
+    + ``fitGeneric`` is now ``smoothSurvey``
+    + ``fitINLA`` is now ``smoothDirect``
+    + ``fitINLA2`` is now ``smoothCluster``
+    + Major changes to how temporal models are specified with `time.model` and `st.time.model`.
+    + Major changes to remove unnecessary function arguments, e.g., ``geo`` in various functions
+    + Previous function name and argument syntax remain to work as before, but may not receive high priority in maintenance in the future.  
++ Major update to output data columns.
 
 Version 0.3.1 (2019-10-23) 
 ==========================
