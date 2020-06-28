@@ -16,8 +16,8 @@
 #' @param age.n number of months in each age groups in the same order.
 #' @param age.rw.group vector indicating grouping of the ages groups. For example, if each age group is assigned a different random walk component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate random walk to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.
 #' @param family family of the model. This can be either binomial (with logistic normal prior), betabiniomial.
-#' @param time.model Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2.
-#' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. 
+#' @param time.model Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale. 
+#' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. For ar1 interaction model, region-specific random slopes can be added by specifying \code{pc.st.slope.u} and \code{pc.st.slope.alpha}.
 #' @param Amat Adjacency matrix for the regions
 #' @param bias.adj the ratio of unadjusted mortality rates or age-group-specific hazards to the true rates or hazards. It needs to be a data frame that can be merged to thee outcome, i.e., with the same column names for time periods (for national adjustment), or time periods and region (for subnational adjustment). The column specifying the adjustment ratio should be named "ratio".
 #' @param bias.adj.by vector of the column names specifying how to merge the bias adjustment to the count data. For example, if bias adjustment factor is provided in bias.adj for each region and time, then bias.adj.by should be `c("region", "time")`.
@@ -35,8 +35,8 @@
 #' @param pc.alpha.cor hyperparameter alpha for the PC prior on the autocorrelation parameter in the AR prior.
 #' @param pc.st.u hyperparameter U for the PC prior on precisions for the interaction term.
 #' @param pc.st.alpha hyperparameter alpha for the PC prior on precisions for the interaction term.
-#' @param pc.st.slope.u hyperparameter U for the PC prior on precisions for the area-level random slope. If both pc.st.slope.u and pc.st.slope.alpha are not NA, an area-level random slope with iid prior will be added to the moddel.
-#' @param pc.st.slope.alpha hyperparameter alpha for the PC prior on precisions for the area-level random slope. If both pc.st.slope.u and pc.st.slope.alpha are not NA, an area-level random slope with iid prior will be added to the moddel.
+#' @param pc.st.slope.u hyperparameter U for the PC prior on precisions for the area-level random slope. If both pc.st.slope.u and pc.st.slope.alpha are not NA, an area-level random slope with iid prior will be added to the model. The parameterization of the random slope is so that Prob(|beta| > pc.st.slope.u) = pc.st.slope.alpha, where time covariate is rescaled to be -0.5 to 0.5, so that the random slope can be interpreted as the total deviation from the main trend from the first year to the last year to be projected, on the logit scale. 
+#' @param pc.st.slope.alpha hyperparameter alpha for the PC prior on precisions for the area-level random slope. See above for the parameterization.
 #' @param overdisp.mean hyperparameter for the betabinomial likelihood. Mean of the over-dispersion parameter on the logit scale. 
 #' @param overdisp.prec hyperparameter for the betabinomial likelihood. Precision of the over-dispersion parameter on the logit scale. 
 #' @param options list of options to be passed to control.compute() in the inla() function.
@@ -121,19 +121,23 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
 
   # Backward compatibility
   if(!is.null(rw) || !is.null(ar) || !is.null(st.rw)){
-    message("Argument rw and ar have been deprecated in version 1.0.0. They still work as intended for now. In the future, use time.model and st.time.model to specify temporal components\n e.g., time.model = 'rw2', st.time.model = 'rw2'")
+
     if(is.null(ar)) ar <- 0
     if(is.null(st.rw)) st.rw <- rw
     st.ar <- ar
     is.ar <- ar > 0 
     is.main.ar <- rw == 0
-    message("--------------------------------", appendLF=FALSE)
 
-    if(is.ar) message("ar > 0: using the AR(p) process for the space-time interaction component.")
+    # if(is.ar) message("ar > 0: using the AR(p) process for the space-time interaction component.")
     if(rw %in% c(0, 1, 2) == FALSE) stop("Random walk only support rw = 1 or 2.")
-    if(rw == 0) message("rw = 0: using the AR(p) process for the main temporal trend component.")
-    if(!is.ar  && st.rw != rw) message("The main effect is random walk of order ", rw, ", and the interaction effects are random walks of order ", st.rw)
+    # if(rw == 0) message("rw = 0: using the AR(p) process for the main temporal trend component.")
+    # if(!is.ar  && st.rw != rw) message("The main effect is random walk of order ", rw, ", and the interaction effects are random walks of order ", st.rw)
 
+    time.model <- paste0("rw", rw)
+    if(is.main.ar) time.model <- paste0("ar", ar)
+    st.time.model <- paste0("rw", st.rw)
+    if(is.ar) st.time.model <- paste0("ar", ar)  
+    message(paste0("Argument 'rw' and 'ar' have been deprecated in version 1.0.0. They still work as intended for now. In the future, use time.model and st.time.model to specify temporal components\n e.g., time.model = '", time.model, "', st.time.model = '", st.time.model, "'"))
 
   # New time mode definition...    
   }else{
@@ -171,13 +175,12 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     }else{
       stop("Temporal interaction effect only support rw1, rw2, and ar1.")
     }
-    message("--------------------------------",
-            "\nMain temporal model:        ", time.model, 
-            "\nInteraction temporal model: ", st.time.model, 
-            "\nInteraction type:           ", type.st, appendLF=FALSE)
   }
-     
+  message("----------------------------------",
+          "\nCluster-level model",
+          "\n  Main temporal model:        ", time.model, appendLF = FALSE)
 
+  
   if(!is.null(Amat)){
     if(is.null(rownames(Amat))){
         stop("Row names of Amat needs to be specified to region names.")
@@ -196,16 +199,25 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     is.spatial <- FALSE
   }
 
-  if(is.spatial) message("\nSpatial effect:             bym2")
+  if(is.spatial){
 
+  } 
+  message("\n  Spatial effect:             bym2", 
+          "\n  Interaction temporal model: ", st.time.model, 
+          "\n  Interaction type:           ", type.st, appendLF=FALSE)
+  if(!is.na(pc.st.slope.u) && !is.na(pc.st.slope.alpha)){
+    message("\n  Interaction random slopes:  yes", appendLF=FALSE)
+  }else{
+    message("\n", appendLF=FALSE)
+  }   
 
 
   if(is.null(age.groups)){
     age.n <- 1
     age.rw.group <- 1
   }
-  message("\nNumber of age groups: ", length(age.n), appendLF=FALSE)
-  message("\nNumber of age-specific trends per stratum: ", length(unique(age.rw.group)), appendLF=FALSE)
+  message("\n  Number of age groups: ", length(age.n), appendLF=FALSE)
+  message("\n  Number of age-specific trends per stratum: ", length(unique(age.rw.group)), appendLF=FALSE)
 
   if(is.ar && hyper=="gamma"){
     stop("AR1 model only implemented with PC priors for now.")
@@ -215,20 +227,20 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
 
   multi.frame <- FALSE
   if("frame" %in% colnames(data)){
-    message("\nColumn specifying sampling frame(s): yes", appendLF=FALSE)
+    message("\n  Column specifying sampling frame(s): yes", appendLF=FALSE)
 
     if(length(unique(data$frame)) > 1){
       multi.frame <- TRUE
       if("strata" %in% colnames(data) == FALSE || sum(!is.na(data$strata)) == 0){
         data$strata <- data$frame 
-        message("\nStrata renaming: yes, renamed to the same as frame", appendLF=FALSE)
+        message("\n  Strata renaming: yes, renamed to the same as frame", appendLF=FALSE)
       }else{
         data$strata <- paste(data$frame, data$strata, sep = "-") 
-        message("\nStrata renaming: yes, renamed frame-strata", appendLF=FALSE)
+        message("\n  Strata renaming: yes, renamed frame-strata", appendLF=FALSE)
      }
       
     }else{
-      message("\nStrata renaming: no, only one frame", appendLF=FALSE)
+      message("\n  Strata renaming: no, only one frame", appendLF=FALSE)
     }
   }
 
@@ -237,18 +249,18 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     has.strata <- FALSE
     data$strata <- ""
     strata.time.effect <- FALSE
-    message("\nStratification: no, strata variable not in the input", appendLF=FALSE)
+    message("\n  Stratification: no, strata variable not in the input", appendLF=FALSE)
 
   }else if(length(unique(data$strata[data$total > 0])) == 1){
     # if only one strata has observations
     has.strata <- FALSE
-    message("\nStratification: no, all data in the same stratum", appendLF=FALSE)
+    message("\n  Stratification: no, all data in the same stratum", appendLF=FALSE)
   }else if(length(unique(data$strata[data$total > 0])) < length(unique(data$strata))){
     # If there are more than 2 strata and we need to drop levels
     data <- subset(data, strata %in% unique(data$strata[data$total > 0])) 
-    message("\nStratification: yes, but some frame-strata combination does not exist", appendLF=FALSE)
+    message("\n  Stratification: yes, but some frame-strata combination does not exist", appendLF=FALSE)
   }else{
-    message("\nStratification: yes", appendLF=FALSE)
+    message("\n  Stratification: yes", appendLF=FALSE)
   }
 
 
@@ -257,7 +269,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
   survey.message <- NULL
   if(survey.effect){
       if("survey" %in% colnames(data) == FALSE){
-          survey.message <- "\nSurvey effect: no, survey column does not exist"
+          survey.message <- "\n  Survey effect: no, survey column does not exist"
           survey.effect <- FALSE
           survey.table <- NULL
       }else if(!multi.frame){
@@ -270,7 +282,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
           survey.A <- matrix(1, 1, survey_count)
           survey.e <- 0
           if(survey_count == 1){
-            survey.message <- "\nSurvey effect: no, only one survey"
+            survey.message <- "\n  Survey effect: no, only one survey"
             survey.effect <- FALSE
           }
 
@@ -284,7 +296,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
           # for each frame, check if multiple survey exist
           nested <- apply(tab, 2, function(x){sum(x!=0) > 1})
           if(sum(nested) == 0){
-            survey.message <- "\nSurvey effect: no, no multiple surveys nested within frames"
+            survey.message <- "\n  Survey effect: no, no multiple surveys nested within frames"
             survey.effect <- FALSE
             survey.table <- NULL
           }else{
@@ -313,7 +325,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
   }else{
     survey.table <- NULL
   }
-  if(survey.effect) survey.message <- "\nSurvey effect: yes"
+  if(survey.effect) survey.message <- "\n  Survey effect: yes"
   stratalevels <- unique(data$strata)
 
 
@@ -343,10 +355,10 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     }
 
   }
-  if(strata.time.effect) message("\nStrata-specific temporal trends: yes", appendLF=FALSE)
+  if(strata.time.effect) message("\n  Strata-specific temporal trends: yes", appendLF=FALSE)
   if(!is.null(survey.message)) message(survey.message, appendLF=FALSE)
 
-  message("\n--------------------------------")
+  message("\n----------------------------------")
    
     
     ## ---------------------------------------------------------
@@ -435,7 +447,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     if(is.ar || is.main.ar){
       exdat$time.slope <- exdat$time.struct 
       center <- N/2 + 1e-5 # avoid exact zero in the lincomb creation
-      exdat$time.slope <- (exdat$time.slope  - center) / (sd(1:N))
+      exdat$time.slope <- (exdat$time.slope  - center) / ((N - 1))
       slope.fixed.names <- NULL
 
       for(aa in unique(age.rw.group)){
@@ -600,13 +612,73 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
             }
           
             if(!is.na(pc.st.slope.u) && !is.na(pc.st.slope.alpha)){
-              message("Region-level random slopes are added to the interaction model")
-              hyperpc.slope <-  list(prec = list(prior = "pc.prec", param = c(pc.st.slope.u, pc.st.slope.alpha)))
+          
+              # Find u* so that P(|beta| * t.range > u0) = alpha
+              #                 where beta ~ Normal(0, tau)
+              #                        tau ~ PC(u*, alpha)
+              rescale_U <- function(u0, alpha, t.range, tol = 1e-4){
+
+                  sim_alpha <- function(ustar, u0, alpha, t.range){
+                        precVal = INLA::inla.pc.rprec(1e6, u = ustar, alpha = alpha)
+                        stdDev = 1/sqrt(precVal)
+                        betaSim = rnorm(1e6, mean = 0, sd = stdDev)
+                        betaSim = abs(betaSim) * t.range 
+                        alpha1 <- sum(betaSim > u0) / length(betaSim)
+                        return(alpha1)
+                  }
+
+                  ustar <- u0 / t.range 
+                  ustar.min <- 0
+                  ustar.max <- u0 * 2
+                  itr = 1
+                  while(itr < 10){
+                    alpha.max <-  sim_alpha(ustar.max, u0, alpha, t.range)
+                    if(alpha.max > alpha){
+                      break
+                    }else{
+                      ustar.max <- ustar.max * 2
+                      itr <- itr + 1
+                    }
+                  }
+
+                  # ss <- al <- seq(ustar.min, ustar.max, length = 100)
+                  # for(i in 1:length(ss)) al[i] = sim_alpha(ss[i], u0, alpha, t.range)
+                  # plot(ss, al, type = 'l')
+                  # abline(v=ustar)
+
+                  # A stupid search...
+                  alpha1 = NA
+                  while(abs(alpha - alpha1) > tol || is.na(alpha1)){
+                        
+                        alpha1 <- sim_alpha(ustar, u0, alpha, t.range)
+
+                        if(is.na(alpha1)) stop("Cannot identify the PC prior for the random slope.")
+
+                        if(alpha1 < alpha && abs(alpha - alpha1) > tol){
+                           ustar.min <- ustar
+                           ustar <- (ustar + ustar.max) / 2
+                        }else if(alpha1 > alpha && abs(alpha - alpha1) > tol){
+                           ustar.max <- ustar
+                           ustar <- (ustar + ustar.min) / 2
+                        }
+                        itr <- itr + 1
+                        if(itr > 1000) stop("Failed to find the PC prior for the random slope.")
+                  }
+
+                  return(ustar)
+              }
+
+              center <- (N+1)/2 + 1e-5 
               exdat$st.slope <- exdat$time.struct 
-              center <- N/2 + 1e-5 
-              exdat$st.slope <- (exdat$st.slope  - center) / (sd(1:N))
+              exdat$st.slope <- (exdat$st.slope  - center) / ((N - 1))
               exdat$st.slope.id <- exdat$region.struct
+
+              t.range <- 1
+              pc.st.slope.prec.u <- rescale_U(pc.st.slope.u, pc.st.slope.alpha, t.range, tol = 1e-4)
+              hyperpc.slope <-  list(prec = list(prior = "pc.prec", param = c(pc.st.slope.prec.u, pc.st.slope.alpha)))
               formula <- update(formula, ~. + f(st.slope.id, st.slope, model = "iid", hyper = hyperpc.slope))
+            }else{
+              pc.st.slope.prec.u <- NA
             }
           
         # END of subnational model specification
@@ -770,11 +842,11 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
   tmp$time.unstruct <- tmp$time.int <- tmp$time.struct
   created <- NULL
   if("time.slope" %in% colnames(exdat)){
-    tmp$time.slope <- (tmp$time.unstruct  - center) / (sd(1:N))
+    tmp$time.slope <- (tmp$time.unstruct  - center) / ((N - 1))
     created <- c(created, "time.slope")
   }
   if("st.slope" %in% colnames(exdat)){
-    tmp$st.slope <- (tmp$time.unstruct  - center) / (sd(1:N))   
+    tmp$st.slope <- (tmp$time.unstruct  - center) / ((N - 1))   
     tmp$st.slope.id <- tmp$region.struct
     created <- c(created, "st.slope", "st.slope.id") 
   } 
@@ -863,7 +935,9 @@ if(family == "betabinomialna"){
  if(has.strata) strata.all <- as.character(unique(exdat$strata))
  strata.base <- strata.all[strata.all%in%levels == FALSE]
 
-  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base, rw = rw, ar = ar, strata.time.effect = strata.time.effect))
+ priors <- list(pc.u = pc.u, pc.alpha = pc.alpha, pc.u.phi = pc.u.phi, pc.alpha.phi = pc.alpha.phi, pc.u.cor = pc.u.cor, pc.alpha.cor = pc.alpha.cor,  pc.st.u = pc.st.u, pc.st.alpha = pc.st.alpha, pc.st.slope.u = pc.st.slope.u, pc.st.slope.prec.u = pc.st.slope.prec.u, pc.st.slope.alpha = pc.st.slope.alpha, overdisp.mean = overdisp.mean, overdisp.prec = overdisp.prec)
+
+  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base, rw = rw, ar = ar, strata.time.effect = strata.time.effect,  priors = priors))
     
   }
 }

@@ -6,8 +6,8 @@
 #' @param Amat Adjacency matrix for the regions
 #' @param X Covariate matrix. It must contain either a column with name "region", or a column with name "years", or both. The covariates must not have missing values for all regions (if varying in space) and all time periods (if varying in time). The rest of the columns are treated as covariates in the mean model.
 #' @param formula INLA formula. See vignette for example of using customized formula.
-#' @param time.model Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2.
-#' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. 
+#' @param time.model Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale. 
+#' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. For ar1 interaction model, region-specific random slopes can be added by specifying \code{pc.st.slope.u} and \code{pc.st.slope.alpha}.
 #' @param year_label string vector of year names
 #' @param year_range Entire range of the years (inclusive) defined in year_label.
 #' @param is.yearly Logical indicator for fitting yearly or period model.
@@ -70,16 +70,20 @@ smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("r
 
   # Backward compatibility
   if(!is.null(rw) || !is.null(ar)){
-    message("Argument rw and ar have been deprecated in version 1.0.0. They still work as intended for now. In the future, use time.model and st.time.model to specify temporal components\n e.g., time.model = 'rw2', st.time.model = 'rw2'")
     if(is.null(ar)) ar <- 0
     if(is.null(rw)) rw <- 2
     st.rw <- rw
     st.ar <- ar    
     is.ar <- ar > 0 
     is.main.ar <- rw == 0
-    if(is.ar) message("ar > 0: using the AR(p) process for the space-time interaction component.")
+    # if(is.ar) message("ar > 0: using the AR(p) process for the space-time interaction component.")
     if(rw %in% c(0, 1, 2) == FALSE) stop("Random walk only support rw = 1 or 2.")
-    if(rw == 0) message("rw = 0: using the AR(p) process for the main temporal trend component.")
+    # if(rw == 0) message("rw = 0: using the AR(p) process for the main temporal trend component.")
+    time.model <- paste0("rw", rw)
+    if(is.main.ar) time.model <- paste0("ar", ar)
+    st.time.model <- paste0("rw", st.rw)
+    if(is.ar) st.time.model <- paste0("ar", ar)  
+    message(paste0("Argument 'rw' and 'ar' have been deprecated in version 1.0.0. They still work as intended for now. In the future, use time.model and st.time.model to specify temporal components\n e.g., time.model = '", time.model, "', st.time.model = '", st.time.model, "'"))
 
   # New time mode definition...    
   }else{
@@ -119,7 +123,9 @@ smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("r
     }
   }
 
-
+  message("----------------------------------",
+          "\nSmoothed Direct Model",
+          "\n  Main temporal model:        ", time.model, appendLF=FALSE)      
 
   if(m == 1){
     if(is.yearly) message("Switched to period model because m = 1.")
@@ -150,6 +156,11 @@ smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("r
     is.spatial <- FALSE
     is.ar <- FALSE
   }
+  if(is.spatial) message("\n  Spatial effect:             bym2",  
+                         "\n  Interaction temporal model: ", st.time.model, 
+                         "\n  Interaction type:           ", type.st, appendLF=FALSE)
+  message("\n----------------------------------")
+
 
   # get around CRAN check of using un-exported INLA functions
   rate0 <- shape0 <- my.cache <- inla.as.sparse <- type <- NULL
@@ -445,8 +456,8 @@ smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("r
   
   if(is.main.ar){
     exdat$time.slope <- exdat$time.struct 
-    center <- N/2 + 1e-5 # avoid exact zero in the lincomb creation
-    exdat$time.slope <- (exdat$time.slope  - center) / (sd(1:N))
+    center <- (N+1)/2 + 1e-5 # avoid exact zero in the lincomb creation
+    exdat$time.slope <- (exdat$time.slope  - center) / (N-1)
     exdat$region.slope <- exdat$region.struct
   }
 
@@ -760,18 +771,18 @@ if(is.main.ar){
           #                       time.area = spacetime,
           #                       time.struct= time ,
           #                       time.unstruct= time,
-          #                       # time.slope = (i - center)/sd(1:N),      
+          #                       # time.slope = (i - center)/(N - 1),      
           #                       region.struct = area)
-          #       if(is.main.ar) tmplin <- c(tmplin, time.slope = (i - center)/sd(1:N))
+          #       if(is.main.ar) tmplin <- c(tmplin, time.slope = (i - center)/(N - 1))
           #        assign(object.name, INLA::inla.make.lincomb(c(tmplin, XX)))
           #   }else if(is.ar && (!is.main.ar)){
           #       tmplin <- list("(Intercept)" = 1,
           #                       region.int = area,
           #                       time.struct= time ,
           #                       time.unstruct= time,
-          #                       # time.slope = (i - center)/sd(1:N),
+          #                       # time.slope = (i - center)/(N - 1),
           #                       region.struct = area)
-          #       if(is.main.ar) tmplin <- c(tmplin, time.slope = (i - center)/sd(1:N))
+          #       if(is.main.ar) tmplin <- c(tmplin, time.slope = (i - center)/(N - 1))
           #        assign(object.name, INLA::inla.make.lincomb(c(tmplin, XX)))
           #   }else  if(is.yearly || type.st%in% c(1, 4)){
           #        assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
@@ -799,18 +810,18 @@ if(is.main.ar){
                                 time.area = spacetime,
                                 time.struct= time ,
                                 time.unstruct= time, 
-                                # time.slope = (i - center)/sd(1:N),
+                                # time.slope = (i - center)/(N - 1),
                                 region.struct = area)
-                 if(is.main.ar) tmplin <- c(tmplin, time.slope = (i - center)/sd(1:N))
+                 if(is.main.ar) tmplin <- c(tmplin, time.slope = (i - center)/(N - 1))
                  assign(object.name, INLA::inla.make.lincomb(c(tmplin, XX)))
             }else if(is.ar){
                 tmplin <- list("(Intercept)" = 1,
                                 region.int = area,
                                 time.struct= time ,
                                 time.unstruct= time,
-                                # time.slope = (i - center)/sd(1:N),
+                                # time.slope = (i - center)/(N - 1),
                                 region.struct = area)
-                 if(is.main.ar) tmplin <- c(tmplin, time.slope = (i - center)/sd(1:N))
+                 if(is.main.ar) tmplin <- c(tmplin, time.slope = (i - center)/(N - 1))
                 assign(object.name, INLA::inla.make.lincomb(c(tmplin, XX)))
             }else if(is.yearly || type.st %in% c(1, 4)){
                  assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,

@@ -183,7 +183,7 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
        if(is.null(draws)){
           message("Starting posterior sampling...")
             sampAll <- INLA::inla.posterior.sample(n = nsim, result = inla_mod$fit, intern = TRUE, selection = select, verbose = verbose, ...)
-           message("Finished posterior sampling, cleaning up results now...")
+           message("Cleaning up results...")
      
        }else{
           message("Use posterior draws from input.")
