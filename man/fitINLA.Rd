@@ -2,18 +2,18 @@
 % Please edit documentation in R/fitINLA.R
 \name{fitINLA}
 \alias{fitINLA}
-\title{Fit space-time smoothed direct models to mortality rates}
+\title{Smoothed direct estimates for mortality rates}
 \usage{
-fitINLA(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0,
-  is.yearly = TRUE, year_label, year_range = c(1980, 2014), m = 5,
-  na.rm = TRUE, priors = NULL, type.st = 1, survey.effect = FALSE,
-  hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01,
-  pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7,
-  pc.alpha.cor = 0.9, a.iid = NULL, b.iid = NULL, a.rw = NULL,
-  b.rw = NULL, a.icar = NULL, b.icar = NULL, options = list(dic =
-  T, mlik = T, cpo = T, openmp.strategy = "default"),
-  control.inla = list(strategy = "adaptive", int.strategy = "auto"),
-  verbose = FALSE, pc.st.u = NA, pc.st.alpha = NA, geo = NULL)
+fitINLA(data, Amat, X = NULL, formula = NULL, time.model = c("rw1",
+  "rw2", "ar1")[2], st.time.model = NULL, year_label,
+  year_range = c(1980, 2014), is.yearly = TRUE, m = 5, type.st = 1,
+  survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1,
+  pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3,
+  pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA,
+  pc.st.alpha = NA, options = list(dic = TRUE, mlik = TRUE, cpo = TRUE,
+  openmp.strategy = "default"), control.inla = list(strategy =
+  "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL,
+  rw = NULL, ar = NULL)
 }
 \arguments{
 \item{data}{Combined dataset}
@@ -24,21 +24,17 @@ fitINLA(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0,
 
 \item{formula}{INLA formula. See vignette for example of using customized formula.}
 
-\item{rw}{Take values 0, 1 or 2, indicating the order of random walk. If rw = 0, the autoregressive process is used instead of the random walk in the main trend. See the description of the argument ar for details.}
+\item{time.model}{Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2.}
 
-\item{ar}{Order of the autoregressive component. If ar is specified to be positive integer, the random walk components will be replaced by AR(p) terms in the interaction part. The main temporal trend remains to be random walk of order rw unless rw = 0.}
-
-\item{is.yearly}{Logical indicator for fitting yearly or period model.}
+\item{st.time.model}{Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise.}
 
 \item{year_label}{string vector of year names}
 
 \item{year_range}{Entire range of the years (inclusive) defined in year_label.}
 
+\item{is.yearly}{Logical indicator for fitting yearly or period model.}
+
 \item{m}{Number of years in each period.}
-
-\item{na.rm}{Logical indicator of whether to remove rows with NA values in the data. Default set to TRUE.}
-
-\item{priors}{priors from \code{\link{simhyper}}}
 
 \item{type.st}{type for space-time interaction}
 
@@ -58,17 +54,9 @@ fitINLA(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0,
 
 \item{pc.alpha.cor}{hyperparameter alpha for the PC prior on the autocorrelation parameter in the AR prior.}
 
-\item{a.iid}{hyperparameter for i.i.d random effects.}
+\item{pc.st.u}{hyperparameter U for the PC prior on precisions for the interaction term.}
 
-\item{b.iid}{hyperparameter for i.i.d random effects.}
-
-\item{a.rw}{hyperparameter for RW 1 or 2 random effects.}
-
-\item{b.rw}{hyperparameter for RW 1 or 2random effects.}
-
-\item{a.icar}{hyperparameter for ICAR random effects.}
-
-\item{b.icar}{hyperparameter for ICAR random effects.}
+\item{pc.st.alpha}{hyperparameter alpha for the PC prior on precisions for the interaction term.}
 
 \item{options}{list of options to be passed to control.compute() in the inla() function.}
 
@@ -76,29 +64,21 @@ fitINLA(data, Amat, X = NULL, formula = NULL, rw = 2, ar = 0,
 
 \item{verbose}{logical indicator to print out detailed inla() intermediate steps.}
 
-\item{pc.st.u}{hyperparameter U for the PC prior on precisions for the interaction term.}
+\item{geo}{Deprecated.}
 
-\item{pc.st.alpha}{hyperparameter alpha for the PC prior on precisions for the interaction term.}
+\item{rw}{Deprecated.}
 
-\item{geo}{Spatial polygon file, legacy parameter from previous versions of the package.}
+\item{ar}{Deprecated.}
 }
 \value{
 INLA model fit using the provided formula, country summary data, and geographic data
 }
 \description{
-Fit space-time smoothed direct models to mortality rates
+Smoothed direct estimates for mortality rates
 }
 \examples{
 \dontrun{
 years <- levels(DemoData[[1]]$time)
-
-# obtain direct estimates
-data <- getDirectList(births = DemoData, 
-years = years,  
-regionVar = "region", timeVar = "time", 
-clusterVar = "~clustid+id", 
-ageVar = "age", weightsVar = "weights", 
-geo.recode = NULL)
 # obtain direct estimates
 data_multi <- getDirectList(births = DemoData, years = years,
   regionVar = "region",  timeVar = "time", clusterVar = "~clustid+id",
@@ -114,7 +94,7 @@ out1 <- getSmoothed(fit1)
 plot(out1, is.subnational=FALSE)
 
 #  subnational model
-fit2 <- fitINLA(data = data, Amat = mat, 
+fit2 <- fitINLA(data = data, Amat = DemoMap$Amat, 
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
 out2 <- getSmoothed(fit2, Amat = mat)
