@@ -1,4 +1,4 @@
-#' Fit cluster-level space-time smoothing models to mortality rates 
+#' Cluster-level space-time smoothing models for mortality rates 
 #' 
 #' 
 #' 
@@ -16,17 +16,14 @@
 #' @param age.n number of months in each age groups in the same order.
 #' @param age.rw.group vector indicating grouping of the ages groups. For example, if each age group is assigned a different random walk component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate random walk to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.
 #' @param family family of the model. This can be either binomial (with logistic normal prior), betabiniomial.
+#' @param time.model Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2.
+#' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. 
 #' @param Amat Adjacency matrix for the regions
-#' @param geo Spatial polygon file, legacy parameter from previous versions of the package.
 #' @param bias.adj the ratio of unadjusted mortality rates or age-group-specific hazards to the true rates or hazards. It needs to be a data frame that can be merged to thee outcome, i.e., with the same column names for time periods (for national adjustment), or time periods and region (for subnational adjustment). The column specifying the adjustment ratio should be named "ratio".
 #' @param bias.adj.by vector of the column names specifying how to merge the bias adjustment to the count data. For example, if bias adjustment factor is provided in bias.adj for each region and time, then bias.adj.by should be `c("region", "time")`.
 #' @param formula INLA formula.  See vignette for example of using customized formula.
 #' @param year_label string vector of year names
-#' @param priors priors from \code{\link{simhyper}}
-#' @param rw Take values 0, 1 or 2, indicating the order of random walk. If rw = 0, the autoregressive process is used instead of the random walk in the main trend. See the description of the argument ar for details.
-#' @param ar Order of the autoregressive component. If ar is specified to be positive integer, the random walk components will be replaced by AR(p) terms in the interaction part. The main temporal trend remains to be random walk of order rw unless rw = 0.
 #' @param type.st type for space-time interaction
-#' @param st.rw Take values 1 or 2, indicating the order of random walk for the interaction term. If not specified, it will take the same order as the argument rw in the main effect. Notice that this argument is only used if ar is set to 0.
 #' @param survey.effect logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0. 
 #' @param strata.time.effect logical indicator whether to include strata specific temporal trends.  
 #' @param hyper which hyperpriors to use. Default to be using the PC prior ("pc"). 
@@ -40,17 +37,15 @@
 #' @param pc.st.alpha hyperparameter alpha for the PC prior on precisions for the interaction term.
 #' @param pc.st.slope.u hyperparameter U for the PC prior on precisions for the area-level random slope. If both pc.st.slope.u and pc.st.slope.alpha are not NA, an area-level random slope with iid prior will be added to the moddel.
 #' @param pc.st.slope.alpha hyperparameter alpha for the PC prior on precisions for the area-level random slope. If both pc.st.slope.u and pc.st.slope.alpha are not NA, an area-level random slope with iid prior will be added to the moddel.
-#' @param a.iid hyperparameter for i.i.d random effects.
-#' @param b.iid hyperparameter for i.i.d random effects.
-#' @param a.rw hyperparameter for RW 1 or 2 random effects.
-#' @param b.rw hyperparameter for RW 1 or 2random effects.
-#' @param a.icar hyperparameter for ICAR random effects.
-#' @param b.icar hyperparameter for ICAR random effects.
 #' @param overdisp.mean hyperparameter for the betabinomial likelihood. Mean of the over-dispersion parameter on the logit scale. 
 #' @param overdisp.prec hyperparameter for the betabinomial likelihood. Precision of the over-dispersion parameter on the logit scale. 
 #' @param options list of options to be passed to control.compute() in the inla() function.
 #' @param control.inla list of options to be passed to control.inla() in the inla() function. Default to the "adaptive" integration strategy.
 #' @param verbose logical indicator to print out detailed inla() intermediate steps.
+#' @param rw Deprecated. Take values 0, 1 or 2, indicating the order of random walk. If rw = 0, the autoregressive process is used instead of the random walk in the main trend. See the description of the argument ar for details.
+#' @param ar Deprecated. Order of the autoregressive component. If ar is specified to be positive integer, the random walk components will be replaced by AR(p) terms in the interaction part. The main temporal trend remains to be random walk of order rw unless rw = 0.
+#' @param st.rw Deprecated. Take values 1 or 2, indicating the order of random walk for the interaction term. If not specified, it will take the same order as the argument rw in the main effect. Notice that this argument is only used if ar is set to 0.
+#' @param geo Deprecated. Spatial polygon file, legacy parameter from previous versions of the package.
 #' @param ... arguments to be passed to the inla() function call.
 #' @seealso \code{\link{getDirect}}
 #' @import Matrix
@@ -58,13 +53,42 @@
 #' @importFrom Matrix Diagonal 
 #' @return INLA model fit using the provided formula, country summary data, and geographic data
 #' @examples
-#' message("Please check the package vignette on binomial models.")
+#' \dontrun{
+#' library(dplyr)
+#' data(DemoData)
+#' # Create dataset of counts
+#' counts.all <- NULL
+#' for(i in 1:length(DemoData)){
+#'   counts <- getCounts(DemoData[[i]][, c("clustid", "time", "age", "died",
+#'                                         "region", "strata")],
+#'             variables = 'died', by = c("age", "clustid", "region", 
+#'                                          "time", "strata"))
+#'   counts <- counts %>% mutate(cluster = clustid, years = time, Y=died)
+#'   counts$strata <- gsub(".*\\.","",counts$strata)
+#'   counts$survey <- names(DemoData)[i] 
+#'   counts.all <- rbind(counts.all, counts)
+#' }
+#' 
+#' # fit cluster-level model on the periods
+#' periods <- levels(DemoData[[1]]$time)
+#' fit <- fitINLA2(data = counts.all, 
+#'       Amat = DemoMap$Amat, 
+#'       time.model = "rw2", 
+#'       st.time.model = "rw1",
+#'       strata.time.effect =  TRUE, 
+#'       survey.effect = TRUE,
+#'       family = "betabinomial",
+#'       year_label = c(periods, "15-19"))
+#' est <- getSmoothed(fit, Amat = DemoMap$Amat, 
+#'       year_label =c(periods, "15-19"), nsim = 1000)
+#' plot(est$stratified, plot.CI=TRUE) + ggplot2::facet_wrap(~strata) 
+#' }
 #' 
 #' @export
 #' 
 #' 
 
-fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = c(1,2,3,3,3,3), Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, rw = 2, ar = 0, st.rw = NULL, year_label, priors = NULL, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, a.iid = NULL, b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL, b.icar = NULL, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, ...){
+fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = c(1,2,3,3,3,3), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, ...){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
@@ -76,17 +100,81 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     options$config <- TRUE
   }
   if(!is.null(geo)){
-    message("Argument geo is no longer necessary in the fitINLA2 function. Only Amat is needed.")
+    message("Argument geo is deprecated in the fitINLA2 function. Only Amat is needed.")
   }
 
 
-  is.ar <- ar > 0 
-  is.main.ar <- rw == 0
-  if(is.ar) message("ar > 0: using the AR(p) process for the space-time interaction component.")
-  if(rw %in% c(0, 1, 2) == FALSE) stop("Random walk only support rw = 1 or 2.")
-  if(rw == 0) message("rw = 0: using the AR(p) process for the main temporal trend component.")
-  if(is.null(st.rw)) st.rw <- rw
-  if(!is.ar  && st.rw != rw) message("The main effect is random walk of order ", rw, ", and the interaction effects are random walks of order ", st.rw)
+    # get around CRAN check of using un-exported INLA functions
+  rate0 <- shape0 <- my.cache <- inla.as.sparse <- type <- NULL
+
+  if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
+  }
+  if (!is.element("Matrix", (.packages()))) {
+    attachNamespace("Matrix")
+  }
+  # If INLA is installed, then attach the Namespace (so that all the relevant functions are available)
+  if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+    if (!is.element("INLA", (.packages()))) {
+      attachNamespace("INLA")
+    }
+
+  # Backward compatibility
+  if(!is.null(rw) || !is.null(ar) || !is.null(st.rw)){
+    message("Argument rw and ar have been deprecated in version 1.0.0. They still work as intended for now. In the future, use time.model and st.time.model to specify temporal components\n e.g., time.model = 'rw2', st.time.model = 'rw2'")
+    if(is.null(ar)) ar <- 0
+    if(is.null(st.rw)) st.rw <- rw
+    st.ar <- ar
+    is.ar <- ar > 0 
+    is.main.ar <- rw == 0
+    if(is.ar) message("ar > 0: using the AR(p) process for the space-time interaction component.")
+    if(rw %in% c(0, 1, 2) == FALSE) stop("Random walk only support rw = 1 or 2.")
+    if(rw == 0) message("rw = 0: using the AR(p) process for the main temporal trend component.")
+    if(!is.ar  && st.rw != rw) message("The main effect is random walk of order ", rw, ", and the interaction effects are random walks of order ", st.rw)
+
+
+  # New time mode definition...    
+  }else{
+    if(is.null(st.time.model)) st.time.model = time.model
+    time.model <- tolower(time.model)
+    st.time.model <- tolower(st.time.model)
+
+    is.main.ar = FALSE
+    is.ar  = FALSE
+    ar = 0
+    st.ar = 0
+
+    # main effect
+    if(time.model == "rw1"){
+      rw = 1
+    }else if(time.model == "rw2"){
+      rw = 2
+    }else if(time.model == "ar1"){ # for future: allow AR(p) here
+      rw = 1 # replaced later
+      ar = 1
+      is.main.ar = TRUE
+    }else{
+      stop("Temporal main effect only support rw1, rw2, and ar1.")
+    }
+
+    # interaction effect
+    if(st.time.model == "rw1"){
+      st.rw = 1
+    }else if(st.time.model == "rw2"){
+      st.rw = 2
+    }else if(st.time.model == "ar1"){ # for future: allow AR(p) here
+      st.rw = NULL
+      st.ar = 1
+      is.ar = TRUE
+    }else{
+      stop("Temporal interaction effect only support rw1, rw2, and ar1.")
+    }
+    message("--------------------------------",
+            "\nMain temporal model:        ", time.model, 
+            "\nInteraction temporal model: ", st.time.model, 
+            "\nInteraction type:           ", type.st, appendLF=FALSE)
+  }
+     
 
   if(!is.null(Amat)){
     if(is.null(rownames(Amat))){
@@ -106,55 +194,60 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     is.spatial <- FALSE
   }
 
-  # get around CRAN check of using un-exported INLA functions
-  rate0 <- shape0 <- my.cache <- inla.as.sparse <- type <- NULL
+  if(is.spatial) message("\nSpatial effect:             bym2")
 
-  if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
-    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
-  }
-  if (!is.element("Matrix", (.packages()))) {
-    attachNamespace("Matrix")
-  }
-  # If INLA is installed, then attach the Namespace (so that all the relevant functions are available)
-  if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {
-    if (!is.element("INLA", (.packages()))) {
-      attachNamespace("INLA")
-    }
+
 
   if(is.null(age.groups)){
     age.n <- 1
     age.rw.group <- 1
   }
+  message("\nNumber of age groups: ", length(age.n), appendLF=FALSE)
+  message("\nNumber of age-specific trends per stratum: ", length(unique(age.rw.group)), appendLF=FALSE)
+
   if(is.ar && hyper=="gamma"){
     stop("AR1 model only implemented with PC priors for now.")
   }
   
-  has.strata <- TRUE
 
+
+  multi.frame <- FALSE
+  if("frame" %in% colnames(data)){
+    message("\nColumn specifying sampling frame(s): yes", appendLF=FALSE)
+
+    if(length(unique(data$frame)) > 1){
+      multi.frame <- TRUE
+      if("strata" %in% colnames(data) == FALSE || sum(!is.na(data$strata)) == 0){
+        data$strata <- data$frame 
+        message("\nStrata renaming: yes, renamed to the same as frame", appendLF=FALSE)
+      }else{
+        data$strata <- paste(data$frame, data$strata, sep = "-") 
+        message("\nStrata renaming: yes, renamed frame-strata", appendLF=FALSE)
+     }
+      
+    }else{
+      message("\nStrata renaming: no, only one frame", appendLF=FALSE)
+    }
+  }
+
+  has.strata <- TRUE
   if("strata" %in% colnames(data) == FALSE || sum(!is.na(data$strata)) == 0){
     has.strata <- FALSE
     data$strata <- ""
     strata.time.effect <- FALSE
-    message("The input data contains no strata. An unstratified model is fitted.")
+    message("\nStratification: no strata in the input", appendLF=FALSE)
+  }else{
+    message("\nStratification: yes", appendLF=FALSE)
   }
-
-  multi.frame <- FALSE
-  if("frame" %in% colnames(data)){
-    message("column named frame exists in the data, redefine strata to be frame-strata. If this is not desired, please remove the frame column from the data.")
-    if(length(unique(data$frame)) > 1){
-      multi.frame <- TRUE
-      data$strata <- paste(data$frame, data$strata, sep = "-")
-    }
-  }
-
   ## Do we need to make sure age.rw.group starts from 1?
   ##  If we do, add check here.
 
   ## Survey fixed effect should only exist if they are nested within the same strata.
   ## This is checked here
+  survey.message <- NULL
   if(survey.effect){
       if("survey" %in% colnames(data) == FALSE){
-          warning("survey.effect is set to TRUE, but no survey column in the input data. Reset survey.effect to FALSE", immediate.=TRUE)
+          survey.message <- "\nSurvey effect: no, survey column does not exist"
           survey.effect <- FALSE
           survey.table <- NULL
       }else if(!multi.frame){
@@ -167,7 +260,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
           survey.A <- matrix(1, 1, survey_count)
           survey.e <- 0
           if(survey_count == 1){
-            warning("survey.effect is set to TRUE, but there is only one survey. Reset survey.effect to FALSE", immediate.=TRUE)
+            survey.message <- "\nSurvey effect: no, only one survey"
             survey.effect <- FALSE
           }
 
@@ -181,7 +274,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
           # for each frame, check if multiple survey exist
           nested <- apply(tab, 2, function(x){sum(x!=0) > 1})
           if(sum(nested) == 0){
-            warning("No survey nested within frames, reset survey.effect to FALSE.", immediate.=TRUE)
+            survey.message <- "\nSurvey effect: no, no multiple surveys nested within frames"
             survey.effect <- FALSE
             survey.table <- NULL
           }else{
@@ -210,6 +303,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
   }else{
     survey.table <- NULL
   }
+  if(survey.effect) survey.message <- "\nSurvey effect: yes"
   stratalevels <- unique(data$strata)
 
 
@@ -239,9 +333,10 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     }
 
   }
+  if(strata.time.effect) message("\nStrata-specific temporal trends: yes", appendLF=FALSE)
+  if(!is.null(survey.message)) message(survey.message, appendLF=FALSE)
 
-    tau = exp(10)
-
+  message("\n--------------------------------")
    
     
     ## ---------------------------------------------------------
@@ -250,18 +345,14 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
     if(dim(Amat)[1] != 1){
       data <- data[which(data$region != "All"), ]
     }  
-    #################################################################### Re-calculate hyper-priors
-    
-    if (is.null(priors)) {
-      priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, nperiod = length(year_label), only.iid = TRUE)
-    }
-    
-    if(is.null(a.iid)) a.iid <- priors$a.iid
-    if(is.null(b.iid)) b.iid <- priors$b.iid
-    if(is.null(a.rw)) a.rw <- priors$a.iid
-    if(is.null(b.rw)) b.rw <- priors$b.iid
-    if(is.null(a.icar)) a.icar <- priors$a.iid
-    if(is.null(b.icar)) b.icar <- priors$b.iid
+    #################################################################### Re-calculate hyper-priors for gamma prior
+    priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, nperiod = length(year_label), only.iid = TRUE)
+    a.iid <- priors$a.iid
+    b.iid <- priors$b.iid
+    a.rw <- priors$a.iid
+    b.rw <- priors$b.iid
+    a.icar <- priors$a.iid
+    b.icar <- priors$b.iid
     
     #################################################################### # remove NA rows? e.g. if no 10-14 available
     # if (na.rm) {
@@ -440,7 +531,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
                     f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", st.rw), scale.model = TRUE), hyper = hyperpc1.interact,  adjust.for.con.comp = TRUE))
                 }else{
                     formula <- update(formula, ~. + 
-                    f(region.int,model="iid", hyper = hyperpc1.interact, group=time.int,control.group=list(model="ar", order = ar, hyper = hyperar2), scale.model = TRUE, adjust.for.con.comp = TRUE))
+                    f(region.int,model="iid", hyper = hyperpc1.interact, group=time.int,control.group=list(model="ar", order = st.ar, hyper = hyperar2), scale.model = TRUE, adjust.for.con.comp = TRUE))
                 }
             }else if(type.st == 3){
                 formula <- update(formula, ~. + 
@@ -450,7 +541,7 @@ fitINLA2 <- function(data, family = c("betabinomial", "binomial")[1], age.groups
              # Interaction with AR1  
              if(is.ar){
               formula <- update(formula, ~. + 
-                   f(region.int, model="besag", hyper = hyperpc1.interact, graph = Amat, group=time.int,control.group=list(model="ar", order = ar, hyper = hyperar2), scale.model = TRUE, adjust.for.con.comp = TRUE)) 
+                   f(region.int, model="besag", hyper = hyperpc1.interact, graph = Amat, group=time.int,control.group=list(model="ar", order = st.ar, hyper = hyperar2), scale.model = TRUE, adjust.for.con.comp = TRUE)) 
              }else{
                 # defines type IV explicitly with constraints
                 # Use time.area as index

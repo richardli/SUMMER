@@ -2,22 +2,22 @@
 % Please edit documentation in R/fitINLA2.R
 \name{fitINLA2}
 \alias{fitINLA2}
-\title{Fit cluster-level space-time smoothing models to mortality rates}
+\title{Cluster-level space-time smoothing models for mortality rates}
 \usage{
 fitINLA2(data, family = c("betabinomial", "binomial")[1],
   age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"),
   age.n = c(1, 11, 12, 12, 12, 12), age.rw.group = c(1, 2, 3, 3, 3, 3),
-  Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL,
-  rw = 2, ar = 0, st.rw = NULL, year_label, priors = NULL,
+  time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat,
+  bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label,
   type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE,
   hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01,
   pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7,
   pc.alpha.cor = 0.9, pc.st.u = NA, pc.st.alpha = NA,
-  pc.st.slope.u = NA, pc.st.slope.alpha = NA, a.iid = NULL,
-  b.iid = NULL, a.rw = NULL, b.rw = NULL, a.icar = NULL,
-  b.icar = NULL, overdisp.mean = 0, overdisp.prec = 0.4,
-  options = list(config = TRUE), control.inla = list(strategy =
-  "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, ...)
+  pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0,
+  overdisp.prec = 0.4, options = list(config = TRUE),
+  control.inla = list(strategy = "adaptive", int.strategy = "auto"),
+  verbose = FALSE, geo = NULL, rw = NULL, ar = NULL,
+  st.rw = NULL, ...)
 }
 \arguments{
 \item{data}{count data of person-months with the following columns
@@ -39,6 +39,10 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 
 \item{age.rw.group}{vector indicating grouping of the ages groups. For example, if each age group is assigned a different random walk component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate random walk to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.}
 
+\item{time.model}{Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2.}
+
+\item{st.time.model}{Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise.}
+
 \item{Amat}{Adjacency matrix for the regions}
 
 \item{bias.adj}{the ratio of unadjusted mortality rates or age-group-specific hazards to the true rates or hazards. It needs to be a data frame that can be merged to thee outcome, i.e., with the same column names for time periods (for national adjustment), or time periods and region (for subnational adjustment). The column specifying the adjustment ratio should be named "ratio".}
@@ -47,15 +51,7 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 
 \item{formula}{INLA formula.  See vignette for example of using customized formula.}
 
-\item{rw}{Take values 0, 1 or 2, indicating the order of random walk. If rw = 0, the autoregressive process is used instead of the random walk in the main trend. See the description of the argument ar for details.}
-
-\item{ar}{Order of the autoregressive component. If ar is specified to be positive integer, the random walk components will be replaced by AR(p) terms in the interaction part. The main temporal trend remains to be random walk of order rw unless rw = 0.}
-
-\item{st.rw}{Take values 1 or 2, indicating the order of random walk for the interaction term. If not specified, it will take the same order as the argument rw in the main effect. Notice that this argument is only used if ar is set to 0.}
-
 \item{year_label}{string vector of year names}
-
-\item{priors}{priors from \code{\link{simhyper}}}
 
 \item{type.st}{type for space-time interaction}
 
@@ -85,18 +81,6 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 
 \item{pc.st.slope.alpha}{hyperparameter alpha for the PC prior on precisions for the area-level random slope. If both pc.st.slope.u and pc.st.slope.alpha are not NA, an area-level random slope with iid prior will be added to the moddel.}
 
-\item{a.iid}{hyperparameter for i.i.d random effects.}
-
-\item{b.iid}{hyperparameter for i.i.d random effects.}
-
-\item{a.rw}{hyperparameter for RW 1 or 2 random effects.}
-
-\item{b.rw}{hyperparameter for RW 1 or 2random effects.}
-
-\item{a.icar}{hyperparameter for ICAR random effects.}
-
-\item{b.icar}{hyperparameter for ICAR random effects.}
-
 \item{overdisp.mean}{hyperparameter for the betabinomial likelihood. Mean of the over-dispersion parameter on the logit scale.}
 
 \item{overdisp.prec}{hyperparameter for the betabinomial likelihood. Precision of the over-dispersion parameter on the logit scale.}
@@ -107,7 +91,13 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 
 \item{verbose}{logical indicator to print out detailed inla() intermediate steps.}
 
-\item{geo}{Spatial polygon file, legacy parameter from previous versions of the package.}
+\item{geo}{Deprecated. Spatial polygon file, legacy parameter from previous versions of the package.}
+
+\item{rw}{Deprecated. Take values 0, 1 or 2, indicating the order of random walk. If rw = 0, the autoregressive process is used instead of the random walk in the main trend. See the description of the argument ar for details.}
+
+\item{ar}{Deprecated. Order of the autoregressive component. If ar is specified to be positive integer, the random walk components will be replaced by AR(p) terms in the interaction part. The main temporal trend remains to be random walk of order rw unless rw = 0.}
+
+\item{st.rw}{Deprecated. Take values 1 or 2, indicating the order of random walk for the interaction term. If not specified, it will take the same order as the argument rw in the main effect. Notice that this argument is only used if ar is set to 0.}
 
 \item{...}{arguments to be passed to the inla() function call.}
 }
@@ -115,10 +105,39 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 INLA model fit using the provided formula, country summary data, and geographic data
 }
 \description{
-Fit cluster-level space-time smoothing models to mortality rates
+Cluster-level space-time smoothing models for mortality rates
 }
 \examples{
-message("Please check the package vignette on binomial models.")
+\dontrun{
+library(dplyr)
+data(DemoData)
+# Create dataset of counts
+counts.all <- NULL
+for(i in 1:length(DemoData)){
+  counts <- getCounts(DemoData[[i]][, c("clustid", "time", "age", "died",
+                                        "region", "strata")],
+            variables = 'died', by = c("age", "clustid", "region", 
+                                         "time", "strata"))
+  counts <- counts \%>\% mutate(cluster = clustid, years = time, Y=died)
+  counts$strata <- gsub(".*\\\\.","",counts$strata)
+  counts$survey <- names(DemoData)[i] 
+  counts.all <- rbind(counts.all, counts)
+}
+
+# fit cluster-level model on the periods
+periods <- levels(DemoData[[1]]$time)
+fit <- fitINLA2(data = counts.all, 
+      Amat = DemoMap$Amat, 
+      time.model = "rw2", 
+      st.time.model = "rw1",
+      strata.time.effect =  TRUE, 
+      survey.effect = TRUE,
+      family = "betabinomial",
+      year_label = c(periods, "15-19"))
+est <- getSmoothed(fit, Amat = DemoMap$Amat, 
+      year_label =c(periods, "15-19"), nsim = 1000)
+plot(est$stratified, plot.CI=TRUE) + ggplot2::facet_wrap(~strata) 
+}
 
 }
 \seealso{

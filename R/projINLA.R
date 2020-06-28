@@ -336,9 +336,9 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
 
         if(is.null(weight.strata)){
           if(length(stratalabels) > 1){
-              warning("No strata weights has been supplied. Set all weights to 0.", immediate.=TRUE)
+              message("No strata weights has been supplied. Set all weights to 0.")
           }else{
-              warning("No stratification. Set all weights to 1.", immediate.=TRUE)
+              message("No stratification in the model. Set all weights to 1.")
           }
           if(!is.null(Amat)){
             weight.strata <- expand.grid(region = colnames(Amat), frame = framelabels)
