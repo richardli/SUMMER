@@ -2,9 +2,17 @@
 % Please edit documentation in R/fitspace.R
 \name{smoothSurvey}
 \alias{smoothSurvey}
+\alias{fitGeneric}
 \title{Fit space-time smoothing models for a generic outcome from complex surveys.}
 \usage{
 smoothSurvey(data, geo = NULL, Amat, X = NULL,
+  responseType = c("binary", "gaussian")[1], responseVar,
+  strataVar = "strata", weightVar = "weights", regionVar = "region",
+  clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01,
+  pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL,
+  timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, ...)
+
+fitGeneric(data, geo = NULL, Amat, X = NULL,
   responseType = c("binary", "gaussian")[1], responseVar,
   strataVar = "strata", weightVar = "weights", regionVar = "region",
   clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01,
@@ -63,9 +71,8 @@ smoothSurvey(data, geo = NULL, Amat, X = NULL,
 }
 \description{
 This function calculates the direct estimates by region and fit a simple spatial smoothing model to the direct estimates adjusting for survey design.
-}
-\details{
 Normal or binary variables are currently supported. For binary variables, the logit transformation is performed on the direct estimates of probabilities, and a Gaussian additive model is fitted on the logit scale using INLA.
+The function \code{smoothSurvey} will replace the previous function name \code{fitGeneric} in future updates.
 }
 \examples{
 \dontrun{

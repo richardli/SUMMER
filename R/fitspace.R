@@ -1,9 +1,8 @@
 #' Fit space-time smoothing models for a generic outcome from complex surveys.
 #'
 #' This function calculates the direct estimates by region and fit a simple spatial smoothing model to the direct estimates adjusting for survey design.
-#' 
 #' Normal or binary variables are currently supported. For binary variables, the logit transformation is performed on the direct estimates of probabilities, and a Gaussian additive model is fitted on the logit scale using INLA.
-#' 
+#' The function \code{smoothSurvey} will replace the previous function name \code{fitGeneric} in future updates.
 #' @param data data frame with region and strata information.
 #' @param geo Deprecated argument from early versions.
 #' @param Amat Adjacency matrix for the regions.
@@ -142,7 +141,7 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
                         ...)
         if(!is.null(timeVar)){
             mean <- survey::svyby(formula=~response0, by=~region0+time0, design=design, survey::svymean, drop.empty.groups=FALSE)
-            time.i <- mean$time0
+            time.i <- as.numeric(as.character(mean$time0))
         }else{
             mean <- survey::svyby(formula=~response0, by=~region0, design=design, survey::svymean, drop.empty.groups=FALSE)
         }
@@ -165,7 +164,7 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
         if(!is.null(timeVar)){
             mean <- aggregate(response0 ~ region0+time0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})    
               name.i <- mean$region0
-              time.i <- mean$time0
+              time.i <- as.numeric(as.character(mean$time0))
               mean <- data.frame(mean[, -c(1:2)])
         }else{
             mean <- aggregate(response0 ~ region0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})
@@ -326,3 +325,8 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
                responseType = responseType,
                formula = formula))
 }
+
+
+#' @export
+#' @rdname smoothSurvey
+fitGeneric <-  smoothSurvey

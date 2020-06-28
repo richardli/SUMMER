@@ -1,6 +1,6 @@
 #' Smoothed direct estimates for mortality rates 
 #' 
-#' 
+#' The function \code{smoothDirect} will replace the previous function name \code{fitINLA} in future updates.
 #'
 #' @param data Combined dataset
 #' @param Amat Adjacency matrix for the regions
@@ -71,7 +71,9 @@ smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("r
   # Backward compatibility
   if(!is.null(rw) || !is.null(ar)){
     message("Argument rw and ar have been deprecated in version 1.0.0. They still work as intended for now. In the future, use time.model and st.time.model to specify temporal components\n e.g., time.model = 'rw2', st.time.model = 'rw2'")
-    st.ar <- ar
+    if(is.null(ar)) ar <- 0
+    if(is.null(st.rw)) st.rw <- rw
+    st.ar <- ar    
     is.ar <- ar > 0 
     is.main.ar <- rw == 0
     if(is.ar) message("ar > 0: using the AR(p) process for the space-time interaction component.")
@@ -896,3 +898,8 @@ if(is.main.ar){
     return(list(model = mod, fit = fit, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, lincombs.info = lincombs.info, is.yearly = is.yearly, type.st = type.st, year_range = year_range))
   }
 }
+
+
+#' @export
+#' @rdname smoothDirect
+fitINLA <- smoothDirect

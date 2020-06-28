@@ -2,9 +2,25 @@
 % Please edit documentation in R/fitINLA2.R
 \name{smoothCluster}
 \alias{smoothCluster}
+\alias{fitINLA2}
 \title{Cluster-level space-time smoothing models for mortality rates}
 \usage{
 smoothCluster(data, family = c("betabinomial", "binomial")[1],
+  age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"),
+  age.n = c(1, 11, 12, 12, 12, 12), age.rw.group = c(1, 2, 3, 3, 3, 3),
+  time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat,
+  bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label,
+  type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE,
+  hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01,
+  pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7,
+  pc.alpha.cor = 0.9, pc.st.u = NA, pc.st.alpha = NA,
+  pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0,
+  overdisp.prec = 0.4, options = list(config = TRUE),
+  control.inla = list(strategy = "adaptive", int.strategy = "auto"),
+  verbose = FALSE, geo = NULL, rw = NULL, ar = NULL,
+  st.rw = NULL, ...)
+
+fitINLA2(data, family = c("betabinomial", "binomial")[1],
   age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"),
   age.n = c(1, 11, 12, 12, 12, 12), age.rw.group = c(1, 2, 3, 3, 3, 3),
   time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat,
@@ -105,7 +121,7 @@ smoothCluster(data, family = c("betabinomial", "binomial")[1],
 INLA model fit using the provided formula, country summary data, and geographic data
 }
 \description{
-Cluster-level space-time smoothing models for mortality rates
+The function \code{smoothCluster} will replace the previous function name \code{fitINLA2} in future updates.
 }
 \examples{
 \dontrun{
