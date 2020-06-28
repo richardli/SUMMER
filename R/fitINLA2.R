@@ -105,7 +105,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
 
 
     # get around CRAN check of using un-exported INLA functions
-  rate0 <- shape0 <- my.cache <- inla.as.sparse <- type <- NULL
+  rate0 <- shape0 <- my.cache <- inla.as.sparse <- type <- strata <- NULL
 
   if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
     stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
@@ -190,7 +190,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
   }else{
     Amat <- matrix(1,1,1)
     colnames(Amat) <- rownames(Amat) <- "All"
-    if("region" %in% colnames(data) == FALSE) data$region <- "All"
+    data$region <- "All"
     is.spatial <- FALSE
   }
 
@@ -235,12 +235,20 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     has.strata <- FALSE
     data$strata <- ""
     strata.time.effect <- FALSE
-    message("\nStratification: no strata in the input", appendLF=FALSE)
+    message("\nStratification: no, strata variable not in the input", appendLF=FALSE)
+
+  }else if(length(unique(data$strata[data$total > 0])) == 1){
+    # if only one strata has observations
+    has.strata <- FALSE
+    message("\nStratification: no, all data in the same stratum", appendLF=FALSE)
+  }else if(length(unique(data$strata[data$total > 0])) < length(unique(data$strata))){
+    # If there are more than 2 strata and we need to drop levels
+    data <- subset(data, strata %in% unique(data$strata[data$total > 0])) 
+    message("\nStratification: yes, but some frame-strata combination does not exist", appendLF=FALSE)
   }else{
     message("\nStratification: yes", appendLF=FALSE)
   }
-  ## Do we need to make sure age.rw.group starts from 1?
-  ##  If we do, add check here.
+
 
   ## Survey fixed effect should only exist if they are nested within the same strata.
   ## This is checked here
@@ -422,7 +430,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     # exdat <- merge(exdat, cluster.time, by.x = c("cluster", "time.struct"), by.y = c("cluster", "time"))
     # # exdat$nugget.id <- 1:dim(exdat)[1]
 
-    if(is.ar){
+    if(is.ar || is.main.ar){
       exdat$time.slope <- exdat$time.struct 
       center <- N/2 + 1e-5 # avoid exact zero in the lincomb creation
       exdat$time.slope <- (exdat$time.slope  - center) / (sd(1:N))
@@ -458,7 +466,6 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
         hyperpc1.interact <- list(prec = list(prior = "pc.prec", param = c(pc.st.u , pc.st.alpha)))
         ## -----------------------
         ##  National + PC
-        ##  TODO: AR1 in this case
         ## ----------------------- 
         if(!is.spatial){
 
@@ -751,27 +758,9 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
 
 
 
-  ## add yearly observations with NA outcome and 1 trial, does not contribute to likelihood
   total <- NA
   exdat <- subset(exdat, total != 0)
   
-  # tmp<-exdat[1:N, ]
-  # tmp$time.unstruct<-tmp$time.struct<-tmp$time.int <- 1:N
-  # tmp$years<-years[1:N, 1]
-  # tmp$total <- 1
-  # tmp$Y <- NA
-  # exdat<-rbind(exdat,tmp)   
-  # for(i in 1:N){
-  #     tmp<-exdat[match(unique(exdat$region), exdat$region), ]
-  #     tmp <- tmp[]
-  #     tmp$time.unstruct<-tmp$time.struct<- tmp$time.int <- i
-  #     tmp <- tmp[, colnames(tmp) != "time.area"]
-  #     tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
-  #     tmp$years<-years[i, 1]
-  #     tmp$total <- 1
-  #     tmp$Y <- NA
-  #     exdat<-rbind(exdat,tmp)   
-  #   }
 
   # Create filler data frame for all space-time pairs
   tmp <- exdat[rep(1, dim(Amat)[1]*N), ]

@@ -203,6 +203,9 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
           cols <- c(cols, "age.rep.idx")
         } 
         A <- unique(inla_mod$fit$.args$data[, cols])
+        if(sum(stratalabels == "strata_all") == length(stratalabels)){
+          A$strata <- "strata_all"
+        }
         # A might contain  missing  levels. Make an expanded version
         # strata may be nested within age
         if(inla_mod$strata.time.effect){

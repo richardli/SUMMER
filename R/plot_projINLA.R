@@ -153,7 +153,7 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
     }else if(plot.CI & is.null(color.CI)){
         g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project, color=region), size = .7, width = .05, position = my.dodge, alpha = alpha.CI)
     }
-    g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("U5MR")
+    g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("")
     if(!period.1yr) g <- g + ggplot2::scale_x_continuous(breaks=year_med, labels=year_label)
   
   # yearly model with only one color
@@ -166,7 +166,7 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
         g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .5, width = .05, position = my.dodge, data=subset(x, is.periods==FALSE), alpha = alpha.CI, color = "black")
         g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), color = "red")
     } 
-    g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("U5MR")
+    g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("")
 
   # yearly model with multiple colors
   }else if(is.subnational){
@@ -179,10 +179,10 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
     }else if(plot.CI){
         g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project, color=region), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), alpha = alpha.CI)
     }
-    g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("U5MR")
+    g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("")
   }
   if(per1000){
-    g <- g + ggplot2::ylab("U5MR (deaths per 1000 live births)")
+    g <- g + ggplot2::ylab("deaths per 1000 live births")
   }
 
   if(!is.null(label.add)) g <- g + ggplot2::scale_shape_discrete("") 
