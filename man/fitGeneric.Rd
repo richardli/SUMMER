@@ -8,16 +8,15 @@ fitGeneric(data, geo = NULL, Amat, X = NULL,
   responseType = c("binary", "gaussian")[1], responseVar,
   strataVar = "strata", weightVar = "weights", regionVar = "region",
   clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01,
-  pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, FUN = NULL,
-  formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1],
-  type.st = 1, ...)
+  pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL,
+  timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, ...)
 }
 \arguments{
 \item{data}{data frame with region and strata information.}
 
-\item{geo}{Geo file, optional.}
+\item{geo}{Deprecated argument from early versions.}
 
-\item{Amat}{Adjacency matrix for the regions}
+\item{Amat}{Adjacency matrix for the regions.}
 
 \item{X}{Covariate matrix with the first column being the region names. Currently only supporting static region-level covariates.}
 
@@ -43,8 +42,6 @@ fitGeneric(data, geo = NULL, Amat, X = NULL,
 
 \item{CI}{the desired posterior credible interval to calculate}
 
-\item{FUN}{the function to transform the posterior draws. Default to be identify function for normal variable and inverse logit transformation for binomial variables}
-
 \item{formula}{a string of user-specified random effects model to be used in the INLA call}
 
 \item{timeVar}{The variable indicating time period. If set to NULL then the temporal model and space-time interaction model are ignored.}
@@ -59,7 +56,6 @@ fitGeneric(data, geo = NULL, Amat, X = NULL,
 \item{HT}{Direct estimates}
 \item{smooth}{Spatially smoothed estimates}
 \item{fit}{a fitted INLA object}
-\item{geo}{input argument}
 \item{Amat}{input argument}
 \item{CI}{input argument}
 \item{responseType}{input argument}
@@ -75,7 +71,7 @@ Normal or binary variables are currently supported. For binary variables, the lo
 \dontrun{
 data(DemoData2)
 data(DemoMap2)
-fit <- fitGeneric(data=DemoData2, geo=DemoMap2$geo, 
+fit <- fitGeneric(data=DemoData2,  
 Amat=DemoMap2$Amat, responseType="binary", 
 responseVar="tobacco.use", strataVar="strata", 
 weightVar="weights", regionVar="region", 
@@ -83,7 +79,7 @@ clusterVar = "~clustid+id", CI = 0.95)
 
 # Example with region-level covariates
  Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
- fit <- fitGeneric(data=DemoData2, geo=DemoMap2$geo, 
+ fit <- fitGeneric(data=DemoData2,  
   Amat=DemoMap2$Amat, responseType="binary", 
   X = Xmat,
   responseVar="tobacco.use", strataVar="strata", 
