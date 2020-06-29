@@ -43,8 +43,8 @@
 #' qqnorm(second_diff)	
 #' abline(c(0,1))
 #' 
-#' ## Spacial-temporal random effects
-#' out <- rst(n=1, type = "st", type.t = "RW1", Amat = DemoMap$Amat, n.t = 50)
+#' ## Spatial-temporal random effects
+#' out <- rst(n=1, type = "st", type.t = "RW2", Amat = DemoMap$Amat, n.t = 50)
 #' dimnames(out)
 #' par(mfrow = c(1,1))
 #' plot(1:dim(out)[3], out[1,1,], col = 1,
@@ -143,7 +143,7 @@ rst <- function(n = 1, type = c("s", "t", "st")[1], type.s = "ICAR", type.t = c(
 		Q <- Q1 %x% Q2
 		rsample <- array(NA, dim = c(n, dim(Amat)[1], n.t))
 		for(i in 1:n){
-			tmp <- sim.Q(Q)  # first space then time
+			tmp <- sim.Q(Q)  # n.t blocks of 1:n.area
 			rsample[i, , ] <- tmp
 		}
 		idt <- 1:n.t
