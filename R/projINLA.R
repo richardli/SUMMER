@@ -262,14 +262,14 @@ getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85
         }
         slope <- grep("time.slope.group", fields)
         if(!is.null(slope)){
-           AA$tstar <- (AA$time.unstruct - T/2) / sd(1:T)
+           AA$tstar <- (AA$time.unstruct - (T + 1)/2) / (T + 1)
            AA$slope  <- match(paste0("time.slope.group", AA$age.rep.idx, ":1"), fields)
         }else{
           AA$tstar <-  AA$slope <- NA
         }
         st.slope <- grep("st.slope.id", fields)
         if(!is.null(st.slope)){
-           AA$ststar <- (AA$time.unstruct - T/2) / sd(1:T)
+           AA$ststar <- (AA$time.unstruct - (T + 1)/2) / (T + 1)
            AA$st.slope  <- match(paste0("st.slope.id:", AA$region.struct), fields)
         }else{
            AA$ststar <-  AA$st.slope <- NA

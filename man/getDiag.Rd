@@ -6,7 +6,8 @@
 \usage{
 getDiag(inla_mod, field = c("space", "time", "spacetime")[1],
   year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99",
-  "00-04", "05-09", "10-14", "15-19"), Amat = NULL, CI = 0.95)
+  "00-04", "05-09", "10-14", "15-19"), Amat = NULL, CI = 0.95,
+  draws = NULL)
 }
 \arguments{
 \item{inla_mod}{output from \code{\link{smoothDirect}}}
@@ -20,6 +21,8 @@ getDiag(inla_mod, field = c("space", "time", "spacetime")[1],
 \item{Amat}{adjacency matrix}
 
 \item{CI}{Desired level of credible intervals}
+
+\item{draws}{Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.}
 }
 \value{
 List of diagnostic plots

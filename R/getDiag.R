@@ -6,6 +6,7 @@
 #' @param year_label vector of year string vector
 #' @param Amat adjacency matrix
 #' @param CI Desired level of credible intervals
+#' @param draws Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.  
 
 #' 
 #' @return List of diagnostic plots
@@ -42,7 +43,7 @@
 #' @export
 
 
-getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), Amat = NULL, CI = 0.95){
+getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), Amat = NULL, CI = 0.95, draws = NULL){
 	lower <- (1 - CI) / 2
 	upper <- 1 - lower
 	if(!is.null(inla_mod$year_range)){
@@ -106,9 +107,12 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
            select[[i]] <- 0
            names(select)[i] <- fixed[i]
         }
-        message("AR1 model is still experimental, starting posterior sampling...")
-        sampAll <- INLA::inla.posterior.sample(n = 1e3, result = inla_mod$fit, intern = TRUE, selection = select, verbose = FALSE)
-        message("Finished posterior sampling, cleaning up results now...")
+        if(is.null(draws)){
+	        message("AR1 model diagnostics are still experimental, starting posterior sampling...")
+	        sampAll <- INLA::inla.posterior.sample(n = 1e3, result = inla_mod$fit, intern = TRUE, selection = select, verbose = FALSE)        	
+        }else{
+        	sampAll <- draws
+        }
 
 	    #inla_mod$fit$marginals.random$time.struct 
 	    re <- grep("time.struct", rownames(sampAll[[1]]$latent))
@@ -192,8 +196,51 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 		  }else{
 		    label <- year_label
 		 }
+		has.random.slope <- sum(grepl("slope", names(inla_mod$fit$summary.random)))
+		if(has.random.slope){
+			fixed <- c("st.slope.id", "region.int", "time.area")
+	        select <- list()
+	        for(i in 1:length(fixed)){
+	           select[[i]] <- 0
+	           names(select)[i] <- fixed[i]
+	        }
+        	if(is.null(draws)){
+				message("AR1 model diagnostics are still experimental, starting posterior sampling...")
+	        	sampAll <- INLA::inla.posterior.sample(n = 1000, result = inla_mod$fit, intern = TRUE, selection = select, verbose = FALSE)
+	        }else{
+	        	sampAll <- draws
+	        }
+	        fields <- rownames(sampAll[[1]]$latent)        
+			A <- inla_mod$fit$.args$data
+	        A <- A[, colnames(A) %in% c(fixed, "time.unstruct", "region.struct")]
+	        A <- unique(A)
+	        AA.loc <- A
+	        AA.loc$time.area  <- match(paste0("time.area:", AA.loc$time.area), fields)
+	        region.int.index <- (AA.loc$time.unstruct - 1) * max(AA.loc$region.struct) + AA.loc$region.struct
+			AA.loc$region.int  <- match(paste0("region.int:", region.int.index), fields)
+	        T <- max(A$time.unstruct)
+	        AA.loc$ststar <- (AA.loc$time.unstruct - (T + 1)/2) / (T + 1)
+	        AA.loc$st.slope  <- match(paste0("st.slope.id:", AA.loc$region.struct), fields)
 
-		 if("region.int" %in% names(inla_mod$fit$marginals.random)){
+	        sum <- matrix(NA, dim(AA.loc)[1], length(sampAll))
+	        for(i in 1:length(sampAll)){
+	    		s1 <- sampAll[[i]]$latent[AA.loc$time.area]  		
+	    		s2 <- sampAll[[i]]$latent[AA.loc$region.int]  
+	    		s3 <- sampAll[[i]]$latent[AA.loc$st.slope] * AA.loc$ststar
+	    		if(sum(!is.na(s1)) == 0){
+	    			sum[, i] <- s2 + s3
+	    		}else{
+	    			sum[, i] <- s1 + s3
+	    		}
+		    }
+			group <- colnames(Amat)[AA.loc$region.struct]
+		    label <- label[AA.loc$time.unstruct]
+		    struct <- NULL
+		    quants <- t(apply(sum, 1, function(x, lower, upper){as.numeric(quantile(x, c(lower, 0.5, upper)))}, lower, upper))
+		    quants <- data.frame(quants)
+		    colnames(quants) <- c("lower", "median", "upper")
+
+		}else if("region.int" %in% names(inla_mod$fit$marginals.random)){
 			 group <- rep(colnames(Amat), length(label))
 			 label <- rep(label, each = N)	
 			 struct <- inla_mod$fit$marginals.random$region.int	 	
@@ -202,8 +249,9 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
 		 	label  <- label[inla_mod$time.area$time.unstruct]	
 			struct <- inla_mod$fit$marginals.random$time.area
 		 }
-		if(length(struct) != length(label)) stop("The input year_range or year_label does not match the fitted model. Please double check.")
-		quants <- getquants(struct, lower = lower, upper = upper) 
+
+		if(!is.null(struct) && length(struct) != length(label)) stop("The input year_range or year_label does not match the fitted model. Please double check.")
+		if(!is.null(struct)) quants <- getquants(struct, lower = lower, upper = upper) 
 		quants$years <- label
 	  	quants$years.num <- suppressWarnings(as.numeric(as.character(quants$years)))
 		quants$region <- group	
@@ -215,5 +263,4 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_r
   	class(quants) <- c("SUMMERproj", "data.frame")
 
 	return(quants)
-
 }
