@@ -1,22 +1,17 @@
 #' Function to calculate and plot densities of the projected estimates from INLA for each time and region.
 #' 
-#' 
+#' The function \code{ridgePlot} replaces the previous function name \code{getSmoothedDensity}.
 #'
-#' @param inla_mod output from \code{\link{smoothDirect}}
-#' @param results output from \code{\link{getSmoothedDensity}}. This argument can be specified to avoid calculating densities again when only the visualization changes.
-#' @param year_range range corresponding to year label
-#' @param year_label vector of year string vector
+#' @param x output from \code{\link{smoothDirect}} for the smoothed direct estimates, or \code{\link{getSmoothed}} for the cluster-level estimates.
+#' @param results output from \code{\link{ridgePlot}}. This argument can be specified to avoid calculating densities again when only the visualization changes.
 #' @param Amat adjacency matrix
-#' @param nsim number of simulations
-#' @param weight.strata a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. 
-#' @param verbose logical indicator whether to print progress messages from inla.posterior.sample.
-#' @param mc number of monte carlo draws to approximate the marginal prevalence/hazards for binomial model. If mc = 0, analytical approximation is used. The analytical approximation is invalid for hazard modeling with more than one age groups.
-#' @param include_time_unstruct logical indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates.
 #' @param year_plot similar to year_label, a vector indicate which years to plot
 #' @param byyear logical indicator for whether the output uses years as facets. 
 #' @param ncol number of columns in the output figure.
+#' @param scale numerical value controlling the height of the density plots.
 #' @param per1000 logical indicator to multiply results by 1000.
 #' @param order order of regions when byyear is set to TRUE. Negative values indicate regions are ordered from high to low posterior medians from top to bottom. Positive values indicate from low to high. 0 indicate alphabetic orders.
+#' @param direction Direction of the color scheme. It can be either 1 (smaller values are darker) or -1 (higher values are darker). Default is set to 1.
 #' @param ... additional configurations passed to inla.posterior.sample.
 #' 
 #' @return a data frame of the calculated densities and a ggplot figure.
@@ -43,7 +38,7 @@
 #'   year_label = years.all, year_range = c(1985, 2019), 
 #'   rw = 2, is.yearly=FALSE, m = 5)
 #' ## Plot marginal posterior densities over time
-#' density <- getSmoothedDensity(fit1,  year_label = years.all, year_plot = years.all, 
+#' density <- ridgePlot(fit1, year_plot = years.all, 
 #' ncol = 4, byyear = FALSE)
 #' density$g
 #' 
@@ -53,23 +48,22 @@
 #'   rw = 2, is.yearly=TRUE, m = 5, type.st = 1)
 #' 
 ##' # Plot marginal posterior densities over time (regions are ordered alphabetically)
-#' density <- getSmoothedDensity(fit2, Amat = mat, year_label = years.all, 
-#' year_plot = years.all, ncol = 4)
+#' density <- ridgePlot(fit2, Amat = mat, year_plot = years.all, ncol = 4)
 #' density$g
 #' 
 ##' # Re-order the regions 
-#' density <- getSmoothedDensity(fit2, Amat = mat,  year_plot = years.all,
+#' density <- ridgePlot(fit2, Amat = mat,  year_plot = years.all,
 #'  ncol = 4, per1000 = TRUE, order = -1)
 #' density$g
 #' 
 #' # Show each region (instead of each year) in a panel 
 #' ## Instead of recalculate the posteriors, we can use previously calculated densities as input 
-#' density <- getSmoothedDensity(results = density, year_plot = years.all, 
+#' density <- ridgePlot(results = density, year_plot = years.all, 
 #' ncol = 4, byyear=FALSE, per1000 = TRUE)
 #' density$g
 #' 
 #' # Show more years
-#' density <- getSmoothedDensity(results = density, year_plot = c(1990:2019), 
+#' density <- ridgePlot(results = density, year_plot = c(1990:2019), 
 #' ncol = 4, byyear=FALSE, per1000 = TRUE)
 #' density$g
 #'
@@ -79,22 +73,14 @@
 #' 
 
 #' @export
-getSmoothedDensity <- function(inla_mod=NULL, results = NULL, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), Amat = NULL, nsim = 1000, weight.strata = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, year_plot = NULL, byyear = TRUE, ncol = 4, per1000 = FALSE, order = 0, ...){
+ridgePlot <- function(x=NULL, results = NULL, Amat = NULL, year_plot = NULL, byyear = TRUE, ncol = 4, scale = 2, per1000 = FALSE, order = 0, direction = 1, ...){
 
-      years <- x <- y <- `..x..` <- region <- NA
+      years <-  y <- `..x..` <- region <- NA
 
-      ########################
-      ## Binomial methods
-      ########################
-    if(!is.null(inla_mod$family)){
-            ## Experimental function, finish this later
-      stop("This function is experimental and has not been implemented for cluster-level model yet.")
-
-      ########################
-      ## Mercer et al. methods
-      ########################
-    }else{
-
+      if(is(x, "data.frame")){
+        stop("Input argument x needs to be either (1) a fitted object from smoothDirect(...), or (2) a list containing posterior draws of a cluster-level model using getSmoothed(..., save.draws.est = TRUE)")
+      } 
+    
       if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
         stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
       }
@@ -104,25 +90,92 @@ getSmoothedDensity <- function(inla_mod=NULL, results = NULL, year_range = c(198
           attachNamespace("INLA")
         }
 
-      if(is.null(results)){ 
+    is.density <- FALSE
+     if(!is.null(results)){
+        results <- results$data
+        region_names <- unique(results$region)
+        timelabel.yearly <- levels(results$years)
+        if(order != 0) warning("Plotting pre-calculated densities, order argument is ignored.")
+        is.density <- "y" %in% colnames(results) 
+
+     }else{ 
         if(is.null(Amat)){
           region_names <- "All"
           region_nums <- 0
         }else{
           region_names <- colnames(Amat)
           region_nums <- 1:length(region_names)
-        }
-        is.yearly = inla_mod$is.yearly
-        if(is.yearly){
-          timelabel.yearly <- c(year_range[1] : year_range[2], year_label)
-        }else{
+        }      
+        ########################
+        ## Binomial methods
+        ########################
+        if(is(x, "list") && is.null(x$fit)){
+          is.density <- FALSE
+          if(is.null(x$draws.est)){
+            stop("Posterior draws not found. Please rerun getSmoothed() with save.draws.est = TRUE.")
+          }
+          if(is.null(year_label)){
+            tmp <- NULL
+            # draw.est is ordered
+            for(i in 1:length(x$draws.est)) {
+              if(x$draws.est[[i]]$years %in% tmp) next
+              tmp <- c(tmp, x$draws.est[[i]]$years)
+            }
+            year_label <- tmp 
+          }
           timelabel.yearly <- year_label
-        }
-        
-        names <- expand.grid(area = region_nums, time = timelabel.yearly)
-        mod <- inla_mod$fit
-        lincombs.info <- inla_mod$lincombs.info
-   
+          results <- NULL
+
+          ## 
+          ## TODO: stratified draws.est, subset?? Or maybe make getSmoothed return only overall not stratified...
+          ##
+          for(i in 1:length(timelabel.yearly)){
+            for(j in 1:length(region_names)){
+              draw_est_j <- x$draws.est[lapply(x$draws.est, '[[',"region")==region_names[j]]
+              draw_est_ij <- draw_est_j[lapply(draw_est_j, '[[', "years")==timelabel.yearly[i]]
+              tmp <- data.frame(draws = draw_est_ij[[1]]$draws)
+              tmp$region <- region_nums[j]
+              tmp$years <- timelabel.yearly[i]
+              results <- rbind(results, tmp)
+            }
+          }
+          results$years.num <- suppressWarnings(as.numeric(as.character(results$years)))
+          results$x <- results$draws
+          if(region_names[1] != "All"){
+            results$region <- region_names[results$region]
+          }else{
+            results$region <- "All"
+          }
+          results$years <- factor(results$years, levels = timelabel.yearly)
+
+          # reorder areas
+          if(order != 0 && byyear && length(region_names) > 1){
+            tmp <- data.frame(region = region_names, median = NA)
+            for(j in 1:length(region_names)){
+                tmp$median[j]<- median(results[results$region == region_names[j], ]$draws, na.rm = T)
+            }
+            tmp <- tmp[order(tmp$median, decreasing = (order > 0)), ]
+            results$region <- factor(results$region, levels = tmp$region)
+          }else{
+            results$region <- factor(results$region, rev(sort(as.character(unique(results$region)))))
+          }      
+        ########################
+        ## Mercer et al. methods
+        ########################
+        }else{
+          is.density <- TRUE
+          is.yearly = x$is.yearly
+          if(is.null(year_label)) year_label <- x$year_label
+          if(is.yearly){
+            timelabel.yearly <- c(x$year_range[1] : x$year_range[2], year_label)
+          }else{
+            timelabel.yearly <- year_label
+          }
+
+          names <- expand.grid(area = region_nums, time = timelabel.yearly)
+          mod <- x$fit
+          lincombs.info <- x$lincombs.info
+
           results <- NULL
           for(i in 1:length(timelabel.yearly)){
             for(j in 1:length(region_names)){
@@ -134,7 +187,7 @@ getSmoothedDensity <- function(inla_mod=NULL, results = NULL, year_range = c(198
             }
           }
           results$is.yearly <- !(results$years %in% year_label)
-          results$years.num <- suppressWarnings(as.numeric(as.character(results$years)))
+          results$years.num <- suppressWarnings(as.numeric(as.character(results$years)))  
           if(region_names[1] != "All"){
             results$region <- region_names[results$region]
           }else{
@@ -153,27 +206,34 @@ getSmoothedDensity <- function(inla_mod=NULL, results = NULL, year_range = c(198
             results$region <- factor(results$region, levels = tmp$region)
           }else{
             results$region <- factor(results$region, rev(sort(as.character(unique(results$region)))))
-          }      
-      }else{
-        results <- results$data
-        region_names <- unique(results$region)
-        timelabel.yearly <- levels(results$years)
-        if(order != 0) warning("Plotting pre-calculated densities, order argument is ignored.")
-      }
+          }    
+        }      
+    }
 
       results.plot <- results
       if(per1000) results.plot$x <- 1000 * results.plot$x
       if(is.null(year_plot)){
         year_plot <- year_label 
       }
-      if(byyear){
-          g <- ggplot2::ggplot(subset(results.plot, years %in% year_plot), ggplot2::aes(x = x, y = region, height = y, fill = ..x..)) 
-      }else{
+      # plot calculated density
+      if(byyear && is.density){
+         g <- ggplot2::ggplot(subset(results.plot, years %in% year_plot), ggplot2::aes(x = x, y = region, height = y, fill = ..x..)) 
+      }else if(is.density){
          results.plot$years <- factor(results.plot$years, levels = rev(timelabel.yearly))
          g <- ggplot2::ggplot(subset(results.plot, years %in% year_plot), ggplot2::aes(x = x, y = years, height = y, fill = ..x..)) 
       }
-      g <- g + ggridges::geom_density_ridges_gradient(stat="identity", alpha = 0.5) 
-      g <- g + ggplot2::scale_fill_viridis_c(option = "B") + ggplot2::theme_bw()  + ggplot2::ylab("") + ggplot2::theme(legend.position = 'none') + ggplot2::xlab("")
+      if(is.density) g <- g + ggridges::geom_density_ridges_gradient(stat="identity", alpha = 0.5, size = 0.3) 
+
+      # plot draws
+      if(byyear && !is.density){
+        g <- ggplot2::ggplot(subset(results.plot, years %in% year_plot), ggplot2::aes(x = x, y = region)) 
+      }else if(!is.density){
+        results.plot$years <- factor(results.plot$years, levels = rev(timelabel.yearly))
+        g <- ggplot2::ggplot(subset(results.plot, years %in% year_plot), ggplot2::aes(x = x, y = years)) 
+      }
+      if(!is.density) g <- g + ggridges::geom_density_ridges_gradient(aes(fill = ..x..), scale = scale, size = 0.3, alpha = 0.5)
+
+      g <- g + ggplot2::scale_fill_viridis_c(option = "D", direction = direction) + ggplot2::theme_bw()  + ggplot2::ylab("") + ggplot2::theme(legend.position = 'none') + ggplot2::xlab("")
       if(byyear){
         if(length(year_plot) > 1) g <- g + ggplot2::facet_wrap(~years, ncol = ncol)
       }else{
@@ -182,9 +242,12 @@ getSmoothedDensity <- function(inla_mod=NULL, results = NULL, year_range = c(198
 
 
       return(list(data = results, g = g))
-      }
   }
 
 }
 
 
+
+#' @export
+#' @rdname ridgePlot
+getSmoothedDensity <- ridgePlot
