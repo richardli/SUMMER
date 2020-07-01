@@ -1,6 +1,6 @@
 #' Cluster-level space-time smoothing models for mortality rates 
 #' 
-#' The function \code{smoothCluster} will replace the previous function name \code{fitINLA2} in future updates.
+#' The function \code{smoothCluster} replace the previous function name \code{fitINLA2}.
 #' 
 #' @param data count data of person-months with the following columns
 #' \itemize{

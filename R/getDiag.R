@@ -2,12 +2,10 @@
 #' 
 #' @param inla_mod output from \code{\link{smoothDirect}}
 #' @param field which random effects to plot. It can be one of the following: space, time, and spacetime.
-#' @param year_range Entire range of the years (inclusive) defined in year_label. To be deprecated and imputed from the fitted object in the next version of SUMMER.
-#' @param year_label vector of year string vector
 #' @param Amat adjacency matrix
 #' @param CI Desired level of credible intervals
 #' @param draws Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.  
-
+#' @param ... unused arguments
 #' 
 #' @return List of diagnostic plots
 #' @examples
@@ -33,21 +31,27 @@
 #'   fit1 <- smoothDirect(data = data, geo = DemoMap$geo, Amat = DemoMap$Amat, 
 #'     year_label = years.all, year_range = c(1985, 2019), 
 #'     rw = 2, is.yearly=FALSE, m = 5)
-#' random.time <- getDiag(fit1, field = "time", year_label = years.all, #' year_range = c(1985, 2019))
+#' random.time <- getDiag(fit1, field = "time")
 #'   random.space <- getDiag(fit1, field = "space", Amat = DemoMap$Amat)
 #'   random.spacetime <- getDiag(fit1, field = "spacetime",
-#'    year_label = years, year_range = c(1985, 2019), 
 #'    Amat = DemoMap$Amat)
 #' }
 #' 
 #' @export
 
 
-getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), Amat = NULL, CI = 0.95, draws = NULL){
+getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], Amat = NULL, CI = 0.95, draws = NULL, ...){
 	lower <- (1 - CI) / 2
 	upper <- 1 - lower
 	if(!is.null(inla_mod$year_range)){
 		year_range <- inla_mod$year_range
+	}else{
+		warning("The fitted object was from an old version of SUMMER, please specify 'year_range' argument when calling getDiag()")
+	}
+	if(!is.null(inla_mod$year_label)){
+		year_label <- inla_mod$year_label
+	}else{
+		warning("The fitted object was from an old version of SUMMER, please specify 'year_label' argument when calling getDiag()")
 	}
 	getquants <- function(mlist, lower, upper){
 		quants <- data.frame(matrix(NA, length(mlist), 3))

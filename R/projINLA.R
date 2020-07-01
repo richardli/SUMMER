@@ -3,8 +3,6 @@
 #' 
 #'
 #' @param inla_mod output from \code{\link{smoothDirect}}
-#' @param year_range range corresponding to year label
-#' @param year_label vector of year string vector
 #' @param Amat adjacency matrix
 #' @param nsim number of simulations
 #' @param weight.strata a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. This argument specifies the weights for strata-specific estimates on the probability scale. 
@@ -58,11 +56,23 @@
 #' 
 
 #' @export
-getSmoothed <- function(inla_mod, year_range = c(1985, 2019), year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), Amat = NULL, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, save.draws.est = FALSE, include_subnational = TRUE, ...){
+getSmoothed <- function(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, save.draws.est = FALSE, include_subnational = TRUE, ...){
 
       years <- region <- NA
       lowerCI <- (1 - CI) / 2
       upperCI <- 1 - lowerCI
+
+      if(!is.null(inla_mod$year_range)){
+        year_range <- inla_mod$year_range
+      }else{
+        warning("The fitted object was from an old version of SUMMER, please specify 'year_range' argument when calling getDiag()")
+      }
+      if(!is.null(inla_mod$year_label)){
+        year_label <- inla_mod$year_label
+      }else{
+        warning("The fitted object was from an old version of SUMMER, please specify 'year_label' argument when calling getDiag()")
+      }
+      
       ########################
       ## Binomial methods
       ########################
