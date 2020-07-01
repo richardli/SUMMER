@@ -1,4 +1,4 @@
-#' Makes map plot.
+#' Plot a data frame over polygon maps.
 #' 
 #' This function visualizes the map with different variables. The input data frame can be either the long or wide format.
 #'
