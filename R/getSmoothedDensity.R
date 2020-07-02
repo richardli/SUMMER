@@ -2,16 +2,19 @@
 #' 
 #' The function \code{ridgePlot} replaces the previous function name \code{getSmoothedDensity}.
 #'
-#' @param x output from \code{\link{smoothDirect}} for the smoothed direct estimates, or \code{\link{getSmoothed}} for the cluster-level estimates.
-#' @param results output from \code{\link{ridgePlot}}. This argument can be specified to avoid calculating densities again when only the visualization changes.
+#' @param x output from \code{\link{smoothDirect}} for the smoothed direct estimates, or \code{\link{smoothCluster}} for the cluster-level estimates.
+#' @param nsim number of posterior draws to take. Only used for cluster-level models when \code{\link{draws}} is NULL. Otherwise the posterior draws in \code{\link{draws}} will be used instead without resampling.
+#' @param draws Output of \code{\link{getSmoothed}} with \code{save.draws} set to TRUE. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks. This argument is only used for cluster-level models.   
 #' @param Amat adjacency matrix
-#' @param year_plot similar to year_label, a vector indicate which years to plot
+#' @param year_plot A vector indicate which years to plot
+#' @param strata_plot Name of the strata to plot. If not specified, the overall is plotted.
 #' @param byyear logical indicator for whether the output uses years as facets. 
 #' @param ncol number of columns in the output figure.
 #' @param scale numerical value controlling the height of the density plots.
 #' @param per1000 logical indicator to multiply results by 1000.
 #' @param order order of regions when byyear is set to TRUE. Negative values indicate regions are ordered from high to low posterior medians from top to bottom. Positive values indicate from low to high. 0 indicate alphabetic orders.
 #' @param direction Direction of the color scheme. It can be either 1 (smaller values are darker) or -1 (higher values are darker). Default is set to 1.
+#' @param results output from \code{\link{ridgePlot}}. This argument can be specified to avoid calculating densities again when only the visualization changes.
 #' @param ... additional configurations passed to inla.posterior.sample.
 #' 
 #' @return a data frame of the calculated densities and a ggplot figure.
@@ -73,13 +76,10 @@
 #' 
 
 #' @export
-ridgePlot <- function(x=NULL, results = NULL, Amat = NULL, year_plot = NULL, byyear = TRUE, ncol = 4, scale = 2, per1000 = FALSE, order = 0, direction = 1, ...){
+ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, Amat = NULL, year_plot = NULL, strata_plot = NULL, byyear = TRUE, ncol = 4, scale = 2, per1000 = FALSE, order = 0, direction = 1, results = NULL, ...){
 
       years <-  y <- `..x..` <- region <- NA
 
-      if(is(x, "data.frame")){
-        stop("Input argument x needs to be either (1) a fitted object from smoothDirect(...), or (2) a list containing posterior draws of a cluster-level model using getSmoothed(..., save.draws.est = TRUE)")
-      } 
     
       if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
         stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
@@ -109,29 +109,61 @@ ridgePlot <- function(x=NULL, results = NULL, Amat = NULL, year_plot = NULL, byy
         ########################
         ## Binomial methods
         ########################
+        if(is.null(x) && is.null(draws))  
+
+        # when posterior draws exist, make that into x 
+        if(!is.null(draws)){
+          if("draws.est" %in% draws == FALSE && is(x, "list")) stop("draws argument is not correctly specified. It should be the whole output of getSmoothed() function.")
+          message("Use posterior draws from input.")
+          x <- draws
+        # when draws does not exist
+        }else if(is.null(x)){
+          # only take draws for cluster-level models
+          if(!is.null(x$family)){
+            message("Draws not specified. Use getSmoothed() to calculate posterior draws. Please be aware this does not take into account strata weighting.")
+            draws <- getSmoothed(x, Amat = Amat, nsim = nsim, save.draws = TRUE)
+            # overwrite x...
+            x <- draws
+          }
+        }else{
+          stop("Neither fitted object nor posterior draws are provided.")
+        }
+
+        # at this point x is an object from getSmoothed or smoothDirect
+
         if(is(x, "list") && is.null(x$fit)){
           is.density <- FALSE
-          if(is.null(x$draws.est)){
-            stop("Posterior draws not found. Please rerun getSmoothed() with save.draws.est = TRUE.")
+          if(is.null(x$draws.est.overall)){
+            stop("Posterior draws not found. Please rerun getSmoothed() with save.draws = TRUE.")
           }
-          if(is.null(year_label)){
-            tmp <- NULL
-            # draw.est is ordered
-            for(i in 1:length(x$draws.est)) {
-              if(x$draws.est[[i]]$years %in% tmp) next
-              tmp <- c(tmp, x$draws.est[[i]]$years)
-            }
-            year_label <- tmp 
+          tmp <- NULL
+          if(is.null(strata_plot)){
+            draws.plot <- x$draws.est.overall
+          }else{
+             draws.plot <- NULL
+             counter <- 1
+             for(i in 1:length(x$draws.est)){
+              if(x$draws.est[[i]]$strata == draws.plot){
+                draws.plot[[counter]] <- x$draws.est[[i]]
+                counter <- counter + 1
+             }
           }
+
+          # draw.est is ordered
+          for(i in 1:length(draws.plot)) {
+            if(draws.plot[[i]]$years %in% tmp) next
+            tmp <- c(tmp, draws.plot[[i]]$years)
+          }
+          year_label <- tmp 
+        
           timelabel.yearly <- year_label
           results <- NULL
 
-          ## 
-          ## TODO: stratified draws.est, subset?? Or maybe make getSmoothed return only overall not stratified...
-          ##
+          
+          
           for(i in 1:length(timelabel.yearly)){
             for(j in 1:length(region_names)){
-              draw_est_j <- x$draws.est[lapply(x$draws.est, '[[',"region")==region_names[j]]
+              draw_est_j <- draws.plot[lapply(draws.plot, '[[',"region")==region_names[j]]
               draw_est_ij <- draw_est_j[lapply(draw_est_j, '[[', "years")==timelabel.yearly[i]]
               tmp <- data.frame(draws = draw_est_ij[[1]]$draws)
               tmp$region <- region_nums[j]
