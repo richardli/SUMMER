@@ -14,7 +14,7 @@
 #' @param CI Desired level of credible intervals
 #' @param draws Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.  
 #' @param save.draws Logical indicator whether the raw posterior draws will be saved. Saved draws can be used to accelerate aggregations with different weights.
-#' @param ... additional configurations passed to inla.posterior.sample.
+#' @param ... Unused arguments
 #' 
 #' @return Results from RW2 model fit, including projection.
 #' @seealso \code{\link{plot.SUMMERproj}}
@@ -192,7 +192,7 @@ getSmoothed <- function(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL
 
        if(is.null(draws)){
           message("Starting posterior sampling...")
-            sampAll <- INLA::inla.posterior.sample(n = nsim, result = inla_mod$fit, intern = TRUE, selection = select, verbose = verbose, ...)
+            sampAll <- INLA::inla.posterior.sample(n = nsim, result = inla_mod$fit, intern = TRUE, selection = select, verbose = verbose)
            message("Cleaning up results...")
      
        }else{
