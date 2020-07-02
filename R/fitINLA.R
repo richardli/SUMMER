@@ -126,11 +126,16 @@ smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("r
   message("----------------------------------",
           "\nSmoothed Direct Model",
           "\n  Main temporal model:        ", time.model, appendLF=FALSE)      
-
+          
   if(m == 1){
-    if(is.yearly) message("Switched to period model because m = 1.")
+    if(is.yearly) message("\n  Temporal resolution:        period model (m = 1)", appendLF=FALSE)
     is.yearly = FALSE
+  }else if(is.yearly){
+    message("\n  Temporal resolution:        period model (m = 1)", appendLF=FALSE)
+  }else{
+    message(paste0("\n  Temporal resolution:        yearly model (m = ", m, ")"), appendLF=FALSE)
   }
+
   if(is.ar && hyper=="gamma"){
     stop("ar1 model only implemented with PC priors for now.")
   }
