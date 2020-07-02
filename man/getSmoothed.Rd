@@ -10,7 +10,7 @@ getSmoothed(inla_mod, nsim = 1000, weight.strata = NULL,
   save.draws = FALSE, include_subnational = TRUE, ...)
 }
 \arguments{
-\item{inla_mod}{output from \code{\link{smoothDirect}} or \code{\link{smoothCLuter}}}
+\item{inla_mod}{output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}}
 
 \item{nsim}{number of simulations, only applicable for the cluster-level model.}
 
