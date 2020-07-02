@@ -35,10 +35,10 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
     if (!regionVar %in% colnames(births)) {
         if ("v101" %in% colnames(births)) {
             colnames(births)[which(colnames(births) == "v101")] <- regionVar
-            warning("region variable not defined: using v101", immediate. = TRUE)
+            message("region variable not defined: using v101")
         } else if ("v024" %in% colnames(births)) {
             colnames(births)[which(colnames(births) == "v024")] <- regionVar
-            warning("region variable not defined: using v024", immediate. = TRUE)
+            message("region variable not defined: using v024")
         } else {
             stop("region variable not defined, and no v101 or v024!")
         }
@@ -135,7 +135,7 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
         if (dim(tmp)[1] == 0) {
             return(rep(NA, 5))
         } else if (sum(tmp$variables$died) == 0) {
-            warning(paste0(which.area, " ", which.time, " has no death, set to NA\n"),immediate. = TRUE)
+            message(paste0(which.area, " ", which.time, " has no death, set to NA"))
             return(rep(NA, 5))
         } else if(length(unique(tmp$variables$age0)) > 1){
             if(is.null(Ntrials)){
@@ -147,13 +147,13 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
             if(dim(summary(glm.ob)$coef)[1] < length(labels)){
                 bins.nodata <- length(labels) - dim(summary(glm.ob)$coef)[1] 
                 if(bins.nodata >= length(ns)/2){
-                    warning(paste0(which.area, " ", which.time, " has no observation in more than half of the age bins, set to NA\n"),immediate. = TRUE)
+                    message(paste0(which.area, " ", which.time, " has no observation in more than half of the age bins, set to NA"))
                     return(rep(NA, 5))
                 }
                 # This can only happen for the last one or several bins, since person-month are cumulative
                 ns.comb <- ns
                 ns.comb[length(ns) - bins.nodata] <- sum(ns[c(length(ns) - bins.nodata) : length(ns)])
-                warning(paste0(which.area, " ", which.time, " has no observations in ", bins.nodata, " age bins. They are collapsed with previous bins\n"),immediate. = TRUE)
+                message(paste0(which.area, " ", which.time, " has no observations in ", bins.nodata, " age bins. They are collapsed with previous bins"))
                 return(get.est.withNA(glm.ob, labels, ns.comb))
             }
             return(get.est.withNA(glm.ob, labels, ns))
