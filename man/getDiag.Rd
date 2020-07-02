@@ -5,20 +5,18 @@
 \title{Make diagnostic plots}
 \usage{
 getDiag(inla_mod, field = c("space", "time", "spacetime")[1],
-  Amat = NULL, CI = 0.95, draws = NULL, ...)
+  CI = 0.95, draws = NULL, ...)
 }
 \arguments{
 \item{inla_mod}{output from \code{\link{smoothDirect}}}
 
 \item{field}{which random effects to plot. It can be one of the following: space, time, and spacetime.}
 
-\item{Amat}{adjacency matrix}
-
 \item{CI}{Desired level of credible intervals}
 
 \item{draws}{Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.}
 
-\item{...}{unused arguments}
+\item{...}{Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.}
 }
 \value{
 List of diagnostic plots
@@ -50,9 +48,8 @@ Make diagnostic plots
     year_label = years.all, year_range = c(1985, 2019), 
     rw = 2, is.yearly=FALSE, m = 5)
 random.time <- getDiag(fit1, field = "time")
-  random.space <- getDiag(fit1, field = "space", Amat = DemoMap$Amat)
-  random.spacetime <- getDiag(fit1, field = "spacetime",
-   Amat = DemoMap$Amat)
+  random.space <- getDiag(fit1, field = "space")
+  random.spacetime <- getDiag(fit1, field = "spacetime")
 }
 
 }

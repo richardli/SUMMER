@@ -4,15 +4,13 @@
 \alias{getSmoothed}
 \title{Function to obtain projected estimates from INLA for each time and region.}
 \usage{
-getSmoothed(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL,
+getSmoothed(inla_mod, nsim = 1000, weight.strata = NULL,
   weight.frame = NULL, verbose = FALSE, mc = 0,
   include_time_unstruct = FALSE, CI = 0.95, draws = NULL,
   save.draws = FALSE, include_subnational = TRUE, ...)
 }
 \arguments{
 \item{inla_mod}{output from \code{\link{smoothDirect}}}
-
-\item{Amat}{adjacency matrix}
 
 \item{nsim}{number of simulations}
 
@@ -34,7 +32,7 @@ getSmoothed(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL,
 
 \item{include_subnational}{logical indicator whether to include the spatial and space-time interaction components in the smoothed estimates. If set to FALSE, only the main temporal trends are returned.}
 
-\item{...}{Unused arguments}
+\item{...}{Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.}
 }
 \value{
 Results from RW2 model fit, including projection.
@@ -71,7 +69,7 @@ plot(out1, is.subnational=FALSE)
 fit2 <- smoothDirect(data = data, Amat = mat, 
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
-out2 <- getSmoothed(fit2, Amat = mat)
+out2 <- getSmoothed(fit2)
 plot(out2, is.yearly=TRUE, is.subnational=TRUE)
 
 

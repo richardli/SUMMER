@@ -2,10 +2,9 @@
 #' 
 #' @param inla_mod output from \code{\link{smoothDirect}}
 #' @param field which random effects to plot. It can be one of the following: space, time, and spacetime.
-#' @param Amat adjacency matrix
 #' @param CI Desired level of credible intervals
 #' @param draws Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.  
-#' @param ... unused arguments
+#' @param ... Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.
 #' 
 #' @return List of diagnostic plots
 #' @examples
@@ -32,15 +31,14 @@
 #'     year_label = years.all, year_range = c(1985, 2019), 
 #'     rw = 2, is.yearly=FALSE, m = 5)
 #' random.time <- getDiag(fit1, field = "time")
-#'   random.space <- getDiag(fit1, field = "space", Amat = DemoMap$Amat)
-#'   random.spacetime <- getDiag(fit1, field = "spacetime",
-#'    Amat = DemoMap$Amat)
+#'   random.space <- getDiag(fit1, field = "space")
+#'   random.spacetime <- getDiag(fit1, field = "spacetime")
 #' }
 #' 
 #' @export
 
 
-getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], Amat = NULL, CI = 0.95, draws = NULL, ...){
+getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0.95, draws = NULL, ...){
 	lower <- (1 - CI) / 2
 	upper <- 1 - lower
 	if(!is.null(inla_mod$year_range)){
@@ -53,6 +51,11 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], Amat =
 	}else{
 		warning("The fitted object was from an old version of SUMMER, please specify 'year_label' argument when calling getDiag()")
 	}
+	if(!is.null(inla_mod$has.Amat)){
+        Amat <- inla_mod$Amat
+      }else{
+        warning("The fitted object was from an old version of SUMMER, please specify 'Amat' argument when calling getDiag()")
+      }
 	getquants <- function(mlist, lower, upper){
 		quants <- data.frame(matrix(NA, length(mlist), 3))
 		for(i in 1:length(mlist)){

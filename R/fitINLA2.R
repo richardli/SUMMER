@@ -79,8 +79,7 @@
 #'       survey.effect = TRUE,
 #'       family = "betabinomial",
 #'       year_label = c(periods, "15-19"))
-#' est <- getSmoothed(fit, Amat = DemoMap$Amat, 
-#'       year_label =c(periods, "15-19"), nsim = 1000)
+#' est <- getSmoothed(fit, nsim = 1000)
 #' plot(est$stratified, plot.CI=TRUE) + ggplot2::facet_wrap(~strata) 
 #' }
 #' 
@@ -935,7 +934,7 @@ if(family == "betabinomialna"){
 
  priors <- list(pc.u = pc.u, pc.alpha = pc.alpha, pc.u.phi = pc.u.phi, pc.alpha.phi = pc.alpha.phi, pc.u.cor = pc.u.cor, pc.alpha.cor = pc.alpha.cor,  pc.st.u = pc.st.u, pc.st.alpha = pc.st.alpha, pc.st.slope.u = pc.st.slope.u, pc.st.slope.prec.u = pc.st.slope.prec.u, pc.st.slope.alpha = pc.st.slope.alpha, overdisp.mean = overdisp.mean, overdisp.prec = overdisp.prec)
 
-  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base, rw = rw, ar = ar, strata.time.effect = strata.time.effect,  priors = priors))
+  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base, rw = rw, ar = ar, strata.time.effect = strata.time.effect,  priors = priors, Amat = Amat, has.Amat = TRUE))
     
   }
 }

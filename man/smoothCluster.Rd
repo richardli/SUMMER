@@ -150,8 +150,7 @@ fit <- smoothCluster(data = counts.all,
       survey.effect = TRUE,
       family = "betabinomial",
       year_label = c(periods, "15-19"))
-est <- getSmoothed(fit, Amat = DemoMap$Amat, 
-      year_label =c(periods, "15-19"), nsim = 1000)
+est <- getSmoothed(fit, nsim = 1000)
 plot(est$stratified, plot.CI=TRUE) + ggplot2::facet_wrap(~strata) 
 }
 

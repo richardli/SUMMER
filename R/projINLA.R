@@ -3,7 +3,6 @@
 #' 
 #'
 #' @param inla_mod output from \code{\link{smoothDirect}}
-#' @param Amat adjacency matrix
 #' @param nsim number of simulations
 #' @param weight.strata a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. This argument specifies the weights for strata-specific estimates on the probability scale. 
 #' @param weight.frame a data frame with three columns, years, region, and the weight of each frame for the corresponding time period and region. This argument specifies the weights for frame-specific estimates on the logit scale. Notice this is different from weight.strata argument. 
@@ -14,7 +13,7 @@
 #' @param CI Desired level of credible intervals
 #' @param draws Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.  
 #' @param save.draws Logical indicator whether the raw posterior draws will be saved. Saved draws can be used to accelerate aggregations with different weights.
-#' @param ... Unused arguments
+#' @param ... Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.
 #' 
 #' @return Results from RW2 model fit, including projection.
 #' @seealso \code{\link{plot.SUMMERproj}}
@@ -47,7 +46,7 @@
 #' fit2 <- smoothDirect(data = data, Amat = mat, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
 #'   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
-#' out2 <- getSmoothed(fit2, Amat = mat)
+#' out2 <- getSmoothed(fit2)
 #' plot(out2, is.yearly=TRUE, is.subnational=TRUE)
 #' 
 #' 
@@ -55,7 +54,7 @@
 #' 
 
 #' @export
-getSmoothed <- function(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, include_subnational = TRUE, ...){
+getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, include_subnational = TRUE, ...){
 
       years <- region <- NA
       lowerCI <- (1 - CI) / 2
@@ -70,7 +69,12 @@ getSmoothed <- function(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL
       if(!is.null(inla_mod$year_label)){
         year_label <- inla_mod$year_label
       }else{
-        warning("The fitted object was from an old version of SUMMER, please specify 'year_label' argument when calling getDiag()")
+        warning("The fitted object was from an old version of SUMMER, please specify 'year_label' argument when calling getSmoothed()")
+      }
+      if(!is.null(inla_mod$has.Amat)){
+        Amat <- inla_mod$Amat
+      }else{
+        warning("The fitted object was from an old version of SUMMER, please specify 'Amat' argument when calling getSmoothed()")
       }
       
       ########################

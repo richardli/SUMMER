@@ -109,7 +109,7 @@ plot(out1, is.subnational=FALSE)
 fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat, 
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
-out2 <- getSmoothed(fit2, Amat = mat)
+out2 <- getSmoothed(fit2)
 plot(out2,  is.subnational=TRUE)
 
 

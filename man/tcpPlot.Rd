@@ -64,7 +64,7 @@ fit <- smoothCluster(data = counts.all,
       survey.effect = TRUE,
       family = "betabinomial",
       year_label = c(periods, "15-19"))
-est <- getSmoothed(fit, Amat = DemoMap$Amat, nsim = 1000, save.draws=TRUE)
+est <- getSmoothed(fit, nsim = 1000, save.draws=TRUE)
 
 tcp <- tcpPlot(est, DemoMap$geo, by.geo = "REGNAME", interval = 3, year_plot = periods) 
 tcp$g
