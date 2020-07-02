@@ -14,7 +14,6 @@
 #' @param CI Desired level of credible intervals
 #' @param draws Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.  
 #' @param save.draws Logical indicator whether the raw posterior draws will be saved. Saved draws can be used to accelerate aggregations with different weights.
-#' @param save.draws.est Logical indicator whether the posterior draws of the estimates will be saved.
 #' @param ... additional configurations passed to inla.posterior.sample.
 #' 
 #' @return Results from RW2 model fit, including projection.
@@ -56,11 +55,12 @@
 #' 
 
 #' @export
-getSmoothed <- function(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, save.draws.est = FALSE, include_subnational = TRUE, ...){
+getSmoothed <- function(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, include_subnational = TRUE, ...){
 
       years <- region <- NA
       lowerCI <- (1 - CI) / 2
       upperCI <- 1 - lowerCI
+      save.draws.est <- save.draws
 
       if(!is.null(inla_mod$year_range)){
         year_range <- inla_mod$year_range
@@ -481,6 +481,8 @@ getSmoothed <- function(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL
         draw.temp <- draws.hazards <- NA
         draws.est <- NULL
         index.draws.est <- 1
+        draws.est.overall <- NULL
+        index.draws.est.overall <- 1
         index1 <- 1
         index2 <- 1
         if(N == 1 && AA$region.struct[1] == 0) AA$region.struct <- 1
@@ -519,6 +521,7 @@ getSmoothed <- function(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL
               ## Strata specific output
               index1 <- which(out1$time == i & out1$area == j & out1$strata == stratalabels[k])
               
+              # save stratified mortality draws
               if(save.draws.est){
                   draws.est[[index.draws.est]] <- list(years = year_label[i], region = colnames(Amat)[j], strata = stratalabels[k], draws = draws.mort)
                   index.draws.est <- index.draws.est + 1
@@ -540,6 +543,13 @@ getSmoothed <- function(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL
               }
 
               draws.sub.agg.sum[, k] <- apply(draws.sub.agg[, cols, drop=FALSE], 1, function(x, p){sum(x * p)}, prop)
+
+              # save overall mortality draws
+              if(save.draws.est){
+                  draws.est.overall[[index.draws.est]] <- list(years = year_label[i], region = colnames(Amat)[j], draws = draws.sub.agg.sum[, k])
+                  index.draws.est.overall <- index.draws.est.overall + 1
+              }
+
               out2[index2[k], c("lower", "median", "upper")] <- quantile(draws.sub.agg.sum[, k], c(lowerCI, 0.5, upperCI))
               out2[index2[k], "mean"] <- mean(draws.sub.agg.sum[, k])
               out2[index2[k], "variance"] <- var(draws.sub.agg.sum[, k])
@@ -591,6 +601,7 @@ getSmoothed <- function(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL
       }
       if(save.draws.est){
         out$draws.est <- draws.est
+        out$draws.est.overall <- draws.est.overall
       }
 
       return(out) 
