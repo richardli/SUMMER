@@ -131,9 +131,9 @@ smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("r
     if(is.yearly) message("\n  Temporal resolution:        period model (m = 1)", appendLF=FALSE)
     is.yearly = FALSE
   }else if(is.yearly){
-    message("\n  Temporal resolution:        period model (m = 1)", appendLF=FALSE)
-  }else{
     message(paste0("\n  Temporal resolution:        yearly model (m = ", m, ")"), appendLF=FALSE)
+  }else{
+    message("\n  Temporal resolution:        period model (m = 1)", appendLF=FALSE)
   }
 
   if(is.ar && hyper=="gamma"){
