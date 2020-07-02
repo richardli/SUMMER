@@ -25,10 +25,10 @@
 #' @export
 tcpPlot <- function(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4, per1000 = FALSE, thresholds = NULL, intervals = 3, size.title = 0.7, border = "gray20", size = 0.5){
 
-  if(is(x, "data.frame") || (is(x, "list") && !is.null(x$fit))){
+  if(is(draws, "data.frame") || (is(draws, "list") && !is.null(draws$fit))){
     stop("TCP plot has not been implemented with smoothed direct estimates for now...")
 
-  }else if(is.null(x$draws.est.overall)){
+  }else if(is.null(draws$draws.est.overall)){
      stop("Posterior draws not found. Please rerun getSmoothed() with save.draws = TRUE.")
  
   }else{
@@ -44,7 +44,7 @@ tcpPlot <- function(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4, per10
         region_names <- geo@data$region_names
         region_nums <- 1:length(region_names)
         n_admin <- length(region_names)
-        draws.plot <- x$draws.est.overall
+        draws.plot <- draws$draws.est.overall
 
         tmp <- NULL
         # draw.est is ordered

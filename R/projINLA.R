@@ -546,7 +546,7 @@ getSmoothed <- function(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL
 
               # save overall mortality draws
               if(save.draws.est){
-                  draws.est.overall[[index.draws.est]] <- list(years = year_label[i], region = colnames(Amat)[j], draws = draws.sub.agg.sum[, k])
+                  draws.est.overall[[index.draws.est.overall]] <- list(years = year_label[i], region = colnames(Amat)[j], draws = draws.sub.agg.sum[, k])
                   index.draws.est.overall <- index.draws.est.overall + 1
               }
 
