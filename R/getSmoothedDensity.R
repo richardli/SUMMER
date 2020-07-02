@@ -3,8 +3,8 @@
 #' The function \code{ridgePlot} replaces the previous function name \code{getSmoothedDensity}.
 #'
 #' @param x output from \code{\link{smoothDirect}} for the smoothed direct estimates, or \code{\link{smoothCluster}} for the cluster-level estimates.
-#' @param nsim number of posterior draws to take. Only used for cluster-level models when \code{\link{draws}} is NULL. Otherwise the posterior draws in \code{\link{draws}} will be used instead without resampling.
-#' @param draws Output of \code{\link{getSmoothed}} with \code{save.draws} set to TRUE. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks. This argument is only used for cluster-level models.   
+#' @param nsim number of posterior draws to take. Only used for cluster-level models when \code{draws} is NULL. Otherwise the posterior draws in \code{draws} will be used instead without resampling.
+#' @param draws Output of \code{\link{getSmoothed}} with \code{save.draws} set to TRUE. This argument allows the previously sampled draws (by setting \code{save.draws} to be TRUE) be used in new aggregation tasks. This argument is only used for cluster-level models.   
 #' @param Amat adjacency matrix
 #' @param year_plot A vector indicate which years to plot
 #' @param strata_plot Name of the strata to plot. If not specified, the overall is plotted.

@@ -86,7 +86,7 @@ fitINLA(data, Amat, X = NULL, formula = NULL, time.model = c("rw1",
 INLA model fit using the provided formula, country summary data, and geographic data
 }
 \description{
-The function \code{smoothDirect} will replace the previous function name \code{fitINLA} in future updates.
+The function \code{smoothDirect} replaces the previous function name \code{fitINLA}.
 }
 \examples{
 \dontrun{
@@ -110,7 +110,7 @@ fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat,
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
 out2 <- getSmoothed(fit2, Amat = mat)
-plot(out2, is.yearly=TRUE, is.subnational=TRUE)
+plot(out2,  is.subnational=TRUE)
 
 
 }

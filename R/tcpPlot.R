@@ -9,21 +9,53 @@
 #' @param ncol number of columns in the output figure.
 #' @param per1000 logical indicator to multiply results by 1000.
 #' @param thresholds a vector of thresholds (on the mortality scale) defining the discrete color scale of the maps. 
-#' @param intervals number of quantile intervals defining the discrete color scale of the maps. Required when thresholds are not specificed.
+#' @param intervals number of quantile intervals defining the discrete color scale of the maps. Required when thresholds are not specified.
 #' @param size.title  a numerical value giving the amount by which the plot title should be magnified relative to the default.
 #' @param border color of the border
 #' @param size size of the border
 #' @return a list of True Classification Probability (TCP) tables, a list of individual spplot maps, and a gridded array of all maps.
-#' @importFrom gridExtra grid.arrange
+#' @import data.table
+#' @import RColorBrewer
+#' @importFrom grDevices colorRampPalette
+#' @importFrom methods is
 #' @examples
 #' \dontrun{
+#' library(dplyr)
+#' data(DemoData)
+#' # Create dataset of counts, unstratified
+#' counts.all <- NULL
+#' for(i in 1:length(DemoData)){
+#'   counts <- getCounts(DemoData[[i]][, c("clustid", "time", "age", "died",
+#'                                         "region")],
+#'             variables = 'died', by = c("age", "clustid", "region", 
+#'                                          "time"))
+#'   counts <- counts %>% mutate(cluster = clustid, years = time, Y=died)
+#'   counts$strata <- NA
+#'   counts$survey <- names(DemoData)[i] 
+#'   counts.all <- rbind(counts.all, counts)
+#' }
 #' 
+#' # fit cluster-level model on the periods
+#' periods <- levels(DemoData[[1]]$time)
+#' fit <- smoothCluster(data = counts.all, 
+#'       Amat = DemoMap$Amat, 
+#'       time.model = "rw2", 
+#'       st.time.model = "rw1",
+#'       strata.time.effect =  TRUE, 
+#'       survey.effect = TRUE,
+#'       family = "betabinomial",
+#'       year_label = c(periods, "15-19"))
+#' est <- getSmoothed(fit, Amat = DemoMap$Amat, nsim = 1000, save.draws=TRUE)
 #' 
+#' tcp <- tcpPlot(est, DemoMap$geo, by.geo = "REGNAME", interval = 3, year_plot = periods) 
+#' tcp$g
 #' }
 #' 
 
 #' @export
 tcpPlot <- function(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4, per1000 = FALSE, thresholds = NULL, intervals = 3, size.title = 0.7, border = "gray20", size = 0.5){
+
+  grp_val <- long <- lat <- group <- NA
 
   if(is(draws, "data.frame") || (is(draws, "list") && !is.null(draws$fit))){
     stop("TCP plot has not been implemented with smoothed direct estimates for now...")
@@ -82,6 +114,7 @@ tcpPlot <- function(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4, per10
         ##############
         
         get_measure_dt <- function(postsamp_mt, pred_dt, grp_thresh){
+          lower <- upper <- colid <- rowid <- value <- J <- grp <- TCP <- NA
           n_grp <- length(grp_thresh)-1
           grp_dt <- data.table::data.table(grp = 1:n_grp,
                                            lower = grp_thresh[1:(n_grp)],

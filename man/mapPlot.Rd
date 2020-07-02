@@ -2,7 +2,7 @@
 % Please edit documentation in R/mapPlot.R
 \name{mapPlot}
 \alias{mapPlot}
-\title{Makes map plot.}
+\title{Plot a data frame over polygon maps.}
 \usage{
 mapPlot(data = NULL, variables, values = NULL, labels = NULL, geo,
   by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE,

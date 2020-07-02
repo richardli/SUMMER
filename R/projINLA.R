@@ -65,7 +65,7 @@ getSmoothed <- function(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL
       if(!is.null(inla_mod$year_range)){
         year_range <- inla_mod$year_range
       }else{
-        warning("The fitted object was from an old version of SUMMER, please specify 'year_range' argument when calling getDiag()")
+        warning("The fitted object was from an old version of SUMMER, please specify 'year_range' argument when calling getSmoothed()")
       }
       if(!is.null(inla_mod$year_label)){
         year_label <- inla_mod$year_label

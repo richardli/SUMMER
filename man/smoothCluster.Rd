@@ -121,7 +121,7 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 INLA model fit using the provided formula, country summary data, and geographic data
 }
 \description{
-The function \code{smoothCluster} will replace the previous function name \code{fitINLA2} in future updates.
+The function \code{smoothCluster} replace the previous function name \code{fitINLA2}.
 }
 \examples{
 \dontrun{

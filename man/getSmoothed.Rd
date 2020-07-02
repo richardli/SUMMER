@@ -4,20 +4,13 @@
 \alias{getSmoothed}
 \title{Function to obtain projected estimates from INLA for each time and region.}
 \usage{
-getSmoothed(inla_mod, year_range = c(1985, 2019),
-  year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14",
-  "15-19"), Amat = NULL, nsim = 1000, weight.strata = NULL,
+getSmoothed(inla_mod, Amat = NULL, nsim = 1000, weight.strata = NULL,
   weight.frame = NULL, verbose = FALSE, mc = 0,
   include_time_unstruct = FALSE, CI = 0.95, draws = NULL,
-  save.draws = FALSE, save.draws.est = FALSE,
-  include_subnational = TRUE, ...)
+  save.draws = FALSE, include_subnational = TRUE, ...)
 }
 \arguments{
 \item{inla_mod}{output from \code{\link{smoothDirect}}}
-
-\item{year_range}{range corresponding to year label}
-
-\item{year_label}{vector of year string vector}
 
 \item{Amat}{adjacency matrix}
 
@@ -39,11 +32,9 @@ getSmoothed(inla_mod, year_range = c(1985, 2019),
 
 \item{save.draws}{Logical indicator whether the raw posterior draws will be saved. Saved draws can be used to accelerate aggregations with different weights.}
 
-\item{save.draws.est}{Logical indicator whether the posterior draws of the estimates will be saved.}
-
 \item{include_subnational}{logical indicator whether to include the spatial and space-time interaction components in the smoothed estimates. If set to FALSE, only the main temporal trends are returned.}
 
-\item{...}{additional configurations passed to inla.posterior.sample.}
+\item{...}{Unused arguments}
 }
 \value{
 Results from RW2 model fit, including projection.
