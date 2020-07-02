@@ -246,8 +246,8 @@ tcpPlot <- function(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4, per10
         }else{
           nrow.panel <- ceiling(length(unique(geo2$label)) / ncol)
         } 
-        panel_height <- ggplot2::unit(0.9/as.numeric(nrow.panel),"npc") 
-        g <- g + ggplot2::guides(fill= ggplot2::guide_colorbar(title.theme = ggplot2::element_blank(), barheight=panel_height)) 
+        # panel_height <- ggplot2::unit(0.9/as.numeric(nrow.panel),"npc") 
+        g <- g + ggplot2::guides(fill= ggplot2::guide_colorbar(title.theme = ggplot2::element_blank(), barheight=ggplot2::rel(14))) 
 
         if(has.coord) g <- g + ggplot2::coord_map()
 
