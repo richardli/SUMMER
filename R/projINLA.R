@@ -1,9 +1,9 @@
-#' Function to obtain projected estimates from INLA for each time and region.
+#' Organize the smoothed estimates.
 #' 
 #' 
 #'
-#' @param inla_mod output from \code{\link{smoothDirect}}
-#' @param nsim number of simulations
+#' @param inla_mod output from \code{\link{smoothDirect}} or \code{\link{smoothCLuter}}
+#' @param nsim number of simulations, only applicable for the cluster-level model.
 #' @param weight.strata a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. This argument specifies the weights for strata-specific estimates on the probability scale. 
 #' @param weight.frame a data frame with three columns, years, region, and the weight of each frame for the corresponding time period and region. This argument specifies the weights for frame-specific estimates on the logit scale. Notice this is different from weight.strata argument. 
 #' @param verbose logical indicator whether to print progress messages from inla.posterior.sample.

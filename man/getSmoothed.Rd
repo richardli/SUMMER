@@ -2,7 +2,7 @@
 % Please edit documentation in R/projINLA.R
 \name{getSmoothed}
 \alias{getSmoothed}
-\title{Function to obtain projected estimates from INLA for each time and region.}
+\title{Organize the smoothed estimates.}
 \usage{
 getSmoothed(inla_mod, nsim = 1000, weight.strata = NULL,
   weight.frame = NULL, verbose = FALSE, mc = 0,
@@ -10,9 +10,9 @@ getSmoothed(inla_mod, nsim = 1000, weight.strata = NULL,
   save.draws = FALSE, include_subnational = TRUE, ...)
 }
 \arguments{
-\item{inla_mod}{output from \code{\link{smoothDirect}}}
+\item{inla_mod}{output from \code{\link{smoothDirect}} or \code{\link{smoothCLuter}}}
 
-\item{nsim}{number of simulations}
+\item{nsim}{number of simulations, only applicable for the cluster-level model.}
 
 \item{weight.strata}{a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. This argument specifies the weights for strata-specific estimates on the probability scale.}
 
@@ -38,7 +38,7 @@ getSmoothed(inla_mod, nsim = 1000, weight.strata = NULL,
 Results from RW2 model fit, including projection.
 }
 \description{
-Function to obtain projected estimates from INLA for each time and region.
+Organize the smoothed estimates.
 }
 \examples{
 \dontrun{
