@@ -141,14 +141,10 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
     }
     nplot0 <- ncol - nplot %% ncol 
 
-
-
-
-
-    legend.col <- function(col, lev, hadj=-2, title = NULL){
+    legend.col <- function(col, lev, title = NULL){
       opar <- par
       n <- length(col)
-      bx <- graphics::par("usr")
+      bx <- graphics::par("usr") 
       box.cx <- c(bx[1] + (bx[2] - bx[1]) / 1000,
       bx[1] + (bx[2] - bx[1]) / 1000 + (bx[2] - bx[1]) / 30)
       box.cy <- c(bx[3], bx[3])
@@ -167,22 +163,24 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
       graphics::par(new = TRUE)
       graphics::plot(0, 0, type = "n",
       ylim = c(min(lev), max(lev)),
+      xlim = c(bx[1], bx[2]),
       yaxt = "n", ylab = "",
       xaxt = "n", xlab = "",
       frame.plot = FALSE)
-      graphics::axis(side = 2, las = 2, tick = FALSE, line = .25, hadj=hadj)
+      z = graphics::axTicks(side = 2)
+      graphics::text(box.cx[1], z, z, pos=4)
       par <- opar
     }
     for(tt in 1:nplot0){
-        graphics::plot(1, type = "n", axes=FALSE, xlab="", ylab="")      
+        graphics::plot(0, type = "n", axes=FALSE, xlab="", ylab="")      
     }
-    legend.col(col = med.palette, lev = zlim, hadj = -1.5, title = legend.label)
+    legend.col(col = med.palette, lev = zlim, title = legend.label)
 
 
     graphics::legend(x = 'center', inset = 0,
            legend = brklabels,
            col = rep('black',2), 
-           cex = 1.25, 
+           cex = 1.4,  
            density = dens, bty = 'n', 
            title = "Uncertainty")
 
