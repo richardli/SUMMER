@@ -181,7 +181,7 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, Amat = NULL, year_plot 
           if(order != 0 && by.year && length(region_names) > 1){
             tmp <- data.frame(region = region_names, median = NA)
             for(j in 1:length(region_names)){
-                tmp$median[j]<- median(results[results$region == region_names[j], ]$draws, na.rm = T)
+                tmp$median[j]<- median(results[results$region == region_names[j] & results$years == timelabel.yearly[length(timelabel.yearly)], ]$draws, na.rm = T)
             }
             tmp <- tmp[order(tmp$median, decreasing = (order > 0)), ]
             results$region <- factor(results$region, levels = tmp$region)
