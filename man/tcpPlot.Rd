@@ -6,7 +6,8 @@
 \usage{
 tcpPlot(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4,
   per1000 = FALSE, thresholds = NULL, intervals = 3,
-  size.title = 0.7, border = "gray20", size = 0.5)
+  size.title = 0.7, legend.label = NULL, border = "gray20",
+  size = 0.5)
 }
 \arguments{
 \item{draws}{a posterior draw object from \code{\link{getSmoothed}}}
@@ -26,6 +27,8 @@ tcpPlot(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4,
 \item{intervals}{number of quantile intervals defining the discrete color scale of the maps. Required when thresholds are not specified.}
 
 \item{size.title}{a numerical value giving the amount by which the plot title should be magnified relative to the default.}
+
+\item{legend.label}{Label for the color legend.}
 
 \item{border}{color of the border}
 

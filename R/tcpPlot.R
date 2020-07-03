@@ -11,6 +11,7 @@
 #' @param thresholds a vector of thresholds (on the mortality scale) defining the discrete color scale of the maps. 
 #' @param intervals number of quantile intervals defining the discrete color scale of the maps. Required when thresholds are not specified.
 #' @param size.title  a numerical value giving the amount by which the plot title should be magnified relative to the default.
+#' @param legend.label Label for the color legend.
 #' @param border color of the border
 #' @param size size of the border
 #' @return a list of True Classification Probability (TCP) tables, a list of individual spplot maps, and a gridded array of all maps.
@@ -53,7 +54,7 @@
 #' 
 
 #' @export
-tcpPlot <- function(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4, per1000 = FALSE, thresholds = NULL, intervals = 3, size.title = 0.7, border = "gray20", size = 0.5){
+tcpPlot <- function(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4, per1000 = FALSE, thresholds = NULL, intervals = 3, size.title = 0.7, legend.label = NULL, border = "gray20", size = 0.5){
 
   grp_val <- long <- lat <- group <- NA
 
@@ -237,7 +238,7 @@ tcpPlot <- function(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4, per10
         # Create palette
         color_cont <- NULL 
         for(i in 1:dim(lookup_dt)[1]) color_cont <- c(color_cont, rep(as.character(lookup_dt[i, 2]), round((labelat[i+1] - labelat[i]) * 1e5)))
-        g <- g + ggplot2::scale_fill_gradientn(NULL, colours = color_cont, limits=range(labelat),  breaks = labelat, labels = labeltext)
+        g <- g + ggplot2::scale_fill_gradientn(legend.label, colours = color_cont, limits=range(labelat),  breaks = labelat, labels = labeltext)
 
         # Make legends taller
         # panel_height = ggplot2::unit(1,"npc") - sum(ggplot2::ggplotGrob(g)[["heights"]][-3]) - ggplot2::unit(1,"line")
