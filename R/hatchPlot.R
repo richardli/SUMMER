@@ -159,7 +159,7 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
       box.cy[1] + (box.sy * (i - 1)))
       graphics::polygon(xx, yy, col = col[i], border = col[i])
       }
-      if(!is.null(title)) graphics::text(box.cx[1], box.cy[1] + box.sy * (n+2), title, pos=4)
+      if(!is.null(title)) graphics::text(box.cx[1], box.cy[1] + box.sy * (n+2), title, pos=4, cex = 1.2)
       graphics::par(new = TRUE)
       graphics::plot(0, 0, type = "n",
       ylim = c(min(lev), max(lev)),
@@ -168,7 +168,7 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
       xaxt = "n", xlab = "",
       frame.plot = FALSE)
       z = graphics::axTicks(side = 2)
-      graphics::text(box.cx[1], z, z, pos=4)
+      graphics::text(box.cx[1], z, z, pos=4, cex = 1.2)
       par <- opar
     }
     for(tt in 1:nplot0){
