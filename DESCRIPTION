@@ -1,8 +1,8 @@
 Package: SUMMER
 Type: Package
 Title: Spatio-Temporal Under-Five Mortality Methods for Estimation
-Version: 0.3.1
-Date: 2019-10-23
+Version: 1.0.0
+Date: 2020-07-02
 Authors@R: c(
     person(given = "Bryan D", family = "Martin", email= "bmartin6@uw.edu", role = "aut"), 
     person(given = "Zehang R", family = "Li", email= "lizehang@gmail.com", role = c("cre","aut")),
@@ -20,11 +20,11 @@ URL: https://github.com/bryandmartin/SUMMER
 BugReports: https://github.com/bryandmartin/SUMMER/issues
 Depends: R (>= 3.5)
 License: GPL (>= 2)
-Imports: maptools, survey, stats, spdep, survival, ggplot2, utils, Matrix, reshape2, viridis, sp, shadowtext, ggridges
+Imports: maptools, survey, stats, spdep, survival, ggplot2, utils, Matrix, reshape2, viridis, sp, shadowtext, ggridges, methods, data.table, RColorBrewer, grDevices
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
 Additional_repositories: https://inla.r-inla-download.org/R/stable/
-Suggests: INLA, knitr, rmarkdown, readstata13, gridExtra, R.rsp, testthat (>= 2.1.0)
+Suggests: INLA, knitr, rmarkdown, readstata13, patchwork, rdhs, R.rsp, testthat (>= 2.1.0)
 VignetteBuilder: R.rsp, knitr
 NeedsCompilation: no

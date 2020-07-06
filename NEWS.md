@@ -1,4 +1,21 @@
 # SUMMER - changes
+Version 1.0.0 (2020-07-01) 
+==========================
++ Major updates to functions.
+    + ``fitGeneric`` is now ``smoothSurvey``
+    + ``fitINLA`` is now ``smoothDirect``
+    + ``fitINLA2`` is now ``smoothCluster``
+    + More extensions in both smoothed direct and cluster level models.
+    + Major changes to how temporal models are specified with `time.model` and `st.time.model`.
+    + More interpretable parameterization of slope and random slopes.
+    + More visualization options.
+    + Note: Previous function name and argument syntax remain to work as before, but may not receive high priority in maintenance in the future.  
++ Many minor improvements in functions.
+    + Better model summary message.
+    + Removed unnecessary function arguments, e.g., ``geo`` in various functions.
+    + Removed the requirement to repeated specifying ``Amat``, ``year_label`` and ``year_range``. Now they are only required in the model fitting stage.
++ New vignettes. 
+
 Version 0.3.1 (2019-10-23) 
 ==========================
 + Fixed minor typo that lower and upper bounds switched after applying aggregateSurvey().

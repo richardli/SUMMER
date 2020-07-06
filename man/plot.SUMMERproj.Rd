@@ -10,7 +10,7 @@
   data.add = NULL, option.add = list(point = NULL, lower = NULL, upper
   = NULL, by = NULL), color.add = "black", label.add = NULL,
   dodge.width = 1, plot.CI = NULL, per1000 = FALSE,
-  color.CI = "black", alpha.CI = 0.3, ...)
+  color.CI = NULL, alpha.CI = 0.5, ...)
 }
 \arguments{
 \item{x}{output from \code{\link{getSmoothed}}}
@@ -75,17 +75,17 @@ data <- aggregateSurvey(data_multi)
 
 #  national model
 years.all <- c(years, "15-19")
-fit1 <- fitINLA(data = data, geo = NULL, Amat = NULL, 
+fit1 <- smoothDirect(data = data, geo = NULL, Amat = NULL, 
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=FALSE, m = 5)
 out1 <- getSmoothed(fit1)
 plot(out1, is.subnational=FALSE)
 
 #  subnational model
-fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+fit2 <- smoothDirect(data = data, geo = geo, Amat = mat, 
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
-out2 <- getSmoothed(fit2, Amat = mat)
+out2 <- getSmoothed(fit2)
 plot(out2, is.yearly=TRUE, is.subnational=TRUE)
 
 

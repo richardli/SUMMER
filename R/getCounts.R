@@ -28,7 +28,7 @@
 #' @export
 
 
-getCounts <- function(data, variables, by, ignore = NULL, addtotal = TRUE, drop=FALSE){
+getCounts <- function(data, variables, by, ignore = NULL, addtotal = TRUE, drop=TRUE){
 	if(addtotal){
 		data$total <- 1
 		variables <- c(variables, "total")

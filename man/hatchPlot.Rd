@@ -7,7 +7,8 @@
 hatchPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
   by.geo, is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL,
   breaks.CI = NULL, ncol = 4, hatch = NULL, border = NULL,
-  size = 1, legend.label = NULL, per1000 = FALSE, ...)
+  size = 1, legend.label = NULL, per1000 = FALSE, direction = 1,
+  ...)
 }
 \arguments{
 \item{data}{a data frame with variables to be plotted}
@@ -48,6 +49,8 @@ hatchPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
 
 \item{per1000}{logical indicator to plot mortality rates as rates per 1,000 live births. Note that the added comparison data should always be in the probability scale.}
 
+\item{direction}{Direction of the color scheme. It can be either 1 (smaller values are darker) or -1 (higher values are darker). Default is set to 1.}
+
 \item{...}{unused.}
 }
 \description{
@@ -70,10 +73,10 @@ data_multi <- getDirectList(births = DemoData, years = years,
   ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 data <- aggregateSurvey(data_multi)
 
-fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+fit2 <- smoothDirect(data = data, geo = geo, Amat = mat, 
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
-out2 <- getSmoothed(fit2, Amat = mat)
+out2 <- getSmoothed(fit2)
 
 plot(out2, is.yearly=TRUE, is.subnational=TRUE)
 

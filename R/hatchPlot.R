@@ -21,6 +21,7 @@
 #' @param size line width of the polygon borders.
 #' @param legend.label Label for the color legend.
 #' @param per1000 logical indicator to plot mortality rates as rates per 1,000 live births. Note that the added comparison data should always be in the probability scale.
+#' @param direction Direction of the color scheme. It can be either 1 (smaller values are darker) or -1 (higher values are darker). Default is set to 1.
 #' @param ... unused.
 #'
 #' @examples
@@ -40,10 +41,10 @@
 #'   ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 #' data <- aggregateSurvey(data_multi)
 #' 
-#' fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+#' fit2 <- smoothDirect(data = data, geo = geo, Amat = mat, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
 #'   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
-#' out2 <- getSmoothed(fit2, Amat = mat)
+#' out2 <- getSmoothed(fit2)
 #' 
 #' plot(out2, is.yearly=TRUE, is.subnational=TRUE)
 #' 
@@ -58,7 +59,7 @@
 #' @importFrom graphics text
 #' @export 
 
-hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo,  is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL, breaks.CI = NULL, ncol = 4, hatch = NULL, border = NULL, size = 1, legend.label = NULL,  per1000 = FALSE, ...){
+hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo,  is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL, breaks.CI = NULL, ncol = 4, hatch = NULL, border = NULL, size = 1, legend.label = NULL,  per1000 = FALSE, direction = 1, ...){
 
 
    if (is.null(labels) & !is.long) {
@@ -71,10 +72,11 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
         stop("values need to be specified for long format input.")
     }
     if (!is.long) {
-        data <- data[, c(variables, by.data)]
-        data <- reshape2::melt(data)
-        data$variable <- factor(data$variable, levels = variables)
-        levels(data$variable) <- labels
+        data2 <- data[, c(variables, by.data)]
+        data2 <- reshape2::melt(data2)
+        data2$variable <- factor(data2$variable, levels = variables)
+        levels(data2$variable) <- labels
+        data <- merge(data2, data, all.x=TRUE)
     }else {
         data$value <- data[, values]
         data$variable <- data[, variables]
@@ -88,6 +90,8 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
     }
     npal = 100
     med.palette <- viridis::viridis_pal()(npal)
+    if(direction == -1) med.palette <- med.palette[length(med.palette):1]
+
     if(is.null(lim)){
       zlim <- range(data$value, na.rm=TRUE)
     }else{
@@ -110,6 +114,7 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
 
     if(is.null(hatch)){
       col.hatch <- viridis::viridis_pal(option="A")(11)[11]
+      if(direction == -1) col.hatch <- viridis::viridis_pal(option="A")(11)[1]
     }else{
       col.hatch <- hatch
     }
@@ -136,14 +141,10 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
     }
     nplot0 <- ncol - nplot %% ncol 
 
-
-
-
-
-    legend.col <- function(col, lev, hadj=-2, title = NULL){
+    legend.col <- function(col, lev, title = NULL){
       opar <- par
       n <- length(col)
-      bx <- graphics::par("usr")
+      bx <- graphics::par("usr") 
       box.cx <- c(bx[1] + (bx[2] - bx[1]) / 1000,
       bx[1] + (bx[2] - bx[1]) / 1000 + (bx[2] - bx[1]) / 30)
       box.cy <- c(bx[3], bx[3])
@@ -158,26 +159,28 @@ hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.dat
       box.cy[1] + (box.sy * (i - 1)))
       graphics::polygon(xx, yy, col = col[i], border = col[i])
       }
-      if(!is.null(title)) graphics::text(box.cx[1], box.cy[1] + box.sy * (n+2), title, pos=4)
+      if(!is.null(title)) graphics::text(box.cx[1], box.cy[1] + box.sy * (n+2), title, pos=4, cex = 1.2)
       graphics::par(new = TRUE)
       graphics::plot(0, 0, type = "n",
       ylim = c(min(lev), max(lev)),
+      xlim = c(bx[1], bx[2]),
       yaxt = "n", ylab = "",
       xaxt = "n", xlab = "",
       frame.plot = FALSE)
-      graphics::axis(side = 2, las = 2, tick = FALSE, line = .25, hadj=hadj)
+      z = graphics::axTicks(side = 2)
+      graphics::text(box.cx[1], z, z, pos=4, cex = 1.2)
       par <- opar
     }
     for(tt in 1:nplot0){
-        graphics::plot(1, type = "n", axes=FALSE, xlab="", ylab="")      
+        graphics::plot(0, type = "n", axes=FALSE, xlab="", ylab="")      
     }
-    legend.col(col = med.palette, lev = zlim, hadj = -1.5, title = legend.label)
+    legend.col(col = med.palette, lev = zlim, title = legend.label)
 
 
     graphics::legend(x = 'center', inset = 0,
            legend = brklabels,
            col = rep('black',2), 
-           cex = 1.25, 
+           cex = 1.4,  
            density = dens, bty = 'n', 
            title = "Uncertainty")
 

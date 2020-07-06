@@ -2,36 +2,27 @@
 % Please edit documentation in R/projINLA.R
 \name{getSmoothed}
 \alias{getSmoothed}
-\title{Function to obtain projected estimates from INLA for each time and region.}
+\title{Organize the smoothed estimates.}
 \usage{
-getSmoothed(inla_mod, year_range = c(1985, 2019),
-  year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14",
-  "15-19"), Amat = NULL, nsim = 1000, weight.strata = NULL,
+getSmoothed(inla_mod, nsim = 1000, weight.strata = NULL,
   weight.frame = NULL, verbose = FALSE, mc = 0,
   include_time_unstruct = FALSE, CI = 0.95, draws = NULL,
-  save.draws = FALSE, save.draws.est = FALSE,
-  include_subnational = TRUE, ...)
+  save.draws = FALSE, include_subnational = TRUE, ...)
 }
 \arguments{
-\item{inla_mod}{output from \code{\link{fitINLA}}}
+\item{inla_mod}{output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}}
 
-\item{year_range}{range corresponding to year label}
+\item{nsim}{number of simulations, only applicable for the cluster-level model.}
 
-\item{year_label}{vector of year string vector}
+\item{weight.strata}{a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. This argument specifies the weights for strata-specific estimates on the probability scale.}
 
-\item{Amat}{adjacency matrix}
-
-\item{nsim}{number of simulations}
-
-\item{weight.strata}{a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region.}
-
-\item{weight.frame}{a data frame with three columns, years, region, and the weight of each frame for the corresponding time period and region.}
+\item{weight.frame}{a data frame with three columns, years, region, and the weight of each frame for the corresponding time period and region. This argument specifies the weights for frame-specific estimates on the logit scale. Notice this is different from weight.strata argument.}
 
 \item{verbose}{logical indicator whether to print progress messages from inla.posterior.sample.}
 
 \item{mc}{number of monte carlo draws to approximate the marginal prevalence/hazards for binomial model. If mc = 0, analytical approximation is used. The analytical approximation is invalid for hazard modeling with more than one age groups.}
 
-\item{include_time_unstruct}{logical indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates.}
+\item{include_time_unstruct}{Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates. Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included. Alternatively, if this is specified as a vector of   subset of year labels (as in the year_label argument), only the unstructured terms in the corresponding time periods will be added to the prediction.}
 
 \item{CI}{Desired level of credible intervals}
 
@@ -39,17 +30,15 @@ getSmoothed(inla_mod, year_range = c(1985, 2019),
 
 \item{save.draws}{Logical indicator whether the raw posterior draws will be saved. Saved draws can be used to accelerate aggregations with different weights.}
 
-\item{save.draws.est}{Logical indicator whether the posterior draws of the estimates will be saved.}
-
 \item{include_subnational}{logical indicator whether to include the spatial and space-time interaction components in the smoothed estimates. If set to FALSE, only the main temporal trends are returned.}
 
-\item{...}{additional configurations passed to inla.posterior.sample.}
+\item{...}{Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.}
 }
 \value{
 Results from RW2 model fit, including projection.
 }
 \description{
-Function to obtain projected estimates from INLA for each time and region.
+Organize the smoothed estimates.
 }
 \examples{
 \dontrun{
@@ -70,17 +59,17 @@ data <- aggregateSurvey(data_multi)
 
 #  national model
 years.all <- c(years, "15-19")
-fit1 <- fitINLA(data = data, geo = NULL, Amat = NULL, 
+fit1 <- smoothDirect(data = data, Amat = NULL, 
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=FALSE, m = 5)
 out1 <- getSmoothed(fit1)
 plot(out1, is.subnational=FALSE)
 
 #  subnational model
-fit2 <- fitINLA(data = data, geo = geo, Amat = mat, 
+fit2 <- smoothDirect(data = data, Amat = mat, 
   year_label = years.all, year_range = c(1985, 2019), 
   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
-out2 <- getSmoothed(fit2, Amat = mat)
+out2 <- getSmoothed(fit2)
 plot(out2, is.yearly=TRUE, is.subnational=TRUE)
 
 
