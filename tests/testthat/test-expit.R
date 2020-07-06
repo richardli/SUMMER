@@ -1,3 +1,4 @@
+context("test-expit")
 
 # The following functions are tested in this file:
 #     expit()

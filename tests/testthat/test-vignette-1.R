@@ -1,3 +1,4 @@
+context("test-BRFSS-smoothSurvey")
 # This set of tests corresponds to the "Bayesian Small Area Estimation using
 #     Complex Survey Data" Vignette, found at the following URL:
 #     https://cran.r-project.org/web/packages/SUMMER/vignettes/summer-vignette.html
