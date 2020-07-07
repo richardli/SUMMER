@@ -22,6 +22,8 @@
 #' @param  timeVar The variable indicating time period. If set to NULL then the temporal model and space-time interaction model are ignored.
 #' @param time.model the model for temporal trends and interactions. It can be either "rw1" or "rw2".
 #' @param type.st can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.
+#' @param direct.est data frame of direct estimates, with column names of response and region specified by \code{responseVar}, \code{regionVar}, and \code{timeVar}.  When \code{direct.est} is specified, it overwrites the \code{data} input. 
+#' @param direct.est.var the column name corresponding to the variance of direct estimates
 #' @param ... additional arguments passed to \code{svydesign} function.
 #' 
 #' 
@@ -38,7 +40,7 @@
 #' \dontrun{
 #' data(DemoData2)
 #' data(DemoMap2)
-#' fit <- smoothSurvey(data=DemoData2,  
+#' fit0 <- smoothSurvey(data=DemoData2,  
 #' Amat=DemoMap2$Amat, responseType="binary", 
 #' responseVar="tobacco.use", strataVar="strata", 
 #' weightVar="weights", regionVar="region", 
@@ -46,32 +48,80 @@
 #' 
 #' # Example with region-level covariates
 #'  Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
-#'  fit <- smoothSurvey(data=DemoData2,  
+#'  fit1 <- smoothSurvey(data=DemoData2,  
 #'   Amat=DemoMap2$Amat, responseType="binary", 
 #'   X = Xmat,
 #'   responseVar="tobacco.use", strataVar="strata", 
 #'   weightVar="weights", regionVar="region", 
 #'   clusterVar = "~clustid+id", CI = 0.95)
+#' 
+#' # Example with using only direct estimates as input instead of the full data
+#' direct <- fit$HT[, c("region", "HT.est", "HT.var")]
+#' fit2 <- smoothSurvey(data=NULL, direct.est = direct, 
+#'                     Amat=DemoMap2$Amat, regionVar="region",
+#'                     responseVar="HT.est", direct.est.var = "HT.var", 
+#'                     responseType = "binary")
+#' # Check it is the same as fit0
+#' plot(fit2$smooth$mean, fit0$smooth$mean)
+#' 
+#' # Example with using only direct estimates as input, 
+#' #   and after transformation into a Gaussian smoothing model
+#' # Notice: the output are on the same scale as the input 
+#' #   and in this case, the logit estimates.    
+#' direct.logit <- fit$HT[, c("region", "HT.logit.est", "HT.logit.var")]
+#' fit3 <- smoothSurvey(data=NULL, direct.est = direct.logit, 
+#'                Amat=DemoMap2$Amat, regionVar="region",
+#'                responseVar="HT.logit.est", direct.est.var = "HT.logit.var",
+#'                responseType = "gaussian")
+#' # Check it is the same as fit0
+#' plot(fit3$smooth$mean, fit0$smooth$logit.mean)
+#' 
 #' }
 #' @export
 
 
-smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, ...){
+smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, direct.est = NULL, direct.est.var = NULL, ...){
 
     svy <- TRUE
-	if(!is.data.frame(data)){
-		stop("Input data needs to be a data frame")
-	}
-	if (is.null(strataVar)) {
-        message("Strata not defined. Ignoring sample design")
-        svy <- FALSE
-    }
     if(is.null(responseVar)){
-    	stop("Response variable not specified")
+        stop("Response variable not specified")
     }
     if(is.null(responseType)){
-    	stop("responseType not specified")
+            stop("responseType not specified")
+    }  
+    if(!is.null(direct.est)){
+        # TODO: this new input type later can be extended to Fay-Herriot
+        message("Using direct estimates as input instead of survey data.")
+        data <- direct.est
+        data$region0 <- direct.est[, regionVar]
+        data$response0 <- direct.est[, responseVar]
+        if(is.null(direct.est.var)){
+            stop("Need to specify column for the variance of direct estimates")
+        }
+        data$var0 <- direct.est[, direct.est.var]
+    }else{
+        if(!is.data.frame(data)){
+            stop("Input data needs to be a data frame")
+        }
+        if (is.null(strataVar)) {
+            message("Strata not defined. Ignoring sample design")
+            svy <- FALSE
+        }
+       
+        if (is.null(clusterVar)){
+            message("cluster not specified. Ignoring sample design")
+            svy <- FALSE
+        } 
+        data$response0 <- data[, responseVar]
+        data$region0 <- data[, regionVar]        
+        if(svy){
+            data$weights0 <- data[, weightVar]
+            data$strata0 <- data[, strataVar]
+        }
     }
+    if(!is.null(timeVar)) data$time0 <- data[, timeVar]     
+
+
     if(is.null(rownames(Amat))){
         stop("Row names of Amat needs to be specified to region names.")
     }
@@ -86,10 +136,7 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
            sum(colnames(Amat) %in% X[,1] == FALSE) > 0) stop("Regions in the X matrix does not match the region names in Amat.")
     }
     
-    if (is.null(clusterVar)){
-        message("cluster not specified. Ignoring sample design")
-        svy <- FALSE
-    }
+ 
     # if(is.null(FUN)){
     if(responseType == "binary"){
         # message("FUN is not specified, default to be expit()")
@@ -108,33 +155,18 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
       attachNamespace("INLA")
     }
   }
-
-
-    data$response0 <- data[, responseVar]
-    data$region0 <- data[, regionVar]        
-    if(svy){
-        data$weights0 <- data[, weightVar]
-        data$strata0 <- data[, strataVar]
-    }
-    if(!is.null(timeVar)) data$time0 <- data[, timeVar]
+  
 
     hyperpc1 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
     hyperpc2 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)),  phi = list(prior = 'pc', param = c(pc.u.phi , pc.alpha.phi)))
 
-
-    if(is.null(colnames(Amat)) || is.null(rownames(Amat))){
-        stop("column and row names for Amat needs to be specified to region names.")
-    }
-    if(sum(colnames(Amat) != rownames(Amat)) > 0){
-        stop("column names and row names do not agree in Amat.")
-    }
     if(sum(!data$region0 %in% colnames(Amat)) > 0){
        stop("Exist regions in data but not in the Amat.")
     }
 
-    if(svy){
+    if(svy && is.null(direct.est)){
         design <- survey::svydesign(
-        				ids = stats::formula(clusterVar),
+                        ids = stats::formula(clusterVar),
                         weights = ~weights0,
                         strata = ~strata0,
                         data = data, 
@@ -160,7 +192,7 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
             stop("responseType argument only supports binary or gaussian at the time.")
         }
         n <- y <- NA
-    }else{
+    }else if(is.null(direct.est)){
         if(!is.null(timeVar)){
             mean <- aggregate(response0 ~ region0+time0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})    
               name.i <- mean$region0
@@ -188,6 +220,24 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
         }
         n <- mean$n
         y <- mean$y
+    }else{
+        p.i <- data$response0
+        var.i <- data$var0
+        if(responseType == "binary"){
+            ht <- log(p.i/(1-p.i))
+            ht.v <- var.i/(p.i^2*(1-p.i)^2)
+            ht.prec <- 1/ht.v
+        }else if(responseType == "gaussian"){
+            ht <- p.i
+            ht.v <- var.i
+            ht.prec <- 1/ht.v
+        }else{
+            stop("responseType argument only supports binary or gaussian at the time.")
+        } 
+        n <- NA
+        y <- NA
+        time.i <- as.numeric(as.character(data$time0))
+        name.i <- as.character(data$region0)
     }
 
     dat <- data.frame(
@@ -197,17 +247,19 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
                       HT.logit.var = ht.v, 
                       HT.logit.prec = ht.prec,  
                       n = n, 
-                      y = y)
+                      y = y)   
     if(!is.null(timeVar)){
         dat$time <- time.i
         dat$time.struct <- dat$time.unstruct <- time.int <- dat$time - min(dat$time) + 1
-    }
+    }   
     # make it consistent with map
     regnames <- as.character(name.i)
     # dat <- dat[match(rownames(Amat), regnames), ]
     dat$region <- as.character(name.i)
     dat$region.unstruct <- dat$region.struct <- dat$region.int <-  match(dat$region, rownames(Amat))
-    dat$HT.logit.est[is.infinite(abs(dat$HT.logit.est))] <- NA
+    dat$HT.logit.est[is.infinite(abs(dat$HT.logit.est))] <- NA  
+
+
     if(!is.null(timeVar)){
         dat <- dat[order(dat[, "time.struct"], dat[, "region.struct"]), ]
     }else{

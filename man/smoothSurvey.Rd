@@ -10,14 +10,16 @@ smoothSurvey(data, geo = NULL, Amat, X = NULL,
   strataVar = "strata", weightVar = "weights", regionVar = "region",
   clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01,
   pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL,
-  timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, ...)
+  timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1,
+  direct.est = NULL, direct.est.var = NULL, ...)
 
 fitGeneric(data, geo = NULL, Amat, X = NULL,
   responseType = c("binary", "gaussian")[1], responseVar,
   strataVar = "strata", weightVar = "weights", regionVar = "region",
   clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01,
   pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL,
-  timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, ...)
+  timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1,
+  direct.est = NULL, direct.est.var = NULL, ...)
 }
 \arguments{
 \item{data}{data frame with region and strata information.}
@@ -58,6 +60,10 @@ fitGeneric(data, geo = NULL, Amat, X = NULL,
 
 \item{type.st}{can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.}
 
+\item{direct.est}{data frame of direct estimates, with column names of response and region specified by \code{responseVar}, \code{regionVar}, and \code{timeVar}.  When \code{direct.est} is specified, it overwrites the \code{data} input.}
+
+\item{direct.est.var}{the column name corresponding to the variance of direct estimates}
+
 \item{...}{additional arguments passed to \code{svydesign} function.}
 }
 \value{
@@ -78,7 +84,7 @@ The function \code{smoothSurvey} will replace the previous function name \code{f
 \dontrun{
 data(DemoData2)
 data(DemoMap2)
-fit <- smoothSurvey(data=DemoData2,  
+fit0 <- smoothSurvey(data=DemoData2,  
 Amat=DemoMap2$Amat, responseType="binary", 
 responseVar="tobacco.use", strataVar="strata", 
 weightVar="weights", regionVar="region", 
@@ -86,12 +92,34 @@ clusterVar = "~clustid+id", CI = 0.95)
 
 # Example with region-level covariates
  Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
- fit <- smoothSurvey(data=DemoData2,  
+ fit1 <- smoothSurvey(data=DemoData2,  
   Amat=DemoMap2$Amat, responseType="binary", 
   X = Xmat,
   responseVar="tobacco.use", strataVar="strata", 
   weightVar="weights", regionVar="region", 
   clusterVar = "~clustid+id", CI = 0.95)
+
+# Example with using only direct estimates as input instead of the full data
+direct <- fit$HT[, c("region", "HT.est", "HT.var")]
+fit2 <- smoothSurvey(data=NULL, direct.est = direct, 
+                    Amat=DemoMap2$Amat, regionVar="region",
+                    responseVar="HT.est", direct.est.var = "HT.var", 
+                    responseType = "binary")
+# Check it is the same as fit0
+plot(fit2$smooth$mean, fit0$smooth$mean)
+
+# Example with using only direct estimates as input, 
+#   and after transformation into a Gaussian smoothing model
+# Notice: the output are on the same scale as the input 
+#   and in this case, the logit estimates.    
+direct.logit <- fit$HT[, c("region", "HT.logit.est", "HT.logit.var")]
+fit3 <- smoothSurvey(data=NULL, direct.est = direct.logit, 
+               Amat=DemoMap2$Amat, regionVar="region",
+               responseVar="HT.logit.est", direct.est.var = "HT.logit.var",
+               responseType = "gaussian")
+# Check it is the same as fit0
+plot(fit3$smooth$mean, fit0$smooth$logit.mean)
+
 }
 }
 \seealso{
