@@ -1,6 +1,6 @@
 #' Cluster-level space-time smoothing models for mortality rates 
 #' 
-#' The function \code{smoothCluster} replace the previous function name \code{fitINLA2}.
+#' The function \code{smoothCluster} replace the previous function name \code{fitINLA2} (before version 1.0.0).
 #' 
 #' @param data count data of person-months with the following columns
 #' \itemize{
@@ -107,7 +107,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
   rate0 <- shape0 <- my.cache <- inla.as.sparse <- type <- strata <- rescale_U <- sim_alpha <- pc.st.slope.prec.u <- NULL
 
   if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
-    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
+    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
   }
   if (!is.element("Matrix", (.packages()))) {
     attachNamespace("Matrix")

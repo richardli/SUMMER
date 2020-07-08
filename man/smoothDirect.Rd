@@ -86,7 +86,7 @@ fitINLA(data, Amat, X = NULL, formula = NULL, time.model = c("rw1",
 INLA model fit using the provided formula, country summary data, and geographic data
 }
 \description{
-The function \code{smoothDirect} replaces the previous function name \code{fitINLA}.
+The function \code{smoothDirect} replaces the previous function name \code{fitINLA} (before version 1.0.0).
 }
 \examples{
 \dontrun{

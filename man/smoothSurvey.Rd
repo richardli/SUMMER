@@ -78,7 +78,9 @@ fitGeneric(data, geo = NULL, Amat, X = NULL,
 \description{
 This function calculates the direct estimates by region and fit a simple spatial smoothing model to the direct estimates adjusting for survey design.
 Normal or binary variables are currently supported. For binary variables, the logit transformation is performed on the direct estimates of probabilities, and a Gaussian additive model is fitted on the logit scale using INLA.
-The function \code{smoothSurvey} will replace the previous function name \code{fitGeneric} in future updates.
+}
+\details{
+The function \code{smoothSurvey} replaces the previous function name \code{fitGeneric} (before version 1.0.0).
 }
 \examples{
 \dontrun{

@@ -2,7 +2,9 @@
 #'
 #' This function calculates the direct estimates by region and fit a simple spatial smoothing model to the direct estimates adjusting for survey design.
 #' Normal or binary variables are currently supported. For binary variables, the logit transformation is performed on the direct estimates of probabilities, and a Gaussian additive model is fitted on the logit scale using INLA.
-#' The function \code{smoothSurvey} will replace the previous function name \code{fitGeneric} in future updates.
+#' 
+#' The function \code{smoothSurvey} replaces the previous function name \code{fitGeneric} (before version 1.0.0).
+#' 
 #' @param data data frame with region and strata information.
 #' @param geo Deprecated argument from early versions.
 #' @param Amat Adjacency matrix for the regions.
@@ -147,7 +149,7 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
     }
     # }
     if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
-    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
+    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
   }
   # If INLA is installed, then attach the Namespace (so that all the relevant functions are available)
   if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {

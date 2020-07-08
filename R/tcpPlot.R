@@ -66,7 +66,7 @@ tcpPlot <- function(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4, per10
  
   }else{
       if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
-        stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
+        stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
       }
       if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {
         if (!is.element("INLA", (.packages()))) {

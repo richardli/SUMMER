@@ -1,6 +1,6 @@
 #' Smoothed direct estimates for mortality rates 
 #' 
-#' The function \code{smoothDirect} replaces the previous function name \code{fitINLA}.
+#' The function \code{smoothDirect} replaces the previous function name \code{fitINLA} (before version 1.0.0).
 #'
 #' @param data Combined dataset
 #' @param Amat Adjacency matrix for the regions
@@ -171,7 +171,7 @@ smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("r
   rate0 <- shape0 <- my.cache <- inla.as.sparse <- type <- NULL
 
   if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
-    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n install.packages('INLA', repos='https://www.math.ntnu.no/inla/R/stable')")
+    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
   }
   if (!is.element("Matrix", (.packages()))) {
     attachNamespace("Matrix")
