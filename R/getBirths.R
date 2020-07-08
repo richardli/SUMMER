@@ -1,4 +1,4 @@
-#' Function to get Births file from DHS .dta files.
+#' Reformat full birth records into person-month format
 #' 
 #'
 #' @param filepath file path of raw .dta file from DHS. Only used when data frame is not provided in the function call.
@@ -18,6 +18,9 @@
 #' @param compact.by vector of variables to summarize the compact form by. 
 #' 
 #' @return This function returns a new data frame where each row indicate a person-month, with the additional variables specified in the function argument.
+#' @author Zehang Richard Li, Bryan Martin, Laina Mercer
+#' @references Li, Z., Hsiao, Y., Godwin, J., Martin, B. D., Wakefield, J., Clark, S. J., & with support from the United Nations Inter-agency Group for Child Mortality Estimation and its technical advisory group. (2019). \emph{Changes in the spatial distribution of the under-five mortality rate: Small-area analysis of 122 DHS surveys in 262 subregions of 35 countries in Africa.} PloS one, 14(1), e0210645.
+#' @references Mercer, L. D., Wakefield, J., Pantazis, A., Lutambi, A. M., Masanja, H., & Clark, S. (2015). \emph{Space-time smoothing of complex survey data: small area estimation for child mortality.} The annals of applied statistics, 9(4), 1889.
 #' @examples 
 #' \dontrun{
 #' my_fp <- "/myExampleFilepath/surveyData.DTA"

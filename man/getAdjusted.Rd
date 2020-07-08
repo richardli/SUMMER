@@ -72,3 +72,6 @@ adj$ratio <- runif(dim(adj)[1], min = 0.5, max = 0.8)
 data.adj <- getAdjusted(data = data, ratio = adj)
  }
 }
+\author{
+Zehang Richard Li
+}

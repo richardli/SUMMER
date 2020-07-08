@@ -18,6 +18,7 @@
 #' @param verbose logical indicator for whether to print out unadjusted row index
 #' 
 #' @return adjusted dataset of the same columns.
+#' @author Zehang Richard Li 
 #' @examples
 #' \dontrun{
 #' years <- levels(DemoData[[1]]$time)

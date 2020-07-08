@@ -1,9 +1,9 @@
-#' Function to create discrete-color maps based on the True Classification Probabilities described in Dong and Wakefield (2020).
+#' Discrete-color maps based on the True Classification Probabilities
 #' 
 #' 
 #'
 #' @param draws a posterior draw object from \code{\link{getSmoothed}}
-#' @param geo geo output from \code{\link{read_shape}}  
+#' @param geo SpatialPolygonsDataFrame object for the map
 #' @param by.geo variable name specifying region names in geo
 #' @param year_plot vector of year string vector to be plotted.
 #' @param ncol number of columns in the output figure.
@@ -19,6 +19,9 @@
 #' @import RColorBrewer
 #' @importFrom grDevices colorRampPalette
 #' @importFrom methods is
+#'
+#' @author Tracy Qi Dong, Zehang Richard Li
+#' @references Tracy Qi Dong, and Jon Wakefield. (2020) \emph{Modeling and presentation of vaccination coverage estimates using data from household surveys.} arXiv preprint arXiv:2004.03127.
 #' @examples
 #' \dontrun{
 #' library(dplyr)

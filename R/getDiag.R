@@ -1,4 +1,4 @@
-#' Make diagnostic plots
+#' Extract posterior summaries of random effects
 #' 
 #' @param inla_mod output from \code{\link{smoothDirect}}
 #' @param field which random effects to plot. It can be one of the following: space, time, and spacetime.
@@ -7,6 +7,7 @@
 #' @param ... Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.
 #' 
 #' @return List of diagnostic plots
+#' @author Zehang Richard Li
 #' @examples
 #' \dontrun{
 #'   data(DemoMap)

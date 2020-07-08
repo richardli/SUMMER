@@ -1,4 +1,4 @@
-#' Plot a data frame over polygon maps.
+#' Plot region-level variables on a map
 #' 
 #' This function visualizes the map with different variables. The input data frame can be either the long or wide format.
 #'
@@ -6,7 +6,7 @@
 #' @param variables vector of variables to be plotted. If long format of data is used, only one variable can be selected
 #' @param values the column corresponding to the values to be plotted, only used when long format of data is used
 #' @param labels vector of labels to use for each variable, only used when wide format of data is used
-#' @param geo \code{geo} output from \code{\link{read_shape}}
+#' @param geo SpatialPolygonsDataFrame object for the map
 #' @param by.data column name specifying region names in the data
 #' @param by.geo variable name specifying region names in the data
 #' @param is.long logical indicator of whether the data is in the long format, default to FALSE
@@ -27,6 +27,7 @@
 #' @importFrom shadowtext geom_shadowtext
 #' @importFrom sp Polygon
 #' @importFrom stats setNames
+#' @author Zehang Richard Li
 #' @examples
 #' \dontrun{
 #' data(DemoMap)

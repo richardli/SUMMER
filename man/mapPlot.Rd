@@ -2,7 +2,7 @@
 % Please edit documentation in R/mapPlot.R
 \name{mapPlot}
 \alias{mapPlot}
-\title{Plot a data frame over polygon maps.}
+\title{Plot region-level variables on a map}
 \usage{
 mapPlot(data = NULL, variables, values = NULL, labels = NULL, geo,
   by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE,
@@ -19,7 +19,7 @@ mapPlot(data = NULL, variables, values = NULL, labels = NULL, geo,
 
 \item{labels}{vector of labels to use for each variable, only used when wide format of data is used}
 
-\item{geo}{\code{geo} output from \code{\link{read_shape}}}
+\item{geo}{SpatialPolygonsDataFrame object for the map}
 
 \item{by.data}{column name specifying region names in the data}
 
@@ -78,4 +78,7 @@ by.geo = "NAME_final", is.long = FALSE)
 
 }
 
+}
+\author{
+Zehang Richard Li
 }

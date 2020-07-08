@@ -75,3 +75,6 @@ Rue, H., & Held, L. (2005). \emph{Gaussian Markov random fields: theory and appl
 
 Sørbye, S. H. (2013). \emph{Tutorial: Scaling IGMRF-models in R-INLA}. Department of Mathematics and Statistics, University of Tromsø.
 }
+\author{
+Zehang Richard Li
+}

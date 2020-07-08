@@ -21,7 +21,7 @@
 #' @param pc.alpha.phi hyperparameter alpha for the PC prior on the mixture probability phi in BYM2 model.
 #' @param CI the desired posterior credible interval to calculate
 #' @param formula a string of user-specified random effects model to be used in the INLA call
-#' @param  timeVar The variable indicating time period. If set to NULL then the temporal model and space-time interaction model are ignored.
+#' @param timeVar The variable indicating time period. If set to NULL then the temporal model and space-time interaction model are ignored.
 #' @param time.model the model for temporal trends and interactions. It can be either "rw1" or "rw2".
 #' @param type.st can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.
 #' @param direct.est data frame of direct estimates, with column names of response and region specified by \code{responseVar}, \code{regionVar}, and \code{timeVar}.  When \code{direct.est} is specified, it overwrites the \code{data} input. 
@@ -30,14 +30,15 @@
 #' 
 #' 
 #' @return \item{HT}{Direct estimates}
-#' \item{smooth}{Spatially smoothed estimates}
+#' \item{smooth}{Smoothed direct estimates}
 #' \item{fit}{a fitted INLA object}
-#' \item{Amat}{input argument}
 #' \item{CI}{input argument}
+#' \item{Amat}{input argument}
 #' \item{responseType}{input argument}
-#' \item{FUN}{input argument}
+#' \item{formula}{INLA formula}
 #' @seealso \code{\link{getDirectList}}, \code{\link{smoothDirect}}
 #' @importFrom stats median quantile sd var aggregate as.formula
+#' @author Zehang Richard Li 
 #' @examples
 #' \dontrun{
 #' data(DemoData2)

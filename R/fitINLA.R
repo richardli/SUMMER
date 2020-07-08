@@ -33,7 +33,10 @@
 #' @import Matrix
 #' @importFrom stats dgamma
 #' @importFrom Matrix Diagonal 
-#' @return INLA model fit using the provided formula, country summary data, and geographic data
+#' @return List of fitted object
+#' @author Zehang Richard Li 
+#' @references Li, Z., Hsiao, Y., Godwin, J., Martin, B. D., Wakefield, J., Clark, S. J., & with support from the United Nations Inter-agency Group for Child Mortality Estimation and its technical advisory group. (2019). \emph{Changes in the spatial distribution of the under-five mortality rate: Small-area analysis of 122 DHS surveys in 262 subregions of 35 countries in Africa.} PloS one, 14(1), e0210645.
+#' @references Mercer, L. D., Wakefield, J., Pantazis, A., Lutambi, A. M., Masanja, H., & Clark, S. (2015). \emph{Space-time smoothing of complex survey data: small area estimation for child mortality.} The annals of applied statistics, 9(4), 1889.
 #' @examples
 #' \dontrun{
 #' years <- levels(DemoData[[1]]$time)

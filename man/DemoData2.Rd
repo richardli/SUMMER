@@ -3,7 +3,7 @@
 \docType{data}
 \name{DemoData2}
 \alias{DemoData2}
-\title{Fake dataset for vignette.}
+\title{Simulated dataset for prevalence mapping.}
 \format{A data.frame of 7 variables.}
 \source{
 \url{https://dhsprogram.com/data/model-datasets.cfm}

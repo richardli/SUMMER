@@ -7,6 +7,7 @@
 #' @param names  character vector of region ids to be added to the neighbours list
 #' 
 #' @return Spatial djacency matrix.
+#' @author Zehang Richard Li
 #' @examples
 #' data(DemoMap) 
 #' dat <- data.frame(ID = c(1,2,3), lon = c(32.2, 33.7, 33), lat = c(0.1, 0.9, 2.8))

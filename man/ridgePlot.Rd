@@ -3,7 +3,7 @@
 \name{ridgePlot}
 \alias{ridgePlot}
 \alias{getSmoothedDensity}
-\title{Function to calculate and plot densities of the projected estimates from INLA for each time and region.}
+\title{Calculate and plot posterior densities of the projected estimates}
 \usage{
 ridgePlot(x = NULL, nsim = 1000, draws = NULL, Amat = NULL,
   year_plot = NULL, strata_plot = NULL, by.year = TRUE, ncol = 4,
@@ -48,7 +48,7 @@ getSmoothedDensity(x = NULL, nsim = 1000, draws = NULL,
 a data frame of the calculated densities and a ggplot figure.
 }
 \description{
-The function \code{ridgePlot} replaces the previous function name \code{getSmoothedDensity}.
+The function \code{ridgePlot} replaces the previous function name \code{getSmoothedDensity} (before version 1.0.0).
 }
 \examples{
 \dontrun{
@@ -108,4 +108,7 @@ density$g
 }
 \seealso{
 \code{\link{plot.SUMMERproj}}
+}
+\author{
+Zehang Richard Li
 }

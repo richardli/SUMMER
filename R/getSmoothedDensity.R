@@ -1,6 +1,6 @@
-#' Function to calculate and plot densities of the projected estimates from INLA for each time and region.
+#' Calculate and plot posterior densities of the projected estimates
 #' 
-#' The function \code{ridgePlot} replaces the previous function name \code{getSmoothedDensity}.
+#' The function \code{ridgePlot} replaces the previous function name \code{getSmoothedDensity} (before version 1.0.0).
 #'
 #' @param x output from \code{\link{smoothDirect}} for the smoothed direct estimates, or \code{\link{smoothCluster}} for the cluster-level estimates.
 #' @param nsim number of posterior draws to take. Only used for cluster-level models when \code{draws} is NULL. Otherwise the posterior draws in \code{draws} will be used instead without resampling.
@@ -19,6 +19,7 @@
 #' 
 #' @return a data frame of the calculated densities and a ggplot figure.
 #' @seealso \code{\link{plot.SUMMERproj}}
+#' @author Zehang Richard Li
 #' @examples
 #' \dontrun{
 #' years <- levels(DemoData[[1]]$time)

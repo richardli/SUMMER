@@ -2,7 +2,7 @@
 % Please edit documentation in R/simhyper.R
 \name{simhyper}
 \alias{simhyper}
-\title{Function to simulate hyperpriors from an adjacency matrix.}
+\title{Simulate hyperpriors from an GMRF}
 \usage{
 simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat,
   nperiod = 6, only.iid = TRUE)
@@ -21,7 +21,7 @@ simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat,
 \item{only.iid}{Indicator for whether or not only IID hyperpriors are simulated}
 }
 \description{
-Function to simulate hyperpriors from an adjacency matrix.
+Simulate hyperpriors from an GMRF
 }
 \examples{
 \dontrun{
@@ -32,4 +32,7 @@ priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat)
 }
 \references{
 Wakefield, J. Multi-level modelling, the ecologic fallacy, and hybrid study designs. \emph{International Journal of Epidemiology}, 2009, vol. 38 (pg. 330-336).
+}
+\author{
+Zehang Richard Li, Laina Mercer
 }

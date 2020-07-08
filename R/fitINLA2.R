@@ -52,6 +52,7 @@
 #' @importFrom stats dgamma na.pass
 #' @importFrom Matrix Diagonal 
 #' @return INLA model fit using the provided formula, country summary data, and geographic data
+#' @author Zehang Richard Li 
 #' @examples
 #' \dontrun{
 #' library(dplyr)

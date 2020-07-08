@@ -8,6 +8,7 @@
 #' @param drop logical indicator of whether to drop all rows with total = 0.
 #' 
 #' @return data.frame of the ggregated counts. 
+#' @author Zehang Richard Li
 #' @examples
 #' 
 #'  

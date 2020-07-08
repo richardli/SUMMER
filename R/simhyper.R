@@ -1,4 +1,4 @@
-#' Function to simulate hyperpriors from an adjacency matrix.
+#' Simulate hyperpriors from an GMRF
 #' 
 #'
 #' @param R Desired prior odds ratio. Default to 2, i.e., a 95\% prior interval for the residual odds ratios lies in the interval (R, 1/R).
@@ -7,6 +7,7 @@
 #' @param Amat Adjacency matrix of the areas in the data.
 #' @param nperiod numerical value of how many time periods in the data
 #' @param only.iid Indicator for whether or not only IID hyperpriors are simulated
+#' @author Zehang Richard Li, Laina Mercer
 #' @references Wakefield, J. Multi-level modelling, the ecologic fallacy, and hybrid study designs. \emph{International Journal of Epidemiology}, 2009, vol. 38 (pg. 330-336).
 #' @examples
 #' \dontrun{

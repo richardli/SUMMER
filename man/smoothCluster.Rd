@@ -158,3 +158,6 @@ plot(est$stratified, plot.CI=TRUE) + ggplot2::facet_wrap(~strata)
 \seealso{
 \code{\link{getDirect}}
 }
+\author{
+Zehang Richard Li
+}

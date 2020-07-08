@@ -2,7 +2,7 @@
 % Please edit documentation in R/hatchPlot.R
 \name{hatchPlot}
 \alias{hatchPlot}
-\title{Makes map plot with uncertainty hatching.}
+\title{Plot maps with uncertainty hatching.}
 \usage{
 hatchPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
   by.geo, is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL,
@@ -19,7 +19,7 @@ hatchPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
 
 \item{labels}{vector of labels to use for each variable, only used when wide format of data is used}
 
-\item{geo}{\code{geo} output from \code{\link{read_shape}}}
+\item{geo}{SpatialPolygonsDataFrame object for the map}
 
 \item{by.data}{column name specifying region names in the data}
 
@@ -86,4 +86,7 @@ by.data = "region", by.geo = "REGNAME",
 lower = "lower", upper = "upper", is.long=TRUE)
 
 }
+}
+\author{
+Zehang Richard Li, Katie Wilson
 }

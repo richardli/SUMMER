@@ -1,4 +1,4 @@
-#' Makes map plot with uncertainty hatching.
+#' Plot maps with uncertainty hatching.
 #' 
 #' This function visualizes the map with different variables. The input data frame can be either the long or wide format.
 #'
@@ -6,7 +6,7 @@
 #' @param variables vector of variables to be plotted. If long format of data is used, only one variable can be selected
 #' @param values the column corresponding to the values to be plotted, only used when long format of data is used
 #' @param labels vector of labels to use for each variable, only used when wide format of data is used
-#' @param geo \code{geo} output from \code{\link{read_shape}}
+#' @param geo SpatialPolygonsDataFrame object for the map
 #' @param by.data column name specifying region names in the data
 #' @param by.geo variable name specifying region names in the data
 #' @param is.long logical indicator of whether the data is in the long format, default to FALSE
@@ -24,6 +24,7 @@
 #' @param direction Direction of the color scheme. It can be either 1 (smaller values are darker) or -1 (higher values are darker). Default is set to 1.
 #' @param ... unused.
 #'
+#' @author Zehang Richard Li, Katie Wilson
 #' @examples
 #' \dontrun{
 #' years <- levels(DemoData[[1]]$time)

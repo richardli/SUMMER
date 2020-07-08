@@ -2,7 +2,7 @@
 % Please edit documentation in R/projINLA.R
 \name{getSmoothed}
 \alias{getSmoothed}
-\title{Organize the smoothed estimates.}
+\title{Extract smoothed estimates.}
 \usage{
 getSmoothed(inla_mod, nsim = 1000, weight.strata = NULL,
   weight.frame = NULL, verbose = FALSE, mc = 0,
@@ -35,10 +35,10 @@ getSmoothed(inla_mod, nsim = 1000, weight.strata = NULL,
 \item{...}{Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.}
 }
 \value{
-Results from RW2 model fit, including projection.
+A data frame or a list of data frames of S3 class SUMMERproj, which contains the smoothed estimates.
 }
 \description{
-Organize the smoothed estimates.
+Extract smoothed estimates.
 }
 \examples{
 \dontrun{
@@ -78,4 +78,7 @@ plot(out2, is.yearly=TRUE, is.subnational=TRUE)
 }
 \seealso{
 \code{\link{plot.SUMMERproj}}
+}
+\author{
+Zehang Richard Li
 }

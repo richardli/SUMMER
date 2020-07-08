@@ -11,6 +11,7 @@
 #' @param scale.model logical indicator of whether to scale the random effects to have unit generalized variance. See Sørbye 2013 for more details
 #' 
 #' @return a matrix (for spatial or temporal) or a three-dimensional array (for spatial-temporal) of the random effects.
+#' @author Zehang Richard Li
 #' @references Rue, H., & Held, L. (2005). \emph{Gaussian Markov random fields: theory and applications}. CRC press.
 #' @references Sørbye, S. H. (2013). \emph{Tutorial: Scaling IGMRF-models in R-INLA}. Department of Mathematics and Statistics, University of Tromsø.
 #' @examples

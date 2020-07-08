@@ -4,6 +4,7 @@
 #' @param names  character vector of region ids to be added to the neighbours list
 #' 
 #' @return Spatial djacency matrix.
+#' @author Zehang Richard Li 
 #' @examples
 #' data(DemoMap) 
 #' mat <- getAmat(geo = DemoMap$geo, names = DemoMap$geo$REGNAME)

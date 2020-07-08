@@ -68,12 +68,12 @@ fitGeneric(data, geo = NULL, Amat, X = NULL,
 }
 \value{
 \item{HT}{Direct estimates}
-\item{smooth}{Spatially smoothed estimates}
+\item{smooth}{Smoothed direct estimates}
 \item{fit}{a fitted INLA object}
-\item{Amat}{input argument}
 \item{CI}{input argument}
+\item{Amat}{input argument}
 \item{responseType}{input argument}
-\item{FUN}{input argument}
+\item{formula}{INLA formula}
 }
 \description{
 This function calculates the direct estimates by region and fit a simple spatial smoothing model to the direct estimates adjusting for survey design.
@@ -126,4 +126,7 @@ plot(fit3$smooth$mean, fit0$smooth$logit.mean)
 }
 \seealso{
 \code{\link{getDirectList}}, \code{\link{smoothDirect}}
+}
+\author{
+Zehang Richard Li
 }

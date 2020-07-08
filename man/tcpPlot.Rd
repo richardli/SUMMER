@@ -2,7 +2,7 @@
 % Please edit documentation in R/tcpPlot.R
 \name{tcpPlot}
 \alias{tcpPlot}
-\title{Function to create discrete-color maps based on the True Classification Probabilities described in Dong and Wakefield (2020).}
+\title{Discrete-color maps based on the True Classification Probabilities}
 \usage{
 tcpPlot(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4,
   per1000 = FALSE, thresholds = NULL, intervals = 3,
@@ -12,7 +12,7 @@ tcpPlot(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4,
 \arguments{
 \item{draws}{a posterior draw object from \code{\link{getSmoothed}}}
 
-\item{geo}{geo output from \code{\link{read_shape}}}
+\item{geo}{SpatialPolygonsDataFrame object for the map}
 
 \item{by.geo}{variable name specifying region names in geo}
 
@@ -38,7 +38,7 @@ tcpPlot(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4,
 a list of True Classification Probability (TCP) tables, a list of individual spplot maps, and a gridded array of all maps.
 }
 \description{
-Function to create discrete-color maps based on the True Classification Probabilities described in Dong and Wakefield (2020).
+Discrete-color maps based on the True Classification Probabilities
 }
 \examples{
 \dontrun{
@@ -73,4 +73,10 @@ tcp <- tcpPlot(est, DemoMap$geo, by.geo = "REGNAME", interval = 3, year_plot = p
 tcp$g
 }
 
+}
+\references{
+Tracy Qi Dong, and Jon Wakefield. (2020) \emph{Modeling and presentation of vaccination coverage estimates using data from household surveys.} arXiv preprint arXiv:2004.03127.
+}
+\author{
+Tracy Qi Dong, Zehang Richard Li
 }

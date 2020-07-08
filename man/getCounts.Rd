@@ -44,3 +44,6 @@ getCounts(data, variables = "died", by = c("area", "time"),
 
  
 }
+\author{
+Zehang Richard Li
+}

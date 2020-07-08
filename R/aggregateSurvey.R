@@ -3,6 +3,7 @@
 #' @param data Output from \code{\link{getDirectList}}
 #' 
 #' @return Estimators aggregated across surveys.
+#' @author Zehang Richard Li
 #' @examples
 #' \dontrun{
 #' data(DemoData)

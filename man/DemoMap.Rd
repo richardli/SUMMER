@@ -3,7 +3,7 @@
 \docType{data}
 \name{DemoMap}
 \alias{DemoMap}
-\title{Map dataset for vignette.}
+\title{Uganda Admin-1 region map for illustration purpose}
 \format{An object of class \code{list} of length 2.}
 \source{
 \url{https://spatialdata.dhsprogram.com/boundaries/#view=table&countryId=UG}

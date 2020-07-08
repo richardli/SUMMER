@@ -44,6 +44,14 @@ regionVar = "region", timeVar = "time", clusterVar = "~clustid+id",
 ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 }
 }
+\references{
+Li, Z., Hsiao, Y., Godwin, J., Martin, B. D., Wakefield, J., Clark, S. J., & with support from the United Nations Inter-agency Group for Child Mortality Estimation and its technical advisory group. (2019). \emph{Changes in the spatial distribution of the under-five mortality rate: Small-area analysis of 122 DHS surveys in 262 subregions of 35 countries in Africa.} PloS one, 14(1), e0210645.
+
+Mercer, L. D., Wakefield, J., Pantazis, A., Lutambi, A. M., Masanja, H., & Clark, S. (2015). \emph{Space-time smoothing of complex survey data: small area estimation for child mortality.} The annals of applied statistics, 9(4), 1889.
+}
 \seealso{
 \code{\link{getDirect}}
+}
+\author{
+Zehang Richard Li, Bryan Martin, Laina Mercer
 }

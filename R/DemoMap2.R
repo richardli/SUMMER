@@ -1,4 +1,4 @@
-#' Kenya map dataset for vignette. 
+#' Kenya Admin-1 region map for illustration purpose
 #' 
 #' Shapefiles are from 2014 Kenya Admin 1 regions provided by DHS.
 #' 

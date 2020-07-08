@@ -17,7 +17,7 @@
 
 \item{year_label}{labels for the periods}
 
-\item{year_med}{labels for the middle years in each period}
+\item{year_med}{labels for the middle years in each period, only used when both yearly and period estimates are plotted. In that case, \code{year_med} specifies where each period estimates are aligned.}
 
 \item{is.subnational}{logical indicator of whether the data contains subnational estimates}
 
@@ -47,13 +47,11 @@
 Plot projection output.
 }
 \details{
-Note that arguments after \code{...} must match exactly.
+Examples of some arguments:
 \itemize{
- \item{\code{year_label}}{string of year labels, defaults to \code{c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")}}
- \item{\code{proj_year}}{projection year as numeric, defaults to \code{2015}}
- \item{\code{year_med}}{ median of year intervals, defaults to \code{c(1987, 1992, 1997, 2002, 2007, 2012, 2017)}}
- \item{\code{is.yearly}}{indicator for yearly model, defaults to \code{TRUE}}
- \item{\code{is.subnational}}{indicator for subnational model, defaults to \code{TRUE}}
+ \item{\code{year_label}}{string of year labels, e.g., \code{c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")} or \code{c(1985:2019)}} 
+ \item{\code{proj_year}}{the year projection starts, e.g., \code{2015}}
+ \item{\code{year_med}}{ median of year intervals, e.g., \code{c(1987, 1992, 1997, 2002, 2007, 2012, 2017)}}
 }
 }
 \examples{
@@ -94,4 +92,7 @@ plot(out2, is.yearly=TRUE, is.subnational=TRUE)
 }
 \seealso{
 \code{\link{getSmoothed}}
+}
+\author{
+Zehang Richard Li
 }

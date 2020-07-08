@@ -1,4 +1,4 @@
-#' Organize the smoothed estimates.
+#' Extract smoothed estimates.
 #' 
 #' 
 #'
@@ -15,8 +15,10 @@
 #' @param save.draws Logical indicator whether the raw posterior draws will be saved. Saved draws can be used to accelerate aggregations with different weights.
 #' @param ... Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.
 #' 
-#' @return Results from RW2 model fit, including projection.
+#' @return A data frame or a list of data frames of S3 class SUMMERproj, which contains the smoothed estimates. 
+#' 
 #' @seealso \code{\link{plot.SUMMERproj}}
+#' @author Zehang Richard Li
 #' @examples
 #' \dontrun{
 #' years <- levels(DemoData[[1]]$time)

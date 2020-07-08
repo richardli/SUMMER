@@ -2,7 +2,7 @@
 % Please edit documentation in R/getDiag.R
 \name{getDiag}
 \alias{getDiag}
-\title{Make diagnostic plots}
+\title{Extract posterior summaries of random effects}
 \usage{
 getDiag(inla_mod, field = c("space", "time", "spacetime")[1],
   CI = 0.95, draws = NULL, ...)
@@ -22,7 +22,7 @@ getDiag(inla_mod, field = c("space", "time", "spacetime")[1],
 List of diagnostic plots
 }
 \description{
-Make diagnostic plots
+Extract posterior summaries of random effects
 }
 \examples{
 \dontrun{
@@ -52,4 +52,7 @@ random.time <- getDiag(fit1, field = "time")
   random.spacetime <- getDiag(fit1, field = "spacetime")
 }
 
+}
+\author{
+Zehang Richard Li
 }

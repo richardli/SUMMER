@@ -30,3 +30,6 @@ dat2 <- mapPoints(dat, DemoMap$geo, long = "lon", lat = "lat", names = "REGNAME"
 dat2
  
 }
+\author{
+Zehang Richard Li
+}
