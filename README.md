@@ -1,5 +1,5 @@
 # SUMMER
-[![Build Status](https://travis-ci.org/richardli/SUMMER.svg?branch=master)](https://travis-ci.org/richardli/SUMMER) [![](https://cranlogs.r-pkg.org/badges/SUMMER)](https://cran.r-project.org/package=SUMMER) [![](https://cranlogs.r-pkg.org/badges/grand-total/SUMMER?color=orange)](https://cran.r-project.org/package=SUMMER)
+[![Build Status](https://travis-ci.com/richardli/SUMMER.svg?branch=master)](https://travis-ci.com/richardli/SUMMER) [![](https://cranlogs.r-pkg.org/badges/SUMMER)](https://cran.r-project.org/package=SUMMER) [![](https://cranlogs.r-pkg.org/badges/grand-total/SUMMER?color=orange)](https://cran.r-project.org/package=SUMMER)
 
 Spatio-temporal Under-five Mortality Models of Estimation in R
 
@@ -36,6 +36,37 @@ Version 0.3.0 contains some major updates from the previous versions. Some of th
 +New methods
     * ``fitINLA2``: implements new smoothing methods based on binomial models at cluster level. 
 
+## Citation
+
+To cite the SUMMER package in publications use
+```
+  @Manual{li2020space,
+    title = {Space-Time Smoothing of Demographic and Health Indicators using the R Package SUMMER},
+    author = {Zehang R Li and Bryan D Martin and Tracy Q Dong and Geir-Arne Fuglstad and Jessica Godwin and John Paige and Andrea Riebler and Samuel Clark and Jon Wakefield},
+    year = {2020},
+    journal = {arXiv preprint}
+  }
+```
+
+To cite specific version of the SUMMER package use
++ v1.0.0 
+```
+  @Manual{summer2020,
+    title = {SUMMER: Spatio-Temporal Under-Five Mortality Methods for Estimation},
+    author = {Zehang R Li and Bryan D Martin and Yuan Hsiao and Jessica Godwin and Jon Wakefield and Samuel J Clark and Geir-Arne Fuglstad and Andrea Riebler},
+    year = {2020},
+    note = {R package version 1.0.0},
+  }
+```
++ earlier versions (e.g., v0.3.0)
+```
+  @Manual{summer2019,
+    title = {SUMMER: Spatio-Temporal Under-Five Mortality Methods for Estimation},
+    author = {Bryan D Martin and Zehang R Li and Yuan Hsiao and Jessica Godwin and Jon Wakefield and Samuel J Clark and Geir-Arne Fuglstad and Andrea Riebler},
+    year = {2019},
+    note = {R package version 0.3.0},
+  }
+```
 
 
 ## Installation - CRAN
