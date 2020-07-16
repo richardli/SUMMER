@@ -346,6 +346,10 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
         X <- data.frame(X)        
         fixed <- colnames(X)[-1]
         colnames(X)[1] <- "region"
+        if(fixed %in% colnames(dat)){
+            message("The following covariates exist in the input data frame. They are replaced with region-level covariates provided in X: ", fixed[fixed %in% colnames(dat)])
+            dat <- dat[, !colnames(dat) %in% fixed]
+        }
         dat <- merge(dat, X, by = "region", all = TRUE)
         formulatext <- paste(formulatext, " + ", paste(fixed, collapse = " + "))
     }
@@ -412,6 +416,7 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
                 which <- which(dat$region == proj$region[i] & dat$strata0 == proj$strata[i] &
                                dat$time == proj$time[i])[1] 
             }
+            if(is.na(which)) next
             tmp <- matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[which]]))
         }
         if(!svy && responseType == "binary"){
