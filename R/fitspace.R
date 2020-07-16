@@ -462,10 +462,18 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
         for(j in 1:length(sampAll)){
             r <- sampAll[[j]]$latent[paste0("region.struct:", match(proj.agg$region[i], colnames(Amat))), ]
             if(!is.null(timeVar)) r <- r + sampAll[[j]]$latent[paste0("time.struct:", proj.agg$time[i]), ]
+
+            # only handling region-level covariates  
+            if(!is.null(X)){
+                for(xx in fixed){
+                    slope = sampAll[[j]]$latent[paste0(xx, ":1"), ]
+                    r <- r + slope * dat[which(dat$region == proj.agg$region[i])[1], xx]
+                }
+            } 
             for(s in stratalist){
                 intercept = sampAll[[j]]$latent[paste0("strata0", s, ":1"), ]
                 draws[j] <- draws[j] + expit(r + intercept) * weight.strata[which, s]
-            }    
+            } 
         }
         proj.agg[i, "mean"] <- mean(draws)
         proj.agg[i, "var"] <- var(draws)
