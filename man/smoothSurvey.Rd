@@ -11,7 +11,8 @@ smoothSurvey(data, geo = NULL, Amat, X = NULL,
   clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01,
   pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL,
   timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1,
-  direct.est = NULL, direct.est.var = NULL, ...)
+  direct.est = NULL, direct.est.var = NULL, strataVar.bb = NULL,
+  clusterVar.bb = NULL, weight.strata = NULL, nsim = 1000, ...)
 
 fitGeneric(data, geo = NULL, Amat, X = NULL,
   responseType = c("binary", "gaussian")[1], responseVar,
@@ -19,7 +20,8 @@ fitGeneric(data, geo = NULL, Amat, X = NULL,
   clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01,
   pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL,
   timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1,
-  direct.est = NULL, direct.est.var = NULL, ...)
+  direct.est = NULL, direct.est.var = NULL, strataVar.bb = NULL,
+  clusterVar.bb = NULL, weight.strata = NULL, nsim = 1000, ...)
 }
 \arguments{
 \item{data}{data frame with region and strata information.}
@@ -63,6 +65,14 @@ fitGeneric(data, geo = NULL, Amat, X = NULL,
 \item{direct.est}{data frame of direct estimates, with column names of response and region specified by \code{responseVar}, \code{regionVar}, and \code{timeVar}.  When \code{direct.est} is specified, it overwrites the \code{data} input.}
 
 \item{direct.est.var}{the column name corresponding to the variance of direct estimates}
+
+\item{strataVar.bb}{the variable specifying within region stratification variable. This is only used for the BetaBinomial model.}
+
+\item{clusterVar.bb}{the variable specifying within cluster ID variable. This is only used for the BetaBinomial model.}
+
+\item{weight.strata}{a data frame with one column corresponding to \code{regionVar}, and columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates on the probability scale. This is only used for the BetaBinomial model.}
+
+\item{nsim}{number of posterior draws to take. This is only used for the BetaBinomial model when \code{weight.strata} is provided.}
 
 \item{...}{additional arguments passed to \code{svydesign} function.}
 }

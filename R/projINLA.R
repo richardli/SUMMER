@@ -4,7 +4,7 @@
 #'
 #' @param inla_mod output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}
 #' @param nsim number of simulations, only applicable for the cluster-level model.
-#' @param weight.strata a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. This argument specifies the weights for strata-specific estimates on the probability scale. 
+#' @param weight.strata a data frame with two columns specifying time and region, followed by columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates on the probability scale.
 #' @param weight.frame a data frame with three columns, years, region, and the weight of each frame for the corresponding time period and region. This argument specifies the weights for frame-specific estimates on the logit scale. Notice this is different from weight.strata argument. 
 #' @param verbose logical indicator whether to print progress messages from inla.posterior.sample.
 #' @param mc number of monte carlo draws to approximate the marginal prevalence/hazards for binomial model. If mc = 0, analytical approximation is used. The analytical approximation is invalid for hazard modeling with more than one age groups.

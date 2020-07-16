@@ -14,7 +14,7 @@ getSmoothed(inla_mod, nsim = 1000, weight.strata = NULL,
 
 \item{nsim}{number of simulations, only applicable for the cluster-level model.}
 
-\item{weight.strata}{a data frame with three columns, years, region, and proportion of each strata for the corresponding time period and region. This argument specifies the weights for strata-specific estimates on the probability scale.}
+\item{weight.strata}{a data frame with two columns specifying time and region, followed by columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates on the probability scale.}
 
 \item{weight.frame}{a data frame with three columns, years, region, and the weight of each frame for the corresponding time period and region. This argument specifies the weights for frame-specific estimates on the logit scale. Notice this is different from weight.strata argument.}
 

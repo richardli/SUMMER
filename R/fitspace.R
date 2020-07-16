@@ -26,6 +26,10 @@
 #' @param type.st can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.
 #' @param direct.est data frame of direct estimates, with column names of response and region specified by \code{responseVar}, \code{regionVar}, and \code{timeVar}.  When \code{direct.est} is specified, it overwrites the \code{data} input. 
 #' @param direct.est.var the column name corresponding to the variance of direct estimates
+#' @param strataVar.bb the variable specifying within region stratification variable. This is only used for the BetaBinomial model. 
+#' @param clusterVar.bb the variable specifying within cluster ID variable. This is only used for the BetaBinomial model. 
+#' @param weight.strata a data frame with one column corresponding to \code{regionVar}, and columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates on the probability scale. This is only used for the BetaBinomial model. 
+#' @param nsim number of posterior draws to take. This is only used for the BetaBinomial model when \code{weight.strata} is provided. 
 #' @param ... additional arguments passed to \code{svydesign} function.
 #' 
 #' 
@@ -83,7 +87,7 @@
 #' @export
 
 
-smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, direct.est = NULL, direct.est.var = NULL, ...){
+smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, direct.est = NULL, direct.est.var = NULL, strataVar.bb = NULL, clusterVar.bb = NULL, weight.strata = NULL, nsim = 1000, ...){
 
     svy <- TRUE
     if(is.null(responseVar)){
@@ -92,7 +96,42 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
     if(is.null(responseType)){
             stop("responseType not specified")
     }  
-    if(!is.null(direct.est)){
+    is.bb <- FALSE
+
+    if(!is.null(strataVar.bb) || !is.null(clusterVar.bb)){
+        message("Fitting beta-binomial model.")
+        if(responseType != "binary") stop("beta-binomial model only implemented for binary response.")
+        if(is.null(strataVar.bb) || is.na(strataVar.bb)){
+            message("Within region stratification variable (strataVar.bb) not defined. Unstratified model is fitted.")
+            strataVar.bb <- "strata0"
+            data$strata0 <- 1
+        }
+       
+
+        if(is.null(clusterVar.bb)) stop("Cluster variable (clusterVar.bb) not defined.")
+        if(is.null(data)) stop("Survey dataset not defined.")
+        data$response0 <- data[, responseVar]
+        data$region0 <- data[, regionVar]
+        data$strata0 <- data[, strataVar.bb]
+        data$cluster0 <- data[, clusterVar.bb]
+        vars <- c("cluster0", "region0", "strata0")
+
+        if(!is.null(timeVar)){
+            data$time0 <- data[, timeVar]
+            vars <- c(vars, "time0")
+        }
+        counts <- getCounts(data[, c(vars, "response0")], variables = 'response0', by = vars, drop=TRUE)    
+        
+        is.bb <- TRUE   
+        
+        if(!is.null(weight.strata)){
+            if(sum(!data$strata0 %in% colnames(weight.strata)) > 0) stop("Exist within-area strata (strataVar.bb) not in the weight.strata data frame.")
+            stratalist <- unique(data$strata0)
+        }else{
+            stratalist <- NULL
+        }
+
+    }else if(!is.null(direct.est)){
         # TODO: this new input type later can be extended to Fay-Herriot
         message("Using direct estimates as input instead of survey data.")
         data <- direct.est
@@ -167,90 +206,98 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
        stop("Exist regions in data but not in the Amat.")
     }
 
-    if(svy && is.null(direct.est)){
-        design <- survey::svydesign(
-                        ids = stats::formula(clusterVar),
-                        weights = ~weights0,
-                        strata = ~strata0,
-                        data = data, 
-                        ...)
-        if(!is.null(timeVar)){
-            mean <- survey::svyby(formula=~response0, by=~region0+time0, design=design, survey::svymean, drop.empty.groups=FALSE)
-            time.i <- as.numeric(as.character(mean$time0))
+    if(!is.bb){
+        if(svy && is.null(direct.est)){
+            design <- survey::svydesign(
+                            ids = stats::formula(clusterVar),
+                            weights = ~weights0,
+                            strata = ~strata0,
+                            data = data, 
+                            ...)
+            if(!is.null(timeVar)){
+                mean <- survey::svyby(formula=~response0, by=~region0+time0, design=design, survey::svymean, drop.empty.groups=FALSE)
+                time.i <- as.numeric(as.character(mean$time0))
+            }else{
+                mean <- survey::svyby(formula=~response0, by=~region0, design=design, survey::svymean, drop.empty.groups=FALSE)
+            }
+            name.i <- mean$region0            
+            p.i <- mean$response0
+            var.i <- mean$se^2
+            if(responseType == "binary"){
+                ht <- log(p.i/(1-p.i))
+                ht.v <- var.i/(p.i^2*(1-p.i)^2)
+                ht.prec <- 1/ht.v
+            }else if(responseType == "gaussian"){
+                ht <- p.i
+                ht.v <- var.i
+                ht.prec <- 1/ht.v
+            }else{
+                stop("responseType argument only supports binary or gaussian at the time.")
+            }
+            n <- y <- NA
+        }else if(is.null(direct.est)){
+            if(!is.null(timeVar)){
+                mean <- aggregate(response0 ~ region0+time0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})    
+                  name.i <- mean$region0
+                  time.i <- as.numeric(as.character(mean$time0))
+                  mean <- data.frame(mean[, -c(1:2)])
+            }else{
+                mean <- aggregate(response0 ~ region0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})
+                name.i <- mean$region0
+                mean <- data.frame(mean[, -1])
+            }
+
+            colnames(mean) <- c("mean", "n", "y") 
+            p.i <- mean$mean
+            var.i <- p.i * (1-p.i)/mean$n
+            if(responseType == "binary"){
+                ht <- log(p.i/(1-p.i))
+                ht.v <- var.i/(p.i^2*(1-p.i)^2)
+                ht.prec <- 1/ht.v
+            }else if(responseType == "gaussian"){
+                ht <- p.i
+                ht.v <- var.i
+                ht.prec <- 1/ht.v
+            }else{
+                stop("responseType argument only supports binary or gaussian at the time.")
+            }
+            n <- mean$n
+            y <- mean$y
         }else{
-            mean <- survey::svyby(formula=~response0, by=~region0, design=design, survey::svymean, drop.empty.groups=FALSE)
-        }
-        name.i <- mean$region0            
-        p.i <- mean$response0
-        var.i <- mean$se^2
-        if(responseType == "binary"){
-            ht <- log(p.i/(1-p.i))
-            ht.v <- var.i/(p.i^2*(1-p.i)^2)
-            ht.prec <- 1/ht.v
-        }else if(responseType == "gaussian"){
-            ht <- p.i
-            ht.v <- var.i
-            ht.prec <- 1/ht.v
-        }else{
-            stop("responseType argument only supports binary or gaussian at the time.")
-        }
-        n <- y <- NA
-    }else if(is.null(direct.est)){
-        if(!is.null(timeVar)){
-            mean <- aggregate(response0 ~ region0+time0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})    
-              name.i <- mean$region0
-              time.i <- as.numeric(as.character(mean$time0))
-              mean <- data.frame(mean[, -c(1:2)])
-        }else{
-            mean <- aggregate(response0 ~ region0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})
-            name.i <- mean$region0
-            mean <- data.frame(mean[, -1])
+            p.i <- data$response0
+            var.i <- data$var0
+            if(responseType == "binary"){
+                ht <- log(p.i/(1-p.i))
+                ht.v <- var.i/(p.i^2*(1-p.i)^2)
+                ht.prec <- 1/ht.v
+            }else if(responseType == "gaussian"){
+                ht <- p.i
+                ht.v <- var.i
+                ht.prec <- 1/ht.v
+            }else{
+                stop("responseType argument only supports binary or gaussian at the time.")
+            } 
+            n <- NA
+            y <- NA
+            time.i <- as.numeric(as.character(data$time0))
+            name.i <- as.character(data$region0)
         }
 
-        colnames(mean) <- c("mean", "n", "y") 
-        p.i <- mean$mean
-        var.i <- p.i * (1-p.i)/mean$n
-        if(responseType == "binary"){
-            ht <- log(p.i/(1-p.i))
-            ht.v <- var.i/(p.i^2*(1-p.i)^2)
-            ht.prec <- 1/ht.v
-        }else if(responseType == "gaussian"){
-            ht <- p.i
-            ht.v <- var.i
-            ht.prec <- 1/ht.v
-        }else{
-            stop("responseType argument only supports binary or gaussian at the time.")
-        }
-        n <- mean$n
-        y <- mean$y
+        dat <- data.frame(
+                          HT.est = p.i,
+                          HT.var = var.i, 
+                          HT.logit.est = ht,
+                          HT.logit.var = ht.v, 
+                          HT.logit.prec = ht.prec,  
+                          n = n, 
+                          y = y)   
     }else{
-        p.i <- data$response0
-        var.i <- data$var0
-        if(responseType == "binary"){
-            ht <- log(p.i/(1-p.i))
-            ht.v <- var.i/(p.i^2*(1-p.i)^2)
-            ht.prec <- 1/ht.v
-        }else if(responseType == "gaussian"){
-            ht <- p.i
-            ht.v <- var.i
-            ht.prec <- 1/ht.v
-        }else{
-            stop("responseType argument only supports binary or gaussian at the time.")
-        } 
-        n <- NA
-        y <- NA
-        time.i <- as.numeric(as.character(data$time0))
-        name.i <- as.character(data$region0)
+        dat <- counts
+        dat$y <- dat$response0
+        name.i <- dat$region0
+        if(!is.null(timeVar)) time.i <- as.numeric(as.character(dat$time0))
     }
 
-    dat <- data.frame(
-                      HT.est = p.i,
-                      HT.var = var.i, 
-                      HT.logit.est = ht,
-                      HT.logit.var = ht.v, 
-                      HT.logit.prec = ht.prec,  
-                      n = n, 
-                      y = y)   
     if(!is.null(timeVar)){
         dat$time <- time.i
         dat$time.struct <- dat$time.unstruct <- time.int <- dat$time - min(dat$time) + 1
@@ -260,7 +307,7 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
     # dat <- dat[match(rownames(Amat), regnames), ]
     dat$region <- as.character(name.i)
     dat$region.unstruct <- dat$region.struct <- dat$region.int <-  match(dat$region, rownames(Amat))
-    dat$HT.logit.est[is.infinite(abs(dat$HT.logit.est))] <- NA  
+    if(!is.bb) dat$HT.logit.est[is.infinite(abs(dat$HT.logit.est))] <- NA  
 
 
     if(!is.null(timeVar)){
@@ -270,10 +317,14 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
     }
     
 
-    if(!svy && responseType == "binary"){
+    if(!svy && responseType == "binary" && !is.bb){
+        formulatext <- "y ~ 1"
+    }else if(!is.bb){
+        formulatext <- "HT.logit.est ~ 1"
+    }else if(length(unique(data$strata0)) == 1){
         formulatext <- "y ~ 1"
     }else{
-        formulatext <- "HT.logit.est ~ 1"
+        formulatext <- "y ~ strata0 - 1"        
     }
     if(!is.null(X)){
         X <- data.frame(X)        
@@ -302,7 +353,10 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
         formula <- as.formula(paste(formulatext, formula, sep = "+"))
     }   
 
-    if(!svy && responseType == "binary"){
+    if(is.bb){
+        fit <- INLA::inla(formula, family="betabinomial", Ntrials=dat$total, control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+
+    }else if(!svy && responseType == "binary"){
          fit <- INLA::inla(formula, family="binomial", Ntrials=n, control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     
     # Weighted estimates
@@ -316,13 +370,34 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
     
     n <- max(dat$region.struct) 
     temp <- NA
-    if(!is.null(timeVar)) {
-        n <- n * max(dat$time.struct)
-        temp <- dat$time[1:n]
+    if(!is.bb){
+        if(!is.null(timeVar)) {
+            n <- n * max(dat$time.struct)
+            temp <- dat$time[1:n]
+        }
+        proj <- data.frame(region=dat$region[1:n], time = temp, mean=NA, var=NA, median=NA, lower=NA, upper=NA, logit.mean=NA, logit.var=NA, logit.median=NA, logit.lower=NA, logit.upper=NA)        
+    }else{
+        if(!is.null(timeVar)) {
+            temp <- 1:max(dat$time.struct)
+        }
+        proj <- expand.grid(region = colnames(Amat), time = temp, strata = unique(dat$strata0))
+        proj <- cbind(proj, data.frame(mean=NA, var=NA, median=NA, lower=NA, upper=NA, logit.mean=NA, logit.var=NA, logit.median=NA, logit.lower=NA, logit.upper=NA)) 
     }
-    proj <- data.frame(region=dat$region[1:n], time = temp, mean=NA, var=NA, median=NA, lower=NA, upper=NA, logit.mean=NA, logit.var=NA, logit.median=NA, logit.lower=NA, logit.upper=NA)
-    for(i in 1:n){
-        tmp <- matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[i]]))
+  
+
+  
+    for(i in 1:dim(proj)[1]){
+        if(!is.bb){
+            tmp <- matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[i]]))
+        }else{
+            if(is.null(timeVar)){
+                which <- which(dat$region == proj$region[i] & dat$strata0 == proj$strata[i])[1]
+            }else{
+                which <- which(dat$region == proj$region[i] & dat$strata0 == proj$strata[i] &
+                               dat$time == proj$time[i])[1] 
+            }
+            tmp <- matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[which]]))
+        }
         if(!svy && responseType == "binary"){
            tmp2 <- tmp
             proj[i, "logit.mean"] <- mean(tmp2)
@@ -355,25 +430,68 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
       
     }
 
-   # organize output nicer 
-   HT <- dat[, !colnames(dat) %in% c("region.struct", "region.unstruct", "region.int", "time.struct", "time.unstruct", "time.int")]
-   HT <- cbind(region=HT[, "region"], HT[, colnames(HT) != "region"])
-   if("time" %in% names(HT)){
-       HT <- cbind(region=HT[, "region"], 
-                   time=HT[, "time"], 
-                   HT[, !(colnames(HT) %in% c("region", "time"))])
+   if(is.bb && !is.null(weight.strata) && length(unique(data$strata0)) > 1){
+     proj.agg <- expand.grid(region = colnames(Amat), time = temp)
+     proj.agg <- cbind(proj.agg, data.frame(mean=NA, var=NA, median=NA, lower=NA, upper=NA, logit.mean=NA, logit.var=NA, logit.median=NA, logit.lower=NA, logit.upper=NA)) 
+     sampAll <- INLA::inla.posterior.sample(n = nsim, result = fit, intern = TRUE)
+
+     for(i in 1:dim(proj.agg)[1]){
+        if(is.null(timeVar)){
+            which <- which(weight.strata[, regionVar] == proj.agg$region[i])
+        }else{
+            which <-  which(weight.strata[, regionVar] == proj.agg$region[i] &
+                            weight.strata[, timeVar] == proj.agg$time[i]) 
+        }
+        draws <- rep(0, nsim)
+        for(j in 1:length(sampAll)){
+            r <- sampAll[[j]]$latent[paste0("region.struct:", match(proj.agg$region[i], colnames(Amat))), ]
+            if(!is.null(timeVar)) r <- r + sampAll[[j]]$latent[paste0("time.struct:", proj.agg$time[i]), ]
+            for(s in stratalist){
+                intercept = sampAll[[j]]$latent[paste0("strata0", s, ":1"), ]
+                draws[j] <- draws[j] + expit(r + intercept) * weight.strata[which, s]
+            }    
+        }
+        proj.agg[i, "mean"] <- mean(draws)
+        proj.agg[i, "var"] <- var(draws)
+        proj.agg[i, "lower"] <- quantile(draws, (1 - CI)/2)
+        proj.agg[i, "upper"] <- quantile(draws, 1 - (1 - CI)/2)
+        proj.agg[i, "median"] <- median(draws)
+        proj.agg[i, "logit.mean"] <- mean(logit(draws))
+        proj.agg[i, "logit.var"] <- var(logit(draws))
+        proj.agg[i, "logit.lower"] <- quantile(logit(draws), (1-CI)/2)
+        proj.agg[i, "logit.upper"] <- quantile(logit(draws), 1-(1-CI)/2)
+        proj.agg[i, "logit.median"] <- median(logit(draws))
+
+     }
+    }else{
+        proj.agg <- NULL
+    }
+
+   if(!is.bb){
+       # organize output nicer 
+       HT <- dat[, !colnames(dat) %in% c("region.struct", "region.unstruct", "region.int", "time.struct", "time.unstruct", "time.int")]
+       HT <- cbind(region=HT[, "region"], HT[, colnames(HT) != "region"])
+       if("time" %in% names(HT)){
+           HT <- cbind(region=HT[, "region"], 
+                       time=HT[, "time"], 
+                       HT[, !(colnames(HT) %in% c("region", "time"))])
+       }
+       for(i in 1:dim(HT)[2]) HT[is.nan(HT[,i]), i] <- NA
+       if(sum(!is.na(HT$n)) == 0) HT <- HT[, colnames(HT) != "n"]
+       if(sum(!is.na(HT$y)) == 0) HT <- HT[, colnames(HT) != "y"]
+       if(sum(!is.na(proj$time)) == 0) proj <- proj[, colnames(proj) != "time"]
+       if(responseType == "gaussian"){
+            HT <- HT[, !colnames(HT) %in% c("HT.logit.est", "HT.logit.var", "HT.logit.prec")]
+            proj <- proj[, !colnames(HT) %in% c("logit.mean", "logit.var", "logit.median", "logit.lower", "logit.upper")]
+       }    
+   }else{
+        HT <- NULL
    }
-   for(i in 1:dim(HT)[2]) HT[is.nan(HT[,i]), i] <- NA
-   if(sum(!is.na(HT$n)) == 0) HT <- HT[, colnames(HT) != "n"]
-   if(sum(!is.na(HT$y)) == 0) HT <- HT[, colnames(HT) != "y"]
-   if(sum(!is.na(proj$time)) == 0) proj <- proj[, colnames(proj) != "time"]
-   if(responseType == "gaussian"){
-        HT <- HT[, !colnames(HT) %in% c("HT.logit.est", "HT.logit.var", "HT.logit.prec")]
-        proj <- proj[, !colnames(HT) %in% c("logit.mean", "logit.var", "logit.median", "logit.lower", "logit.upper")]
-   }
+
 
    return(list(HT = HT,
                smooth = proj, 
+               smooth.overall = proj.agg, 
                fit = fit, 
                CI = CI,
                Amat = Amat,
