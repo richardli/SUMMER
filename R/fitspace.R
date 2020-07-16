@@ -26,8 +26,10 @@
 #' @param type.st can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.
 #' @param direct.est data frame of direct estimates, with column names of response and region specified by \code{responseVar}, \code{regionVar}, and \code{timeVar}.  When \code{direct.est} is specified, it overwrites the \code{data} input. 
 #' @param direct.est.var the column name corresponding to the variance of direct estimates
+#' @param counts.bb data frame of counts of binary responses by cluster, with column names of response, region, stratification within region, and cluster ID specified by \code{responseVar}, \code{strataVar.bb}, and \code{clusterVar.bb}.  When \code{counts} is specified, it overwrites the \code{data} input. 
 #' @param strataVar.bb the variable specifying within region stratification variable. This is only used for the BetaBinomial model. 
 #' @param clusterVar.bb the variable specifying within cluster ID variable. This is only used for the BetaBinomial model. 
+#' @param totalVar.bb the variable specifying total observations in \code{counts}. This is only used for the BetaBinomial model when \code{counts} is specified. 
 #' @param weight.strata a data frame with one column corresponding to \code{regionVar}, and columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates on the probability scale. This is only used for the BetaBinomial model. 
 #' @param nsim number of posterior draws to take. This is only used for the BetaBinomial model when \code{weight.strata} is provided. 
 #' @param ... additional arguments passed to \code{svydesign} function.
@@ -87,7 +89,7 @@
 #' @export
 
 
-smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, direct.est = NULL, direct.est.var = NULL, strataVar.bb = NULL, clusterVar.bb = NULL, weight.strata = NULL, nsim = 1000, ...){
+smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, direct.est = NULL, direct.est.var = NULL, counts.bb = NULL, strataVar.bb = NULL, clusterVar.bb = NULL, totalVar.bb = NULL, weight.strata = NULL, nsim = 1000, ...){
 
     svy <- TRUE
     if(is.null(responseVar)){
@@ -101,26 +103,40 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
     if(!is.null(strataVar.bb) || !is.null(clusterVar.bb)){
         message("Fitting beta-binomial model.")
         if(responseType != "binary") stop("beta-binomial model only implemented for binary response.")
+        if(!is.null(counts.bb)) data <- counts.bb
+
         if(is.null(strataVar.bb) || is.na(strataVar.bb)){
             message("Within region stratification variable (strataVar.bb) not defined. Unstratified model is fitted.")
             strataVar.bb <- "strata0"
             data$strata0 <- 1
         }
        
-
         if(is.null(clusterVar.bb)) stop("Cluster variable (clusterVar.bb) not defined.")
+
         if(is.null(data)) stop("Survey dataset not defined.")
         data$response0 <- data[, responseVar]
         data$region0 <- data[, regionVar]
         data$strata0 <- data[, strataVar.bb]
         data$cluster0 <- data[, clusterVar.bb]
-        vars <- c("cluster0", "region0", "strata0")
 
-        if(!is.null(timeVar)){
-            data$time0 <- data[, timeVar]
-            vars <- c(vars, "time0")
-        }
-        counts <- getCounts(data[, c(vars, "response0")], variables = 'response0', by = vars, drop=TRUE)    
+        if(is.null(counts.bb)){
+            vars <- c("cluster0", "region0", "strata0")
+
+            if(!is.null(timeVar)){
+                data$time0 <- data[, timeVar]
+                vars <- c(vars, "time0")
+            }
+            counts <- getCounts(data[, c(vars, "response0")], variables = 'response0', by = vars, drop=TRUE)   
+        }else{
+            if(!is.null(timeVar)){
+                data$time0 <- data[, timeVar]
+            }
+            if(is.null(totalVar.bb)){
+                stop("Which column correspond to cluster total is not specified")
+            }
+            data$total <- data[, totalVar.bb]
+            counts <- data
+        } 
         
         is.bb <- TRUE   
         

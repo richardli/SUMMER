@@ -11,8 +11,9 @@ smoothSurvey(data, geo = NULL, Amat, X = NULL,
   clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01,
   pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL,
   timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1,
-  direct.est = NULL, direct.est.var = NULL, strataVar.bb = NULL,
-  clusterVar.bb = NULL, weight.strata = NULL, nsim = 1000, ...)
+  direct.est = NULL, direct.est.var = NULL, counts.bb = NULL,
+  strataVar.bb = NULL, clusterVar.bb = NULL, totalVar.bb = NULL,
+  weight.strata = NULL, nsim = 1000, ...)
 
 fitGeneric(data, geo = NULL, Amat, X = NULL,
   responseType = c("binary", "gaussian")[1], responseVar,
@@ -20,8 +21,9 @@ fitGeneric(data, geo = NULL, Amat, X = NULL,
   clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01,
   pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL,
   timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1,
-  direct.est = NULL, direct.est.var = NULL, strataVar.bb = NULL,
-  clusterVar.bb = NULL, weight.strata = NULL, nsim = 1000, ...)
+  direct.est = NULL, direct.est.var = NULL, counts.bb = NULL,
+  strataVar.bb = NULL, clusterVar.bb = NULL, totalVar.bb = NULL,
+  weight.strata = NULL, nsim = 1000, ...)
 }
 \arguments{
 \item{data}{data frame with region and strata information.}
@@ -66,9 +68,13 @@ fitGeneric(data, geo = NULL, Amat, X = NULL,
 
 \item{direct.est.var}{the column name corresponding to the variance of direct estimates}
 
+\item{counts.bb}{data frame of counts of binary responses by cluster, with column names of response, region, stratification within region, and cluster ID specified by \code{responseVar}, \code{strataVar.bb}, and \code{clusterVar.bb}.  When \code{counts} is specified, it overwrites the \code{data} input.}
+
 \item{strataVar.bb}{the variable specifying within region stratification variable. This is only used for the BetaBinomial model.}
 
 \item{clusterVar.bb}{the variable specifying within cluster ID variable. This is only used for the BetaBinomial model.}
+
+\item{totalVar.bb}{the variable specifying total observations in \code{counts}. This is only used for the BetaBinomial model when \code{counts} is specified.}
 
 \item{weight.strata}{a data frame with one column corresponding to \code{regionVar}, and columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates on the probability scale. This is only used for the BetaBinomial model.}
 
