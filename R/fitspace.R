@@ -115,7 +115,9 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
 
         if(is.null(data)) stop("Survey dataset not defined.")
         data$response0 <- data[, responseVar]
-        data$region0 <- data[, regionVar]
+        data$region0 <- as.character(data[, regionVar])
+        if(sum(!data$region0 %in% colnames(Amat)) > 0) stop("Exist regions in the data frame but not in Amat.")
+        data$region0 <- factor(data$region0, levels = colnames(Amat))
         data$strata0 <- data[, strataVar.bb]
         data$cluster0 <- data[, clusterVar.bb]
 
@@ -151,7 +153,9 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
         # TODO: this new input type later can be extended to Fay-Herriot
         message("Using direct estimates as input instead of survey data.")
         data <- direct.est
-        data$region0 <- direct.est[, regionVar]
+        data$region0 <- as.character(direct.est[, regionVar])
+        if(sum(!data$region0 %in% colnames(Amat)) > 0) stop("Exist regions in the data frame but not in Amat.")
+        data$region0 <- factor(data$region0, levels = colnames(Amat))        
         data$response0 <- direct.est[, responseVar]
         if(is.null(direct.est.var)){
             stop("Need to specify column for the variance of direct estimates")
@@ -171,7 +175,9 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
             svy <- FALSE
         } 
         data$response0 <- data[, responseVar]
-        data$region0 <- data[, regionVar]        
+        data$region0 <- as.character(data[, regionVar])
+        if(sum(!data$region0 %in% colnames(Amat)) > 0) stop("Exist regions in the data frame but not in Amat.")
+        data$region0 <- factor(data$region0, levels = colnames(Amat))   
         if(svy){
             data$weights0 <- data[, weightVar]
             data$strata0 <- data[, strataVar]
