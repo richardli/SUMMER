@@ -124,14 +124,15 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 
 	    #inla_mod$fit$marginals.random$time.struct 
 	    re <- grep("time.struct", rownames(sampAll[[1]]$latent))
-	    fe <- grep("time.slope", rownames(sampAll[[1]]$latent))
-	    fe.name <- rownames(sampAll[[1]]$latent)[fe]
-	    fe.name <- gsub("time.slope.", "", fe.name)
-	    fe.name <- gsub(":1", "", fe.name)
+	    fe <- grep("time.slope.group", rownames(sampAll[[1]]$latent))
+	    fe0 <- grep("time.slope:1", rownames(sampAll[[1]]$latent))
+	    if(length(fe0) > 0){
+	    	fe <- rep(fe0, length(inla_mod$age.rw.group))
+	    } 
 
 	    struct.all <- matrix(0, length(re), length(sampAll))
 	    T <- length(re) / length(fe)
-	    xx <- ((1:T) - T/2) / sd(1:T)
+	    xx <- ((1:T) -  (T + 1)/2) / (T + 1)
 	    for(j in 1:length(sampAll)){
 	    	for(k in 1:length(inla_mod$age.rw.group)){
 	    		group.index <- inla_mod$age.rw.group[k]
