@@ -24,8 +24,9 @@
 #' @param formula INLA formula.  See vignette for example of using customized formula.
 #' @param year_label string vector of year names
 #' @param type.st type for space-time interaction
-#' @param survey.effect logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0. 
+#' @param survey.effect logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0.
 #' @param strata.time.effect logical indicator whether to include strata specific temporal trends.  
+#' @param common.trend logical indicator whether all age groups and/or strata share the same linear trend in the temporal main effect. Only used when the temporal main effect is an AR(1) process.
 #' @param hyper which hyperpriors to use. Default to be using the PC prior ("pc"). 
 #' @param pc.u hyperparameter U for the PC prior on precisions.
 #' @param pc.alpha hyperparameter alpha for the PC prior on precisions.
@@ -88,7 +89,7 @@
 #' 
 #' 
 
-smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = c(1,2,3,3,3,3), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label, type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, ...){
+smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = c(1,2,3,3,3,3), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label, type.st = 4, survey.effect = FALSE, common.trend = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, ...){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
@@ -497,11 +498,15 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
            formula <- Y ~  f(time.struct, model="ar", order=ar, hyper = hyperar1, constr = TRUE, extraconstr = NULL, values = 1:N) 
 
           }
+         
           # AR1 add slope
-          if(is.main.ar){
-            tmp <- paste(slope.fixed.names, collapse = " + ")
-            formula <- as.formula(paste(c(formula, tmp), collapse = "+"))
-          }
+           if(is.main.ar && !common.trend){
+              tmp <- paste(slope.fixed.names, collapse = " + ")
+              formula <- as.formula(paste(c(formula, tmp), collapse = "+"))
+           }
+           if(is.main.ar && common.trend){
+              formula <- as.formula(paste(c(formula, "time.slope"), collapse = "+"))
+           }
           # Add IID
           formula <- update(formula, ~. + 
                   f(time.unstruct,model="iid", hyper = hyperpc1, values = 1:N))
@@ -532,9 +537,12 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
              }
 
             # AR1 add slope
-             if(is.main.ar){
+             if(is.main.ar && !common.trend){
                 tmp <- paste(slope.fixed.names, collapse = " + ")
                 formula <- as.formula(paste(c(formula, tmp), collapse = "+"))
+             }
+             if(is.main.ar && common.trend){
+                formula <- as.formula(paste(c(formula, "time.slope"), collapse = "+"))
              }
 
 

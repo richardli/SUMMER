@@ -277,9 +277,13 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
           message(paste0("The IID temporal components are included in the following time periods: ", paste(year_label[which.include], collapse = ", ")))
         }
         slope <- grep("time.slope.group", fields)
+        slope0 <- grep("time.slope:1", fields)
         if(!is.null(slope)){
            AA$tstar <- (AA$time.unstruct - (T + 1)/2) / (T + 1)
            AA$slope  <- match(paste0("time.slope.group", AA$age.rep.idx, ":1"), fields)
+        }else if(!is.null(slope0)){
+           AA$tstar <- (AA$time.unstruct - (T + 1)/2) / (T + 1)
+           AA$slope  <- match(paste0("time.slope:1"), fields)
         }else{
           AA$tstar <-  AA$slope <- NA
         }

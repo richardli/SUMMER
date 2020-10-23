@@ -10,14 +10,14 @@ smoothCluster(data, family = c("betabinomial", "binomial")[1],
   age.n = c(1, 11, 12, 12, 12, 12), age.rw.group = c(1, 2, 3, 3, 3, 3),
   time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat,
   bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label,
-  type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE,
-  hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01,
-  pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7,
-  pc.alpha.cor = 0.9, pc.st.u = NA, pc.st.alpha = NA,
-  pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0,
-  overdisp.prec = 0.4, options = list(config = TRUE),
-  control.inla = list(strategy = "adaptive", int.strategy = "auto"),
-  verbose = FALSE, geo = NULL, rw = NULL, ar = NULL,
+  type.st = 4, survey.effect = FALSE, common.trend = FALSE,
+  strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1,
+  pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3,
+  pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA,
+  pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA,
+  overdisp.mean = 0, overdisp.prec = 0.4, options = list(config =
+  TRUE), control.inla = list(strategy = "adaptive", int.strategy =
+  "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL,
   st.rw = NULL, ...)
 
 fitINLA2(data, family = c("betabinomial", "binomial")[1],
@@ -25,14 +25,14 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
   age.n = c(1, 11, 12, 12, 12, 12), age.rw.group = c(1, 2, 3, 3, 3, 3),
   time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat,
   bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label,
-  type.st = 4, survey.effect = FALSE, strata.time.effect = FALSE,
-  hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01,
-  pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7,
-  pc.alpha.cor = 0.9, pc.st.u = NA, pc.st.alpha = NA,
-  pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0,
-  overdisp.prec = 0.4, options = list(config = TRUE),
-  control.inla = list(strategy = "adaptive", int.strategy = "auto"),
-  verbose = FALSE, geo = NULL, rw = NULL, ar = NULL,
+  type.st = 4, survey.effect = FALSE, common.trend = FALSE,
+  strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1,
+  pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3,
+  pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA,
+  pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA,
+  overdisp.mean = 0, overdisp.prec = 0.4, options = list(config =
+  TRUE), control.inla = list(strategy = "adaptive", int.strategy =
+  "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL,
   st.rw = NULL, ...)
 }
 \arguments{
@@ -72,6 +72,8 @@ fitINLA2(data, family = c("betabinomial", "binomial")[1],
 \item{type.st}{type for space-time interaction}
 
 \item{survey.effect}{logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0.}
+
+\item{common.trend}{logical indicator whether all age groups and/or strata share the same linear trend in the temporal main effect. Only used when the temporal main effect is an AR(1) process.}
 
 \item{strata.time.effect}{logical indicator whether to include strata specific temporal trends.}
 
