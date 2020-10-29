@@ -278,21 +278,23 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         }
         slope <- grep("time.slope.group", fields)
         slope0 <- grep("time.slope:1", fields)
-        if(!is.null(slope)){
+        if(length(slope) > 0){
            AA$tstar <- (AA$time.unstruct - (T + 1)/2) / (T + 1)
            AA$slope  <- match(paste0("time.slope.group", AA$age.rep.idx, ":1"), fields)
-        }else if(!is.null(slope0)){
+        }else if(length(slope0) > 0){
            AA$tstar <- (AA$time.unstruct - (T + 1)/2) / (T + 1)
            AA$slope  <- match(paste0("time.slope:1"), fields)
         }else{
-          AA$tstar <-  AA$slope <- NA
+          AA$tstar <- NA
+          AA$slope <- "time.slope:NA"
         }
         st.slope <- grep("st.slope.id", fields)
-        if(!is.null(st.slope)){
+        if(length(st.slope)>0){
            AA$ststar <- (AA$time.unstruct - (T + 1)/2) / (T + 1)
            AA$st.slope  <- match(paste0("st.slope.id:", AA$region.struct), fields)
         }else{
-           AA$ststar <-  AA$st.slope <- NA
+           AA$ststar <-  NA
+           AA$st.slope <- "st.slope.id:NA"
         }
         AA.loc$age.idx <- AA.loc$age.rep.idx <- NA
 
