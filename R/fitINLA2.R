@@ -410,6 +410,10 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     
     # -- creating IDs for the temporal REs -- #
     dat$time.unstruct <- dat$time.struct <- dat$time.int <- years[match(dat$years, years[, 1]), 2]
+    if(sum(is.na(dat$time.unstruct)) > 0){
+      dat <- dat[!is.na(dat$time.unstruct), ]
+      message("Data contains time periods not in the specified range. These observations are removed.")
+    }
   
       
     x <- expand.grid(1:N, 1:region_count)
