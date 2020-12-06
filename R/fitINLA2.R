@@ -200,12 +200,11 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     is.spatial <- FALSE
   }
 
-  if(is.spatial){
-
-  } 
-  message("\n  Spatial effect:             bym2", 
-          "\n  Interaction temporal model: ", st.time.model, 
-          "\n  Interaction type:           ", type.st, appendLF=FALSE)
+  if(is.spatial){ 
+    message("\n  Spatial effect:             bym2", 
+            "\n  Interaction temporal model: ", st.time.model, 
+            "\n  Interaction type:           ", type.st, appendLF=FALSE)
+  }
   if(!is.na(pc.st.slope.u) && !is.na(pc.st.slope.alpha)){
     message("\n  Interaction random slopes:  yes", appendLF=FALSE)
   }else{
