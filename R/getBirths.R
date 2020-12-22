@@ -128,9 +128,11 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables =
 
       test$time <- paste(year.cut2[1], year.cut3[2], sep = "-")
       year.bin <- paste(year.cut2[1], year.cut3[2], sep = "-")
-      for(i in 2:(length(year.cut)-1)){
-        test$time[test$year >= year.cut[i] & test$year < year.cut[i+1]] <- paste(year.cut2[i], year.cut3[i+1], sep = "-")
-        year.bin <- c(year.bin, paste(year.cut2[i], year.cut3[i+1], sep = "-"))
+      if(length(year.cut) > 2){
+        for(i in 2:(length(year.cut)-1)){
+          test$time[test$year >= year.cut[i] & test$year < year.cut[i+1]] <- paste(year.cut2[i], year.cut3[i+1], sep = "-")
+          year.bin <- c(year.bin, paste(year.cut2[i], year.cut3[i+1], sep = "-"))
+        }        
       }
   }
 
