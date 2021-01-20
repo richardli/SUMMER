@@ -58,9 +58,20 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables =
   formula <- as.formula(paste(c("Surv(time = obsStart, time2=obsStop, event = died, origin=dob)~dob+survey_year+died+id.new", union(variables, strata)),  collapse = "+"))
 
   Surv <- survival::Surv
+  # test <- survival::survSplit(formula,
+  #                             data = datnew, cut = c(0:max(month.cut)), 
+  #                             start = "agemonth", end = "tstop", event = "died")
+
   test <- survival::survSplit(formula,
-                              data = datnew, cut = c(0:max(month.cut)), 
+                              data = datnew, cut = c(0.02, 1:max(month.cut)),
                               start = "agemonth", end = "tstop", event = "died")
+  # the survival package splits the data into
+  # (0, 0.02], (0.02, 1], (1, 2], ..., (59, 60], ...
+  # which is equivalent to 
+  # [0, 1),     [1, 2),    [2, 3),..., [60, 61), ...
+  test$agemonth <- test$agemonth + 1
+  test$agemonth[test$agemonth == 1] <- 0   
+  test$agemonth[test$agemonth == 1.02] <- 1   
 
   test$obsStart <- test$dob + test$agemonth
   test$obsStop <- test$dob + test$tstop
