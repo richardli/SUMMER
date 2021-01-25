@@ -121,7 +121,7 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables =
   
   # test$age <- factor(test$age)
   # levels(test$age) <- bins #c("0","1-11","12-23","24-35","36-47","48-59")
-  test$age <- as.factor(as.character(test$age), levels = as.character(bins))
+  test$age <- factor(as.character(test$age), levels = as.character(bins))
   
   if(period.1yr){
       test$time <- year.cut[1] + 1900 
