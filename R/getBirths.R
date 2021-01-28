@@ -39,6 +39,13 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables =
   surveyyear <- surveyyear - 1900
   year.cut <- year.cut - 1900
   variables <- union(variables, strata)
+  
+  # use mid point to impute age reported in years
+  if(age == "b7"){
+      trunc <- intersect(which(dat[, age] %% 12 == 0), which(dat[, age] >= 24))
+      dat[trunc, age] <- dat[trunc, age] + 5
+  }
+
   datnew <- dat[, variables] 
   dat[, alive] <- tolower(dat[, alive])
   
