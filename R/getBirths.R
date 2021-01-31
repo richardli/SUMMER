@@ -9,6 +9,7 @@
 #' @param dob variable name for the date of birth.
 #' @param alive variable name for the indicator of whether child was alive or dead at the time of interview.
 #' @param age variable name for the age at death of the child in completed months.
+#' @param age.truncate the smallest age in months where only full years are reported. The default value is 24, which corresponds to the DHS practice of recording only age in full years for children over 2 years old. That is, for children with age starting from 24 months old, we assume the age variable reported in multiples of 12 are truncated from its true value. For example, children between age 24 to 35 months are all recorded as 24. To account for the truncation of age, 5 months are added to all ages recorded in multiples of 12 starting from 24. To avoid this adjustment, set this argument to NA. 
 #' @param date.interview variable name for the date of interview.
 #' @param month.cut the cutoff of each bins of age group in the unit of months. Default values are 1, 12, 24, 36, 48, and 60, representing the age groups (0, 1), [1, 12), [12, 24), ..., [48, 60).
 #' @param year.cut The cutoff of each bins of time periods, including both boundaries. Default values are 1980, 1985, ..., 2020, representing the time periods 80-84, 85-89, ..., 15-19. Notice that if each bin contains one year, the last year in the output is max(year.cut)-1. For example, if year.cut = 1980:2020, the last year in the output is 2019.
@@ -28,7 +29,7 @@
 #' }
 #' 
 #' @export
-getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022", "v023", "v024", "v025", "v139", "bidx"), strata=c("v024", "v025"), dob = "b3", alive = "b5", age = "b7", date.interview= "v008", month.cut = c(1,12,24,36,48,60), year.cut=seq(1980, 2020, by=5), min.last.period = 0, cmc.adjust = 0, compact = FALSE, compact.by = c('v001',"v024", "v025", "v005")) {
+getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022", "v023", "v024", "v025", "v139", "bidx"), strata=c("v024", "v025"), dob = "b3", alive = "b5", age = "b7", age.truncate = 24, date.interview= "v008", month.cut = c(1,12,24,36,48,60), year.cut=seq(1980, 2020, by=5), min.last.period = 0, cmc.adjust = 0, compact = FALSE, compact.by = c('v001',"v024", "v025", "v005")) {
   if(is.null(data)){
       dat <- suppressWarnings(readstata13::read.dta13(filepath, generate.factors = TRUE))    
   }else{
@@ -41,9 +42,16 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables =
   variables <- union(variables, strata)
   
   # use mid point to impute age reported in years
-  if(age == "b7"){
-      trunc <- intersect(which(dat[, age] %% 12 == 0), which(dat[, age] >= 24))
-      dat[trunc, age] <- dat[trunc, age] + 5
+  if(!is.na(age.truncate)){
+      trunc <- intersect(which(dat[, age] %% 12 == 0), which(dat[, age] >= age.truncate))
+      if(length(trunc) > 0){
+          dat[trunc, age] <- dat[trunc, age] + 5
+          message(paste0("Children with age at least ", age.truncate, " months are assumed to have recorded age truncated to full years. \nRecorded age + 5 months is used to adjust for the truncation for ages >= ", age.truncate , " and are multiples of 12." ))
+      }else{
+          message(paste0("Children with age at least ", age.truncate, " months are specified to have recorded age truncated to full years. But no records in the data needs the adjustment." ))
+      }
+  }else{
+    message("No age truncation adjustment is performed.")
   }
 
   datnew <- dat[, variables] 
