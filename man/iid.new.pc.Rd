@@ -4,8 +4,10 @@
 \alias{iid.new.pc}
 \title{New random IID models for m-year to period random effects}
 \usage{
-iid.new.pc(cmd = c("graph", "Q", "mu", "initial", "log.norm.const",
-  "log.prior", "quit"), theta = NULL)
+iid.new.pc(
+  cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
+  theta = NULL
+)
 }
 \arguments{
 \item{cmd}{list of model components}

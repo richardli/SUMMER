@@ -4,11 +4,24 @@
 \alias{getAdjusted}
 \title{Adjust direct estimates and their associated variances}
 \usage{
-getAdjusted(data, ratio, time = "years", region = "region",
-  est = "mean", logit = "logit.est", logit.var = "var.est",
-  logit.prec = "logit.prec", logit.lower = "lower",
-  logit.upper = "upper", prob.lower = NULL, prob.upper = NULL,
-  adj = "ratio", verbose = FALSE, lower = NULL, upper = NULL)
+getAdjusted(
+  data,
+  ratio,
+  time = "years",
+  region = "region",
+  est = "mean",
+  logit = "logit.est",
+  logit.var = "var.est",
+  logit.prec = "logit.prec",
+  logit.lower = "lower",
+  logit.upper = "upper",
+  prob.lower = NULL,
+  prob.upper = NULL,
+  adj = "ratio",
+  verbose = FALSE,
+  lower = NULL,
+  upper = NULL
+)
 }
 \arguments{
 \item{data}{data frame of the adjusted estimates and the associated uncertainties, see the arguments below for specific columns.}

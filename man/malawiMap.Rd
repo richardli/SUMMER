@@ -4,7 +4,9 @@
 \name{MalawiMap}
 \alias{MalawiMap}
 \title{Malawi Admin-2 map}
-\format{An object of class \code{SpatialPolygonsDataFrame} with 28 rows and 14 columns.}
+\format{
+An object of class \code{SpatialPolygonsDataFrame} with 28 rows and 14 columns.
+}
 \usage{
 data(MalawiMap)
 }

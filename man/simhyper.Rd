@@ -4,8 +4,14 @@
 \alias{simhyper}
 \title{Simulate hyperpriors from an GMRF}
 \usage{
-simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat,
-  nperiod = 6, only.iid = TRUE)
+simhyper(
+  R = 2,
+  nsamp = 1e+05,
+  nsamp.check = 5000,
+  Amat,
+  nperiod = 6,
+  only.iid = TRUE
+)
 }
 \arguments{
 \item{R}{Desired prior odds ratio. Default to 2, i.e., a 95\% prior interval for the residual odds ratios lies in the interval (R, 1/R).}

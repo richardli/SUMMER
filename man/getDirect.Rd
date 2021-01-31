@@ -4,9 +4,18 @@
 \alias{getDirect}
 \title{Obtain the Horvitz-Thompson direct estimates and standard errors using delta method for a single survey.}
 \usage{
-getDirect(births, years, regionVar = "region", timeVar = "time",
-  clusterVar = "~v001+v002", ageVar = "age", weightsVar = "v005",
-  Ntrials = NULL, geo.recode = NULL, national.only = FALSE)
+getDirect(
+  births,
+  years,
+  regionVar = "region",
+  timeVar = "time",
+  clusterVar = "~v001+v002",
+  ageVar = "age",
+  weightsVar = "v005",
+  Ntrials = NULL,
+  geo.recode = NULL,
+  national.only = FALSE
+)
 }
 \arguments{
 \item{births}{A matrix child-month data from \code{\link{getBirths}}}

@@ -4,8 +4,7 @@
 \alias{getCounts}
 \title{Aggregate person-month data into counts and totals by groups.}
 \usage{
-getCounts(data, variables, by, ignore = NULL, addtotal = TRUE,
-  drop = TRUE)
+getCounts(data, variables, by, ignore = NULL, addtotal = TRUE, drop = TRUE)
 }
 \arguments{
 \item{data}{dataset in person-month format}

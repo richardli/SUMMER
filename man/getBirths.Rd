@@ -4,13 +4,25 @@
 \alias{getBirths}
 \title{Reformat full birth records into person-month format}
 \usage{
-getBirths(filepath = NULL, data = NULL, surveyyear = NA,
-  variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022",
-  "v023", "v024", "v025", "v139", "bidx"), strata = c("v024", "v025"),
-  dob = "b3", alive = "b5", age = "b7", date.interview = "v008",
-  month.cut = c(1, 12, 24, 36, 48, 60), year.cut = seq(1980, 2020, by =
-  5), min.last.period = 0, cmc.adjust = 0, compact = FALSE,
-  compact.by = c("v001", "v024", "v025", "v005"))
+getBirths(
+  filepath = NULL,
+  data = NULL,
+  surveyyear = NA,
+  variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022", "v023",
+    "v024", "v025", "v139", "bidx"),
+  strata = c("v024", "v025"),
+  dob = "b3",
+  alive = "b5",
+  age = "b7",
+  age.truncate = 24,
+  date.interview = "v008",
+  month.cut = c(1, 12, 24, 36, 48, 60),
+  year.cut = seq(1980, 2020, by = 5),
+  min.last.period = 0,
+  cmc.adjust = 0,
+  compact = FALSE,
+  compact.by = c("v001", "v024", "v025", "v005")
+)
 }
 \arguments{
 \item{filepath}{file path of raw .dta file from DHS. Only used when data frame is not provided in the function call.}
@@ -28,6 +40,8 @@ getBirths(filepath = NULL, data = NULL, surveyyear = NA,
 \item{alive}{variable name for the indicator of whether child was alive or dead at the time of interview.}
 
 \item{age}{variable name for the age at death of the child in completed months.}
+
+\item{age.truncate}{the smallest age in months where only full years are reported. The default value is 24, which corresponds to the DHS practice of recording only age in full years for children over 2 years old. That is, for children with age starting from 24 months old, we assume the age variable reported in multiples of 12 are truncated from its true value. For example, children between age 24 to 35 months are all recorded as 24. To account for the truncation of age, 5 months are added to all ages recorded in multiples of 12 starting from 24. To avoid this adjustment, set this argument to NA.}
 
 \item{date.interview}{variable name for the date of interview.}
 

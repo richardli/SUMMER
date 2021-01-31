@@ -4,8 +4,13 @@
 \alias{getDiag}
 \title{Extract posterior summaries of random effects}
 \usage{
-getDiag(inla_mod, field = c("space", "time", "spacetime")[1],
-  CI = 0.95, draws = NULL, ...)
+getDiag(
+  inla_mod,
+  field = c("space", "time", "spacetime")[1],
+  CI = 0.95,
+  draws = NULL,
+  ...
+)
 }
 \arguments{
 \item{inla_mod}{output from \code{\link{smoothDirect}}}

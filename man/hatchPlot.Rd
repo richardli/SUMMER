@@ -4,11 +4,29 @@
 \alias{hatchPlot}
 \title{Plot maps with uncertainty hatching.}
 \usage{
-hatchPlot(data, variables, values = NULL, labels = NULL, geo, by.data,
-  by.geo, is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL,
-  breaks.CI = NULL, ncol = 4, hatch = NULL, border = NULL,
-  size = 1, legend.label = NULL, per1000 = FALSE, direction = 1,
-  ...)
+hatchPlot(
+  data,
+  variables,
+  values = NULL,
+  labels = NULL,
+  geo,
+  by.data,
+  by.geo,
+  is.long = FALSE,
+  lower,
+  upper,
+  lim = NULL,
+  lim.CI = NULL,
+  breaks.CI = NULL,
+  ncol = 4,
+  hatch = NULL,
+  border = NULL,
+  size = 1,
+  legend.label = NULL,
+  per1000 = FALSE,
+  direction = 1,
+  ...
+)
 }
 \arguments{
 \item{data}{a data frame with variables to be plotted}

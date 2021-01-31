@@ -4,9 +4,15 @@
 \alias{rst}
 \title{Simulate spatial and temporal random effects}
 \usage{
-rst(n = 1, type = c("s", "t", "st")[1], type.s = "ICAR",
-  type.t = c("RW1", "RW2")[2], Amat = NULL, n.t = NULL,
-  scale.model = TRUE)
+rst(
+  n = 1,
+  type = c("s", "t", "st")[1],
+  type.s = "ICAR",
+  type.t = c("RW1", "RW2")[2],
+  Amat = NULL,
+  n.t = NULL,
+  scale.model = TRUE
+)
 }
 \arguments{
 \item{n}{sample size}

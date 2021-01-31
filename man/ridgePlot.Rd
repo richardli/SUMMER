@@ -5,15 +5,39 @@
 \alias{getSmoothedDensity}
 \title{Calculate and plot posterior densities of the projected estimates}
 \usage{
-ridgePlot(x = NULL, nsim = 1000, draws = NULL, Amat = NULL,
-  year_plot = NULL, strata_plot = NULL, by.year = TRUE, ncol = 4,
-  scale = 2, per1000 = FALSE, order = 0, direction = 1,
-  results = NULL, ...)
+ridgePlot(
+  x = NULL,
+  nsim = 1000,
+  draws = NULL,
+  Amat = NULL,
+  year_plot = NULL,
+  strata_plot = NULL,
+  by.year = TRUE,
+  ncol = 4,
+  scale = 2,
+  per1000 = FALSE,
+  order = 0,
+  direction = 1,
+  results = NULL,
+  ...
+)
 
-getSmoothedDensity(x = NULL, nsim = 1000, draws = NULL,
-  Amat = NULL, year_plot = NULL, strata_plot = NULL,
-  by.year = TRUE, ncol = 4, scale = 2, per1000 = FALSE,
-  order = 0, direction = 1, results = NULL, ...)
+getSmoothedDensity(
+  x = NULL,
+  nsim = 1000,
+  draws = NULL,
+  Amat = NULL,
+  year_plot = NULL,
+  strata_plot = NULL,
+  by.year = TRUE,
+  ncol = 4,
+  scale = 2,
+  per1000 = FALSE,
+  order = 0,
+  direction = 1,
+  results = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{output from \code{\link{smoothDirect}} for the smoothed direct estimates, or \code{\link{smoothCluster}} for the cluster-level estimates.}

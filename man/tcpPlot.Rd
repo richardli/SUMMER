@@ -4,10 +4,20 @@
 \alias{tcpPlot}
 \title{Discrete-color maps based on the True Classification Probabilities}
 \usage{
-tcpPlot(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4,
-  per1000 = FALSE, thresholds = NULL, intervals = 3,
-  size.title = 0.7, legend.label = NULL, border = "gray20",
-  size = 0.5)
+tcpPlot(
+  draws,
+  geo,
+  by.geo = NULL,
+  year_plot = NULL,
+  ncol = 4,
+  per1000 = FALSE,
+  thresholds = NULL,
+  intervals = 3,
+  size.title = 0.7,
+  legend.label = NULL,
+  border = "gray20",
+  size = 0.5
+)
 }
 \arguments{
 \item{draws}{a posterior draw object from \code{\link{getSmoothed}}}

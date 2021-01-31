@@ -4,7 +4,9 @@
 \name{BRFSS}
 \alias{BRFSS}
 \title{The BRFSS dataset}
-\format{A data.frame of 26 variables.}
+\format{
+A data.frame of 26 variables.
+}
 \usage{
 data(BRFSS)
 }

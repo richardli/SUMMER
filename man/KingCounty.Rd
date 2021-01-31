@@ -4,7 +4,9 @@
 \name{KingCounty}
 \alias{KingCounty}
 \title{Map of King County}
-\format{An object of class \code{SpatialPolygonsDataFrame} with 48 rows and 9 columns.}
+\format{
+An object of class \code{SpatialPolygonsDataFrame} with 48 rows and 9 columns.
+}
 \usage{
 KingCounty
 }

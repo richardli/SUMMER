@@ -4,7 +4,9 @@
 \name{DemoData}
 \alias{DemoData}
 \title{Simulated child mortality person-month dataset.}
-\format{A list of with five components, named by survey year.}
+\format{
+A list of with five components, named by survey year.
+}
 \source{
 \url{https://dhsprogram.com/data/model-datasets.cfm}
 }

@@ -4,7 +4,9 @@
 \name{DemoMap2}
 \alias{DemoMap2}
 \title{Kenya Admin-1 region map for illustration purpose}
-\format{An object of class \code{list} of length 2.}
+\format{
+An object of class \code{list} of length 2.
+}
 \source{
 \url{https://spatialdata.dhsprogram.com/boundaries/#view=table&countryId=KE}
 }

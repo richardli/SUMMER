@@ -4,8 +4,10 @@
 \alias{rw.new.pc}
 \title{New random walk 1 and 2 models for m-year to period random effects}
 \usage{
-rw.new.pc(cmd = c("graph", "Q", "mu", "initial", "log.norm.const",
-  "log.prior", "quit"), theta = NULL)
+rw.new.pc(
+  cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
+  theta = NULL
+)
 }
 \arguments{
 \item{cmd}{list of model components}

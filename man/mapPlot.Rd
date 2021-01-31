@@ -4,11 +4,29 @@
 \alias{mapPlot}
 \title{Plot region-level variables on a map}
 \usage{
-mapPlot(data = NULL, variables, values = NULL, labels = NULL, geo,
-  by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE,
-  border = "gray20", ncol = NULL, ylim = NULL, legend.label = NULL,
-  per1000 = FALSE, clean = TRUE, size.label = 2, add.adj = FALSE,
-  color.adj = "red", alpha.adj = 0.85, direction = 1)
+mapPlot(
+  data = NULL,
+  variables,
+  values = NULL,
+  labels = NULL,
+  geo,
+  by.data,
+  by.geo,
+  is.long = FALSE,
+  size = 0.5,
+  removetab = FALSE,
+  border = "gray20",
+  ncol = NULL,
+  ylim = NULL,
+  legend.label = NULL,
+  per1000 = FALSE,
+  clean = TRUE,
+  size.label = 2,
+  add.adj = FALSE,
+  color.adj = "red",
+  alpha.adj = 0.85,
+  direction = 1
+)
 }
 \arguments{
 \item{data}{a data frame with variables to be plotted. When it is null, a map is produced.}

@@ -4,7 +4,9 @@
 \name{MalawiData}
 \alias{MalawiData}
 \title{Auxiliary data for Malawi 2000, 2004, 2010, and 2015 DHS.}
-\format{An object of class \code{list} of length 4.}
+\format{
+An object of class \code{list} of length 4.
+}
 \usage{
 data(MalawiData)
 }

@@ -1,8 +1,8 @@
 Package: SUMMER
 Type: Package
 Title: Spatio-Temporal Under-Five Mortality Methods for Estimation
-Version: 1.0.0
-Date: 2020-07-08
+Version: 1.1.0
+Date: 2021-01-31
 Authors@R: c(
     person(given = "Zehang R", family = "Li", email= "lizehang@gmail.com", role = c("cre","aut")),
     person(given = "Bryan D", family = "Martin", email= "bmartin6@uw.edu", role = "aut"), 
@@ -22,7 +22,7 @@ License: GPL (>= 2)
 Imports: maptools, survey, stats, spdep, survival, ggplot2, utils, Matrix, reshape2, viridis, sp, shadowtext, ggridges, methods, data.table, RColorBrewer, grDevices
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
 Additional_repositories: https://inla.r-inla-download.org/R/testing/
 Suggests: INLA, knitr, rmarkdown, readstata13, patchwork, rdhs, R.rsp
 VignetteBuilder: R.rsp, knitr

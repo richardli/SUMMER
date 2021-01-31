@@ -4,7 +4,9 @@
 \name{KenData}
 \alias{KenData}
 \title{Auxiliary data for Kenya 2014 DHS.}
-\format{An object of class \code{list} of length 4.}
+\format{
+An object of class \code{list} of length 4.
+}
 \usage{
 data(KenData)
 }

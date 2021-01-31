@@ -4,8 +4,10 @@
 \alias{st.new}
 \title{New Type I to IV space time interaction models for m-year to period random effects}
 \usage{
-st.new(cmd = c("graph", "Q", "mu", "initial", "log.norm.const",
-  "log.prior", "quit"), theta = NULL)
+st.new(
+  cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "log.prior", "quit"),
+  theta = NULL
+)
 }
 \arguments{
 \item{cmd}{list of model components}

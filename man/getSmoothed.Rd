@@ -4,10 +4,20 @@
 \alias{getSmoothed}
 \title{Extract smoothed estimates.}
 \usage{
-getSmoothed(inla_mod, nsim = 1000, weight.strata = NULL,
-  weight.frame = NULL, verbose = FALSE, mc = 0,
-  include_time_unstruct = FALSE, CI = 0.95, draws = NULL,
-  save.draws = FALSE, include_subnational = TRUE, ...)
+getSmoothed(
+  inla_mod,
+  nsim = 1000,
+  weight.strata = NULL,
+  weight.frame = NULL,
+  verbose = FALSE,
+  mc = 0,
+  include_time_unstruct = FALSE,
+  CI = 0.95,
+  draws = NULL,
+  save.draws = FALSE,
+  include_subnational = TRUE,
+  ...
+)
 }
 \arguments{
 \item{inla_mod}{output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}}
@@ -22,7 +32,7 @@ getSmoothed(inla_mod, nsim = 1000, weight.strata = NULL,
 
 \item{mc}{number of monte carlo draws to approximate the marginal prevalence/hazards for binomial model. If mc = 0, analytical approximation is used. The analytical approximation is invalid for hazard modeling with more than one age groups.}
 
-\item{include_time_unstruct}{Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates. Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included. Alternatively, if this is specified as a vector of   subset of year labels (as in the year_label argument), only the unstructured terms in the corresponding time periods will be added to the prediction.}
+\item{include_time_unstruct}{Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates from cluster-level model. The argument only applies to the cluster-level models (from \code{\link{smoothCluster}}). Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included. Alternatively, if this is specified as a vector of   subset of year labels (as in the year_label argument), only the unstructured terms in the corresponding time periods will be added to the prediction.}
 
 \item{CI}{Desired level of credible intervals}
 

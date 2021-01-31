@@ -5,27 +5,65 @@
 \alias{fitINLA}
 \title{Smoothed direct estimates for mortality rates}
 \usage{
-smoothDirect(data, Amat, X = NULL, formula = NULL,
-  time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL,
-  year_label, year_range = c(1980, 2014), is.yearly = TRUE, m = 5,
-  type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1],
-  pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3,
-  pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA,
-  pc.st.alpha = NA, options = list(dic = TRUE, mlik = TRUE, cpo = TRUE,
-  openmp.strategy = "default"), control.inla = list(strategy =
-  "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL,
-  rw = NULL, ar = NULL)
+smoothDirect(
+  data,
+  Amat,
+  X = NULL,
+  formula = NULL,
+  time.model = c("rw1", "rw2", "ar1")[2],
+  st.time.model = NULL,
+  year_label,
+  year_range = c(1980, 2014),
+  is.yearly = TRUE,
+  m = 5,
+  type.st = 1,
+  survey.effect = FALSE,
+  hyper = c("pc", "gamma")[1],
+  pc.u = 1,
+  pc.alpha = 0.01,
+  pc.u.phi = 0.5,
+  pc.alpha.phi = 2/3,
+  pc.u.cor = 0.7,
+  pc.alpha.cor = 0.9,
+  pc.st.u = NA,
+  pc.st.alpha = NA,
+  options = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy = "default"),
+  control.inla = list(strategy = "adaptive", int.strategy = "auto"),
+  verbose = FALSE,
+  geo = NULL,
+  rw = NULL,
+  ar = NULL
+)
 
-fitINLA(data, Amat, X = NULL, formula = NULL, time.model = c("rw1",
-  "rw2", "ar1")[2], st.time.model = NULL, year_label,
-  year_range = c(1980, 2014), is.yearly = TRUE, m = 5, type.st = 1,
-  survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1,
-  pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3,
-  pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA,
-  pc.st.alpha = NA, options = list(dic = TRUE, mlik = TRUE, cpo = TRUE,
-  openmp.strategy = "default"), control.inla = list(strategy =
-  "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL,
-  rw = NULL, ar = NULL)
+fitINLA(
+  data,
+  Amat,
+  X = NULL,
+  formula = NULL,
+  time.model = c("rw1", "rw2", "ar1")[2],
+  st.time.model = NULL,
+  year_label,
+  year_range = c(1980, 2014),
+  is.yearly = TRUE,
+  m = 5,
+  type.st = 1,
+  survey.effect = FALSE,
+  hyper = c("pc", "gamma")[1],
+  pc.u = 1,
+  pc.alpha = 0.01,
+  pc.u.phi = 0.5,
+  pc.alpha.phi = 2/3,
+  pc.u.cor = 0.7,
+  pc.alpha.cor = 0.9,
+  pc.st.u = NA,
+  pc.st.alpha = NA,
+  options = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy = "default"),
+  control.inla = list(strategy = "adaptive", int.strategy = "auto"),
+  verbose = FALSE,
+  geo = NULL,
+  rw = NULL,
+  ar = NULL
+)
 }
 \arguments{
 \item{data}{Combined dataset}

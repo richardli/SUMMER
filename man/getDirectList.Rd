@@ -4,9 +4,18 @@
 \alias{getDirectList}
 \title{Obtain the Horvitz-Thompson direct estimates and standard errors using delta method for multiple surveys.}
 \usage{
-getDirectList(births, years, regionVar = "region", timeVar = "time",
-  clusterVar = "~v001+v002", ageVar = "age", weightsVar = "v005",
-  Ntrials = NULL, geo.recode = NULL, national.only = FALSE)
+getDirectList(
+  births,
+  years,
+  regionVar = "region",
+  timeVar = "time",
+  clusterVar = "~v001+v002",
+  ageVar = "age",
+  weightsVar = "v005",
+  Ntrials = NULL,
+  geo.recode = NULL,
+  national.only = FALSE
+)
 }
 \arguments{
 \item{births}{A list of child-month data from multiple surveys from \code{\link{getBirths}}. The name of the list is used as the identifier in the output.}
