@@ -1,4 +1,15 @@
 # SUMMER - changes
+Version 1.1.0 (2021-01-31) 
+==========================
++ New features:
+    * Allows stratum-specific time trends to be shared in cluster-level models.
+    * Allows age truncated to full years to be adjusted with the `age.truncate` variable in ``getBirths`` function. This corrects the person-month calculation for DHS surveys where the age in months are reported in only full years for children above 24 months old.
++ Major bug fix: the person-months records produced by ``getBirths`` function contained an error in the previous versions, leading to incorrect death counts and exposure months. In addition, when age bands are specified to be different from the default, the age variable of the output could be wrong. These bugs are now fixed in the latest version.  
++ Other bug fixes:
+    * Fix incorrectly calculated time main effect in ``getDiag`` function.
+    * Fix bug when data contain rows with incorrectly labeled time periods.
+    * Fix but when `year.cut` argument is of length 2 in ``getBirths`` function.
+
 Version 1.0.0 (2020-07-01) 
 ==========================
 + Major updates to functions.
