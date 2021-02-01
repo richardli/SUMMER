@@ -3,7 +3,7 @@
 #'
 #' @param filepath file path of raw .dta file from DHS. Only used when data frame is not provided in the function call.
 #' @param data data frame of a DHS survey
-#' @param surveyyear year of survey. Since version 0.3.0, this argument does not truncate observations. The truncation of person-month is based on year.cut and min.last.period. 
+#' @param surveyyear year of survey. Observations after this year will be excluded from the analysis.
 #' @param variables vector of variables to be used in obtaining the person-month files. The variables correspond the the DHS recode manual VI. For early DHS data, the variable names may need to be changed.
 #' @param strata vector of variable names used for strata. If a single variable is specified, then that variable will be used as strata indicator If multiple variables are specified, the interaction of these variables will be used as strata indicator. 
 #' @param dob variable name for the date of birth.
@@ -96,6 +96,7 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables =
   test <- test[test$agemonth<max(month.cut), ]
   test <- test[test$year>=year.cut[1], ]
   test <- test[test$year<year.cut[length(year.cut)], ]
+  if(!is.na(surveyyear)) test <- test[test$year<= surveyyear, ]
   
   # remove observations if last period has no more than min.last.period years.
   # e.g., if last period 15-19, min.last.period = 3

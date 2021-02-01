@@ -29,7 +29,7 @@ getBirths(
 
 \item{data}{data frame of a DHS survey}
 
-\item{surveyyear}{year of survey. Since version 0.3.0, this argument does not truncate observations. The truncation of person-month is based on year.cut and min.last.period.}
+\item{surveyyear}{year of survey. Observations after this year will be excluded from the analysis.}
 
 \item{variables}{vector of variables to be used in obtaining the person-month files. The variables correspond the the DHS recode manual VI. For early DHS data, the variable names may need to be changed.}
 
