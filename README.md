@@ -3,6 +3,23 @@
 
 Spatio-temporal Under-five Mortality Models of Estimation in R
 
+## Major update (version 1.2.0)
+Version 1.2.0 adds population and prevalence simulation funtionality based on population frame and population density information, along with methods for aggregating pixel level prevalences and populations to the areal level. Updates include: 
++ New major functions.
+    * ``simSPDE``: Simulates from the SPDE spatial model.
+    * ``simPopSPDE``: Simulates population in a country based on SPDE spatial model and population frame information.
+    * ``simPopPixel``: Simulates population in a country based on custom spatial model and population frame information.
++ New minor functions.
+    * Functions for aggregating populations and prevalences to the areal level.
+    * Functions for setting pixellated grid and population density grid.
+    * Functions for adjusting population density grid based on population frame information.
+    * Functions for projections to use with Kenya maps and for getting Admin areas given spatial locations.
++ New internal functions for helping with population simulation.
++ New datasets
+    * ``kenyaMaps``: Kenya administrative area map shapefiles, and a triangular mesh for the SPDE model for Kenya.
+    * ``kenyaPopulationData``: General and neonatal population frames for Kenya, and general and neonatal population density information for Kenya.
+    * ``popMatKenya`` and ``popMatKenyaNeonatal``: General and neonatal population density grids at 5km resolution.
+
 ## Major update (version 1.0.0)
 Version 1.0.0 contains many major updates from the previous versions:
 + Major updates to functions.
