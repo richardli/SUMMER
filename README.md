@@ -10,7 +10,7 @@ Version 1.2.0 adds population and prevalence simulation funtionality based on po
     * ``simPopSPDE``: Simulates population in a country based on SPDE spatial model and population frame information.
     * ``simPopPixel``: Simulates population in a country based on custom spatial model and population frame information.
 + New minor functions.
-    * Functions for aggregating populations and prevalences to the areal level.
+    * ``aggPixelPreds`` and ``areaPopToArea``: Functions for aggregating populations and prevalences to the areal level.
     * Functions for setting pixellated grid and population density grid.
     * Functions for adjusting population density grid based on population frame information.
     * Functions for projections to use with Kenya maps and for getting Admin areas given spatial locations.
