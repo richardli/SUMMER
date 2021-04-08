@@ -538,7 +538,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
                   draws.est[[index.draws.est]] <- list(years = year_label[i], region = colnames(Amat)[j], strata = stratalabels[k], draws = draws.mort)
                   index.draws.est <- index.draws.est + 1
               }
-              out1[index1, c("lower", "median", "upper")] <- quantile(draws.mort, c(lowerCI, 0.5, upperCI))
+              out1[index1, c("lower", "median", "upper")] <- stats::quantile(draws.mort, c(lowerCI, 0.5, upperCI))
               out1[index1, "mean"] <- mean(draws.mort)
               out1[index1, "variance"] <- var(draws.mort)
             }
@@ -562,7 +562,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
                   index.draws.est.overall <- index.draws.est.overall + 1
               }
 
-              out2[index2[k], c("lower", "median", "upper")] <- quantile(draws.sub.agg.sum[, k], c(lowerCI, 0.5, upperCI))
+              out2[index2[k], c("lower", "median", "upper")] <- stats::quantile(draws.sub.agg.sum[, k], c(lowerCI, 0.5, upperCI))
               out2[index2[k], "mean"] <- mean(draws.sub.agg.sum[, k])
               out2[index2[k], "variance"] <- var(draws.sub.agg.sum[, k])
             }
@@ -582,7 +582,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
                   draws.sub.agg.sum2 <- draws.sub.agg.sum2 + logit(draws.sub.agg.sum[, k]) * as.numeric(this.weight[colnames(draws.sub.agg.sum)[k]])
                 }
                 draws.sub.agg.sum2 <- expit(draws.sub.agg.sum2)
-                out3[index3, c("lower", "median", "upper")] <- quantile(draws.sub.agg.sum2, c(lowerCI, 0.5, upperCI))
+                out3[index3, c("lower", "median", "upper")] <- stats::quantile(draws.sub.agg.sum2, c(lowerCI, 0.5, upperCI))
                 out3[index3, "mean"] <- mean(draws.sub.agg.sum2)
                 out3[index3, "variance"] <- var(draws.sub.agg.sum2)
             }

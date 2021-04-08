@@ -152,10 +152,10 @@ tcpPlot <- function(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4, per10
           intv <- 1/K
           quant_vt <- seq(0, 1, intv)
           quant_val_vt <- (quant_vt[1:K]+quant_vt[2:(K+1)])/2
-          L_vt <- quantile(postsamp_vt, quant_vt)
-          L_vt[1] <- quantile(postsamp_vt, 0.01)
-          L_vt[K+1] <- quantile(postsamp_vt, 0.99)
-          L_val_vt <- quantile(postsamp_vt, quant_val_vt)
+          L_vt <- stats::quantile(postsamp_vt, quant_vt)
+          L_vt[1] <- stats::quantile(postsamp_vt, 0.01)
+          L_vt[K+1] <- stats::quantile(postsamp_vt, 0.99)
+          L_val_vt <- stats::quantile(postsamp_vt, quant_val_vt)
         }else{
           # thresholds <- L_vt
           K <- length(thresholds)-1

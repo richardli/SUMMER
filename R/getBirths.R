@@ -181,7 +181,7 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables =
       test.comp <- test[, c(compact.by, "age", "strata", "time", "died")]
       test.comp$total <- 1
       formula <- as.formula(paste0(".~age + time + strata + ", paste(compact.by, collapse = " + ")))
-      test.comp <- aggregate(formula, data = test.comp, FUN = sum, drop = TRUE)
+      test.comp <- stats::aggregate(formula, data = test.comp, FUN = sum, drop = TRUE)
      test <- test.comp
   }
 
