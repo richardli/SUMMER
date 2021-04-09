@@ -140,7 +140,7 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 		    	struct.all[where, j] <- sampAll[[j]]$latent[re[where], 1] + sampAll[[j]]$latent[fe[group.index], 1]	* xx    		
 	    	}
 	    }
-	    temp <- data.frame(t(apply(struct.all, 1, quantile, c(lower, 0.5, upper))))
+	    temp <- data.frame(t(apply(struct.all, 1, stats::quantile, c(lower, 0.5, upper))))
 	    colnames(temp) <- c("lower", "median", "upper")
 	    rownames(temp) <- NULL
 		unstruct <- inla_mod$fit$marginals.random$time.unstruct
@@ -245,7 +245,7 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 			group <- colnames(Amat)[AA.loc$region.struct]
 		    label <- label[AA.loc$time.unstruct]
 		    struct <- NULL
-		    quants <- t(apply(sum, 1, function(x, lower, upper){as.numeric(quantile(x, c(lower, 0.5, upper)))}, lower, upper))
+		    quants <- t(apply(sum, 1, function(x, lower, upper){as.numeric(stats::quantile(x, c(lower, 0.5, upper)))}, lower, upper))
 		    quants <- data.frame(quants)
 		    colnames(quants) <- c("lower", "median", "upper")
 

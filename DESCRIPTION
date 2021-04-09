@@ -1,13 +1,14 @@
 Package: SUMMER
 Type: Package
 Title: Spatio-Temporal Under-Five Mortality Methods for Estimation
-Version: 1.1.0
-Date: 2021-01-31
+Version: 1.2.0
+Date: 2021-04-02
 Authors@R: c(
     person(given = "Zehang R", family = "Li", email= "lizehang@gmail.com", role = c("cre","aut")),
     person(given = "Bryan D", family = "Martin", email= "bmartin6@uw.edu", role = "aut"), 
     person(given = "Yuan", family = "Hsiao", email = "yahsiao@uw.edu", role = "aut"),
     person(given = "Jessica", family = "Godwin", email = "jlg0003@uw.edu", role = "aut"),
+    person(given = "John", family = "Paige", email = "paigejo@gmail.com", role = "aut"),
     person(given = "Jon", family = "Wakefield", email = "jonno@uw.edu", role = "aut"),
     person(given = "Samuel J", family = "Clark", email = "work@samclark.net", role = "aut"),
     person(given = "Geir-Arne", family = "Fuglstad", email = "geir-arne.fuglstad@ntnu.no", role = "aut"),
@@ -18,11 +19,11 @@ URL: https://github.com/richardli/SUMMER
 BugReports: https://github.com/richardli/SUMMER/issues
 Depends: R (>= 3.5)
 License: GPL (>= 2)
-Imports: survey, stats, spdep, survival, ggplot2, utils, Matrix, reshape2, viridis, sp, shadowtext, ggridges, methods, data.table, RColorBrewer, grDevices
+Imports: survey, stats, spdep, survival, ggplot2, utils, Matrix, reshape2, viridis, sp, shadowtext, ggridges, methods, data.table, RColorBrewer, grDevices, raster
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
 Additional_repositories: https://inla.r-inla-download.org/R/testing/
-Suggests: INLA, knitr, rmarkdown, readstata13, patchwork, rdhs, R.rsp
+Suggests: INLA, knitr, rmarkdown, readstata13, patchwork, rdhs, R.rsp, fields
 VignetteBuilder: R.rsp, knitr
 NeedsCompilation: no

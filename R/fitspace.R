@@ -259,12 +259,12 @@ smoothSurvey <- function(data, geo = NULL, Amat, X = NULL, responseType = c("bin
             n <- y <- NA
         }else if(is.null(direct.est)){
             if(!is.null(timeVar)){
-                mean <- aggregate(response0 ~ region0+time0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})    
+                mean <- stats::aggregate(response0 ~ region0+time0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})    
                   name.i <- mean$region0
                   time.i <- as.numeric(as.character(mean$time0))
                   mean <- data.frame(mean[, -c(1:2)])
             }else{
-                mean <- aggregate(response0 ~ region0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})
+                mean <- stats::aggregate(response0 ~ region0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})
                 name.i <- mean$region0
                 mean <- data.frame(mean[, -1])
             }
