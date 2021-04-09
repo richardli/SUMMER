@@ -84,8 +84,9 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
       ########################
     if(!is.null(inla_mod$family)){
        if("region.struct" %in% names(inla_mod$fit$summary.random) == FALSE && !is.null(Amat)){
-        warning("No spatial random effects in the model. Set Amat to NULL", immediate. = TRUE)
-        Amat <- NULL
+        warning("No spatial random effects in the model. Amat not used", immediate. = TRUE)
+        Amat <- matrix(1,1,1)
+        colnames(Amat) <- rownames(Amat) <- inla_mod$fit$.args$data$region[1]
        }
         is.dynamic <- as.logical(inla_mod$strata.time.effect)
         if(length(is.dynamic) == 0) is.dynamic = FALSE
