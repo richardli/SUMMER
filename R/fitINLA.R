@@ -294,25 +294,43 @@ smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("r
       time.index <- cbind.data.frame(idx = 1:N, Year = year_label_new)
       constr = list(A = matrix(c(rep(1, n), rep(0, nn)), 1, N), e = 0)
       
-      if(type.st %in% c(2, 4)){
-        tmp <- matrix(0, S, N * S)
-        for(i in 1:S){
-          tmp[i, ((i-1)*n + 1) : (i*n)] <- 1
-        }
-      }else{
-        tmp <- NULL
+      # sum to zero in time for each region
+      tmp <- matrix(0, S, N*S)
+      for(i in 1:S){
+        tmp[i, ((i-1)*n + 1) : (i*n)] <- 1
       }
       
-      # ICAR constraints
-      if(type.st %in% c(3, 4)){
-        tmp2 <- matrix(0, n, N*S)
-        for(i in 1:n){
-          tmp2[i , which((1:(n*S)) %% n == i-1)] <- 1
+      
+      # sum to zero in space for each time
+      if(!is.null(Amat)){
+        inla.bym.constr.internal = utils::getFromNamespace("inla.bym.constr.internal", "INLA")
+        R4 = Amat
+        if(sum(R4 > 0 & R4 < 1) != 0){
+          for(row in 1:nrow(R4)){
+            idx <- which(R4[row,] > 0 & R4[row,] < 1)
+            R4[row,idx] <- 1
+          }
+        }
+        diag(R4) <- 0
+        diag <- apply(R4, 1, sum)
+        R4[R4 != 0] <- -1
+        diag(R4) <- diag
+        Q1 <- inla.bym.constr.internal(R4, adjust.for.con.comp = TRUE)
+        tmp2 <- matrix(0, n*Q1$rankdef, N*S)
+
+        for(j in 1:Q1$rankdef){
+           for(i in 1:n){
+              this_t_i <- which((1:(n*S)) %% n == i-1)
+              this_t_i <- this_t_i[Q1$constr$A[j, ] == 1]
+              tmp2[i + (j-1)*n , this_t_i] <- 1
+           }          
         }
       }else{
-        tmp2 <- NULL
+        tmp2 = NULL
       }
-      tmp <- rbind(tmp, tmp2)
+
+      tmp <- rbind(tmp, tmp2)[-1, ]
+      
       if(is.null(tmp)){
         constr.st <- NULL
       }else{
@@ -578,7 +596,7 @@ smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("r
                         tmp2[i + (j-1)*N , this_t_i] <- 1
                      }
                    }
-                   tmp <- rbind(tmp, tmp2)
+                   tmp <- rbind(tmp[-1,], tmp2)
                    constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
                   formula <- update(formula, ~. + 
                       f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - Q1$rankdef), hyper = hyperpc1.interact))              

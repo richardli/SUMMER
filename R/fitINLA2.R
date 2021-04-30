@@ -613,7 +613,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
                       tmp2[i + (j-1)*N , this_t_i] <- 1
                    }
                  }
-                 tmp <- rbind(tmp, tmp2)
+                 tmp <- rbind(tmp[-1, ], tmp2)
                  constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
                
                   formula <- update(formula, ~. + 
@@ -780,7 +780,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
                       tmp2[i + (j-1)*N , this_t_i] <- 1
                    }
                  }
-                tmp <- rbind(tmp, tmp2)
+                tmp <- rbind(tmp[-1, ], tmp2)
                 constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
                 
                 if(family == "betabinomialna"){
