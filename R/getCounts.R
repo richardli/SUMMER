@@ -36,7 +36,7 @@ getCounts <- function(data, variables, by, ignore = NULL, addtotal = TRUE, drop=
 	}
 	data <- data[, c(variables, by)]
 	formula <- as.formula(paste0(".~", paste(by, collapse = " + ")))
-	out <- aggregate(formula, data = data, FUN = sum, drop = drop)
+	out <- stats::aggregate(formula, data = data, FUN = sum, drop = drop)
 	for(v in variables){
 		out[is.na(out[, v]), v] <- 0
 	}
