@@ -3,7 +3,7 @@
 #' 
 #'
 #' @param inla_mod output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}
-#' @param nsim number of simulations, only applicable for the cluster-level model.
+#' @param nsim number of simulations, only applicable for the cluster-level model. The smooth direct model always draws 1e5 samples from the marginal distribution since the computation is faster.
 #' @param weight.strata a data frame with two columns specifying time and region, followed by columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates on the probability scale.
 #' @param weight.frame a data frame with three columns, years, region, and the weight of each frame for the corresponding time period and region. This argument specifies the weights for frame-specific estimates on the logit scale. Notice this is different from weight.strata argument. 
 #' @param verbose logical indicator whether to print progress messages from inla.posterior.sample.
@@ -62,6 +62,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
       lowerCI <- (1 - CI) / 2
       upperCI <- 1 - lowerCI
       save.draws.est <- save.draws
+      msg <- NULL
 
       if(!is.null(inla_mod$year_range)){
         year_range <- inla_mod$year_range
@@ -299,7 +300,9 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
           included <- which(AA$time.unstruct %in% which.include) 
           not_included <- which(AA$time.unstruct %in% which.include == FALSE ) 
           AA.loc$time.unstruct[not_included] <- NA
-          message(paste0("The IID temporal components are included in the following time periods: ", paste(year_label[which.include], collapse = ", ")))
+          text <- paste0("The IID temporal components are included in the following time periods: ", paste(year_label[which.include], collapse = ", "))
+          message(text)
+          msg <- paste0(msg, text)
         }
         slope <- grep("time.slope.group", fields)
         slope0 <- grep("time.slope:1", fields)
@@ -388,9 +391,13 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
 
         if(is.null(weight.strata)){
           if(length(stratalabels) > 1){
-              message("No strata weights has been supplied. Set all weights to 0.")
+              text <- "No strata weights has been supplied. Overall estimates are not calculated."
+              message(text)
+              msg <- paste0(msg, "\n", text)
           }else{
-              message("No stratification in the model. Set all weights to 1.")
+              text <- "No stratification in the model. Overall and stratified estimates are the same"
+              message(text)
+              msg <- paste0(msg,"\n",  text)
           }
           if(!is.null(Amat)){
             weight.strata <- expand.grid(region = colnames(Amat), frame = framelabels)
@@ -646,12 +653,15 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
       }
       if(save.draws){
         out$draws = sampAll
+        msg <- paste0(msg, "\nPosterior draws are saved in the output. You can use 'getSmoothed(..., draws = ...$draws)' next time to speed up the call.")
       }
       if(save.draws.est){
         out$draws.est <- draws.est
         out$draws.est.overall <- draws.est.overall
       }
-
+      out$msg <- msg
+      out$nsim <- nsim
+      class(out) <- "SUMMERprojlist"
       return(out) 
 
 
@@ -690,7 +700,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
       for(i in 1:length(timelabel.yearly)){
         for(j in 1:length(region_names)){
             index <- lincombs.info$Index[lincombs.info$District == region_nums[j] & lincombs.info$Year == i]
-            tmp.logit <- INLA::inla.rmarginal(nsim, mod$marginals.lincomb.derived[[index]])
+            tmp.logit <- INLA::inla.rmarginal(1e5, mod$marginals.lincomb.derived[[index]])
             # marg <- INLA::inla.tmarginal(expit, mod$marginals.lincomb.derived[[index]])
             # tmp <- INLA::inla.rmarginal(nsim, marg)
             tmp <- expit(tmp.logit)
