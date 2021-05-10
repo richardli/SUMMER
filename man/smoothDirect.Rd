@@ -8,7 +8,6 @@
 smoothDirect(
   data,
   Amat,
-  X = NULL,
   formula = NULL,
   time.model = c("rw1", "rw2", "ar1")[2],
   st.time.model = NULL,
@@ -38,7 +37,6 @@ smoothDirect(
 fitINLA(
   data,
   Amat,
-  X = NULL,
   formula = NULL,
   time.model = c("rw1", "rw2", "ar1")[2],
   st.time.model = NULL,
@@ -69,8 +67,6 @@ fitINLA(
 \item{data}{Combined dataset}
 
 \item{Amat}{Adjacency matrix for the regions}
-
-\item{X}{Covariate matrix. It must contain either a column with name "region", or a column with name "years", or both. The covariates must not have missing values for all regions (if varying in space) and all time periods (if varying in time). The rest of the columns are treated as covariates in the mean model.}
 
 \item{formula}{INLA formula. See vignette for example of using customized formula.}
 

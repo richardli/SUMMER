@@ -4,7 +4,6 @@
 #'
 #' @param data Combined dataset
 #' @param Amat Adjacency matrix for the regions
-#' @param X Covariate matrix. It must contain either a column with name "region", or a column with name "years", or both. The covariates must not have missing values for all regions (if varying in space) and all time periods (if varying in time). The rest of the columns are treated as covariates in the mean model.
 #' @param formula INLA formula. See vignette for example of using customized formula.
 #' @param time.model Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale. 
 #' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. For ar1 interaction model, region-specific random slopes can be added by specifying \code{pc.st.slope.u} and \code{pc.st.slope.alpha}.
@@ -69,13 +68,15 @@
 #'   plot(out3, plot.CI = TRUE)
 #' }
 #' @export
-smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, year_label, year_range = c(1980, 2014), is.yearly=TRUE, m = 5, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA, pc.st.alpha = NA, options = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy = 'default'), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL){
+smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, year_label, year_range = c(1980, 2014), is.yearly=TRUE, m = 5, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA, pc.st.alpha = NA, options = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy = 'default'), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL){
 
   if(!is.null(geo)){
     message("Argument geo is deprecated in the smoothDirect function. Only Amat is needed.")
   }
+  X <- NULL
+  #   message("Covariates in smooth direct estimation is not supported.")
 
-
+  msg <- NULL
   # define whether there is the temporal component
   is.temporal <- TRUE
   # Backward compatibility
@@ -160,18 +161,27 @@ smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("r
     message("----------------------------------",
           "\nSmoothed Direct Model",
             "\n  No temporal components", appendLF = FALSE)
+    msg <- paste0(msg,  "\nSmoothed Direct Model",
+            "\n  No temporal components")
 
   }else{
     message("----------------------------------",
           "\nSmoothed Direct Model",
             "\n  Main temporal model:        ", time.model, appendLF = FALSE)
+    msg <- paste0(msg, "\nSmoothed Direct Model",
+            "\n  Main temporal model:        ")
     if(m == 1){
-      if(is.yearly) message("\n  Temporal resolution:        period model (m = 1)", appendLF=FALSE)
+      if(is.yearly){
+        message("\n  Temporal resolution:        period model (m = 1)", appendLF=FALSE)
+        msg <- paste0(msg, "\n  Temporal resolution:        period model (m = 1)")
+      }
       is.yearly = FALSE
     }else if(is.yearly){
       message(paste0("\n  Temporal resolution:        yearly model (m = ", m, ")"), appendLF=FALSE)
+      msg <- paste0(msg, "\n  Temporal resolution:        yearly model (m = ", m, ")")
     }else{
       message("\n  Temporal resolution:        period model (m = 1)", appendLF=FALSE)
+      msg <- paste0(msg, "\n  Temporal resolution:        period model (m = 1)")
     }
   }
     
@@ -204,11 +214,15 @@ smoothDirect <- function(data, Amat, X = NULL, formula = NULL, time.model = c("r
 
   if(is.spatial){ 
     message("\n  Spatial effect:             bym2", appendLF=FALSE) 
+    msg <- paste0(msg, "\n  Spatial effect:             bym2")
   }
   if(is.spatial && is.temporal){
     message("\n  Interaction temporal model: ", st.time.model, 
             "\n  Interaction type:           ", type.st, appendLF=FALSE)
+    msg <- paste0(msg, "\n  Interaction temporal model: ", st.time.model, 
+            "\n  Interaction type:           ", type.st)
   }
+  msg <- paste0(msg, "\n")
   message("\n----------------------------------")
 
 
@@ -952,8 +966,9 @@ if(is.main.ar){
     
 
     fit <- INLA::inla(mod, family = "gaussian", control.compute = options, data = exdat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE ))), scale = exdat$logit.prec, lincomb = lincombs.fit, control.inla = control.inla, verbose = verbose)
-    
-    return(list(model = mod, fit = fit, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, lincombs.info = lincombs.info, is.yearly = is.yearly, type.st = type.st, year_range = year_range, year_label = year_label, Amat = Amat, has.Amat = TRUE, is.temporal = is.temporal))
+    out <- list(model = mod, fit = fit, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, lincombs.info = lincombs.info, is.yearly = is.yearly, type.st = type.st, year_range = year_range, year_label = year_label, Amat = Amat, has.Amat = TRUE, is.temporal = is.temporal, msg = msg)
+    class(out) <- "SUMMERmodel"
+    return(out)
   }
 }
 

@@ -83,7 +83,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
       }
       
       ########################
-      ## Binomial methods
+      ## Cluster level methods
       ########################
     if(!is.null(inla_mod$family)){
        if("region.struct" %in% names(inla_mod$fit$summary.random) == FALSE && !is.null(Amat)){
@@ -223,6 +223,9 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         if(rep.time){
           cols <- c(cols, "age.rep.idx")
         } 
+        if(!is.null(inla_mod$covariate.names)){
+          cols <- c(cols, inla_mod$covariate.names)
+        }
         A <- unique(inla_mod$fit$.args$data[, cols])
         if(sum(stratalabels == "strata_all") == length(stratalabels)){
           A$strata <- "strata_all"
@@ -245,13 +248,22 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         }else{
           AA <- merge(AA, unique(A[, c("age", "age.idx")]), by = "age")
         }
+
+        if(!is.null(inla_mod$covariate.names)){
+          # adding covariates
+          Asub <- data.frame(A[, inla_mod$covariate.names])
+          if(sum(!is.na(A$region.struct)) > 0) Asub$region.struct <- A$region.struct
+          if(sum(!is.na(A$time.unstruct)) > 0) Asub$time.unstruct <- A$time.unstruct
+          Asub <- unique(Asub)
+          AA <- merge(AA, Asub)
+        }
         if(rep.time){
           AA$time.struct <- AA$time.struct + (AA$age.rep.idx - 1)  * T
         }
-        AA$age <- paste0("age", AA$age, ":1")
         if(!inla_mod$is.temporal){
           AA$time.struct <- AA$time.unstruct <- 1
-        }
+        }        
+        AA$age <- paste0("age", AA$age, ":1")
 
         # When there's only one age group, smoothCluster uses the generic intercept
         if(length(unique(AA$age)) == 1) AA$age <- "(Intercept):1"
@@ -262,6 +274,10 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         # For constant case, base strata will end up being NA here, which is fine.
         if(!is.dynamic) AA.loc$strata <- paste0("strata", AA.loc$strata, ":1")
         AA.loc$strata  <- match(AA.loc$strata, fields)
+        if(!is.null(inla_mod$covariate.names)){
+            AA.loc[, inla_mod$covariate.names] <- NA
+        }
+
         AA.loc$time.area  <- match(paste0("time.area:", AA.loc$time.area), fields)
         # Update time.area as the row index of the correct samples
         # when region.int and time.int is used
@@ -272,6 +288,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         AA.loc$time.struct  <- match(paste0("time.struct:", AA.loc$time.struct), fields)
         AA.loc$region.struct  <- match(paste0("region.struct:", AA.loc$region.struct), fields)
         AA.loc$time.unstruct  <- match(paste0("time.unstruct:", AA.loc$time.unstruct), fields)
+
 
         # if include_time_unstruct is a logical indicator
         if(is.logical(include_time_unstruct)){
@@ -480,6 +497,17 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
           add.slope.st <- draw[AA$st.slope] * AA$ststar
           add.slope.st[is.na(add.slope.st)] <- 0
           theta[i,  ] <-  theta[i,  ] + add.slope + add.slope.st
+          
+          if(!is.null(inla_mod$covariate.names)){
+            for(xx in inla_mod$covariate.names){
+                covariate <- AA[, xx]
+                slope <- draw[paste0(xx, ":1"), ]
+                add.cov.effect <- covariate * slope
+                add.cov.effect[is.na(add.cov.effect)] <- 0
+                theta[i,  ] <-  theta[i,  ] + add.cov.effect
+            }
+          }
+
 
           if(inla_mod$family == "binomial"){
             tau[i] <-exp(sampAll[[i]]$hyperpar[["Log precision for nugget.id"]])

@@ -7,6 +7,7 @@
 \usage{
 smoothCluster(
   data,
+  X = NULL,
   family = c("betabinomial", "binomial")[1],
   age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"),
   age.n = c(1, 11, 12, 12, 12, 12),
@@ -47,6 +48,7 @@ smoothCluster(
 
 fitINLA2(
   data,
+  X = NULL,
   family = c("betabinomial", "binomial")[1],
   age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"),
   age.n = c(1, 11, 12, 12, 12, 12),
@@ -96,6 +98,8 @@ fitINLA2(
 \item total: total number of person-month in this age group, stratum, cluster, and period
 \item Y: total number of deaths in this age group, stratum, cluster, and period
 }}
+
+\item{X}{Covariate matrix. It must contain either a column with name "region", or a column with name "years", or both. The covariates must not have missing values for all regions (if varying in space) and all time periods (if varying in time). The rest of the columns are treated as covariates in the mean model.}
 
 \item{family}{family of the model. This can be either binomial (with logistic normal prior), betabiniomial.}
 
@@ -195,25 +199,60 @@ for(i in 1:length(DemoData)){
 # fit cluster-level model on the periods
 periods <- levels(DemoData[[1]]$time)
 fit <- smoothCluster(data = counts.all, 
-      Amat = DemoMap$Amat, 
-      time.model = "rw2", 
-      st.time.model = "rw1",
-      strata.time.effect =  TRUE, 
-      survey.effect = TRUE,
-      family = "betabinomial",
-      year_label = c(periods, "15-19"))
+     Amat = DemoMap$Amat, 
+     time.model = "rw2", 
+     st.time.model = "rw1",
+     strata.time.effect =  TRUE, 
+     survey.effect = TRUE,
+     family = "betabinomial",
+     year_label = c(periods, "15-19"))
+summary(fit)
 est <- getSmoothed(fit, nsim = 1000)
 plot(est$stratified, plot.CI=TRUE) + ggplot2::facet_wrap(~strata) 
+
+# fit cluster-level space-time model with covariate
+# notice without projected covariates, we use periods up to 10-14 only
+# construct a random covariate matrix for illustration
+periods <- levels(DemoData[[1]]$time)
+X <- expand.grid(years = periods, 
+       region = unique(counts.all$region))
+X$X1 <- rnorm(dim(X)[1])
+X$X2 <- rnorm(dim(X)[1])
+fit.covariate <- smoothCluster(data = counts.all, 
+   X = X,
+     Amat = DemoMap$Amat, 
+     time.model = "rw2", 
+     st.time.model = "rw1",
+     strata.time.effect =  TRUE, 
+     survey.effect = TRUE,
+     family = "betabinomial",
+     year_label = c(periods))
+est <- getSmoothed(fit.covariate, nsim = 1000)
+
 # fit cluster-level model for one time point only
 # i.e., space-only model
 fit.sp <- smoothCluster(data = subset(counts.all, time == "10-14"), 
-         Amat = DemoMap$Amat,
-         time.model = NULL,
-         survey.effect = TRUE,
-         family = "betabinomial")
+     Amat = DemoMap$Amat, 
+     time.model = NULL, 
+     survey.effect = TRUE,
+     family = "betabinomial")
 summary(fit.sp)
 est <- getSmoothed(fit.sp, nsim = 1000)
 plot(est$stratified, plot.CI = TRUE) + ggplot2::facet_wrap(~strata) 
+
+# fit cluster-level model for one time point and covariate
+# construct a random covariate matrix for illustration
+X <- data.frame(region = unique(counts.all$region),
+      X1 = c(1, 2, 2, 1), 
+      X2 = c(1, 1, 1, 2))
+fit.sp.covariate <- smoothCluster(data = subset(counts.all, time == "10-14"), 
+     X = X, 
+     Amat = DemoMap$Amat, 
+     time.model = NULL, 
+     survey.effect = TRUE,
+     family = "betabinomial")
+summary(fit.sp.covariate)
+est <- getSmoothed(fit.sp.covariate, nsim = 1000)
 }
 
 }

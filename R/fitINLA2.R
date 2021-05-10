@@ -12,6 +12,7 @@
 #' \item total: total number of person-month in this age group, stratum, cluster, and period
 #' \item Y: total number of deaths in this age group, stratum, cluster, and period
 #' }
+#' @param X Covariate matrix. It must contain either a column with name "region", or a column with name "years", or both. The covariates must not have missing values for all regions (if varying in space) and all time periods (if varying in time). The rest of the columns are treated as covariates in the mean model.
 #' @param age.groups a character vector of age groups in increasing order.
 #' @param age.n number of months in each age groups in the same order.
 #' @param age.rw.group vector indicating grouping of the ages groups. For example, if each age group is assigned a different random walk component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate random walk to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.
@@ -74,38 +75,76 @@
 #' # fit cluster-level model on the periods
 #' periods <- levels(DemoData[[1]]$time)
 #' fit <- smoothCluster(data = counts.all, 
-#'       Amat = DemoMap$Amat, 
-#'       time.model = "rw2", 
-#'       st.time.model = "rw1",
-#'       strata.time.effect =  TRUE, 
-#'       survey.effect = TRUE,
-#'       family = "betabinomial",
-#'       year_label = c(periods, "15-19"))
+#'      Amat = DemoMap$Amat, 
+#'      time.model = "rw2", 
+#'      st.time.model = "rw1",
+#'      strata.time.effect =  TRUE, 
+#'      survey.effect = TRUE,
+#'      family = "betabinomial",
+#'      year_label = c(periods, "15-19"))
+#' summary(fit)
 #' est <- getSmoothed(fit, nsim = 1000)
 #' plot(est$stratified, plot.CI=TRUE) + ggplot2::facet_wrap(~strata) 
+#' 
+#' # fit cluster-level space-time model with covariate
+#' # notice without projected covariates, we use periods up to 10-14 only
+#' # construct a random covariate matrix for illustration
+#' periods <- levels(DemoData[[1]]$time)
+#' X <- expand.grid(years = periods, 
+#'        region = unique(counts.all$region))
+#' X$X1 <- rnorm(dim(X)[1])
+#' X$X2 <- rnorm(dim(X)[1])
+#' fit.covariate <- smoothCluster(data = counts.all, 
+#'    X = X,
+#'      Amat = DemoMap$Amat, 
+#'      time.model = "rw2", 
+#'      st.time.model = "rw1",
+#'      strata.time.effect =  TRUE, 
+#'      survey.effect = TRUE,
+#'      family = "betabinomial",
+#'      year_label = c(periods))
+#' est <- getSmoothed(fit.covariate, nsim = 1000)
+#' 
 #' # fit cluster-level model for one time point only
 #' # i.e., space-only model
 #' fit.sp <- smoothCluster(data = subset(counts.all, time == "10-14"), 
-#'          Amat = DemoMap$Amat,
-#'          time.model = NULL,
-#'          survey.effect = TRUE,
-#'          family = "betabinomial")
+#'      Amat = DemoMap$Amat, 
+#'      time.model = NULL, 
+#'      survey.effect = TRUE,
+#'      family = "betabinomial")
 #' summary(fit.sp)
 #' est <- getSmoothed(fit.sp, nsim = 1000)
 #' plot(est$stratified, plot.CI = TRUE) + ggplot2::facet_wrap(~strata) 
+#' 
+#' # fit cluster-level model for one time point and covariate
+#' # construct a random covariate matrix for illustration
+#' X <- data.frame(region = unique(counts.all$region),
+#'       X1 = c(1, 2, 2, 1), 
+#'       X2 = c(1, 1, 1, 2))
+#' fit.sp.covariate <- smoothCluster(data = subset(counts.all, time == "10-14"), 
+#'      X = X, 
+#'      Amat = DemoMap$Amat, 
+#'      time.model = NULL, 
+#'      survey.effect = TRUE,
+#'      family = "betabinomial")
+#' summary(fit.sp.covariate)
+#' est <- getSmoothed(fit.sp.covariate, nsim = 1000)
 #' }
 #' 
 #' @export
 #' 
 #' 
 
-smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = c(1,2,3,3,3,3), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label, type.st = 4, survey.effect = FALSE, common.trend = FALSE, strata.time.effect = FALSE, hyper = "pc", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, ...){
+smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = c(1,2,3,3,3,3), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label, type.st = 4, survey.effect = FALSE, common.trend = FALSE, strata.time.effect = FALSE, hyper = "pc", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, ...){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
 
   # add check: if user input options and forgot config, set it to TRUE
   #            if user turned if explicitly, then leave it along
+
+  msg <- NULL
+
   if(!"config" %in% names(options)){
     message("config = TRUE is added to options so that posterior draws can be taken.")
     options$config <- TRUE
@@ -219,11 +258,15 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     message("----------------------------------",
             "\nCluster-level model",
             "\n  No temporal components", appendLF = FALSE)
+    msg <- paste0(msg, "\nCluster-level model",
+                  "\n  No temporal components")
 
   }else{
     message("----------------------------------",
             "\nCluster-level model",
             "\n  Main temporal model:        ", time.model, appendLF = FALSE)
+    msg <- paste0(msg, "\nCluster-level model",
+                       "\n  Main temporal model:        ")
   }
 
   
@@ -250,15 +293,21 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
 
   if(is.spatial){ 
     message("\n  Spatial effect:             bym2", appendLF=FALSE) 
+    msg <- paste0(msg, "\n  Spatial effect:             bym2")
   }
   if(is.spatial && is.temporal){
     message("\n  Interaction temporal model: ", st.time.model, 
             "\n  Interaction type:           ", type.st, appendLF=FALSE)
+    msg <- paste0(msg, "\n  Interaction temporal model: ", st.time.model, 
+            "\n  Interaction type:           ", type.st)
+
   }
   if(!is.na(pc.st.slope.u) && !is.na(pc.st.slope.alpha)){
     message("\n  Interaction random slopes:  yes", appendLF=FALSE)
+    msg <- paste0(msg, "\n  Interaction random slopes:  yes")
   }else{
     message("\n", appendLF=FALSE)
+    msg <- paste0(msg, "\n")
   }   
 
 
@@ -268,6 +317,9 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
   }
   message("\n  Number of age groups: ", length(age.n), appendLF=FALSE)
   message("\n  Number of age-specific trends per stratum: ", length(unique(age.rw.group)), appendLF=FALSE)
+  msg <- paste0(msg, "\n  Number of age groups: ", length(age.n))
+  msg <- paste0(msg, "\n  Number of age-specific trends per stratum: ", length(unique(age.rw.group)))
+
 
   if(is.ar && hyper=="gamma"){
     stop("AR1 model only implemented with PC priors for now.")
@@ -278,19 +330,24 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
   multi.frame <- FALSE
   if("frame" %in% colnames(data)){
     message("\n  Column specifying sampling frame(s): yes", appendLF=FALSE)
+    msg <- paste0(msg, "\n  Column specifying sampling frame(s): yes")
 
     if(length(unique(data$frame)) > 1){
       multi.frame <- TRUE
       if("strata" %in% colnames(data) == FALSE || sum(!is.na(data$strata)) == 0){
         data$strata <- data$frame 
         message("\n  Strata renaming: yes, renamed to the same as frame", appendLF=FALSE)
+        msg <- paste0(msg, "\n  Strata renaming: yes, renamed to the same as frame")
+
       }else{
         data$strata <- paste(data$frame, data$strata, sep = "-") 
         message("\n  Strata renaming: yes, renamed frame-strata", appendLF=FALSE)
+        msg <- paste0(msg, "\n  Strata renaming: yes, renamed frame-strata")
      }
       
     }else{
       message("\n  Strata renaming: no, only one frame", appendLF=FALSE)
+      msg <- paste0(msg, "\n  Strata renaming: no, only one frame")
     }
   }
 
@@ -300,17 +357,23 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     data$strata <- ""
     strata.time.effect <- FALSE
     message("\n  Stratification: no, strata variable not in the input", appendLF=FALSE)
+    msg <- paste0(msg, "\n  Stratification: no, strata variable not in the input")
 
   }else if(length(unique(data$strata[data$total > 0])) == 1){
     # if only one strata has observations
     has.strata <- FALSE
     message("\n  Stratification: no, all data in the same stratum", appendLF=FALSE)
+    msg <- paste0(msg, "\n  Stratification: no, all data in the same stratum")
+
   }else if(length(unique(data$strata[data$total > 0])) < length(unique(data$strata))){
     # If there are more than 2 strata and we need to drop levels
     data <- subset(data, strata %in% unique(data$strata[data$total > 0])) 
     message("\n  Stratification: yes, but some frame-strata combination does not exist", appendLF=FALSE)
+    msg <- paste0(msg, "\n  Stratification: yes, but some frame-strata combination does not exist")
+
   }else{
     message("\n  Stratification: yes", appendLF=FALSE)
+    msg <- paste0(msg, "\n  Stratification: yes")
   }
 
 
@@ -405,11 +468,15 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     }
 
   }
-  if(strata.time.effect) message("\n  Strata-specific temporal trends: yes", appendLF=FALSE)
-  if(!is.null(survey.message)) message(survey.message, appendLF=FALSE)
+  if(strata.time.effect){
+    message("\n  Strata-specific temporal trends: yes", appendLF=FALSE)
+    msg <- paste0(msg, "\n  Strata-specific temporal trends: yes")
+  }
+  if(!is.null(survey.message)){
+    message(survey.message, appendLF=FALSE)
+    msg <- paste0(msg, survey.message)
+  }
 
-  message("\n----------------------------------")
-   
     
     ## ---------------------------------------------------------
     ## Common Setup
@@ -474,6 +541,72 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
       time.area <- NULL
     }
    
+    if(!is.null(X)){
+      by <- NULL
+      if("region" %in% colnames(X)){
+        by <- c(by, "region")
+      }
+      if("years" %in% colnames(X)){
+        by <- c(by, "years")
+      }
+      covariate.names <- colnames(X)[colnames(X) %in% by == FALSE]
+      if(length(covariate.names) == 0){
+        warning("The X argument is specified but no covariate identified.")
+        X <- NULL
+      }
+      if("region" %in% by && (!"years" %in% by)){
+        for(ii in unique(newdata$region)){
+          which <- which(X$region == ii)
+          if(length(which) == 0){
+            stop(paste("Missing region in the covariate matrix:", ii))
+          }
+          if(length(which) > 1) stop(paste("Duplicated covariates for region", ii))
+          if(sum(is.na(X[which, ])) > 0) stop("NA in covariate matrix.")
+        }
+      }else if((!"region" %in% by) && "years" %in% by){
+        for(tt in unique(newdata$years)){
+          which <- which(X$years == tt)
+          if(length(which) == 0){
+            stop(paste("Missing years in the covariate matrix:", tt))
+          }
+          if(length(which) > 1) stop(paste("Duplicated covariates for period", tt))
+          if(sum(is.na(X[which, ])) > 0) stop("NA in covariate matrix.")
+        }
+      }else if("region" %in% by && "years" %in% by){
+        for(tt in unique(newdata$years)){
+          for(ii in unique(newdata$region)){
+            which <- intersect(which(X$years == tt), which(X$region == ii))
+            if(length(which) == 0){
+              stop(paste("Missing region-years in the covariate matrix:", ii, tt))
+            }
+           if(length(which) > 1) stop(paste("Duplicated covariates for region-years", ii, tt))
+           if(sum(is.na(X[which, ])) > 0) stop("NA in covariate matrix.")
+          }
+        }
+      }else{
+        stop("Covariate need to contain column 'region' or 'years'.")
+      }
+      # check if prediction year exist in covariates
+      if("years" %in% by){
+        for(tt in unique(year_label)){
+          which <- which(X$years == tt)
+          if(length(which) == 0){
+            stop(paste("Missing years in the covariate matrix:", tt))
+          }
+        }
+      }
+    }else{
+      covariate.names <- NULL
+    }
+
+    if(!is.null(X)){
+      message(paste0("\n  Covariates: ", paste(covariate.names, collapse = ", ")), appendLF=FALSE)
+      message(paste0("\n  Covariates by: ", paste(by, collapse = ", ")), appendLF=FALSE)
+      msg <- paste0(msg, paste0("\n  Covariates: ", paste(covariate.names, collapse = ", ")), paste0("\n  Covariates by: ", paste(by, collapse = ", ")))
+    }
+
+    message("\n----------------------------------")
+    msg <- paste0(msg, "\n")
     
     #### format additional columns in the input
     exdat <- newdata
@@ -504,7 +637,6 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
       }
     }
     replicate.rw <- length(unique(age.rw.group)) > 1
-
 
   if(is.null(formula)){
    
@@ -886,39 +1018,60 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
   
 
   # Create filler data frame for all space-time pairs
-  tmp <- exdat[rep(1, dim(Amat)[1]*N), ]
-  tmp[, c("region.struct", "time.struct")] <- expand.grid(region.struct = 1:dim(Amat)[1], time.struct = 1:N)
-  tmp$time.unstruct <- tmp$time.int <- tmp$time.struct
-  created <- NULL
-  if("time.slope" %in% colnames(exdat)){
-    tmp$time.slope <- (tmp$time.unstruct  - center) / ((N - 1))
-    created <- c(created, "time.slope")
-  }
-  if("st.slope" %in% colnames(exdat)){
-    tmp$st.slope <- (tmp$time.unstruct  - center) / ((N - 1))   
-    tmp$st.slope.id <- tmp$region.struct
-    created <- c(created, "st.slope", "st.slope.id") 
-  } 
-  tmp$years <- years$year[match(tmp$time.struct, years$year_number)]
-  tmp$region_number <- tmp$region.int <- tmp$region.unstruct <- tmp$region.struct
-  tmp$region <- colnames(Amat)[tmp$region.struct]
-  if(dim(Amat)[1] != 1 && is.temporal){
-    tmp <- tmp[, colnames(tmp) != "time.area"]
-    tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
-    tmp <- subset(tmp, tmp$time.area %in% exdat$time.area == FALSE)
-  }
-  # If need filler data
-  if(dim(tmp)[1] > 0){
-      # remove contents in other columns
-      if(dim(Amat)[1] != 1){
-        created <- c(created, "region.struct", "region_number", "region.unstruct", "region.int", "region", "time.struct", "time.unstruct", "time.int", "time.area", "years", "age", "strata")
-      }else{
-          created <- c(created, "time.struct", "time.unstruct", "time.int",  "years", "age", "strata")
-      }
-      tmp[, colnames(tmp) %in% created == FALSE] <- NA
-      exdat <- rbind(exdat, tmp)
+  if(N >= 1){
+    tmp <- exdat[rep(1, dim(Amat)[1]*N), ]
+    tmp[, c("region.struct", "time.struct")] <- expand.grid(region.struct = 1:dim(Amat)[1], time.struct = 1:N)
+    tmp$time.unstruct <- tmp$time.int <- tmp$time.struct
+    created <- NULL
+    if("time.slope" %in% colnames(exdat)){
+      tmp$time.slope <- (tmp$time.unstruct  - center) / ((N - 1))
+      created <- c(created, "time.slope")
+    }
+    if("st.slope" %in% colnames(exdat)){
+      tmp$st.slope <- (tmp$time.unstruct  - center) / ((N - 1))   
+      tmp$st.slope.id <- tmp$region.struct
+      created <- c(created, "st.slope", "st.slope.id") 
+    } 
+    tmp$years <- years$year[match(tmp$time.struct, years$year_number)]
+    tmp$region_number <- tmp$region.int <- tmp$region.unstruct <- tmp$region.struct
+    tmp$region <- colnames(Amat)[tmp$region.struct]
+    if(dim(Amat)[1] != 1 && is.temporal){
+      tmp <- tmp[, colnames(tmp) != "time.area"]
+      tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
+      tmp <- subset(tmp, tmp$time.area %in% exdat$time.area == FALSE)
+    }
+    # If need filler data
+    if(dim(tmp)[1] > 0){
+        # remove contents in other columns
+        if(dim(Amat)[1] != 1){
+          created <- c(created, "region.struct", "region_number", "region.unstruct", "region.int", "region", "time.struct", "time.unstruct", "time.int", "time.area", "years", "age", "strata")
+        }else{
+            created <- c(created, "time.struct", "time.unstruct", "time.int",  "years", "age", "strata")
+        }
+        tmp[, colnames(tmp) %in% created == FALSE] <- NA
+        exdat <- rbind(exdat, tmp)
+    }
   }
 
+  if(!is.null(X)){
+    exdat <- exdat[, colnames(exdat) %in% covariate.names == FALSE]
+    if(!is.temporal){
+          Xnew <- data.frame(region.struct = 1:S)
+    }else{
+      Xnew <- expand.grid(time.unstruct = 1:N, region.struct = 1:S)
+      if(!is.spatial) Xnew$region.struct <- 0
+    } 
+    if("region" %in% by) X$region.struct <- match(X$region, colnames(Amat))
+    if("years" %in% by) X$time.unstruct <- match(X$years, year_label)
+    Xnew <- merge(Xnew, X, all.x = TRUE)
+    if("region" %in% by && "years" %in% by){
+      exdat <- merge(exdat, Xnew[, c(covariate.names, "time.unstruct", "region.struct")], by = c("time.unstruct", "region.struct"), all.x = TRUE)
+    }else if("region" %in% by){
+      exdat <- merge(exdat, Xnew[, c(covariate.names,"region.struct")], by = c("region.struct"), all.x = TRUE)
+    }else if("years" %in% by){
+      exdat <- merge(exdat, Xnew[, c(covariate.names,"region.struct")], by = c("time.unstruct"), all.x = TRUE)
+    }
+   }
 
   if(has.strata) exdat$strata <- factor(exdat$strata, levels = stratalevels)
   if(!is.null(age.groups)){
@@ -933,10 +1086,9 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
   exdat$age.idx <- match(exdat$age, age.groups)
   exdat$age.rep.idx <- age.rw.group[exdat$age.idx]
 
-if(is.ar){
-  # get lincombs of the design matrix for the temporal effects under AR1
-  ## TODO
 
+if(!is.null(X)){
+  formula <- as.formula(paste("Y~", as.character(formula)[3], "+", paste(covariate.names, collapse = " + ")))
 }
 if(family == "betabinomialna"){
     # ## Prepare compact version of the data frame
@@ -986,7 +1138,9 @@ if(family == "betabinomialna"){
 
  priors <- list(pc.u = pc.u, pc.alpha = pc.alpha, pc.u.phi = pc.u.phi, pc.alpha.phi = pc.alpha.phi, pc.u.cor = pc.u.cor, pc.alpha.cor = pc.alpha.cor,  pc.st.u = pc.st.u, pc.st.alpha = pc.st.alpha, pc.st.slope.u = pc.st.slope.u, pc.st.slope.prec.u = pc.st.slope.prec.u, pc.st.slope.alpha = pc.st.slope.alpha, overdisp.mean = overdisp.mean, overdisp.prec = overdisp.prec)
 
-  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base, rw = rw, ar = ar, strata.time.effect = strata.time.effect,  priors = priors, year_range = NA, Amat = Amat, has.Amat = TRUE, is.temporal = is.temporal))
+ out <- list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base, rw = rw, ar = ar, strata.time.effect = strata.time.effect,  priors = priors, year_range = NA, Amat = Amat, has.Amat = TRUE, is.temporal = is.temporal, covariate.names = covariate.names, msg = msg)
+ class(out) <- "SUMMERmodel"
+ return(out)
     
   }
 }
