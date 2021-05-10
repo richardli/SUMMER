@@ -16,7 +16,7 @@
 #' @param age.n number of months in each age groups in the same order.
 #' @param age.rw.group vector indicating grouping of the ages groups. For example, if each age group is assigned a different random walk component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate random walk to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.
 #' @param family family of the model. This can be either binomial (with logistic normal prior), betabiniomial.
-#' @param time.model Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale. 
+#' @param time.model Model for the main temporal trend, can be rw1, rw2, ar1, or NULL (for spatial-only smoothing). Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale. 
 #' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. For ar1 interaction model, region-specific random slopes can be added by specifying \code{pc.st.slope.u} and \code{pc.st.slope.alpha}.
 #' @param Amat Adjacency matrix for the regions
 #' @param bias.adj the ratio of unadjusted mortality rates or age-group-specific hazards to the true rates or hazards. It needs to be a data frame that can be merged to thee outcome, i.e., with the same column names for time periods (for national adjustment), or time periods and region (for subnational adjustment). The column specifying the adjustment ratio should be named "ratio".
@@ -27,7 +27,7 @@
 #' @param survey.effect logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0.
 #' @param strata.time.effect logical indicator whether to include strata specific temporal trends.  
 #' @param common.trend logical indicator whether all age groups and/or strata share the same linear trend in the temporal main effect. Only used when the temporal main effect is an AR(1) process.
-#' @param hyper which hyperpriors to use. Default to be using the PC prior ("pc"). 
+#' @param hyper Deprecated. which hyperpriors to use. Only supports PC prior ("pc"). 
 #' @param pc.u hyperparameter U for the PC prior on precisions.
 #' @param pc.alpha hyperparameter alpha for the PC prior on precisions.
 #' @param pc.u.phi hyperparameter U for the PC prior on the mixture probability phi in BYM2 model.
@@ -83,13 +83,23 @@
 #'       year_label = c(periods, "15-19"))
 #' est <- getSmoothed(fit, nsim = 1000)
 #' plot(est$stratified, plot.CI=TRUE) + ggplot2::facet_wrap(~strata) 
+#' # fit cluster-level model for one time point only
+#' # i.e., space-only model
+#' fit.sp <- smoothCluster(data = subset(counts.all, time == "10-14"), 
+#'          Amat = DemoMap$Amat,
+#'          time.model = NULL,
+#'          survey.effect = TRUE,
+#'          family = "betabinomial")
+#' summary(fit.sp)
+#' est <- getSmoothed(fit.sp, nsim = 1000)
+#' plot(est$stratified, plot.CI = TRUE) + ggplot2::facet_wrap(~strata) 
 #' }
 #' 
 #' @export
 #' 
 #' 
 
-smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = c(1,2,3,3,3,3), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label, type.st = 4, survey.effect = FALSE, common.trend = FALSE, strata.time.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, ...){
+smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = c(1,2,3,3,3,3), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label, type.st = 4, survey.effect = FALSE, common.trend = FALSE, strata.time.effect = FALSE, hyper = "pc", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, ...){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
@@ -104,8 +114,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     message("Argument geo is deprecated in the smoothCluster function. Only Amat is needed.")
   }
 
-
-    # get around CRAN check of using un-exported INLA functions
+  # get around CRAN check of using un-exported INLA functions
   rate0 <- shape0 <- my.cache <- inla.as.sparse <- type <- strata <- rescale_U <- sim_alpha <- pc.st.slope.prec.u <- NULL
 
   if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
@@ -121,6 +130,13 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     }
 
   # Backward compatibility
+  if(hyper != "pc"){
+    hyper <- "pc"
+    message("Argument 'hyper' have been deprecated in version 1.1.0. The hyper parameters will be specified with PC priors.")
+  }
+  # define whether there is the temporal component
+  is.temporal <- TRUE
+
   if(!is.null(rw) || !is.null(ar) || !is.null(st.rw)){
 
     if(is.null(ar)) ar <- 0
@@ -142,8 +158,20 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
 
   # New time mode definition...    
   }else{
-    if(is.null(st.time.model)) st.time.model = time.model
-    time.model <- tolower(time.model)
+    if(any(is.null(st.time.model)) || any(is.na(st.time.model))){
+      st.time.model <- time.model
+    }
+    if(any(is.na(time.model)) || any(is.null(time.model))){
+      time.model <- NULL
+    }
+    if(!is.null(time.model)){
+      time.model <- tolower(time.model)
+    }else{
+      is.temporal <- FALSE
+      strata.time.effect <- FALSE
+      year_label <- NULL
+    }
+
     st.time.model <- tolower(st.time.model)
 
     is.main.ar = FALSE
@@ -152,34 +180,51 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     st.ar = 0
 
     # main effect
-    if(time.model == "rw1"){
-      rw = 1
-    }else if(time.model == "rw2"){
-      rw = 2
-    }else if(time.model == "ar1"){ # for future: allow AR(p) here
-      rw = 1 # replaced later
-      ar = 1
-      is.main.ar = TRUE
+    if(is.temporal){
+      if(time.model == "rw1"){
+        rw = 1
+      }else if(time.model == "rw2"){
+        rw = 2
+      }else if(time.model == "ar1"){ # for future: allow AR(p) here
+        rw = 1 # replaced later
+        ar = 1
+        is.main.ar = TRUE
+      }else{
+        stop("Temporal main effect only support rw1, rw2, ar1, or NULL.")
+      }      
     }else{
-      stop("Temporal main effect only support rw1, rw2, and ar1.")
+      rw = 0
+      ar = 0
     }
 
     # interaction effect
-    if(st.time.model == "rw1"){
-      st.rw = 1
-    }else if(st.time.model == "rw2"){
-      st.rw = 2
-    }else if(st.time.model == "ar1"){ # for future: allow AR(p) here
-      st.rw = NULL
-      st.ar = 1
-      is.ar = TRUE
+    if(!is.temporal){
+      st.rw = 0
     }else{
-      stop("Temporal interaction effect only support rw1, rw2, and ar1.")
+      if(st.time.model == "rw1"){
+        st.rw = 1
+      }else if(st.time.model == "rw2"){
+        st.rw = 2
+      }else if(st.time.model == "ar1"){ # for future: allow AR(p) here
+        st.rw = NULL
+        st.ar = 1
+        is.ar = TRUE
+      }else{
+        stop("Temporal interaction effect only support rw1, rw2, and ar1.")
+      }
     }
+
   }
-  message("----------------------------------",
-          "\nCluster-level model",
-          "\n  Main temporal model:        ", time.model, appendLF = FALSE)
+  if(!is.temporal){
+    message("----------------------------------",
+            "\nCluster-level model",
+            "\n  No temporal components", appendLF = FALSE)
+
+  }else{
+    message("----------------------------------",
+            "\nCluster-level model",
+            "\n  Main temporal model:        ", time.model, appendLF = FALSE)
+  }
 
   
   if(!is.null(Amat)){
@@ -198,11 +243,16 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     colnames(Amat) <- rownames(Amat) <- "All"
     data$region <- "All"
     is.spatial <- FALSE
+    if(!is.temporal){
+      stop("Neither spatial or temporal component is specified.")
+    }
   }
 
   if(is.spatial){ 
-    message("\n  Spatial effect:             bym2", 
-            "\n  Interaction temporal model: ", st.time.model, 
+    message("\n  Spatial effect:             bym2", appendLF=FALSE) 
+  }
+  if(is.spatial && is.temporal){
+    message("\n  Interaction temporal model: ", st.time.model, 
             "\n  Interaction type:           ", type.st, appendLF=FALSE)
   }
   if(!is.na(pc.st.slope.u) && !is.na(pc.st.slope.alpha)){
@@ -367,25 +417,17 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     if(dim(Amat)[1] != 1){
       data <- data[which(data$region != "All"), ]
     }  
-    #################################################################### Re-calculate hyper-priors for gamma prior
-    priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = Amat, nperiod = length(year_label), only.iid = TRUE)
-    a.iid <- priors$a.iid
-    b.iid <- priors$b.iid
-    a.rw <- priors$a.iid
-    b.rw <- priors$b.iid
-    a.icar <- priors$a.iid
-    b.icar <- priors$b.iid
+    ####  Re-calculate hyper-priors (for gamma only)     
+    # priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, only.iid = TRUE)
+    # a.iid <- priors$a.iid
+    # b.iid <- priors$b.iid
+    # a.rw <- priors$a.iid
+    # b.rw <- priors$b.iid
+    # a.icar <- priors$a.iid
+    # b.icar <- priors$b.iid
     
-    #################################################################### # remove NA rows? e.g. if no 10-14 available
-    # if (na.rm) {
-    #   na.count <- apply(data, 1, function(x) {
-    #     length(which(is.na(x)))
-    #   })
-    #   to_remove <- which(na.count == 6)
-    #   if (length(to_remove) > 0) 
-    #     data <- data[-to_remove, ]
-    # }
-    # #################################################################### get the list of region and numeric index in one data frame
+
+    #### get the list of region and numeric index in one data frame
     if(!is.spatial){
       region_names <- regions <- "All"
       region_count <- S <- 1
@@ -397,45 +439,43 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
       # -- merging in the alphabetical region number -- #
       dat <- merge(data, regions, by = "region")
     }
-    
     # -- creating IDs for the spatial REs -- #
     dat$region.struct <- dat$region.unstruct <- dat$region.int <- dat$region_number
     
-    #################################################################
-    ## get the list of region and numeric index in one data frame    
+    #### get the list of region and numeric index in one data frame    
     n <- 0
-    N <- nn <- length(year_label)
-    years <- data.frame(year = year_label, year_number = seq(1, N))      
-  
-    
-    # -- creating IDs for the temporal REs -- #
-    dat$time.unstruct <- dat$time.struct <- dat$time.int <- years[match(dat$years, years[, 1]), 2]
-    if(sum(is.na(dat$time.unstruct)) > 0){
-      dat <- dat[!is.na(dat$time.unstruct), ]
-      message("Data contains time periods not in the specified range. These observations are removed.")
-    }
-  
-      
-    x <- expand.grid(1:N, 1:region_count)
-    time.area <- data.frame(region_number = x[, 2], time.unstruct = x[, 1], time.area = c(1:nrow(x)))
-    # fix for 0 instead of 1 when no Amat file provided
-    if(!is.spatial){
-      time.area$region_number <- 0
+    N <- length(year_label)
+    if(N > 0){
+      years <- data.frame(year = year_label, year_number = seq(1, N))   
+      # -- creating IDs for the temporal REs -- #
+      dat$time.unstruct <- dat$time.struct <- dat$time.int <- years[match(dat$years, years[, 1]), 2]
+      if(sum(is.na(dat$time.unstruct)) > 0){
+        dat <- dat[!is.na(dat$time.unstruct), ]
+        message("Data contains time periods not in the specified range. These observations are removed.")
+      }
+      x <- expand.grid(1:N, 1:region_count)
+      time.area <- data.frame(region_number = x[, 2], time.unstruct = x[, 1], time.area = c(1:nrow(x)))
+      # fix for 0 instead of 1 when no Amat file provided
+      if(!is.spatial){
+        time.area$region_number <- 0
+      }
+      # -- merge these all into the data sets -- #
+      newdata <- dat
+      if(dim(Amat)[1] != 1){
+        newdata <- merge(newdata, time.area, 
+          by = c("region_number", "time.unstruct"))
+      }else{
+        newdata$time.area <- NA
+      }
+    }else{
+      years <- NULL
+      dat$time.unstruct <- dat$time.struct <- dat$time.int <- dat$time.area <- NA
+      newdata <- dat
+      time.area <- NULL
     }
    
-    # -- merge these all into the data sets -- #
-    newdata <- dat
-    if(dim(Amat)[1] != 1){
-      newdata <- merge(newdata, time.area, 
-        by = c("region_number", "time.unstruct"))
-    }else{
-      newdata$time.area <- NA
-    }
     
-    
-    ########################## Model Selection ######
-    
-    # -- subset of not missing and not direct estimate of 0 -- #
+    #### format additional columns in the input
     exdat <- newdata
     if("survey" %in% colnames(exdat)){
       exdat$cluster <- paste(exdat$survey, exdat$cluster)
@@ -463,7 +503,6 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
           slope.fixed.names <- c(slope.fixed.names, tmp)
       }
     }
-
     replicate.rw <- length(unique(age.rw.group)) > 1
 
 
@@ -472,7 +511,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     ## ---------------------------------------------------------
     ## Setup PC prior model
     ## ---------------------------------------------------------
-    if(tolower(hyper) == "pc"){
+    # if(tolower(hyper) == "pc"){
         hyperpc1 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
         hyperpc2 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)), 
                          phi = list(prior = 'pc', param = c(pc.u.phi , pc.alpha.phi)))
@@ -485,7 +524,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
         ## -----------------------
         ##  National + PC
         ## ----------------------- 
-        if(!is.spatial){
+        if(!is.spatial && is.temporal){
 
           if(replicate.rw && (!is.main.ar)){
               # Replicated RW
@@ -517,9 +556,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
         ## -------------------------
         ## Subnational + PC
         ## ------------------------- 
-        }else if(dim(Amat)[1] != 1){
-
-
+        }else if(dim(Amat)[1] != 1 && is.temporal){
              if(replicate.rw && (!is.main.ar)){
               # Replicated RW
               formula <- Y ~ 
@@ -691,6 +728,9 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
             }
           
         # END of subnational model specification
+        # spatial-only model specification
+        }else{
+          formula <- Y ~ f(region.struct, graph=Amat,model="bym2", hyper = hyperpc2, scale.model = TRUE, adjust.for.con.comp = TRUE) 
         }
 
         if(survey.effect){
@@ -702,115 +742,115 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
     ## ---------------------------------------------------------
     ## Setup Gamma prior model
     ## ---------------------------------------------------------
-    }else if(tolower(hyper) == "gamma"){
-        ## ------------------- 
-        ## Period + National
-        ## ------------------- 
-        if(!is.spatial){
-            if(replicate.rw){
-              formula <- Y ~
-                f(time.struct,model=paste0("rw", rw),param=c(a.rw,b.rw), constr = TRUE, extraconstr = NULL, hyper = hyperpc1, replicate =  age.rep.idx)  + 
-                f(time.unstruct,model="iid",param=c(a.iid,b.iid)) 
+    # }else if(tolower(hyper) == "gamma"){
+    #     ## ------------------- 
+    #     ## Period + National
+    #     ## ------------------- 
+    #     if(!is.spatial){
+    #         if(replicate.rw){
+    #           formula <- Y ~
+    #             f(time.struct,model=paste0("rw", rw),param=c(a.rw,b.rw), constr = TRUE, extraconstr = NULL, hyper = hyperpc1, replicate =  age.rep.idx)  + 
+    #             f(time.unstruct,model="iid",param=c(a.iid,b.iid)) 
 
-            }else{
-              formula <- Y ~
-                f(time.struct,model=paste0("rw", rw),param=c(a.rw,b.rw), constr = TRUE)  + 
-                f(time.unstruct,model="iid",param=c(a.iid,b.iid))               
-            }
+    #         }else{
+    #           formula <- Y ~
+    #             f(time.struct,model=paste0("rw", rw),param=c(a.rw,b.rw), constr = TRUE)  + 
+    #             f(time.unstruct,model="iid",param=c(a.iid,b.iid))               
+    #         }
             
-        }else{
-          if(replicate.rw){
-            formula <- Y ~
-                  f(time.struct,model=paste0("rw", rw), param=c(a.rw,b.rw), scale.model = TRUE, extraconstr = NULL)  
-          }else{
-            formula <- Y ~
-                  f(time.struct,model=paste0("rw", rw), param=c(a.rw,b.rw), scale.model = TRUE, extraconstr = NULL)  
-          }
-          formula <- update(formula,  ~. +
-                  f(time.unstruct,model="iid",param=c(a.iid,b.iid)) + 
-                  f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE, adjust.for.con.comp = TRUE) + 
-                  f(region.unstruct,model="iid",param=c(a.iid,b.iid))) 
+    #     }else{
+    #       if(replicate.rw){
+    #         formula <- Y ~
+    #               f(time.struct,model=paste0("rw", rw), param=c(a.rw,b.rw), scale.model = TRUE, extraconstr = NULL)  
+    #       }else{
+    #         formula <- Y ~
+    #               f(time.struct,model=paste0("rw", rw), param=c(a.rw,b.rw), scale.model = TRUE, extraconstr = NULL)  
+    #       }
+    #       formula <- update(formula,  ~. +
+    #               f(time.unstruct,model="iid",param=c(a.iid,b.iid)) + 
+    #               f(region.struct, graph=Amat,model="besag",param=c(a.icar,b.icar), scale.model = TRUE, adjust.for.con.comp = TRUE) + 
+    #               f(region.unstruct,model="iid",param=c(a.iid,b.iid))) 
                   
-            if(type.st == 1){
-                formula <- update(formula, ~. + f(time.area,model="iid", param=c(a.iid,b.iid)))
-            }else if(type.st == 2){
-                formula <- update(formula, ~. + f(region.int,model="iid", group=time.int,control.group=list(model=paste("rw", st.rw), scale.model = TRUE), param=c(a.iid,b.iid)))
-            }else if(type.st == 3){
-                formula <- update(formula, ~. + f(region.int,model="besag", graph = Amat, group=time.int,control.group=list(model="iid"),param=c(a.iid,b.iid), scale.model = TRUE, adjust.for.con.comp = TRUE))
-            }else{
+    #         if(type.st == 1){
+    #             formula <- update(formula, ~. + f(time.area,model="iid", param=c(a.iid,b.iid)))
+    #         }else if(type.st == 2){
+    #             formula <- update(formula, ~. + f(region.int,model="iid", group=time.int,control.group=list(model=paste("rw", st.rw), scale.model = TRUE), param=c(a.iid,b.iid)))
+    #         }else if(type.st == 3){
+    #             formula <- update(formula, ~. + f(region.int,model="besag", graph = Amat, group=time.int,control.group=list(model="iid"),param=c(a.iid,b.iid), scale.model = TRUE, adjust.for.con.comp = TRUE))
+    #         }else{
                 
 
-                 # defines type IV explicitly with constraints
-                 # Use time.area as index
-                 # S blocks each with time 1:T (in this code, 1:N)
-                 # UPDATE for connected components:
-                 # nc2 sum-to-zero constraints for each of the connected components of size >= 2. Scaled so that the geometric mean of the marginal variances in each connected component of size >= 2 is 1, and modified so that singletons have a standard Normal distribution.
-                 inla.rw = utils::getFromNamespace("inla.rw", "INLA")
-                 inla.scale.model.bym = utils::getFromNamespace("inla.scale.model.bym", "INLA")
-                 inla.bym.constr.internal = utils::getFromNamespace("inla.bym.constr.internal", "INLA")
-                 R2 <- inla.rw(N, order = st.rw, scale.model=TRUE, sparse=TRUE)
-                 R4 = Amat
-                if(sum(R4 > 0 & R4 < 1) != 0){
-                  for(row in 1:nrow(R4)){
-                    idx <- which(R4[row,] > 0 & R4[row,] < 1)
-                    R4[row,idx] <- 1
-                  }
-                }
-                 diag(R4) <- 0
-                 diag <- apply(R4, 1, sum)
-                 R4[R4 != 0] <- -1
-                 diag(R4) <- diag
-                 Q1 <- inla.bym.constr.internal(R4, adjust.for.con.comp = TRUE)
-                 R4 <- inla.scale.model.bym(R4, adjust.for.con.comp = TRUE)
-                R <- R4 %x% R2
-                tmp <- matrix(0, S, N * S)
-                for(i in 1:S){
-                  tmp[i, ((i-1)*N + 1) : (i*N)] <- 1
-                }
-                # tmp2 <- matrix(0, N, N * S)
-                 # for(i in 1:N){
-                 #    tmp2[i , which((1:(N*S)) %% N == i-1)] <- 1
-                 # }
-                 ## Sum-to-zero over connected components
-                 tmp2 <- matrix(0, N * Q1$rankdef, N * S)
-                 for(j in  1:Q1$rankdef){
-                   for(i in 1:N){
-                      this_t_i <- which((1:(N*S)) %% N == i-1)
-                      this_t_i <- this_t_i[Q1$constr$A[j, ] == 1]
-                      tmp2[i + (j-1)*N , this_t_i] <- 1
-                   }
-                 }
-                tmp <- rbind(tmp[-1, ], tmp2)
-                constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
+    #              # defines type IV explicitly with constraints
+    #              # Use time.area as index
+    #              # S blocks each with time 1:T (in this code, 1:N)
+    #              # UPDATE for connected components:
+    #              # nc2 sum-to-zero constraints for each of the connected components of size >= 2. Scaled so that the geometric mean of the marginal variances in each connected component of size >= 2 is 1, and modified so that singletons have a standard Normal distribution.
+    #              inla.rw = utils::getFromNamespace("inla.rw", "INLA")
+    #              inla.scale.model.bym = utils::getFromNamespace("inla.scale.model.bym", "INLA")
+    #              inla.bym.constr.internal = utils::getFromNamespace("inla.bym.constr.internal", "INLA")
+    #              R2 <- inla.rw(N, order = st.rw, scale.model=TRUE, sparse=TRUE)
+    #              R4 = Amat
+    #             if(sum(R4 > 0 & R4 < 1) != 0){
+    #               for(row in 1:nrow(R4)){
+    #                 idx <- which(R4[row,] > 0 & R4[row,] < 1)
+    #                 R4[row,idx] <- 1
+    #               }
+    #             }
+    #              diag(R4) <- 0
+    #              diag <- apply(R4, 1, sum)
+    #              R4[R4 != 0] <- -1
+    #              diag(R4) <- diag
+    #              Q1 <- inla.bym.constr.internal(R4, adjust.for.con.comp = TRUE)
+    #              R4 <- inla.scale.model.bym(R4, adjust.for.con.comp = TRUE)
+    #             R <- R4 %x% R2
+    #             tmp <- matrix(0, S, N * S)
+    #             for(i in 1:S){
+    #               tmp[i, ((i-1)*N + 1) : (i*N)] <- 1
+    #             }
+    #             # tmp2 <- matrix(0, N, N * S)
+    #              # for(i in 1:N){
+    #              #    tmp2[i , which((1:(N*S)) %% N == i-1)] <- 1
+    #              # }
+    #              ## Sum-to-zero over connected components
+    #              tmp2 <- matrix(0, N * Q1$rankdef, N * S)
+    #              for(j in  1:Q1$rankdef){
+    #                for(i in 1:N){
+    #                   this_t_i <- which((1:(N*S)) %% N == i-1)
+    #                   this_t_i <- this_t_i[Q1$constr$A[j, ] == 1]
+    #                   tmp2[i + (j-1)*N , this_t_i] <- 1
+    #                }
+    #              }
+    #             tmp <- rbind(tmp[-1, ], tmp2)
+    #             constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
                 
-                if(family == "betabinomialna"){
-                 formula <- update(formula, ~. + 
-                        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - Q1$rankdef), param=c(a.iid,b.iid), initial=10))
-                 }else{
-                 formula <- update(formula, ~. + 
-                        f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - Q1$rankdef), param=c(a.iid,b.iid)))            
-                 }
-            }
+    #             if(family == "betabinomialna"){
+    #              formula <- update(formula, ~. + 
+    #                     f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - Q1$rankdef), param=c(a.iid,b.iid), initial=10))
+    #              }else{
+    #              formula <- update(formula, ~. + 
+    #                     f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - Q1$rankdef), param=c(a.iid,b.iid)))            
+    #              }
+    #         }
          
-        if(survey.effect){
-          formula <- update(formula, ~. + f(survey.id, model = "iid", extraconstr = list(A = survey.A, e = survey.e), hyper = list(theta = list(initial=log(0.001), fixed=TRUE))))
-        }
-        ## ------------------- 
-        ## Yearly + Subnational
-        ## ------------------- 
-        }
-    }else{
-      stop("hyper needs to be either pc or gamma.")
-    }
+    #     if(survey.effect){
+    #       formula <- update(formula, ~. + f(survey.id, model = "iid", extraconstr = list(A = survey.A, e = survey.e), hyper = list(theta = list(initial=log(0.001), fixed=TRUE))))
+    #     }
+    #     ## ------------------- 
+    #     ## Yearly + Subnational
+    #     ## ------------------- 
+    #     }
+    # }else{
+    #   stop("hyper needs to be either pc or gamma.")
+    # }
 
     if(family == "binomial"){
-      if(tolower(hyper) == "gamma"){
-          formula <- update(formula, ~.+ f(nugget.id,model="iid",model="iid", param=c(a.iid,b.iid)))
-      }else if(tolower(hyper) == "pc"){
+      # if(tolower(hyper) == "gamma"){
+      #     formula <- update(formula, ~.+ f(nugget.id,model="iid",model="iid", param=c(a.iid,b.iid)))
+      # }else if(tolower(hyper) == "pc"){
           formula <- update(formula, ~.+ f(nugget.id,model="iid", hyper = hyperpc1))
-      }else{
-          stop("hyper needs to be either pc or gamma.")
-      }
+      # }else{
+      #     stop("hyper needs to be either pc or gamma.")
+      # }
     }
     if(strata.time.effect){
         # In this case, age is age x strata already
@@ -862,7 +902,7 @@ smoothCluster <- function(data, family = c("betabinomial", "binomial")[1], age.g
   tmp$years <- years$year[match(tmp$time.struct, years$year_number)]
   tmp$region_number <- tmp$region.int <- tmp$region.unstruct <- tmp$region.struct
   tmp$region <- colnames(Amat)[tmp$region.struct]
-  if(dim(Amat)[1] != 1){
+  if(dim(Amat)[1] != 1 && is.temporal){
     tmp <- tmp[, colnames(tmp) != "time.area"]
     tmp <- merge(tmp, time.area, by = c("region_number", "time.unstruct"))
     tmp <- subset(tmp, tmp$time.area %in% exdat$time.area == FALSE)
@@ -946,7 +986,7 @@ if(family == "betabinomialna"){
 
  priors <- list(pc.u = pc.u, pc.alpha = pc.alpha, pc.u.phi = pc.u.phi, pc.alpha.phi = pc.alpha.phi, pc.u.cor = pc.u.cor, pc.alpha.cor = pc.alpha.cor,  pc.st.u = pc.st.u, pc.st.alpha = pc.st.alpha, pc.st.slope.u = pc.st.slope.u, pc.st.slope.prec.u = pc.st.slope.prec.u, pc.st.slope.alpha = pc.st.slope.alpha, overdisp.mean = overdisp.mean, overdisp.prec = overdisp.prec)
 
-  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base, rw = rw, ar = ar, strata.time.effect = strata.time.effect,  priors = priors, year_range = NA, Amat = Amat, has.Amat = TRUE))
+  return(list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.n = age.n, age.rw.group = age.rw.group, strata.base = strata.base, rw = rw, ar = ar, strata.time.effect = strata.time.effect,  priors = priors, year_range = NA, Amat = Amat, has.Amat = TRUE, is.temporal = is.temporal))
     
   }
 }

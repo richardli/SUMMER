@@ -22,7 +22,7 @@ smoothCluster(
   survey.effect = FALSE,
   common.trend = FALSE,
   strata.time.effect = FALSE,
-  hyper = c("pc", "gamma")[1],
+  hyper = "pc",
   pc.u = 1,
   pc.alpha = 0.01,
   pc.u.phi = 0.5,
@@ -62,7 +62,7 @@ fitINLA2(
   survey.effect = FALSE,
   common.trend = FALSE,
   strata.time.effect = FALSE,
-  hyper = c("pc", "gamma")[1],
+  hyper = "pc",
   pc.u = 1,
   pc.alpha = 0.01,
   pc.u.phi = 0.5,
@@ -105,7 +105,7 @@ fitINLA2(
 
 \item{age.rw.group}{vector indicating grouping of the ages groups. For example, if each age group is assigned a different random walk component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate random walk to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.}
 
-\item{time.model}{Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale.}
+\item{time.model}{Model for the main temporal trend, can be rw1, rw2, ar1, or NULL (for spatial-only smoothing). Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale.}
 
 \item{st.time.model}{Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. For ar1 interaction model, region-specific random slopes can be added by specifying \code{pc.st.slope.u} and \code{pc.st.slope.alpha}.}
 
@@ -127,7 +127,7 @@ fitINLA2(
 
 \item{strata.time.effect}{logical indicator whether to include strata specific temporal trends.}
 
-\item{hyper}{which hyperpriors to use. Default to be using the PC prior ("pc").}
+\item{hyper}{Deprecated. which hyperpriors to use. Only supports PC prior ("pc").}
 
 \item{pc.u}{hyperparameter U for the PC prior on precisions.}
 
@@ -204,6 +204,16 @@ fit <- smoothCluster(data = counts.all,
       year_label = c(periods, "15-19"))
 est <- getSmoothed(fit, nsim = 1000)
 plot(est$stratified, plot.CI=TRUE) + ggplot2::facet_wrap(~strata) 
+# fit cluster-level model for one time point only
+# i.e., space-only model
+fit.sp <- smoothCluster(data = subset(counts.all, time == "10-14"), 
+         Amat = DemoMap$Amat,
+         time.model = NULL,
+         survey.effect = TRUE,
+         family = "betabinomial")
+summary(fit.sp)
+est <- getSmoothed(fit.sp, nsim = 1000)
+plot(est$stratified, plot.CI = TRUE) + ggplot2::facet_wrap(~strata) 
 }
 
 }

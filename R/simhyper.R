@@ -16,7 +16,7 @@
 #' priors <- simhyper(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = mat)
 #' }
 #' @export
-simhyper <- function(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat, nperiod = 6, only.iid = TRUE) {
+simhyper <- function(R = 2, nsamp = 1e+05, nsamp.check = 5000, Amat = NULL, nperiod = 6, only.iid = TRUE) {
     #################################################################### (R,1/R) is the range of the residual odds ratios gives a=d/2 where d = degrees of freedom of marginal Student’s t
     d <- 1
     a <- d/2

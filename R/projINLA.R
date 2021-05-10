@@ -70,13 +70,16 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
       }
       if(!is.null(inla_mod$year_label)){
         year_label <- inla_mod$year_label
-      }else{
+      }else if(inla_mod$is.temporal){
         warning("The fitted object was from an old version of SUMMER, please specify 'year_label' argument when calling getSmoothed()")
       }
       if(!is.null(inla_mod$has.Amat)){
         Amat <- inla_mod$Amat
       }else{
         warning("The fitted object was from an old version of SUMMER, please specify 'Amat' argument when calling getSmoothed()")
+      }
+      if(!inla_mod$is.temporal){
+        year_label <- NA
       }
       
       ########################
@@ -210,6 +213,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
 
         fields <- rownames(sampAll[[1]]$latent)        
         T <- max(inla_mod$fit$.args$data$time.struct) 
+        if(is.na(T)) T <- 1
 
         # Construct the AA matrix for the  output data frame.
         if(!"region.struct:1" %in% fields) inla_mod$fit$.args$data$region.struct = 1
@@ -245,6 +249,9 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
           AA$time.struct <- AA$time.struct + (AA$age.rep.idx - 1)  * T
         }
         AA$age <- paste0("age", AA$age, ":1")
+        if(!inla_mod$is.temporal){
+          AA$time.struct <- AA$time.unstruct <- 1
+        }
 
         # When there's only one age group, smoothCluster uses the generic intercept
         if(length(unique(AA$age)) == 1) AA$age <- "(Intercept):1"
@@ -646,6 +653,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
       }else{
         timelabel.yearly <- year_label
       }
+      if(!inla_mod$is.temporal) timelabel.yearly <-1
       results <- expand.grid(District = region_nums, Year = timelabel.yearly)
       results$median <- results$lower <- results$upper <- results$logit.median <- results$logit.lower <- results$logit.upper <- NA
       mod <- inla_mod$fit
@@ -683,6 +691,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
       }
       colnames(results)[which(colnames(results) == "District")] <- "region"
       colnames(results)[which(colnames(results) == "Year")] <- "years"
+      if(!inla_mod$is.temporal) results$years <- results$years.num <- results$is.yearly <- NA
       # Add S3 method
       class(results) <- c("SUMMERproj", "data.frame")
       return(results)
