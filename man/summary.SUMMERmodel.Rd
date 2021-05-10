@@ -7,9 +7,9 @@
 \method{summary}{SUMMERmodel}(object, ...)
 }
 \arguments{
-\item{...}{not used}
+\item{object}{output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}}
 
-\item{x}{output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}}
+\item{...}{not used}
 }
 \description{
 This function is the summary method for class \code{SUMMERmodel}.

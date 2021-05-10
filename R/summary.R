@@ -3,7 +3,7 @@
 #' This function is the summary method for class \code{SUMMERmodel}.
 #' 
 #' 
-#' @param x output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}
+#' @param object output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}
 #' @param ... not used
 #' 
 #' @author Zehang Li 
