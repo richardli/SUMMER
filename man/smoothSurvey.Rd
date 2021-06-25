@@ -8,7 +8,7 @@
 smoothSurvey(
   data,
   geo = NULL,
-  Amat,
+  Amat = NULL,
   X = NULL,
   responseType = c("binary", "gaussian")[1],
   responseVar,
@@ -27,10 +27,10 @@ smoothSurvey(
   type.st = 1,
   direct.est = NULL,
   direct.est.var = NULL,
-  counts.bb = NULL,
-  strataVar.bb = NULL,
-  clusterVar.bb = NULL,
-  totalVar.bb = NULL,
+  is.unit.level = FALSE,
+  is.agg = FALSE,
+  strataVar.within = NULL,
+  totalVar = NULL,
   weight.strata = NULL,
   nsim = 1000,
   ...
@@ -39,7 +39,7 @@ smoothSurvey(
 fitGeneric(
   data,
   geo = NULL,
-  Amat,
+  Amat = NULL,
   X = NULL,
   responseType = c("binary", "gaussian")[1],
   responseVar,
@@ -58,35 +58,39 @@ fitGeneric(
   type.st = 1,
   direct.est = NULL,
   direct.est.var = NULL,
-  counts.bb = NULL,
-  strataVar.bb = NULL,
-  clusterVar.bb = NULL,
-  totalVar.bb = NULL,
+  is.unit.level = FALSE,
+  is.agg = FALSE,
+  strataVar.within = NULL,
+  totalVar = NULL,
   weight.strata = NULL,
   nsim = 1000,
   ...
 )
 }
 \arguments{
-\item{data}{data frame with region and strata information.}
+\item{data}{The input data frame. The input data  with column of the response variable (\code{responseVar}), region ID (\code{regionVar}), stratification within region (\code{strataVar}), and cluster ID (\code{clusterVar}).
+\itemize{ 
+\item For area-level model, the data frame  consist of survey observations and corresponding survey weights (\code{weightVar}). 
+\item For unit-level model, the data frame can be either the same as in the area-level model, or aggregated data specified by \code{is.agg = TRUE}. The aggregated data format should have the response variable as counts by cluster (for binary responses), or means by cluster (for continuous response).  
+}}
 
 \item{geo}{Deprecated argument from early versions.}
 
-\item{Amat}{Adjacency matrix for the regions.}
+\item{Amat}{Adjacency matrix for the regions. If set to NULL, the IID spatial effect will be used.}
 
-\item{X}{Covariate matrix with the first column being the region names. Currently only supporting static region-level covariates.}
+\item{X}{Areal covariates data frame. One of the column name needs to match the \code{regionVar} specified in the function call, in order to be linked to the data input. Currently only supporting static region-level covariates.}
 
 \item{responseType}{Type of the response variable, currently supports 'binary' (default with logit link function) or 'gaussian'.}
 
 \item{responseVar}{the response variable}
 
-\item{strataVar}{the strata variable}
+\item{strataVar}{the strata variable used in the area-level model.}
 
 \item{weightVar}{the weights variable}
 
-\item{regionVar}{Variable name for region, typically 'v024', for older surveys might be 'v101'}
+\item{regionVar}{Variable name for region.}
 
-\item{clusterVar}{Variable name for cluster, typically '~v001 + v002'}
+\item{clusterVar}{Variable name for cluster. For area-level model, this should be a formula for cluster in survey design object, e.g., '~clusterID + householdID'. For unit-level model, this should be the variable name for cluster unit.}
 
 \item{pc.u}{hyperparameter U for the PC prior on precisions.}
 
@@ -108,19 +112,19 @@ fitGeneric(
 
 \item{direct.est}{data frame of direct estimates, with column names of response and region specified by \code{responseVar}, \code{regionVar}, and \code{timeVar}.  When \code{direct.est} is specified, it overwrites the \code{data} input.}
 
-\item{direct.est.var}{the column name corresponding to the variance of direct estimates}
+\item{direct.est.var}{the column name corresponding to the variance of direct estimates.}
 
-\item{counts.bb}{data frame of counts of binary responses by cluster, with column names of response, region, stratification within region, and cluster ID specified by \code{responseVar}, \code{strataVar.bb}, and \code{clusterVar.bb}.  When \code{counts} is specified, it overwrites the \code{data} input.}
+\item{is.unit.level}{logical indicator of whether unit-level model is fitted instead of area-level model.}
 
-\item{strataVar.bb}{the variable specifying within region stratification variable. This is only used for the BetaBinomial model.}
+\item{is.agg}{logical indicator of whether the input is at the unit-level or aggregated by cluster. Only used for unit-level model.}
 
-\item{clusterVar.bb}{the variable specifying within cluster ID variable. This is only used for the BetaBinomial model.}
+\item{strataVar.within}{the variable specifying within region stratification variable. This is only used for the unit-level model.}
 
-\item{totalVar.bb}{the variable specifying total observations in \code{counts}. This is only used for the BetaBinomial model when \code{counts} is specified.}
+\item{totalVar}{the variable specifying total observations in \code{counts}. This is only used for the unit-level model when \code{counts} is specified.}
 
-\item{weight.strata}{a data frame with one column corresponding to \code{regionVar}, and columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates on the probability scale. This is only used for the BetaBinomial model.}
+\item{weight.strata}{a data frame with one column corresponding to \code{regionVar}, and columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates. This is only used for the unit-level model.}
 
-\item{nsim}{number of posterior draws to take. This is only used for the BetaBinomial model when \code{weight.strata} is provided.}
+\item{nsim}{number of posterior draws to take. This is only used for the unit-level model when \code{weight.strata} is provided.}
 
 \item{...}{additional arguments passed to \code{svydesign} function.}
 }
@@ -160,7 +164,7 @@ clusterVar = "~clustid+id", CI = 0.95)
   clusterVar = "~clustid+id", CI = 0.95)
 
 # Example with using only direct estimates as input instead of the full data
-direct <- fit$HT[, c("region", "HT.est", "HT.var")]
+direct <- fit0$HT[, c("region", "HT.est", "HT.var")]
 fit2 <- smoothSurvey(data=NULL, direct.est = direct, 
                     Amat=DemoMap2$Amat, regionVar="region",
                     responseVar="HT.est", direct.est.var = "HT.var", 
@@ -172,13 +176,130 @@ plot(fit2$smooth$mean, fit0$smooth$mean)
 #   and after transformation into a Gaussian smoothing model
 # Notice: the output are on the same scale as the input 
 #   and in this case, the logit estimates.    
-direct.logit <- fit$HT[, c("region", "HT.logit.est", "HT.logit.var")]
+direct.logit <- fit0$HT[, c("region", "HT.logit.est", "HT.logit.var")]
 fit3 <- smoothSurvey(data=NULL, direct.est = direct.logit, 
                Amat=DemoMap2$Amat, regionVar="region",
                responseVar="HT.logit.est", direct.est.var = "HT.logit.var",
                responseType = "gaussian")
 # Check it is the same as fit0
 plot(fit3$smooth$mean, fit0$smooth$logit.mean)
+
+# Example with non-spatial smoothing using IID random effects
+fit4 <- smoothSurvey(data=DemoData2, responseType="binary", 
+       responseVar="tobacco.use", strataVar="strata", 
+       weightVar="weights", regionVar="region", 
+       clusterVar = "~clustid+id", CI = 0.95)
+
+# Using the formula argument, further customizations can be added to the 
+#  model fitted. For example, we can fit the Fay-Harriot model with 
+#  IID effect instead of the BYM2 random effect as follows.
+#  The "region.struct" and "hyperpc1" are picked to match internal object 
+#  names. Other object names can be inspected from the source of smoothSurvey.
+fit5 <- smoothSurvey(data=DemoData2,  
+       Amat=DemoMap2$Amat, responseType="binary", 
+       formula = "f(region.struct, model = 'iid', hyper = hyperpc1)",
+       pc.u = 1, pc.alpha = 0.01,
+       responseVar="tobacco.use", strataVar="strata", 
+       weightVar="weights", regionVar="region", 
+       clusterVar = "~clustid+id", CI = 0.95)
+# Check it is the same as fit4, notice the region order may be different
+regions <- fit5$smooth$region
+plot(fit4$smooth[match(regions, fit4$smooth$region),]$logit.mean, fit5$smooth$logit.mean)
+
+# Unit-level model
+# For unit-level models, we need to create stratification variable within regions
+data <- DemoData2
+data$urbanicity <- "rural"
+data$urbanicity[grep("urban", data$strata)] <- "urban"
+fit6 <- smoothSurvey(data=data, 
+  Amat=DemoMap2$Amat, responseType="binary", 
+  X = Xmat, is.unit = TRUE,
+  responseVar="tobacco.use", strataVar.within = "urbanicity", 
+  regionVar="region", clusterVar = "clustid", CI = 0.95)
+
+# Unit-level model using aggregated counts
+# We may use aggregated unit-level information as input as well
+data.agg <- aggregate(tobacco.use~region + urbanicity + clustid, 
+                      data = data, FUN = sum)
+data.agg.total <- aggregate(tobacco.use~region + urbanicity + clustid, 
+                      data = data, FUN = length)
+colnames(data.agg.total)[4] <- "total"
+data.agg <- merge(data.agg, data.agg.total)
+head(data.agg)
+fit7 <- smoothSurvey(data=data.agg, 
+  Amat=DemoMap2$Amat, responseType="binary", 
+  X = Xmat, is.unit = TRUE, is.agg = TRUE,
+  responseVar = "tobacco.use", strataVar.within = "urbanicity", 
+  totalVar = "total", regionVar="region", clusterVar = "clustid", CI = 0.95)
+
+# Check it is the same as fit6
+plot(fit6$smooth$mean, fit7$smooth$mean)  
+
+# Continuous outcome using Gaussian smoothing model: area-level model
+fit8 <- smoothSurvey(data=DemoData2, Amat=DemoMap2$Amat, 
+       responseType="gaussian", responseVar="age", strataVar="strata", 
+       weightVar="weights", regionVar="region", 
+         pc.u.phi = 0.5, pc.alpha.phi = 0.5,
+       clusterVar = "~clustid+id", CI = 0.95)
+
+# Continuous outcome using Gaussian smoothing model: 
+#    unit-level model without stratification
+fit9 <- smoothSurvey(data=data, 
+  Amat=DemoMap2$Amat, responseType="gaussian", is.unit = TRUE,
+  responseVar="age", strataVar.within = NULL,
+  pc.u.phi = 0.5, pc.alpha.phi = 0.5,
+  regionVar="region", clusterVar = "clustid", CI = 0.95)
+
+# Compare area and unit level estimates (not supposed to be equal)
+plot(fit8$smooth$mean, fit9$smooth$mean)  
+abline(c(0, 1))
+
+# Continuous outcome using Gaussian smoothing model: 
+#    unit-level model with stratification
+fit10 <- smoothSurvey(data=data, 
+  Amat=DemoMap2$Amat, responseType="gaussian", is.unit = TRUE,
+  responseVar="age", strataVar.within = "urbanicity",
+  pc.u.phi = 0.5, pc.alpha.phi = 0.5,
+  regionVar="region", clusterVar = "clustid", CI = 0.95)  
+
+
+# Continuous outcome using Gaussian smoothing model: 
+#     unit-level model using aggregated means
+data.mean <- aggregate(age~region + urbanicity + clustid, 
+                      data = data, FUN = mean)
+fit11 <- smoothSurvey(data=data.mean, 
+  Amat=DemoMap2$Amat, responseType="gaussian", is.unit = TRUE, 
+  is.agg = TRUE, responseVar="age", strataVar.within = "urbanicity", 
+  regionVar="region", clusterVar = "clustid", CI = 0.95)
+
+# Check result is the same as fit10. Notice the region order may be different
+compare <- fit10$smooth
+compare <- merge(compare, fit11$smooth, by = c("region", "strata")) 
+plot(compare$mean.x, compare$mean.y)  
+
+# Notice the usual output is now stratified within each region
+# The aggregated estimates require strata proportions for each region
+# For illustration, we set strata population proportions below
+prop <- data.frame(region = unique(data$region), 
+                            urban = 0.3, 
+                            rural = 0.7)
+fit10.new <- smoothSurvey(data=data, 
+  Amat=DemoMap2$Amat, responseType="gaussian", is.unit = TRUE,
+  responseVar="age", strataVar.within = "urbanicity",
+  pc.u.phi = 0.5, pc.alpha.phi = 0.5,
+  regionVar="region", clusterVar = "clustid", CI = 0.95,
+  weight.strata = prop)  
+
+# aggregated outcome
+head(fit10.new$smooth.overall)
+
+# Compare aggregated outcome with direct aggregating posterior means. 
+# There are small differences due to only 1000 posterior draws are taken.
+# Set nsim to 1e5 to reduce Monta Carlo errors. 
+est.urb <- subset(fit10$smooth, strata == "urban")
+est.rural <- subset(fit10$smooth, strata == "rural")
+est.mean.post <- est.urb$mean * 0.3 + est.rural$mean * 0.7
+plot(fit10.new$smooth.overall$mean, est.mean.post)
 
 }
 }
