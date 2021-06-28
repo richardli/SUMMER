@@ -1016,7 +1016,16 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
   total <- NA
   exdat <- subset(exdat, total != 0)
   
-
+  # Create filler data frame for spatial-only models
+  if(N == 0){
+    tmp <- exdat[rep(1, dim(Amat)[1]), ]
+    tmp$region.struct <- 1:dim(Amat)[1]
+    tmp$region_number <- tmp$region.int <- tmp$region.unstruct <- tmp$region.struct
+    tmp$region <- colnames(Amat)[tmp$region.struct]
+    created = c("region.struct", "region_number", "region.unstruct", "region.int", "region", "years", "age", "strata")
+    tmp[, colnames(tmp) %in% created == FALSE] <- NA
+    exdat <- rbind(exdat, tmp)
+  }
   # Create filler data frame for all space-time pairs
   if(N >= 1){
     tmp <- exdat[rep(1, dim(Amat)[1]*N), ]
