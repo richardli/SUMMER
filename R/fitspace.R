@@ -7,12 +7,14 @@
 #' 
 #' @param data The input data frame. The input data  with column of the response variable (\code{responseVar}), region ID (\code{regionVar}), stratification within region (\code{strataVar}), and cluster ID (\code{clusterVar}).
 #' \itemize{ 
-#' \item For area-level model, the data frame  consist of survey observations and corresponding survey weights (\code{weightVar}). 
-#' \item For unit-level model, the data frame can be either the same as in the area-level model, or aggregated data specified by \code{is.agg = TRUE}. The aggregated data format should have the response variable as counts by cluster (for binary responses), or means by cluster (for continuous response).  
+#' \item For area-level model, the data frame consist of survey observations and corresponding survey weights (\code{weightVar}). 
+#' \item For unit-level model and \code{is.agg = FALSE}, the data frame should consist of aggregated counts by clusters (for binary responses), or any cluster-level response (for continuous response). For binary response (\code{responseType = 'binary'}), the beta-binomial model will be fitted for cluster-level counts. For continuous response (\code{responseType = 'gaussian'}), a Gaussian smoothing model will be fitted on the cluster-level response. 
+#' \item For unit-level model and \code{is.agg = TRUE}, the data frame should be the same as in the area-level model. For binary response (\code{responseType = 'binary'}), the beta-binomial model will be fitted for cluster-level counts aggregated internally. For continuous response (\code{responseType = 'gaussian'}), the nested error model will be fitted on unit-level response.
 #' }
 #' @param geo Deprecated argument from early versions.
 #' @param Amat Adjacency matrix for the regions. If set to NULL, the IID spatial effect will be used.
-#' @param X Areal covariates data frame. One of the column name needs to match the \code{regionVar} specified in the function call, in order to be linked to the data input. Currently only supporting static region-level covariates.
+#' @param X Areal covariates data frame. One of the column name needs to match the \code{regionVar} specified in the function call, in order to be linked to the data input. Currently only supporting time-invariant region-level covariates.
+#' @param X.unit Column names of unit-level covariates. When \code{X.unit} is specified, a nested error model will be fitted with unit-level IID noise, and area-level predictions are produced by plugging in the covariate specified in the \code{X} argument. When \code{X} is not specified, the empirical mean of each covariate will be used. This is only implemented for continuous response with the Gaussian likelihood model and unit-level model. 
 #' @param responseType Type of the response variable, currently supports 'binary' (default with logit link function) or 'gaussian'. 
 #' @param responseVar the response variable
 #' @param strataVar the strata variable used in the area-level model. 
@@ -31,7 +33,7 @@
 #' @param direct.est data frame of direct estimates, with column names of response and region specified by \code{responseVar}, \code{regionVar}, and \code{timeVar}.  When \code{direct.est} is specified, it overwrites the \code{data} input. 
 #' @param direct.est.var the column name corresponding to the variance of direct estimates.
 #' @param is.unit.level logical indicator of whether unit-level model is fitted instead of area-level model. 
-#' @param is.agg logical indicator of whether the input is at the unit-level or aggregated by cluster. Only used for unit-level model.
+#' @param is.agg logical indicator of whether the input is at the aggregated counts by cluster. Only used for unit-level model and binary response variable.
 #' @param strataVar.within the variable specifying within region stratification variable. This is only used for the unit-level model. 
 #' @param totalVar the variable specifying total observations in \code{counts}. This is only used for the unit-level model when \code{counts} is specified. 
 #' @param weight.strata a data frame with one column corresponding to \code{regionVar}, and columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates. This is only used for the unit-level model. 
@@ -51,6 +53,10 @@
 #' @author Zehang Richard Li 
 #' @examples
 #' \dontrun{
+#' ##
+#' ## 1. Area-level model with binary response
+#' ##
+#' 
 #' data(DemoData2)
 #' data(DemoMap2)
 #' fit0 <- smoothSurvey(data=DemoData2,  
@@ -58,6 +64,7 @@
 #' responseVar="tobacco.use", strataVar="strata", 
 #' weightVar="weights", regionVar="region", 
 #' clusterVar = "~clustid+id", CI = 0.95)
+#' summary(fit0)
 #' 
 #' # Example with region-level covariates
 #'  Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
@@ -111,21 +118,24 @@
 #' regions <- fit5$smooth$region
 #' plot(fit4$smooth[match(regions, fit4$smooth$region),]$logit.mean, fit5$smooth$logit.mean)
 #' 
-#' # Unit-level model
+#' ##
+#' ## 2. Unit-level model with binary response  
+#' ##
+#' 
 #' # For unit-level models, we need to create stratification variable within regions
 #' data <- DemoData2
 #' data$urbanicity <- "rural"
 #' data$urbanicity[grep("urban", data$strata)] <- "urban"
+#' 
+#' # Beta-binomial likelihood is used in this model
 #' fit6 <- smoothSurvey(data=data, 
 #'   Amat=DemoMap2$Amat, responseType="binary", 
-#'   X = Xmat, is.unit = TRUE,
+#'   X = Xmat, is.unit.level = TRUE,
 #'   responseVar="tobacco.use", strataVar.within = "urbanicity", 
 #'   regionVar="region", clusterVar = "clustid", CI = 0.95)
 #' 
-#' # Unit-level model using aggregated counts
 #' # We may use aggregated PSU-level counts as input as well
-#' #    in the case of modeling a binary outcome
-#' 
+#' #    in the case of modeling a binary outcome 
 #' data.agg <- aggregate(tobacco.use~region + urbanicity + clustid, 
 #'                       data = data, FUN = sum)
 #' data.agg.total <- aggregate(tobacco.use~region + urbanicity + clustid, 
@@ -136,101 +146,169 @@
 #' 
 #' fit7 <- smoothSurvey(data=data.agg, 
 #'   Amat=DemoMap2$Amat, responseType="binary", 
-#'   X = Xmat, is.unit = TRUE, is.agg = TRUE,
+#'   X = Xmat, is.unit.level = TRUE, is.agg = TRUE,
 #'   responseVar = "tobacco.use", strataVar.within = "urbanicity", 
 #'   totalVar = "total", regionVar="region", clusterVar = "clustid", CI = 0.95)
 #' 
 #' # Check it is the same as fit6
 #' plot(fit6$smooth$mean, fit7$smooth$mean)  
 #' 
-#' # Continuous outcome using Gaussian smoothing model: area-level model
+#' ##
+#' ## 3. Area-level model with continuous response
+#' ##
 #' 
+#' # The smoothing model is the same as area-level model with binary response
+#' #  the continuous direct estimates are smoothed instead of 
+#' #  their logit-transformed versions for binary response.
 #' fit8 <- smoothSurvey(data=DemoData2, Amat=DemoMap2$Amat, 
 #'        responseType="gaussian", responseVar="age", strataVar="strata", 
 #'        weightVar="weights", regionVar="region", 
 #'        pc.u.phi = 0.5, pc.alpha.phi = 0.5,
 #'        clusterVar = "~clustid+id", CI = 0.95)
 #' 
-#' # Continuous outcome using Gaussian smoothing model: 
-#' #    unit-level model without stratification
-#' # For continuous outcome, the function only allows one-stage sample design. 
-#' #    Thus nested error models are not supported. For illustration, here we 
-#' #    create an 'aggregated' dataset with PSU-level response to be modeled.
+#' ##
+#' ## 4. Unit-level model with continuous response  
+#' ##    (or nested error models)
 #' 
-#' data.mean <- aggregate(age~region + urbanicity + clustid, 
-#'                       data = data, FUN = mean)
+#' # The unit-level model assumes for each of the i-th unit,
+#' #    Y_{i} ~ intercept + region_effect + IID_i
+#' #    where IID_i is the error term specific to i-th unit
 #' 
-#' # Set is.agg = TRUE to specify data does not need further aggregation and
-#' #     has been processed to be at the correct unit level.
-#' fit9 <- smoothSurvey(data= data.mean, 
+#' # When more than one level of cluster sampling is carried out, 
+#' #   they are ignored here. Only the input unit is considered.
+#' #   So here we do not need to specify clusterVar any more. 
+#' fit9 <- smoothSurvey(data= data, 
 #'   Amat=DemoMap2$Amat, responseType="gaussian", 
-#'   is.unit = TRUE, is.agg = TRUE,
-#'   responseVar="age", strataVar.within = NULL,
-#'   pc.u.phi = 0.5, pc.alpha.phi = 0.5,
+#'   is.unit.level = TRUE, responseVar="age", strataVar.within = NULL,
+#'   regionVar="region", clusterVar = NULL, CI = 0.95)
+#' 
+#' # To compare, we may also model PSU-level responses. As an illustration, 
+#' data.median <- aggregate(age~region + urbanicity + clustid, 
+#'                       data = data, FUN = median)
+#' 
+#' fit10 <- smoothSurvey(data= data.median, 
+#'   Amat=DemoMap2$Amat, responseType="gaussian", 
+#'   is.unit.level = TRUE, responseVar="age", strataVar.within = NULL,
 #'   regionVar="region", clusterVar = "clustid", CI = 0.95)
 #' 
-#'
-#' # Continuous outcome using Gaussian smoothing model: 
-#' #    unit-level model with stratification
 #' 
-#' fit10 <- smoothSurvey(data = data.mean, 
+#' # To further incorporate within-area stratification
+#' 
+#' fit11 <- smoothSurvey(data = data, 
 #'   Amat = DemoMap2$Amat, responseType = "gaussian", 
-#'   is.unit = TRUE, is.agg = TRUE,
-#'   responseVar="age", strataVar.within = "urbanicity",
-#'   regionVar = "region", clusterVar = "clustid", CI = 0.95)  
+#'   is.unit.level = TRUE, responseVar="age", strataVar.within = "urbanicity",
+#'   regionVar = "region", clusterVar = NULL, CI = 0.95)  
 #' 
-#'
 #' # Notice the usual output is now stratified within each region
 #' # The aggregated estimates require strata proportions for each region
 #' # For illustration, we set strata population proportions below
 #' prop <- data.frame(region = unique(data$region), 
 #'                             urban = 0.3, 
 #'                             rural = 0.7)
-#' fit11 <- smoothSurvey(data=data.mean, 
+#' fit12 <- smoothSurvey(data=data, 
 #'   Amat=DemoMap2$Amat, responseType="gaussian", 
-#'   is.unit = TRUE, is.agg = TRUE,
-#'   responseVar="age", strataVar.within = "urbanicity",
-#'   regionVar="region", clusterVar = "clustid", CI = 0.95,
-#'   weight.strata = prop, nsim = 1e5)  
+#'   is.unit.level = TRUE, responseVar="age", strataVar.within = "urbanicity",
+#'   regionVar="region", clusterVar = NULL, CI = 0.95,
+#'   weight.strata = prop)  
 #' 
 #' # aggregated outcome
-#' head(fit11$smooth.overall)
+#' head(fit12$smooth.overall)
 #' 
 #' # Compare aggregated outcome with direct aggregating posterior means. 
 #' # There could be small differences if only 1000 posterior draws are taken.
-#' # The previous example set nsim to 1e5 to reduce Monte Carlo errors. 
-#' est.urb <- subset(fit10$smooth, strata == "urban")
-#' est.rural <- subset(fit10$smooth, strata == "rural")
+#' est.urb <- subset(fit11$smooth, strata == "urban")
+#' est.rural <- subset(fit11$smooth, strata == "rural")
 #' est.mean.post <- est.urb$mean * 0.3 + est.rural$mean * 0.7
-#' plot(fit11$smooth.overall$mean, est.mean.post)
+#' plot(fit12$smooth.overall$mean, est.mean.post)
+#' 
+#' 
+#' ##
+#' ## 6. Unit-level model with continuous response and unit-level covariate 
+#' ## 
+#' 
+#' # For area-level prediction, area-level covariate mean needs to be  
+#' #   specified in X argument. And unit-level covariate names are specified
+#' #   in X.unit argument.
+#' 
+#' set.seed(1)
+#' sim <- data.frame(region = rep(c(1, 2, 3, 4), 1000),
+#'                    X1 = rnorm(4000), X2 = rnorm(4000))
+#' Xmean <- aggregate(.~region, data = sim, FUN = sum)
+#' sim$Y <- rnorm(4000, mean = sim$X1 + 0.3 * sim$X2 + sim$region)
+#' samp <- sim[sample(1:4000, 20), ]
+#' fit.sim <- smoothSurvey(data=samp , 
+#'                   X.unit = c("X1", "X2"),
+#'                   X = Xmean, Amat=NULL, responseType="gaussian", 
+#'                   is.unit = TRUE, responseVar="Y", regionVar = "region",  
+#'                   pc.u = 1, pc.alpha = 0.01, CI = 0.95) 
 #' 
 #' }
 #' @export
 
 
-smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, ...){
+smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, ...){
 
     svy <- TRUE
     if(is.null(responseVar)){
         stop("Response variable not specified")
     }
     if(is.null(responseType)){
-            stop("responseType not specified")
+        stop("responseType not specified")
     }  
     if(is.null(Amat)){
         message("No spatial adjacency matrix is specified. IID area random effect is used.")
     }
     is.iid.space <- FALSE
+    responseType <- tolower(responseType)
+    
+    # there is no aggregated input for Gaussian models
+    if(responseType == "gaussian") is.agg <- FALSE
+
+    if(responseType == "binary" && !is.null(X.unit)){
+        X.unit <- NULL
+        warning("Unit-level covariates not implemented for binary response variable. Set X.unit = NULL.")
+    }
+    if(is.unit.level == FALSE && !is.null(X.unit)){
+        X.unit <- NULL
+        warning("Area-level model is fitted. Set X.unit = NULL.")
+    }
+    if(is.agg && !is.null(X.unit)){
+        X.unit <- NULL
+        warning("Unit-level covariates cannot be used when input data is aggregated to cluster level (is.agg = TRUE). Set X.unit = NULL.")
+    }
+
+    # whether we are fitting nested error model
+    # For future update, we can also include two-fold nested error model by adding PSU-level effect
+    if(responseType == "gaussian" && is.unit.level){
+        is.nested <- TRUE
+        clusterVar <- NULL
+    }else{
+        is.nested <- FALSE
+    }
+
+    if(is.nested && !is.null(X.unit) && !is.null(timeVar)){
+        stop("Unit-level nested error model with covariates is not implemented with temporal components yet.")
+    }
+    if(is.nested && !is.null(X.unit) && !is.null(strataVar.within)){
+        stop("Unit-level nested error model with covariates is not implemented with stratification components yet.")
+    } 
 
     if(is.unit.level){
-        message("Fitting unit-level model.")
+        
+        if(responseType == "binary"){
+            message("Fitting unit-level model.")
+            msg <- "Unit-level model"
+        }else{
+            message("Fitting unit-level nested error model.")
+            msg <- "Unit-level nested error model"
+        }
         if(is.null(strataVar.within)){
             message("Within region stratification variable (strataVar.within) not defined. Unstratified model is fitted.")
             strataVar.within <- "strata0"
             data$strata0 <- 1
         }
-       
-        if(is.null(clusterVar)) stop("Cluster variable (clusterVar) not defined.")
+        
+        if(is.null(clusterVar) && !is.nested) stop("Cluster variable (clusterVar) not defined.")
 
         if(is.null(data)) stop("Survey dataset not defined.")
         data$response0 <- data[, responseVar]
@@ -246,9 +324,25 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, responseType =
         }
         data$region0 <- factor(data$region0, levels = colnames(Amat))
         data$strata0 <- data[, strataVar.within]
-        data$cluster0 <- data[, clusterVar]
+        if(!is.null(clusterVar)) data$cluster0 <- data[, clusterVar]
 
-        if(!is.agg){
+        # check column names of covariates
+        if(!is.null(X.unit)){
+            if(sum(X.unit %in% colnames(data)) != length(X.unit)){
+                stop("Exist columns specified X.unit but not in the data.")
+            }
+            if(!is.null(X) && sum(X.unit %in% colnames(X)) != length(X.unit)){
+                stop("Exist columns specified X.unit but not in X.")
+            }
+            # if X not specified, using empirical mean
+            if(is.null(X)){
+                data.sub <- data[, c(X.unit, "region0")]
+                X <- aggregate(.~region0, data = data.sub, FUN = function(x){mean(x, na.rm = TRUE)})
+            }
+        }
+
+        # If input is not aggregated, and not fitting a nested model, then aggregate
+        if(!is.agg && !is.nested){
             vars <- c("cluster0", "region0", "strata0")
 
             if(!is.null(timeVar)){
@@ -256,11 +350,12 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, responseType =
                 vars <- c(vars, "time0")
             }
             counts <- getCounts(data[, c(vars, "response0")], variables = 'response0', by = vars, drop=TRUE) 
-            if(responseType == "gaussian"){
-                stop("Response variable is at SSU level. The function currently only supports PSU-level response.")
-                counts[, "response0"] <- counts[, "response0"] / counts[, "total"]
-            }  
-        }else{
+            # if(responseType == "gaussian"){
+            #     stop("Response variable is at SSU level. The function currently only supports PSU-level response.")
+            #     counts[, "response0"] <- counts[, "response0"] / counts[, "total"]
+            # }  
+        # If input is aggregated then define total
+        }else if(is.agg){
             if(!is.null(timeVar)){
                 data$time0 <- data[, timeVar]
             }
@@ -269,7 +364,10 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, responseType =
             }
             data$total <- data[, totalVar]
             counts <- data
-        } 
+        # if fitting nested model
+        }else{
+            counts <- data
+        }
                 
         if(!is.null(weight.strata)){
             if(sum(!data$strata0 %in% colnames(weight.strata)) > 0) stop("Exist within-area strata (strataVar.within) not in the weight.strata data frame.")
@@ -279,6 +377,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, responseType =
         }
 
     }else if(!is.null(direct.est)){
+        msg <- "Area-level model using direct estimates as input"
         message("Using direct estimates as input instead of survey data.")
         data <- direct.est
         data$region0 <- as.character(direct.est[, regionVar])
@@ -298,6 +397,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, responseType =
         }
         data$var0 <- direct.est[, direct.est.var]
     }else{
+        msg <- "Area-level model using survey data as input"
         if(!is.data.frame(data)){
             stop("Input data needs to be a data frame")
         }
@@ -501,16 +601,51 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, responseType =
     }else{
         formulatext <- "y ~ strata0 - 1"        
     }
-    if(!is.null(X)){
+
+    # area-level covariates only
+    fixed <- NULL
+    if(!is.null(X) && is.null(X.unit)){
         X <- data.frame(X)        
-        fixed <- colnames(X)[-1]
-        colnames(X)[1] <- "region"
+        fixed <- colnames(X)[colnames(X) != regionVar]
+        colnames(X)[colnames(X) == regionVar] <- "region"
         if(fixed %in% colnames(dat)){
             message("The following covariates exist in the input data frame. They are replaced with region-level covariates provided in X: ", fixed[fixed %in% colnames(dat)])
             dat <- dat[, !colnames(dat) %in% fixed]
         }
         dat <- merge(dat, X, by = "region", all = TRUE)
         formulatext <- paste(formulatext, " + ", paste(fixed, collapse = " + "))
+
+    # unit-level covariates  
+    }else if(is.nested && !is.null(X.unit)){
+        formulatext <- paste(formulatext, " + ", paste(X.unit, collapse = " + "))
+
+        X <- data.frame(X)        
+        fixed <- colnames(X)[colnames(X) != regionVar]
+        colnames(X)[colnames(X) == regionVar] <- "region"
+        X <- X[, colnames(X) %in% c("region", X.unit)]
+        for(j in colnames(dat)){
+            if(!j %in% c("region", X.unit)){
+                X[, j] <- dat[match(X$region, dat$region), j]
+            }
+        }
+
+        X$y <- NA
+        dat <- rbind(X, dat)
+        out.index <- 1:dim(X)[1]
+
+    # unit-level model without covariates   
+    }else if(is.nested){
+        X <- data.frame(region = colnames(Amat))        
+        for(j in colnames(dat)){
+            if(!j %in% c("region")){
+                X[, j] <- dat[match(X$region, dat$region), j]
+            }
+        }
+
+        X$y <- NA
+        dat <- rbind(X, dat)
+        out.index <- 1:dim(X)[1]
+
     }
 
     if(is.null(formula)){
@@ -578,7 +713,10 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, responseType =
         if(!is.unit.level){
             tmp <- matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[i]]))
         }else{
-            if(is.null(timeVar)){
+            if(is.nested && !is.null(X.unit)){
+                which <- which(dat[out.index, ]$region == proj$region[i] & dat[out.index, ]$strata0 == proj$strata[i])[1]
+                which <- out.index[which]
+            }else if(is.null(timeVar)){
                 which <- which(dat$region == proj$region[i] & dat$strata0 == proj$strata[i])[1]
             }else{
                 which <- which(dat$region == proj$region[i] & dat$strata0 == proj$strata[i] &
@@ -691,15 +829,18 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, responseType =
         HT <- NULL
    }
 
-
-   return(list(HT = HT,
+   out <- list(HT = HT,
                smooth = proj, 
                smooth.overall = proj.agg, 
                fit = fit, 
                CI = CI,
                Amat = Amat,
                responseType = responseType,
-               formula = formula))
+               formula = formula, 
+               msg = msg)
+   class(out) <-  "SUMMERmodel.svy"
+
+   return(out)
 }
 
 

@@ -10,6 +10,7 @@ smoothSurvey(
   geo = NULL,
   Amat = NULL,
   X = NULL,
+  X.unit = NULL,
   responseType = c("binary", "gaussian")[1],
   responseVar,
   strataVar = "strata",
@@ -41,6 +42,7 @@ fitGeneric(
   geo = NULL,
   Amat = NULL,
   X = NULL,
+  X.unit = NULL,
   responseType = c("binary", "gaussian")[1],
   responseVar,
   strataVar = "strata",
@@ -70,15 +72,18 @@ fitGeneric(
 \arguments{
 \item{data}{The input data frame. The input data  with column of the response variable (\code{responseVar}), region ID (\code{regionVar}), stratification within region (\code{strataVar}), and cluster ID (\code{clusterVar}).
 \itemize{ 
-\item For area-level model, the data frame  consist of survey observations and corresponding survey weights (\code{weightVar}). 
-\item For unit-level model, the data frame can be either the same as in the area-level model, or aggregated data specified by \code{is.agg = TRUE}. The aggregated data format should have the response variable as counts by cluster (for binary responses), or means by cluster (for continuous response).  
+\item For area-level model, the data frame consist of survey observations and corresponding survey weights (\code{weightVar}). 
+\item For unit-level model and \code{is.agg = FALSE}, the data frame should consist of aggregated counts by clusters (for binary responses), or any cluster-level response (for continuous response). For binary response (\code{responseType = 'binary'}), the beta-binomial model will be fitted for cluster-level counts. For continuous response (\code{responseType = 'gaussian'}), a Gaussian smoothing model will be fitted on the cluster-level response. 
+\item For unit-level model and \code{is.agg = TRUE}, the data frame should be the same as in the area-level model. For binary response (\code{responseType = 'binary'}), the beta-binomial model will be fitted for cluster-level counts aggregated internally. For continuous response (\code{responseType = 'gaussian'}), the nested error model will be fitted on unit-level response.
 }}
 
 \item{geo}{Deprecated argument from early versions.}
 
 \item{Amat}{Adjacency matrix for the regions. If set to NULL, the IID spatial effect will be used.}
 
-\item{X}{Areal covariates data frame. One of the column name needs to match the \code{regionVar} specified in the function call, in order to be linked to the data input. Currently only supporting static region-level covariates.}
+\item{X}{Areal covariates data frame. One of the column name needs to match the \code{regionVar} specified in the function call, in order to be linked to the data input. Currently only supporting time-invariant region-level covariates.}
+
+\item{X.unit}{Column names of unit-level covariates. When \code{X.unit} is specified, a nested error model will be fitted with unit-level IID noise, and area-level predictions are produced by plugging in the covariate specified in the \code{X} argument. When \code{X} is not specified, the empirical mean of each covariate will be used. This is only implemented for continuous response with the Gaussian likelihood model and unit-level model.}
 
 \item{responseType}{Type of the response variable, currently supports 'binary' (default with logit link function) or 'gaussian'.}
 
@@ -116,7 +121,7 @@ fitGeneric(
 
 \item{is.unit.level}{logical indicator of whether unit-level model is fitted instead of area-level model.}
 
-\item{is.agg}{logical indicator of whether the input is at the unit-level or aggregated by cluster. Only used for unit-level model.}
+\item{is.agg}{logical indicator of whether the input is at the aggregated counts by cluster. Only used for unit-level model and binary response variable.}
 
 \item{strataVar.within}{the variable specifying within region stratification variable. This is only used for the unit-level model.}
 
@@ -146,6 +151,10 @@ The function \code{smoothSurvey} replaces the previous function name \code{fitGe
 }
 \examples{
 \dontrun{
+##
+## 1. Area-level model with binary response
+##
+
 data(DemoData2)
 data(DemoMap2)
 fit0 <- smoothSurvey(data=DemoData2,  
@@ -153,6 +162,7 @@ Amat=DemoMap2$Amat, responseType="binary",
 responseVar="tobacco.use", strataVar="strata", 
 weightVar="weights", regionVar="region", 
 clusterVar = "~clustid+id", CI = 0.95)
+summary(fit0)
 
 # Example with region-level covariates
  Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
@@ -206,19 +216,24 @@ fit5 <- smoothSurvey(data=DemoData2,
 regions <- fit5$smooth$region
 plot(fit4$smooth[match(regions, fit4$smooth$region),]$logit.mean, fit5$smooth$logit.mean)
 
-# Unit-level model
+##
+## 2. Unit-level model with binary response  
+##
+
 # For unit-level models, we need to create stratification variable within regions
 data <- DemoData2
 data$urbanicity <- "rural"
 data$urbanicity[grep("urban", data$strata)] <- "urban"
+
+# Beta-binomial likelihood is used in this model
 fit6 <- smoothSurvey(data=data, 
   Amat=DemoMap2$Amat, responseType="binary", 
-  X = Xmat, is.unit = TRUE,
+  X = Xmat, is.unit.level = TRUE,
   responseVar="tobacco.use", strataVar.within = "urbanicity", 
   regionVar="region", clusterVar = "clustid", CI = 0.95)
 
-# Unit-level model using aggregated counts
-# We may use aggregated unit-level information as input as well
+# We may use aggregated PSU-level counts as input as well
+#    in the case of modeling a binary outcome 
 data.agg <- aggregate(tobacco.use~region + urbanicity + clustid, 
                       data = data, FUN = sum)
 data.agg.total <- aggregate(tobacco.use~region + urbanicity + clustid, 
@@ -226,56 +241,61 @@ data.agg.total <- aggregate(tobacco.use~region + urbanicity + clustid,
 colnames(data.agg.total)[4] <- "total"
 data.agg <- merge(data.agg, data.agg.total)
 head(data.agg)
+
 fit7 <- smoothSurvey(data=data.agg, 
   Amat=DemoMap2$Amat, responseType="binary", 
-  X = Xmat, is.unit = TRUE, is.agg = TRUE,
+  X = Xmat, is.unit.level = TRUE, is.agg = TRUE,
   responseVar = "tobacco.use", strataVar.within = "urbanicity", 
   totalVar = "total", regionVar="region", clusterVar = "clustid", CI = 0.95)
 
 # Check it is the same as fit6
 plot(fit6$smooth$mean, fit7$smooth$mean)  
 
-# Continuous outcome using Gaussian smoothing model: area-level model
+##
+## 3. Area-level model with continuous response
+##
+
+# The smoothing model is the same as area-level model with binary response
+#  the continuous direct estimates are smoothed instead of 
+#  their logit-transformed versions for binary response.
 fit8 <- smoothSurvey(data=DemoData2, Amat=DemoMap2$Amat, 
        responseType="gaussian", responseVar="age", strataVar="strata", 
        weightVar="weights", regionVar="region", 
-         pc.u.phi = 0.5, pc.alpha.phi = 0.5,
+       pc.u.phi = 0.5, pc.alpha.phi = 0.5,
        clusterVar = "~clustid+id", CI = 0.95)
 
-# Continuous outcome using Gaussian smoothing model: 
-#    unit-level model without stratification
-fit9 <- smoothSurvey(data=data, 
-  Amat=DemoMap2$Amat, responseType="gaussian", is.unit = TRUE,
-  responseVar="age", strataVar.within = NULL,
-  pc.u.phi = 0.5, pc.alpha.phi = 0.5,
+##
+## 4. Unit-level model with continuous response  
+##    (or nested error models)
+
+# The unit-level model assumes for each of the i-th unit,
+#    Y_{i} ~ intercept + region_effect + IID_i
+#    where IID_i is the error term specific to i-th unit
+
+# When more than one level of cluster sampling is carried out, 
+#   they are ignored here. Only the input unit is considered.
+#   So here we do not need to specify clusterVar any more. 
+fit9 <- smoothSurvey(data= data, 
+  Amat=DemoMap2$Amat, responseType="gaussian", 
+  is.unit.level = TRUE, responseVar="age", strataVar.within = NULL,
+  regionVar="region", clusterVar = NULL, CI = 0.95)
+
+# To compare, we may also model PSU-level responses. As an illustration, 
+data.median <- aggregate(age~region + urbanicity + clustid, 
+                      data = data, FUN = median)
+
+fit10 <- smoothSurvey(data= data.median, 
+  Amat=DemoMap2$Amat, responseType="gaussian", 
+  is.unit.level = TRUE, responseVar="age", strataVar.within = NULL,
   regionVar="region", clusterVar = "clustid", CI = 0.95)
 
-# Compare area and unit level estimates (not supposed to be equal)
-plot(fit8$smooth$mean, fit9$smooth$mean)  
-abline(c(0, 1))
 
-# Continuous outcome using Gaussian smoothing model: 
-#    unit-level model with stratification
-fit10 <- smoothSurvey(data=data, 
-  Amat=DemoMap2$Amat, responseType="gaussian", is.unit = TRUE,
-  responseVar="age", strataVar.within = "urbanicity",
-  pc.u.phi = 0.5, pc.alpha.phi = 0.5,
-  regionVar="region", clusterVar = "clustid", CI = 0.95)  
+# To further incorporate within-area stratification
 
-
-# Continuous outcome using Gaussian smoothing model: 
-#     unit-level model using aggregated means
-data.mean <- aggregate(age~region + urbanicity + clustid, 
-                      data = data, FUN = mean)
-fit11 <- smoothSurvey(data=data.mean, 
-  Amat=DemoMap2$Amat, responseType="gaussian", is.unit = TRUE, 
-  is.agg = TRUE, responseVar="age", strataVar.within = "urbanicity", 
-  regionVar="region", clusterVar = "clustid", CI = 0.95)
-
-# Check result is the same as fit10. Notice the region order may be different
-compare <- fit10$smooth
-compare <- merge(compare, fit11$smooth, by = c("region", "strata")) 
-plot(compare$mean.x, compare$mean.y)  
+fit11 <- smoothSurvey(data = data, 
+  Amat = DemoMap2$Amat, responseType = "gaussian", 
+  is.unit.level = TRUE, responseVar="age", strataVar.within = "urbanicity",
+  regionVar = "region", clusterVar = NULL, CI = 0.95)  
 
 # Notice the usual output is now stratified within each region
 # The aggregated estimates require strata proportions for each region
@@ -283,23 +303,42 @@ plot(compare$mean.x, compare$mean.y)
 prop <- data.frame(region = unique(data$region), 
                             urban = 0.3, 
                             rural = 0.7)
-fit10.new <- smoothSurvey(data=data, 
-  Amat=DemoMap2$Amat, responseType="gaussian", is.unit = TRUE,
-  responseVar="age", strataVar.within = "urbanicity",
-  pc.u.phi = 0.5, pc.alpha.phi = 0.5,
-  regionVar="region", clusterVar = "clustid", CI = 0.95,
+fit12 <- smoothSurvey(data=data, 
+  Amat=DemoMap2$Amat, responseType="gaussian", 
+  is.unit.level = TRUE, responseVar="age", strataVar.within = "urbanicity",
+  regionVar="region", clusterVar = NULL, CI = 0.95,
   weight.strata = prop)  
 
 # aggregated outcome
-head(fit10.new$smooth.overall)
+head(fit12$smooth.overall)
 
 # Compare aggregated outcome with direct aggregating posterior means. 
-# There are small differences due to only 1000 posterior draws are taken.
-# Set nsim to 1e5 to reduce Monta Carlo errors. 
-est.urb <- subset(fit10$smooth, strata == "urban")
-est.rural <- subset(fit10$smooth, strata == "rural")
+# There could be small differences if only 1000 posterior draws are taken.
+est.urb <- subset(fit11$smooth, strata == "urban")
+est.rural <- subset(fit11$smooth, strata == "rural")
 est.mean.post <- est.urb$mean * 0.3 + est.rural$mean * 0.7
-plot(fit10.new$smooth.overall$mean, est.mean.post)
+plot(fit12$smooth.overall$mean, est.mean.post)
+
+
+##
+## 6. Unit-level model with continuous response and unit-level covariate 
+## 
+
+# For area-level prediction, area-level covariate mean needs to be  
+#   specified in X argument. And unit-level covariate names are specified
+#   in X.unit argument.
+
+set.seed(1)
+sim <- data.frame(region = rep(c(1, 2, 3, 4), 1000),
+                   X1 = rnorm(4000), X2 = rnorm(4000))
+Xmean <- aggregate(.~region, data = sim, FUN = sum)
+sim$Y <- rnorm(4000, mean = sim$X1 + 0.3 * sim$X2 + sim$region)
+samp <- sim[sample(1:4000, 20), ]
+fit.sim <- smoothSurvey(data=samp , 
+                  X.unit = c("X1", "X2"),
+                  X = Xmean, Amat=NULL, responseType="gaussian", 
+                  is.unit = TRUE, responseVar="Y", regionVar = "region",  
+                  pc.u = 1, pc.alpha = 0.01, CI = 0.95) 
 
 }
 }

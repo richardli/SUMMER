@@ -2,8 +2,10 @@
 
 S3method(plot,SUMMERproj)
 S3method(print,SUMMERmodel)
+S3method(print,SUMMERmodel.svy)
 S3method(print,SUMMERprojlist)
 S3method(summary,SUMMERmodel)
+S3method(summary,SUMMERmodel.svy)
 export(ChangeRegion)
 export(adjustPopMat)
 export(admin2ToAdmin1Kenya)

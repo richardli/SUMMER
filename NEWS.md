@@ -1,4 +1,11 @@
 # SUMMER - changes
+Version 1.2.0 (2021-07-01) 
+==========================
++ Major expansion for `smoothSurvey` to implement popular SAE methods. Syntax change to the function. 
++ Allows `smoothDirect` and `smoothCluster` to fit space-only models.
++ 
++ Bug fixes.
+
 Version 1.1.0 (2021-01-31) 
 ==========================
 + New features:

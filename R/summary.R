@@ -202,3 +202,105 @@ print.SUMMERprojlist <- function(x, ...){
 	cat("\n")
 	cat(paste0(x$nsim, " posterior draws taken.\n"))
 }
+
+
+#' Summary method for the smoothing model and output from \code{smoothSurvey}.
+#' 
+#' This function is the summary method for class \code{SUMMERmodel.svy}.
+#' 
+#' 
+#' @param object output from \code{\link{smoothSurvey}} 
+#' @param ... not used
+#' 
+#' @author Zehang Li 
+#' 
+#' @seealso \code{\link{summary.SUMMERmodel.svy}} 
+#' @method summary SUMMERmodel.svy
+#' @examples
+#' \dontrun{
+#' data(DemoData2)
+#' data(DemoMap2)
+#' fit0 <- smoothSurvey(data=DemoData2,  
+#' Amat=DemoMap2$Amat, responseType="binary", 
+#' responseVar="tobacco.use", strataVar="strata", 
+#' weightVar="weights", regionVar="region", 
+#' clusterVar = "~clustid+id", CI = 0.95)
+#' summary(fit0)
+#' }
+#' @export 
+
+summary.SUMMERmodel.svy <- function(object,...){
+	cat("----------------------------------\n")
+	config <- object$msg
+	cat(config)  
+	cat("\n----------------------------------\n")
+	cat("Fixed Effects\n")
+	fixed <- summary(object$fit)$fixed
+	print(fixed)
+	cat("----------------------------------\n")
+	cat("Random Effects\n")
+	random <- data.frame(Name = summary(object$fit)$random.names,
+						 Model = summary(object$fit)$random.model) 
+	print(random)
+	cat("----------------------------------\n")
+	cat("Model hyperparameters\n")
+	hyperpar <- summary(object$fit)$hyperpar
+	print(hyperpar)
+
+	neffp <- summary(object$fit)$neffp
+	print(neffp)
+	mlik <- summary(object$fit)$mlik
+	print(mlik)
+}
+ 
+
+#' Print method for the smoothing models from \code{smoothSurvey}.
+#' 
+#' This function is the print method for class \code{SUMMERmodel.svy}.
+#' 
+#' 
+#' @param x output from \code{\link{smoothSurvey}}.
+#' @param ... not used
+#' @method print SUMMERmodel.svy
+#' @author Zehang Li 
+#' 
+#' @seealso \code{\link{summary.SUMMERmodel.svy}} 
+#' 
+#' @examples
+#' \dontrun{
+#' data(DemoData2)
+#' data(DemoMap2)
+#' fit0 <- smoothSurvey(data=DemoData2,  
+#' Amat=DemoMap2$Amat, responseType="binary", 
+#' responseVar="tobacco.use", strataVar="strata", 
+#' weightVar="weights", regionVar="region", 
+#' clusterVar = "~clustid+id", CI = 0.95)
+#' fit0
+#' }
+#' @export 
+
+print.SUMMERmodel.svy <- function(x,...){
+	cat("----------------------------------\n")
+	cat(x$msg)  
+	cat("\n\n$formula\n")
+	print(paste(as.character(x$formula)[c(2,1,3)], collapse = " "))
+	if(!is.null(x$HT)){
+		cat("----------------------------------\n")
+		cat("$HT\n")
+		print(head(x$HT))
+		cat("...\n")
+	}
+	if(!is.null(x$smooth)){
+		cat("----------------------------------\n")
+		cat("$smooth\n")
+		print(head(x$smooth))
+		cat("...\n")
+	}
+	if(!is.null(x$smooth.overall)){
+		cat("----------------------------------\n")
+		cat("$smooth\n")
+		print(head(x$smooth.overall))
+		cat("...\n")
+	}
+
+}
