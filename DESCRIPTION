@@ -1,6 +1,6 @@
 Package: SUMMER
 Type: Package
-Title: Spatio-Temporal Under-Five Mortality Methods for Estimation
+Title: SAE Unit/area Mortality Methods for Estimation in R
 Version: 1.2.0
 Date: 2021-04-02
 Authors@R: c(
