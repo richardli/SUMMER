@@ -239,7 +239,7 @@
 #' fit.sim <- smoothSurvey(data=samp , 
 #'                   X.unit = c("X1", "X2"),
 #'                   X = Xmean, Amat=NULL, responseType="gaussian", 
-#'                   is.unit = TRUE, responseVar="Y", regionVar = "region",  
+#'                   is.unit.level = TRUE, responseVar="Y", regionVar = "region",  
 #'                   pc.u = 1, pc.alpha = 0.01, CI = 0.95) 
 #' 
 #' }
