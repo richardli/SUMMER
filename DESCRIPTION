@@ -1,8 +1,8 @@
 Package: SUMMER
 Type: Package
-Title: SAE Unit/area Mortality Methods for Estimation in R
+Title: SAE Unit/area Models and Methods for Estimation in R
 Version: 1.2.0
-Date: 2021-04-02
+Date: 2021-07-01
 Authors@R: c(
     person(given = "Zehang R", family = "Li", email= "lizehang@gmail.com", role = c("cre","aut")),
     person(given = "Bryan D", family = "Martin", email= "bmartin6@uw.edu", role = "aut"), 

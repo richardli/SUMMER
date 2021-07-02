@@ -1,7 +1,7 @@
 # SUMMER
 [![Build Status](https://travis-ci.com/richardli/SUMMER.svg?branch=master)](https://travis-ci.com/richardli/SUMMER) [![](https://cranlogs.r-pkg.org/badges/SUMMER)](https://cran.r-project.org/package=SUMMER) [![](https://cranlogs.r-pkg.org/badges/grand-total/SUMMER?color=orange)](https://cran.r-project.org/package=SUMMER)
 
-Spatio-temporal Under-five Mortality Models of Estimation in R
+SAE Unit/area Models and Methods for Estimation in R
 
 ## Major update (version 1.2.0)
 Version 1.2.0 adds population and prevalence simulation funtionality based on population frame and population density information, along with methods for aggregating pixel level prevalences and populations to the areal level. Updates include: 
