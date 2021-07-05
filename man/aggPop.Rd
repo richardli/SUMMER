@@ -101,7 +101,7 @@ sigmaEpsilon=sqrt(1/2.5) # cluster (nugget) effect standard deviation
 simPop = simPopSPDE(nsim=1, easpa=easpaKenyaNeonatal, 
                     popMat=popMatKenya, targetPopMat=popMatKenyaNeonatal, 
                     poppsub=poppsubKenya, spdeMesh=kenyaMesh, 
-                    margVar=rho, sigmaEpsilonSq=sigmaEpsilon^2, 
+                    margVar=rho, sigmaEpsilon=sigmaEpsilon, 
                     gamma=gamma, effRange=effRange, beta0=beta0, 
                     seed=123, inla.seed=12, nHHSampled=25, 
                     stratifyByUrban=TRUE, subareaLevel=TRUE, 
