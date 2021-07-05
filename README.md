@@ -3,8 +3,10 @@
 
 SAE Unit/area Models and Methods for Estimation in R
 
-## Major update (version 1.2.0)
-Version 1.2.0 adds population and prevalence simulation funtionality based on population frame and population density information, along with methods for aggregating pixel level prevalences and populations to the areal level. Updates include: 
+## Next major update (version 1.3.0)
+Version 1.3.0 will add population and prevalence simulation functionality based on population frame and population density information, along with methods for aggregating pixel level prevalences and populations to the areal level. These functions are currently available in the dev branch. 
+
+Updates will include: 
 + New major functions.
     * ``simSPDE``: Simulates from the SPDE spatial model.
     * ``simPopSPDE``: Simulates population in a country based on SPDE spatial model and population frame information.
@@ -19,6 +21,11 @@ Version 1.2.0 adds population and prevalence simulation funtionality based on po
     * ``kenyaMaps``: Kenya administrative area map shapefiles, and a triangular mesh for the SPDE model for Kenya.
     * ``kenyaPopulationData``: General and neonatal population frames for Kenya, and general and neonatal population density information for Kenya.
     * ``popMatKenya`` and ``popMatKenyaNeonatal``: General and neonatal population density grids at 5km resolution.
+
+## Major update (version 1.1.0)
++ Major expansion for `smoothSurvey` to implement popular SAE methods. Syntax change to the function. 
++ Allows `smoothDirect` and `smoothCluster` to fit space-only models.
++ `smoothSurvey`, `smoothDirect`, and `smoothCluster` now returns S3 classed objects.
 
 ## Major update (version 1.0.0)
 Version 1.0.0 contains many major updates from the previous versions:
