@@ -5,7 +5,6 @@
 #' @param x output from \code{\link{smoothDirect}} for the smoothed direct estimates, or \code{\link{smoothCluster}} for the cluster-level estimates.
 #' @param nsim number of posterior draws to take. Only used for cluster-level models when \code{draws} is NULL. Otherwise the posterior draws in \code{draws} will be used instead without resampling.
 #' @param draws Output of \code{\link{getSmoothed}} with \code{save.draws} set to TRUE. This argument allows the previously sampled draws (by setting \code{save.draws} to be TRUE) be used in new aggregation tasks. This argument is only used for cluster-level models.   
-#' @param Amat adjacency matrix
 #' @param year_plot A vector indicate which years to plot
 #' @param strata_plot Name of the strata to plot. If not specified, the overall is plotted.
 #' @param by.year logical indicator for whether the output uses years as facets. 
@@ -14,10 +13,11 @@
 #' @param per1000 logical indicator to multiply results by 1000.
 #' @param order order of regions when by.year is set to TRUE. Negative values indicate regions are ordered from high to low posterior medians from top to bottom. Positive values indicate from low to high. 0 indicate alphabetic orders.
 #' @param direction Direction of the color scheme. It can be either 1 (smaller values are darker) or -1 (higher values are darker). Default is set to 1.
-#' @param results output from \code{\link{ridgePlot}}. This argument can be specified to avoid calculating densities again when only the visualization changes.
+#' @param results output from \code{\link{ridgePlot}} returned object with \code{save.density = TRUE}. This argument can be specified to avoid calculating densities again when only the visualization changes.
+#' @param save.density Logical indicator of whether the densities will be returned with the ggplot object. If set to TRUE, the output will be a list consisting of (1) a data frame of computed densities and (2) a ggplot object of the plot. 
 #' @param ... additional configurations passed to inla.posterior.sample.
 #' 
-#' @return a data frame of the calculated densities and a ggplot figure.
+#' @return ridge plot of the density, and  if \code{save.density = TRUE}, also a data frame of the calculated densities 
 #' @seealso \code{\link{plot.SUMMERproj}}
 #' @author Zehang Richard Li
 #' @examples
@@ -40,36 +40,32 @@
 #' years.all <- c(years, "15-19")
 #' fit1 <- smoothDirect(data = data, geo = NULL, Amat = NULL, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
-#'   rw = 2, is.yearly=FALSE, m = 5)
+#'   rw = 2, m = 5)
 #' ## Plot marginal posterior densities over time
-#' density <- ridgePlot(fit1, year_plot = years.all, 
-#' ncol = 4, by.year = FALSE)
-#' density$g
+#' ridgePlot(fit1, year_plot = years.all, 
+#'           ncol = 4, by.year = FALSE)
 #' 
 #' #  subnational model
-#' fit2 <- smoothDirect(data = data, geo = geo, Amat = mat, 
+#' fit2 <- smoothDirect(data = data, geo = DemoMap$geo, Amat = DemoMap$Amat, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
-#'   rw = 2, is.yearly=TRUE, m = 5, type.st = 1)
+#'   rw = 2, m = 5, type.st = 1)
 #' 
 ##' # Plot marginal posterior densities over time (regions are ordered alphabetically)
-#' density <- ridgePlot(fit2, Amat = mat, year_plot = years.all, ncol = 4)
-#' density$g
+#' ridgePlot(fit2, year_plot = years.all, ncol = 4)
 #' 
-##' # Re-order the regions 
-#' density <- ridgePlot(fit2, Amat = mat,  year_plot = years.all,
-#'  ncol = 4, per1000 = TRUE, order = -1)
+##' # Re-order the regions and save the density to avoid re-compute later
+#' density <- ridgePlot(fit2, year_plot = years.all,
+#'  ncol = 4, per1000 = TRUE, order = -1, save.density = TRUE)
 #' density$g
 #' 
 #' # Show each region (instead of each year) in a panel 
 #' ## Instead of recalculate the posteriors, we can use previously calculated densities as input 
-#' density <- ridgePlot(results = density, year_plot = years.all, 
+#' ridgePlot(results = density, year_plot = years.all, 
 #' ncol = 4, by.year=FALSE, per1000 = TRUE)
-#' density$g
 #' 
 #' # Show more years
-#' density <- ridgePlot(results = density, year_plot = c(1990:2019), 
+#' ridgePlot(results = density, year_plot = c(1990:2019), 
 #' ncol = 4, by.year=FALSE, per1000 = TRUE)
-#' density$g
 #'
 #' 
 #' 
@@ -77,7 +73,7 @@
 #' 
 
 #' @export
-ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, Amat = NULL, year_plot = NULL, strata_plot = NULL, by.year = TRUE, ncol = 4, scale = 2, per1000 = FALSE, order = 0, direction = 1, results = NULL, ...){
+ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strata_plot = NULL, by.year = TRUE, ncol = 4, scale = 2, per1000 = FALSE, order = 0, direction = 1, results = NULL, save.density = FALSE, ...){
 
       years <-  y <- `..x..` <- region <- NA
 
@@ -100,9 +96,15 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, Amat = NULL, year_plot 
         is.density <- "y" %in% colnames(results) 
 
      }else{ 
-        if(is.null(Amat)){
+        Amat <- x$Amat
+        if(is.null(Amat) && is.null(draws)){
           region_names <- "All"
           region_nums <- 0
+        
+        }else if(!is.null(draws)){
+          region_names <- unique(draws$overall$region)
+          region_nums <- 1:length(region_names)
+        
         }else{
           region_names <- colnames(Amat)
           region_nums <- 1:length(region_names)
@@ -124,13 +126,15 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, Amat = NULL, year_plot 
             # overwrite x...
             x <- draws
           }
-        }else{
+        }else if(is.null(x$fit)){
           stop("Neither fitted object nor posterior draws are provided.")
         }
 
         # at this point x is an object from getSmoothed or smoothDirect
-
-        if(is(x, "list") && is.null(x$fit)){
+        ##
+        ##  If the input is from getSmoothed
+        ##
+        if((is(x, "list") || is(x, "SUMMERprojlist")) && is.null(x$fit)){
           is.density <- FALSE
           if(is.null(x$draws.est.overall)){
             stop("Posterior draws not found. Please rerun getSmoothed() with save.draws = TRUE.")
@@ -195,7 +199,7 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, Amat = NULL, year_plot 
         }else{
           is.density <- TRUE
           is.yearly = x$is.yearly
-          if(is.null(year_label)) year_label <- x$year_label
+          year_label <- x$year_label
           if(is.yearly){
             timelabel.yearly <- c(x$year_range[1] : x$year_range[2], year_label)
           }else{
@@ -270,8 +274,12 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, Amat = NULL, year_plot 
         if(length(region_names) > 1) g <- g + ggplot2::facet_wrap(~region, ncol = ncol)
       }
 
+      if(save.density){
+        return(list(data = results, g = g))        
+      }else{
+        return(g)
+      }
 
-      return(list(data = results, g = g))
   }
 
 }
