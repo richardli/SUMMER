@@ -207,6 +207,9 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
         stop("Row and column names of Amat needs to be the same.")
     }
     is.spatial <- TRUE
+    if(sum(!data$region %in% colnames(Amat)) > 0){
+        stop("Exist regions in the data frame but not in Amat.")
+    }
   }else{
     is.spatial <- FALSE
     is.ar <- FALSE

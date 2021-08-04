@@ -281,6 +281,9 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
         stop("Row and column names of Amat needs to be the same.")
     }
     is.spatial <- TRUE
+    if(sum(!data$region %in% colnames(Amat)) > 0){
+        stop("Exist regions in the data frame but not in Amat.")
+    }
   }else{
     Amat <- matrix(1,1,1)
     colnames(Amat) <- rownames(Amat) <- "All"
