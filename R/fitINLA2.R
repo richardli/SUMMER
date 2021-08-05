@@ -18,7 +18,7 @@
 #' @param age.rw.group vector indicating grouping of the ages groups. For example, if each age group is assigned a different random walk component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate random walk to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.
 #' @param family family of the model. This can be either binomial (with logistic normal prior), betabiniomial.
 #' @param time.model Model for the main temporal trend, can be rw1, rw2, ar1, or NULL (for spatial-only smoothing). Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale. 
-#' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. For ar1 interaction model, region-specific random slopes can be added by specifying \code{pc.st.slope.u} and \code{pc.st.slope.alpha}.
+#' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. Default to be the same as time.model unless specified otherwise. The default does not include region-specific random slopes. They can be added to the interaction term by specifying \code{pc.st.slope.u} and \code{pc.st.slope.alpha}.  
 #' @param Amat Adjacency matrix for the regions
 #' @param bias.adj the ratio of unadjusted mortality rates or age-group-specific hazards to the true rates or hazards. It needs to be a data frame that can be merged to thee outcome, i.e., with the same column names for time periods (for national adjustment), or time periods and region (for subnational adjustment). The column specifying the adjustment ratio should be named "ratio".
 #' @param bias.adj.by vector of the column names specifying how to merge the bias adjustment to the count data. For example, if bias adjustment factor is provided in bias.adj for each region and time, then bias.adj.by should be `c("region", "time")`.
@@ -309,8 +309,8 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
     message("\n  Interaction random slopes:  yes", appendLF=FALSE)
     msg <- paste0(msg, "\n  Interaction random slopes:  yes")
   }else{
-    message("\n", appendLF=FALSE)
-    msg <- paste0(msg, "\n")
+    message("\n  Interaction random slopes:  no", appendLF=FALSE)
+    msg <- paste0(msg, "\n  Interaction random slopes:  no")
   }   
 
 
