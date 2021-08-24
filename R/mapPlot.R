@@ -23,6 +23,7 @@
 #' @param color.adj color of the adjacency matrix edges.
 #' @param alpha.adj alpha level (transparency) of the adjacency matrix edges.
 #' @param direction Direction of the color scheme. It can be either 1 (smaller values are darker) or -1 (higher values are darker). Default is set to 1.
+#' @param cut a vector of values to cut the continuous scale color to discrete intervals. 
 #' @importFrom sp proj4string
 #' @importFrom shadowtext geom_shadowtext
 #' @importFrom sp Polygon
@@ -53,7 +54,7 @@
 #' }
 #' 
 #' @export
-mapPlot <- function(data = NULL, variables, values = NULL, labels = NULL, geo, by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE, border = "gray20", ncol = NULL, ylim = NULL, legend.label = NULL,  per1000 = FALSE, clean = TRUE, size.label = 2, add.adj = FALSE, color.adj = "red", alpha.adj = 0.85, direction = 1){
+mapPlot <- function(data = NULL, variables, values = NULL, labels = NULL, geo, by.data, by.geo, is.long = FALSE, size = 0.5, removetab = FALSE, border = "gray20", ncol = NULL, ylim = NULL, legend.label = NULL,  per1000 = FALSE, clean = TRUE, size.label = 2, add.adj = FALSE, color.adj = "red", alpha.adj = 0.85, direction = 1, cut = NULL){
     value <- group <- lat <- long <- x0 <- x1 <- y0 <- y1 <- id <- name <- variable <- NULL
 
     # Simple Map Plot
@@ -142,8 +143,13 @@ mapPlot <- function(data = NULL, variables, values = NULL, labels = NULL, geo, b
     }
     geo2 <- merge(geo, data, by = "id", by.y = by.data)
     g <- ggplot2::ggplot(geo2)
-    g <- g + ggplot2::geom_polygon(ggplot2::aes(x = long, y = lat, 
-        group = group, fill = value), color = border, size = size)
+    if(!is.null(cut)){
+        g <- g + ggplot2::geom_polygon(ggplot2::aes(x = long, y = lat, 
+            group = group, fill = cut(value, cut)), color = border, size = size)
+    }else{
+        g <- g + ggplot2::geom_polygon(ggplot2::aes(x = long, y = lat, 
+            group = group, fill = value), color = border, size = size)
+    }
     if(length(unique(data$variable)) > 1 || removetab == FALSE){
         if(is.null(ncol)){
             g <- g + ggplot2::facet_wrap(~variable)
@@ -154,11 +160,13 @@ mapPlot <- function(data = NULL, variables, values = NULL, labels = NULL, geo, b
     if(is.null(legend.label)){
         legend.label <- "Value"
     }
-    if(!is.null(ylim)){
+    if(!is.null(ylim) && is.null(cut)){
         g <- g + ggplot2::scale_fill_viridis_c(legend.label, lim = ylim, direction = direction)
-    }else{
+    }else if(is.null(cut)){
         g <- g + ggplot2::scale_fill_viridis_c(legend.label, direction = direction)
-    } 
+    }else if(!is.null(cut)){
+        g <- g + ggplot2::scale_fill_viridis_d(legend.label, direction = direction)
+    }
     if(has.coord) g <- g + ggplot2::coord_map()
 
     if(clean){
