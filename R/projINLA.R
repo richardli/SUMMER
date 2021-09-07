@@ -220,7 +220,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         if(!"region.struct:1" %in% fields) inla_mod$fit$.args$data$region.struct = 1
 
         rep.time <- length(unique(inla_mod$age.rw.group)) > 0
-        cols <- c("time.struct", "time.unstruct", "region.struct", "time.area", "strata", "age", "age.idx")
+        cols <- c("time.struct", "time.unstruct", "region.struct", "time.area", "strata", "age", "age.idx", "age.intercept")
         if(rep.time){
           cols <- c(cols, "age.rep.idx")
         } 
@@ -245,9 +245,9 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         }
         AA <- merge(AA, unique(A[, c("time.struct", "time.unstruct", "region.struct",  "time.area")]), by = "time.area")
        if(rep.time){ 
-          AA <- merge(AA, unique(A[, c("age", "age.idx", "age.rep.idx")]), by = "age")
+          AA <- merge(AA, unique(A[, c("age", "age.idx", "age.rep.idx", "age.intercept")]), by = "age")
         }else{
-          AA <- merge(AA, unique(A[, c("age", "age.idx")]), by = "age")
+          AA <- merge(AA, unique(A[, c("age", "age.idx", "age.intercept")]), by = "age")
         }
 
         if(!is.null(inla_mod$covariate.names)){
@@ -264,14 +264,15 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         if(!inla_mod$is.temporal){
           AA$time.struct <- AA$time.unstruct <- 1
         }        
-        AA$age <- paste0("age", AA$age, ":1")
+        AA$age.intercept <- paste0("age.intercept", AA$age.intercept, ":1")
 
         # When there's only one age group, smoothCluster uses the generic intercept
-        if(length(unique(AA$age)) == 1) AA$age <- "(Intercept):1"
+        if(length(unique(AA$age.intercept)) == 1) AA$age.intercept <- "(Intercept):1"
 
         #  AA.loc is the same  format as AA, but with location index
         AA.loc <- AA
-        AA.loc$age  <- match(AA.loc$age, fields)
+        AA.loc$age.intercept  <- match(AA.loc$age.intercept, fields)
+        AA.loc$age <- NA
         # For constant case, base strata will end up being NA here, which is fine.
         if(!is.dynamic) AA.loc$strata <- paste0("strata", AA.loc$strata, ":1")
         AA.loc$strata  <- match(AA.loc$strata, fields)

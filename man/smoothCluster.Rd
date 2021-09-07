@@ -12,6 +12,7 @@ smoothCluster(
   age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"),
   age.n = c(1, 11, 12, 12, 12, 12),
   age.rw.group = c(1, 2, 3, 3, 3, 3),
+  age.intercept.group = c(1, 2, 3, 4, 5, 6),
   time.model = c("rw1", "rw2", "ar1")[2],
   st.time.model = NULL,
   Amat,
@@ -53,6 +54,7 @@ fitINLA2(
   age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"),
   age.n = c(1, 11, 12, 12, 12, 12),
   age.rw.group = c(1, 2, 3, 3, 3, 3),
+  age.intercept.group = c(1, 2, 3, 4, 5, 6),
   time.model = c("rw1", "rw2", "ar1")[2],
   st.time.model = NULL,
   Amat,
@@ -108,6 +110,8 @@ fitINLA2(
 \item{age.n}{number of months in each age groups in the same order.}
 
 \item{age.rw.group}{vector indicating grouping of the ages groups. For example, if each age group is assigned a different random walk component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate random walk to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.}
+
+\item{age.intercept.group}{vector indicating grouping of the ages groups for the intercept. For example, if each age group is assigned a different intercept, then set age.intercept.group to c(1:length(age.groups)); if all age groups share the same intercept, then set age.intercept.group to a rep(1, length(age.groups)). The default for 6 age groups is the former. It can also be set to be the same as \code{age.rw.group}. The vector should contain values starting from 1.}
 
 \item{time.model}{Model for the main temporal trend, can be rw1, rw2, ar1, or NULL (for spatial-only smoothing). Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale.}
 
