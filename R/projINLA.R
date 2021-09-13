@@ -244,11 +244,18 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
           if(sum(AA$strata != "") == 0) AA$strata <- "strata_all"
         }
         AA <- merge(AA, unique(A[, c("time.struct", "time.unstruct", "region.struct",  "time.area")]), by = "time.area")
-       if(rep.time){ 
-          AA <- merge(AA, unique(A[, c("age", "age.idx", "age.rep.idx", "age.intercept", "age.diff")]), by = "age")
-        }else{
-          AA <- merge(AA, unique(A[, c("age", "age.idx", "age.intercept", "age.diff")]), by = "age")
+        if(rep.time){ 
+          tmp <- unique(A[, c("age", "age.idx", "age.rep.idx", "age.intercept", "age.diff")])
+        }else{            
+          tmp <- unique(A[, c("age", "age.idx", "age.intercept", "age.diff")])
         }
+        # check the filler data contains any NA, which will make the merge call go wrong.
+        if(sum(!is.na(tmp$age.diff)) > 0){
+          tmp <- subset(tmp, !is.na(age.diff))
+        }else{
+          tmp <- tmp[, colnames(tmp) != "age.diff"]
+        }
+        AA <- merge(AA, tmp, by = "age")
 
         if(!is.null(inla_mod$covariate.names)){
           # adding covariates
