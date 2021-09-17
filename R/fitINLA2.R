@@ -30,7 +30,8 @@
 #' @param type.st type for space-time interaction
 #' @param survey.effect logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0.
 #' @param strata.time.effect logical indicator whether to include strata specific temporal trends.  
-#' @param common.trend logical indicator whether all age groups and/or strata share the same linear trend in the temporal main effect. Only used when the temporal main effect is an AR(1) process.
+#' @param linear.trend logical indicator whether a linear trend is added to the temporal main effect. If the temporal main effect is RW2, then it will be forced to FALSE. Default is TRUE.
+#' @param common.trend logical indicator whether all age groups and/or strata share the same linear trend in the temporal main effect.  
 #' @param hyper Deprecated. which hyperpriors to use. Only supports PC prior ("pc"). 
 #' @param pc.u hyperparameter U for the PC prior on precisions.
 #' @param pc.alpha hyperparameter alpha for the PC prior on precisions.
@@ -138,7 +139,7 @@
 #' 
 #' 
 
-smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = c(1,2,3,3,3,3), age.strata.fixed.group = c(1 ,2, 3, 4, 5, 6), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label, type.st = 4, survey.effect = FALSE, common.trend = FALSE, strata.time.effect = FALSE, hyper = "pc", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, ...){
+smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = c(1,2,3,3,3,3), age.strata.fixed.group = c(1,2,3,4,5,6), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label, type.st = 4, survey.effect = FALSE, linear.trend = TRUE, common.trend = FALSE, strata.time.effect = FALSE, hyper = "pc", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, ...){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
@@ -255,7 +256,10 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
         stop("Temporal interaction effect only support rw1, rw2, and ar1.")
       }
     }
-
+  }
+  if(time.model == "rw2"){
+    linear.trend = FALSE
+    common.trend = FALSE
   }
   if(!is.temporal){
     message("----------------------------------",
@@ -269,7 +273,15 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
             "\nCluster-level model",
             "\n  Main temporal model:        ", time.model, appendLF = FALSE)
     msg <- paste0(msg, "\nCluster-level model",
-                       "\n  Main temporal model:        ")
+                       "\n  Main temporal model:        ", time.model)
+    if(linear.trend && !common.trend){
+        message("\n  Additional linear trends:   stratum-age-specific", appendLF = FALSE)
+        msg <- paste0(msg, "\n  Additional linear trends:   stratum-age-specific")
+    }
+    if(linear.trend && common.trend){
+        message("\n  Additional linear trends:   shared", appendLF = FALSE)
+        msg <- paste0(msg, "\n  Additional linear trends:   shared")
+    }
   }
 
   
@@ -678,7 +690,7 @@ if(strata.time.effect){
     # exdat <- merge(exdat, cluster.time, by.x = c("cluster", "time.struct"), by.y = c("cluster", "time"))
     # # exdat$nugget.id <- 1:dim(exdat)[1]
 
-    if(is.ar || is.main.ar){
+    if(is.ar || is.main.ar || linear.trend){
       exdat$time.slope <- exdat$time.struct 
       center <- N/2 + 1e-5 # avoid exact zero in the lincomb creation
       exdat$time.slope <- (exdat$time.slope  - center) / ((N - 1))
@@ -731,13 +743,14 @@ if(strata.time.effect){
           }
          
           # AR1 add slope
-           if(is.main.ar && !common.trend){
+           if(linear.trend && !common.trend){
               tmp <- paste(slope.fixed.names, collapse = " + ")
               formula <- as.formula(paste(c(formula, tmp), collapse = "+"))
            }
-           if(is.main.ar && common.trend){
+           if(linear.trend && common.trend){
               formula <- as.formula(paste(c(formula, "time.slope"), collapse = "+"))
            }
+
           # Add IID
           formula <- update(formula, ~. + 
                   f(time.unstruct,model="iid", hyper = hyperpc1, values = 1:N))
@@ -766,11 +779,11 @@ if(strata.time.effect){
              }
 
             # AR1 add slope
-             if(is.main.ar && !common.trend){
+             if(linear.trend && !common.trend){
                 tmp <- paste(slope.fixed.names, collapse = " + ")
                 formula <- as.formula(paste(c(formula, tmp), collapse = "+"))
              }
-             if(is.main.ar && common.trend){
+             if(linear.trend && common.trend){
                 formula <- as.formula(paste(c(formula, "time.slope"), collapse = "+"))
              }
 
