@@ -321,12 +321,10 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
     age.n <- 1
     age.rw.group <- 1
   }
+  age.strata.fixed.group <- age.strata.fixed.group[1:age.n]
+
   message("\n  Number of age groups: ", length(age.n), appendLF=FALSE)
-  message("\n  Number of age-specific fixed effect per stratum: ", length(unique(age.strata.fixed.group)), appendLF=FALSE)
-  message("\n  Number of age-specific trends per stratum: ", length(unique(age.rw.group)), appendLF=FALSE)
   msg <- paste0(msg, "\n  Number of age groups: ", length(age.n))
-  msg <- paste0(msg, "\n  Number of age group fixed effect per stratum: ", length(unique(age.strata.fixed.group)))
-  msg <- paste0(msg, "\n  Number of age-specific trends per stratum: ", length(unique(age.rw.group)))
 
 
   if(is.ar && hyper=="gamma"){
@@ -359,6 +357,7 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
     }
   }
 
+
   has.strata <- TRUE
   if("strata" %in% colnames(data) == FALSE || sum(!is.na(data$strata)) == 0){
     has.strata <- FALSE
@@ -382,6 +381,13 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
   }else{
     message("\n  Stratification: yes", appendLF=FALSE)
     msg <- paste0(msg, "\n  Stratification: yes")
+  }
+
+  if(has.strata){
+    message("\n  Number of age-specific fixed effect per stratum: ", length(unique(age.strata.fixed.group)), appendLF=FALSE)
+    msg <- paste0(msg, "\n  Number of age group fixed effect per stratum: ", length(unique(age.strata.fixed.group)))
+    message("\n  Number of age-specific trends per stratum: ", length(unique(age.rw.group)), appendLF=FALSE)
+    msg <- paste0(msg, "\n  Number of age-specific trends per stratum: ", length(unique(age.rw.group)))    
   }
 
 
@@ -513,6 +519,7 @@ if(strata.time.effect){
         # new age.intercept variable as age * strata
         data$age.intercept <- age.groups.new[match(data$age.orig, age.groups.vec)]
         data$age.intercept <- paste(data$age.intercept, data$strata, sep = ":") 
+        data$age.diff <- NA
 
         age.groups.new <- expand.grid(age.groups.new, stratalevels)
         age.groups.new <- paste(age.groups.new[,1], age.groups.new[,2], sep = ":")
@@ -1083,7 +1090,7 @@ if(strata.time.effect){
     tmp$region.struct <- 1:dim(Amat)[1]
     tmp$region_number <- tmp$region.int <- tmp$region.unstruct <- tmp$region.struct
     tmp$region <- colnames(Amat)[tmp$region.struct]
-    created = c("region.struct", "region_number", "region.unstruct", "region.int", "region", "years", "age", "age.intercept", "strata")
+    created = c("region.struct", "region_number", "region.unstruct", "region.int", "region", "years", "age", "age.intercept", "age.diff", "strata")
     tmp[, colnames(tmp) %in% created == FALSE] <- NA
     exdat <- rbind(exdat, tmp)
   }
@@ -1114,9 +1121,9 @@ if(strata.time.effect){
     if(dim(tmp)[1] > 0){
         # remove contents in other columns
         if(dim(Amat)[1] != 1){
-          created <- c(created, "region.struct", "region_number", "region.unstruct", "region.int", "region", "time.struct", "time.unstruct", "time.int", "time.area", "years", "age", "age.intercept",  "strata")
+          created <- c(created, "region.struct", "region_number", "region.unstruct", "region.int", "region", "time.struct", "time.unstruct", "time.int", "time.area", "years", "age", "age.intercept", "age.diff", "strata")
         }else{
-            created <- c(created, "time.struct", "time.unstruct", "time.int",  "years", "age", "age.intercept", "strata")
+            created <- c(created, "time.struct", "time.unstruct", "time.int",  "years", "age", "age.intercept", "age.diff", "strata")
         }
         tmp[, colnames(tmp) %in% created == FALSE] <- NA
         exdat <- rbind(exdat, tmp)
