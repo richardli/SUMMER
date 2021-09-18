@@ -26,12 +26,14 @@ smoothDirect(
   pc.alpha.cor = 0.9,
   pc.st.u = NA,
   pc.st.alpha = NA,
-  options = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy = "default"),
+  control.compute = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy =
+    "default"),
   control.inla = list(strategy = "adaptive", int.strategy = "auto"),
   verbose = FALSE,
   geo = NULL,
   rw = NULL,
-  ar = NULL
+  ar = NULL,
+  options = NULL
 )
 
 fitINLA(
@@ -55,12 +57,14 @@ fitINLA(
   pc.alpha.cor = 0.9,
   pc.st.u = NA,
   pc.st.alpha = NA,
-  options = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy = "default"),
+  control.compute = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy =
+    "default"),
   control.inla = list(strategy = "adaptive", int.strategy = "auto"),
   verbose = FALSE,
   geo = NULL,
   rw = NULL,
-  ar = NULL
+  ar = NULL,
+  options = NULL
 )
 }
 \arguments{
@@ -104,7 +108,7 @@ fitINLA(
 
 \item{pc.st.alpha}{hyperparameter alpha for the PC prior on precisions for the interaction term.}
 
-\item{options}{list of options to be passed to control.compute() in the inla() function.}
+\item{control.compute}{list of options to be passed to control.compute() in the inla() function.}
 
 \item{control.inla}{list of options to be passed to control.inla() in the inla() function. Default to the "adaptive" integration strategy.}
 
@@ -115,6 +119,8 @@ fitINLA(
 \item{rw}{Deprecated.}
 
 \item{ar}{Deprecated.}
+
+\item{options}{Deprecated.}
 }
 \value{
 List of fitted object
@@ -135,7 +141,7 @@ The function \code{smoothDirect} replaces the previous function name \code{fitIN
   years.all <- c(years, "15-19")
   fit1 <- smoothDirect(data = data, Amat = NULL, 
   year_label = years.all, year_range = c(1985, 2019), 
-  time.model = 'rw2', is.yearly=FALSE, m = 5)
+  time.model = 'rw2', is.yearly=FALSE, m = 5, control.compute = list(config =TRUE))
   out1 <- getSmoothed(fit1)
   plot(out1)
   

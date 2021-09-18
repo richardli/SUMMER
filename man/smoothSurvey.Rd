@@ -25,6 +25,7 @@ smoothSurvey(
   formula = NULL,
   timeVar = NULL,
   time.model = c("rw1", "rw2")[1],
+  include_time_unstruct = FALSE,
   type.st = 1,
   direct.est = NULL,
   direct.est.var = NULL,
@@ -34,6 +35,7 @@ smoothSurvey(
   totalVar = NULL,
   weight.strata = NULL,
   nsim = 1000,
+  save.draws = FALSE,
   ...
 )
 
@@ -57,6 +59,7 @@ fitGeneric(
   formula = NULL,
   timeVar = NULL,
   time.model = c("rw1", "rw2")[1],
+  include_time_unstruct = FALSE,
   type.st = 1,
   direct.est = NULL,
   direct.est.var = NULL,
@@ -66,6 +69,7 @@ fitGeneric(
   totalVar = NULL,
   weight.strata = NULL,
   nsim = 1000,
+  save.draws = FALSE,
   ...
 )
 }
@@ -113,6 +117,8 @@ fitGeneric(
 
 \item{time.model}{the model for temporal trends and interactions. It can be either "rw1" or "rw2".}
 
+\item{include_time_unstruct}{Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates from cluster-level model. The argument only applies to the unit-level models. Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included.}
+
 \item{type.st}{can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.}
 
 \item{direct.est}{data frame of direct estimates, with column names of response and region specified by \code{responseVar}, \code{regionVar}, and \code{timeVar}.  When \code{direct.est} is specified, it overwrites the \code{data} input.}
@@ -130,6 +136,8 @@ fitGeneric(
 \item{weight.strata}{a data frame with one column corresponding to \code{regionVar}, and columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates. This is only used for the unit-level model.}
 
 \item{nsim}{number of posterior draws to take. This is only used for the unit-level model when \code{weight.strata} is provided.}
+
+\item{save.draws}{logical indicator of whether to save the full posterior draws.}
 
 \item{...}{additional arguments passed to \code{svydesign} function.}
 }
@@ -163,6 +171,15 @@ responseVar="tobacco.use", strataVar="strata",
 weightVar="weights", regionVar="region", 
 clusterVar = "~clustid+id", CI = 0.95)
 summary(fit0)
+
+# posterior draws can be returned with save.draws = TRUE
+fit0.draws <- smoothSurvey(data=DemoData2,  
+Amat=DemoMap2$Amat, responseType="binary", 
+responseVar="tobacco.use", strataVar="strata", 
+weightVar="weights", regionVar="region", 
+clusterVar = "~clustid+id", CI = 0.95, save.draws = TRUE)
+# notice the posterior draws are on the latent scale
+head(fit0.draws$draws.est[, 1:10]) 
 
 # Example with region-level covariates
  Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)

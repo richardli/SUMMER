@@ -37,7 +37,7 @@ getBirths(
 
 \item{dob}{variable name for the date of birth.}
 
-\item{alive}{variable name for the indicator of whether child was alive or dead at the time of interview.}
+\item{alive}{variable name for the indicator of whether child was alive or dead at the time of interview. It should be factor or character variable with levels "no" or "yes". Other coding scheme will not be recognized and can lead to errors.}
 
 \item{age}{variable name for the age at death of the child in completed months.}
 
