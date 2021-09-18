@@ -724,6 +724,9 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
 
         }
       }
+
+      ## TODO: In the future, extract posterior draws with inla.posterior.sample and fit1$lincombs.info and fit1$fit$.args$lincomb 
+
       results$is.yearly <- !(results$Year %in% year_label)
       results$years.num <- suppressWarnings(as.numeric(as.character(results$Year)))
       #  ## deal with 1 year case
