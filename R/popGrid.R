@@ -90,7 +90,8 @@
 #' @examples 
 #' \dontrun{
 #' # download Kenya GADM shapefiles from SUMMERdata github repository
-#' githubURL <- "https://github.com/paigejo/SUMMERdata/blob/main/data/kenyaMaps.rda?raw=true"
+#' githubURL <- paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/", 
+#'                     "kenyaMaps.rda?raw=true")
 #' tempDirectory = "~/"
 #' mapsFilename = paste0(tempDirectory, "/kenyaMaps.rda")
 #' if(!file.exists(mapsFilename)) {
@@ -110,22 +111,23 @@
 #' # some Admin-2 areas have the same name
 #' adm2@data$NAME_2 = as.character(adm2@data$NAME_2)
 #' adm2@data$NAME_2[(adm2@data$NAME_1 == "Bungoma") & 
-#'   (adm2@data$NAME_2 == "Lugari")] = "Lugari, Bungoma"
+#'                    (adm2@data$NAME_2 == "Lugari")] = "Lugari, Bungoma"
 #' adm2@data$NAME_2[(adm2@data$NAME_1 == "Kakamega") & 
-#'   (adm2@data$NAME_2 == "Lugari")] = "Lugari, Kakamega"
+#'                    (adm2@data$NAME_2 == "Lugari")] = "Lugari, Kakamega"
 #' adm2@data$NAME_2[(adm2@data$NAME_1 == "Meru") & 
-#'   (adm2@data$NAME_2 == "Igembe South")] = "Igembe South, Meru"
+#'                    (adm2@data$NAME_2 == "Igembe South")] = "Igembe South, Meru"
 #' adm2@data$NAME_2[(adm2@data$NAME_1 == "Tharaka-Nithi") & 
-#'   (adm2@data$NAME_2 == "Igembe South")] = "Igembe South, Tharaka-Nithi"
+#'                    (adm2@data$NAME_2 == "Igembe South")] = "Igembe South, Tharaka-Nithi"
 #' 
-#' # The spatial area of unknown 8 is so small, it causes problems unless 
-#' # its removed or unioned with another subarea. Union it with neighboring 
-#' # Kakeguria:
+#' # The spatial area of unknown 8 is so small, it causes problems unless its removed or 
+#' # unioned with another subarea. Union it with neighboring Kakeguria:
 #' newadm2 = adm2
 #' unknown8I = which(newadm2$NAME_2 == "unknown 8")
-#' newadm2$NAME_2[newadm2$NAME_2 %in% c("unknown 8", "Kapenguria")] <- "Kapenguria + unknown 8"
+#' newadm2$NAME_2[newadm2$NAME_2 %in% c("unknown 8", "Kapenguria")] <- 
+#'   "Kapenguria + unknown 8"
 #' admin2.IDs <- newadm2$NAME_2
 #' 
+#' library(maptools)
 #' temp <- unionSpatialPolygons(newadm2, admin2.IDs)
 #' tempData = newadm2@data[-unknown8I,]
 #' tempData = tempData[order(tempData$NAME_2),]
@@ -133,16 +135,15 @@
 #' adm2 = newadm2
 #' 
 #' # download 2014 Kenya population density and associated TIF file
-#' githubURL <- 
-#'   "https://github.com/paigejo/SUMMERdata/blob/main/data/Kenya2014Pop/pop.rda?raw=true"
+#' githubURL <- paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/", 
+#'                     "Kenya2014Pop/pop.rda?raw=true")
 #' popFilename = paste0(tempDirectory, "/pop.rda")
 #' if(!file.exists(popFilename)) {
 #'   download.file(githubURL,popFilename)
 #' }
 #' 
-#' githubURL <- 
-#'   paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/Kenya2014Pop/", 
-#'     "worldpop_total_1y_2014_00_00.tif?raw=true")
+#' githubURL <- paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/", 
+#'                     "Kenya2014Pop/worldpop_total_1y_2014_00_00.tif?raw=true")
 #' popTIFFilename = paste0(tempDirectory, "/worldpop_total_1y_2014_00_00.tif")
 #' if(!file.exists(popTIFFilename)) {
 #'   download.file(githubURL,popTIFFilename)
@@ -170,10 +171,10 @@
 #' # use Lambert equal area projection of areas (Admin-1) and subareas (Admin-2)
 #' midLon = mean(adm1@bbox[1,])
 #' midLat = mean(adm1@bbox[2,])
-#' p4s = paste0("+proj=laea +x_0=0 +y_0=0 +lon_0=", midLon, " +lat_0=", midLat, " +units=km")
+#' p4s = paste0("+proj=laea +x_0=0 +y_0=0 +lon_0=", midLon, 
+#'              " +lat_0=", midLat, " +units=km")
 #' 
 #' library(rgdal)
-#' library(maptools)
 #' 
 #' adm1proj <- spTransform(adm1, CRS(p4s))
 #' adm2proj <- spTransform(adm2, CRS(p4s))
@@ -184,7 +185,7 @@
 #' admin2Areas = gArea(adm2proj, TRUE)
 #' areapaKenya = data.frame(area=adm1proj@data$NAME_1, spatialArea=admin1Areas)
 #' areapsubKenya = data.frame(area=adm2proj@data$NAME_1, subarea=adm2proj@data$NAME_2, 
-#'   spatialArea=admin2Areas)
+#'                            spatialArea=admin2Areas)
 #' 
 #' # Calculate general population totals at the subarea (Admin-2) x urban/rural 
 #' # level and using 1km resolution population grid. Assign urbanicity by 
@@ -194,7 +195,8 @@
 #' require(fields)
 #' # NOTE: the following function will typically take ~20 minutes. Can speed up 
 #' #       by setting kmRes to be higher, but we recommend fine resolution for 
-#' #       this step, since it only needs to be done once.
+#' #       this step, since it only needs to be done once. Instead of running this, 
+#' #       you can simply run data(kenyaPopulationData)
 #' system.time(poppsubKenya <- getPoppsub(
 #'   kmRes=1, pop=pop, domainPoly=kenyaPoly,
 #'   eastLim=eastLim, northLim=northLim, mapProjection=projKenya,
@@ -851,6 +853,7 @@ calibrateByRegion = function(pointTotals, pointRegions, regions, regionTotals) {
 #' newadm2$NAME_2[newadm2$NAME_2 %in% c("unknown 8", "Kapenguria")] <- "Kapenguria + unknown 8"
 #' admin2.IDs <- newadm2$NAME_2
 #' 
+#' library(maptools)
 #' temp <- unionSpatialPolygons(newadm2, admin2.IDs)
 #' tempData = newadm2@data[-unknown8I,]
 #' tempData = tempData[order(tempData$NAME_2),]
@@ -994,6 +997,7 @@ poppRegionFromPopMat = function(popMat, regions) {
 #' newadm2$NAME_2[newadm2$NAME_2 %in% c("unknown 8", "Kapenguria")] <- "Kapenguria + unknown 8"
 #' admin2.IDs <- newadm2$NAME_2
 #' 
+#' library(maptools)
 #' temp <- unionSpatialPolygons(newadm2, admin2.IDs)
 #' tempData = newadm2@data[-unknown8I,]
 #' tempData = tempData[order(tempData$NAME_2),]

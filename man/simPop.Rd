@@ -191,7 +191,8 @@ level effect.
 ## we will use that to simulate populations of 
 
 # download Kenya GADM shapefiles from SUMMERdata github repository
-githubURL <- "https://github.com/paigejo/SUMMERdata/blob/main/data/kenyaMaps.rda?raw=true"
+githubURL <- paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/", 
+                    "kenyaMaps.rda?raw=true")
 tempDirectory = "~/"
 mapsFilename = paste0(tempDirectory, "/kenyaMaps.rda")
 if(!file.exists(mapsFilename)) {
@@ -211,22 +212,23 @@ adm2@data$NAME_1[adm2@data$NAME_1 == "Elgeyo-Marakwet"] = "Elgeyo Marakwet"
 # some Admin-2 areas have the same name
 adm2@data$NAME_2 = as.character(adm2@data$NAME_2)
 adm2@data$NAME_2[(adm2@data$NAME_1 == "Bungoma") & 
-  (adm2@data$NAME_2 == "Lugari")] = "Lugari, Bungoma"
+                   (adm2@data$NAME_2 == "Lugari")] = "Lugari, Bungoma"
 adm2@data$NAME_2[(adm2@data$NAME_1 == "Kakamega") & 
-  (adm2@data$NAME_2 == "Lugari")] = "Lugari, Kakamega"
+                   (adm2@data$NAME_2 == "Lugari")] = "Lugari, Kakamega"
 adm2@data$NAME_2[(adm2@data$NAME_1 == "Meru") & 
-  (adm2@data$NAME_2 == "Igembe South")] = "Igembe South, Meru"
+                   (adm2@data$NAME_2 == "Igembe South")] = "Igembe South, Meru"
 adm2@data$NAME_2[(adm2@data$NAME_1 == "Tharaka-Nithi") & 
-  (adm2@data$NAME_2 == "Igembe South")] = "Igembe South, Tharaka-Nithi"
+                   (adm2@data$NAME_2 == "Igembe South")] = "Igembe South, Tharaka-Nithi"
 
-# The spatial area of unknown 8 is so small, it causes problems unless 
-# its removed or unioned with another subarea. Union it with neighboring 
-# Kakeguria:
+# The spatial area of unknown 8 is so small, it causes problems unless its removed or 
+# unioned with another subarea. Union it with neighboring Kakeguria:
 newadm2 = adm2
 unknown8I = which(newadm2$NAME_2 == "unknown 8")
-newadm2$NAME_2[newadm2$NAME_2 \%in\% c("unknown 8", "Kapenguria")] <- "Kapenguria + unknown 8"
+newadm2$NAME_2[newadm2$NAME_2 \%in\% c("unknown 8", "Kapenguria")] <- 
+  "Kapenguria + unknown 8"
 admin2.IDs <- newadm2$NAME_2
 
+library(maptools)
 temp <- unionSpatialPolygons(newadm2, admin2.IDs)
 tempData = newadm2@data[-unknown8I,]
 tempData = tempData[order(tempData$NAME_2),]
@@ -234,16 +236,15 @@ newadm2 <- SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
 adm2 = newadm2
 
 # download 2014 Kenya population density and associated TIF file
-githubURL <- 
-  "https://github.com/paigejo/SUMMERdata/blob/main/data/Kenya2014Pop/pop.rda?raw=true"
+githubURL <- paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/", 
+                    "Kenya2014Pop/pop.rda?raw=true")
 popFilename = paste0(tempDirectory, "/pop.rda")
 if(!file.exists(popFilename)) {
   download.file(githubURL,popFilename)
 }
 
-githubURL <- 
-  paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/Kenya2014Pop/", 
-    "worldpop_total_1y_2014_00_00.tif?raw=true")
+githubURL <- paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/", 
+                    "Kenya2014Pop/worldpop_total_1y_2014_00_00.tif?raw=true")
 popTIFFilename = paste0(tempDirectory, "/worldpop_total_1y_2014_00_00.tif")
 if(!file.exists(popTIFFilename)) {
   download.file(githubURL,popTIFFilename)
@@ -271,10 +272,10 @@ library(sp)
 # use Lambert equal area projection of areas (Admin-1) and subareas (Admin-2)
 midLon = mean(adm1@bbox[1,])
 midLat = mean(adm1@bbox[2,])
-p4s = paste0("+proj=laea +x_0=0 +y_0=0 +lon_0=", midLon, " +lat_0=", midLat, " +units=km")
+p4s = paste0("+proj=laea +x_0=0 +y_0=0 +lon_0=", midLon, 
+             " +lat_0=", midLat, " +units=km")
 
 library(rgdal)
-library(maptools)
 
 adm1proj <- spTransform(adm1, CRS(p4s))
 adm2proj <- spTransform(adm2, CRS(p4s))
@@ -285,7 +286,7 @@ admin1Areas = gArea(adm1proj, TRUE)
 admin2Areas = gArea(adm2proj, TRUE)
 areapaKenya = data.frame(area=adm1proj@data$NAME_1, spatialArea=admin1Areas)
 areapsubKenya = data.frame(area=adm2proj@data$NAME_1, subarea=adm2proj@data$NAME_2, 
-  spatialArea=admin2Areas)
+                           spatialArea=admin2Areas)
 
 # Calculate general population totals at the subarea (Admin-2) x urban/rural 
 # level and using 1km resolution population grid. Assign urbanicity by 
@@ -313,39 +314,44 @@ system.time(popMatKenya <- makePopIntegrationTab(
   areaMapDat = adm1, subareaMapDat = adm2,
   areaNameVar = "NAME_1", subareaNameVar="NAME_2"))
 
-## Adjust popMat to be target (neonatal) rather than general population density. First
-## creat the target population frame
+## Adjust popMat to be target (neonatal) rather than general population 
+## density. First create the target population frame
 ## (these numbers are based on IPUMS microcensus data)
 mothersPerHouseholdUrb = 0.3497151
 childrenPerMotherUrb = 1.295917
 mothersPerHouseholdRur = 0.4787696
 childrenPerMotherRur = 1.455222
-targetPopPerStratumUrban = easpaKenya$HHUrb * mothersPerHouseholdUrb * childrenPerMotherUrb
-targetPopPerStratumRural = easpaKenya$HHRur * mothersPerHouseholdRur * childrenPerMotherRur
+targetPopPerStratumUrban = easpaKenya$HHUrb * mothersPerHouseholdUrb * 
+  childrenPerMotherUrb
+targetPopPerStratumRural = easpaKenya$HHRur * mothersPerHouseholdRur * 
+  childrenPerMotherRur
 easpaKenyaNeonatal = easpaKenya
 easpaKenyaNeonatal$popUrb = targetPopPerStratumUrban
 easpaKenyaNeonatal$popRur = targetPopPerStratumRural
-easpaKenyaNeonatal$popTotal = easpaKenyaNeonatal$popUrb + easpaKenyaNeonatal$popRur
-easpaKenyaNeonatal$pctUrb = 100 * easpaKenyaNeonatal$popUrb / easpaKenyaNeonatal$popTotal
+easpaKenyaNeonatal$popTotal = easpaKenyaNeonatal$popUrb + 
+  easpaKenyaNeonatal$popRur
+easpaKenyaNeonatal$pctUrb = 100 * easpaKenyaNeonatal$popUrb / 
+  easpaKenyaNeonatal$popTotal
 easpaKenyaNeonatal$pctTotal = 
   100 * easpaKenyaNeonatal$popTotal / sum(easpaKenyaNeonatal$popTotal)
 
-# Generate the target population density by scaling the current population density grid 
-# at the Admin1 x urban/rural level
+# Generate the target population density by scaling the current 
+# population density grid at the Admin1 x urban/rural level
 popMatKenyaNeonatal = adjustPopMat(popMatKenya, easpaKenyaNeonatal)
 
-# Generate neonatal population table from the neonatal population integration matrix.
-# This is technically not necessary for population simulation purposes, but is here 
-# for illustrative purposes
-poppsubKenyaNeonatal = poppRegionFromPopMat(popMatKenyaNeonatal, popMatKenyaNeonatal$subarea)
-poppsubKenyaNeonatal = cbind(subarea=poppsubKenyaNeonatal$region, 
-                             area=adm2@data$NAME_1[match(poppsubKenyaNeonatal$region, 
-                               adm2@data$NAME_2)], 
-                             poppsubKenyaNeonatal[,-1])
+# Generate neonatal population table from the neonatal population integration 
+# matrix. This is technically not necessary for population simulation purposes, 
+# but is here for illustrative purposes
+poppsubKenyaNeonatal = poppRegionFromPopMat(popMatKenyaNeonatal, 
+                                            popMatKenyaNeonatal$subarea)
+poppsubKenyaNeonatal = 
+  cbind(subarea=poppsubKenyaNeonatal$region, 
+        area=adm2@data$NAME_1[match(poppsubKenyaNeonatal$region, adm2@data$NAME_2)], 
+        poppsubKenyaNeonatal[,-1])
 print(head(poppsubKenyaNeonatal))
 
-## Now we're ready to simulate neonatal populations along with 
-## neonatal mortality risks and prevalences
+## Now we're ready to simulate neonatal populations along with neonatal 
+## mortality risks and prevalences
 
 # use the following model to simulate the neonatal population based roughly 
 # on Paige et al. (2020) neonatal mortality modeling for Kenya.
@@ -355,8 +361,9 @@ rho=(1/3)^2 # spatial variance
 effRange = 400 # effective spatial range in km
 sigmaEpsilon=sqrt(1/2.5) # cluster (nugget) effect standard deviation
 
-# Run a simulation! This produces multiple dense nEA x nsim and nIntegrationPoint x nsim 
-# matrices. In the future sparse matrices and chunk by chunk computations may be incorporated.
+# Run a simulation! This produces multiple dense nEA x nsim and nPixel x nsim 
+# matrices. In the future sparse matrices and chunk by chunk computations 
+# may be incorporated.
 simPop = simPopSPDE(nsim=1, easpa=easpaKenyaNeonatal, 
                     popMat=popMatKenya, targetPopMat=popMatKenyaNeonatal, 
                     poppsub=poppsubKenya, spdeMesh=kenyaMesh, 
@@ -369,23 +376,29 @@ simPop = simPopSPDE(nsim=1, easpa=easpaKenyaNeonatal,
 
 # get average absolute percent error relative to fine scale prevalence at Admin-2 level
 tempDat = simPop$subareaPop$aggregationResults[,c("region", "pFineScalePrevalence", 
-  "pFineScaleRisk", "pSmoothRisk")]
-100*mean(abs(tempDat$pFineScalePrevalence - tempDat$pFineScaleRisk)/tempDat$pFineScalePrevalence)
-100*mean(abs(tempDat$pFineScalePrevalence - tempDat$pSmoothRisk)/tempDat$pFineScalePrevalence)
-100*mean(abs(tempDat$pFineScaleRisk - tempDat$pSmoothRisk)/tempDat$pFineScalePrevalence)
+                                                  "pFineScaleRisk", "pSmoothRisk")]
+100*mean(abs(tempDat$pFineScalePrevalence - tempDat$pFineScaleRisk) / 
+           tempDat$pFineScalePrevalence)
+100*mean(abs(tempDat$pFineScalePrevalence - tempDat$pSmoothRisk) / 
+           tempDat$pFineScalePrevalence)
+100*mean(abs(tempDat$pFineScaleRisk - tempDat$pSmoothRisk) / 
+           tempDat$pFineScalePrevalence)
 
 # verify number of EAs per area and subarea
 cbind(aggregate(simPop$eaPop$eaSamples[,1], by=list(area=popMatKenya$area), FUN=sum), 
-  trueNumEAs=easpaKenya$EATotal[order(easpaKenya$area)])
+      trueNumEAs=easpaKenya$EATotal[order(easpaKenya$area)])
 aggregate(simPop$eaPop$eaSamples[,1], by=list(area=popMatKenya$subarea), FUN=sum)
 
 ## plot simulated population
+# directory for plotting 
+# (mapPlot takes longer when it doesn't save to a file)
+tempDirectory = "~/"
 
 # pixel level
 zlim = c(0, quantile(probs=.995, c(simPop$pixelPop$pFineScalePrevalence, 
                                    simPop$pixelPop$pFineScaleRisk, 
                                    simPop$pixelPop$pSmoothRisk), na.rm=TRUE))
-pdf(file="~/Desktop/simPopSPDEPixel.pdf", width=8, height=8)
+pdf(file=paste0(tempDirectory, "simPopSPDEPixel.pdf"), width=8, height=8)
 par(mfrow=c(2,2))
 plot(adm2, asp=1)
 points(simPop$eaPop$eaDatList[[1]]$lon, simPop$eaPop$eaDatList[[1]]$lat, pch=".", col="blue")
@@ -393,10 +406,10 @@ plot(adm2, asp=1)
 quilt.plot(popMatKenya$lon, popMatKenya$lat, simPop$pixelPop$pFineScalePrevalence, 
            zlim=zlim, add=TRUE, FUN=function(x) {mean(x, na.rm=TRUE)})
 plot(adm2, asp=1)
-quilt.plot(popMatKenya$lon, popMatKenya$lat, simPop$pixelPop$pFineScaleRisk, zlim=zlim, add=TRUE, 
-           FUN=function(x) {mean(x, na.rm=TRUE)})
-quilt.plot(popMatKenya$lon, popMatKenya$lat, simPop$pixelPop$pSmoothRisk, zlim=zlim, 
-           FUN=function(x) {mean(x, na.rm=TRUE)}, asp=1)
+quilt.plot(popMatKenya$lon, popMatKenya$lat, simPop$pixelPop$pFineScaleRisk, 
+           zlim=zlim, add=TRUE, FUN=function(x) {mean(x, na.rm=TRUE)})
+quilt.plot(popMatKenya$lon, popMatKenya$lat, simPop$pixelPop$pSmoothRisk, 
+           zlim=zlim, FUN=function(x) {mean(x, na.rm=TRUE)}, asp=1)
 plot(adm2, add=TRUE)
 dev.off()
 
@@ -405,8 +418,8 @@ range(simPop$eaPop$eaDatList[[1]]$N)
 # areal (Admin-1) level: these results should look essentially identical
 
 tempDat = simPop$areaPop$aggregationResults[,c("region", "pFineScalePrevalence", 
-  "pFineScaleRisk", "pSmoothRisk")]
-pdf(file="~/Desktop/simPopSPDEAdmin-1.pdf", width=7, height=7)
+                                               "pFineScaleRisk", "pSmoothRisk")]
+pdf(file=paste0(tempDirectory, "simPopSPDEAdmin-1.pdf"), width=7, height=7)
 mapPlot(tempDat, 
         variables=c("pFineScalePrevalence", "pFineScaleRisk", "pSmoothRisk"), 
         geo=adm1, by.geo="NAME_1", by.data="region", is.long=FALSE)
@@ -415,8 +428,8 @@ dev.off()
 # subareal (Admin-2) level: these results should look subtley different 
 # depending on the type of prevalence/risk considered
 tempDat = simPop$subareaPop$aggregationResults[,c("region", "pFineScalePrevalence", 
-  "pFineScaleRisk", "pSmoothRisk")]
-pdf(file="~/Desktop/simPopSPDEAdmin-2.pdf", width=7, height=7)
+                                                  "pFineScaleRisk", "pSmoothRisk")]
+pdf(file=paste0(tempDirectory, "simPopSPDEAdmin-2.pdf"), width=7, height=7)
 mapPlot(tempDat, 
         variables=c("pFineScalePrevalence", "pFineScaleRisk", "pSmoothRisk"), 
         geo=adm2, by.geo="NAME_2", by.data="region", is.long=FALSE)
@@ -427,7 +440,7 @@ dev.off()
 In preparation
 }
 \seealso{
-\code{\link{simPopCustom}}, \code{\link{makePopIntegrationTab}}, \code{\link{adjustPopMat}}, \code{\link{simPopSPDE}}.
+\code{\link{simPopCustom}}, \code{\link{makePopIntegrationTab}}, \code{\link{adjustPopMat}}, \code{\link{simSPDE}}.
 }
 \author{
 John Paige

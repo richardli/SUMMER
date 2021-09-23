@@ -69,6 +69,7 @@ unknown8I = which(newadm2$NAME_2 == "unknown 8")
 newadm2$NAME_2[newadm2$NAME_2 \%in\% c("unknown 8", "Kapenguria")] <- "Kapenguria + unknown 8"
 admin2.IDs <- newadm2$NAME_2
 
+library(maptools)
 temp <- unionSpatialPolygons(newadm2, admin2.IDs)
 tempData = newadm2@data[-unknown8I,]
 tempData = tempData[order(tempData$NAME_2),]
