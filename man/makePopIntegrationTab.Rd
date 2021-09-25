@@ -278,7 +278,8 @@ areapsubKenya = data.frame(area=adm2proj@data$NAME_1, subarea=adm2proj@data$NAME
 require(fields)
 # NOTE: the following function will typically take ~20 minutes. Can speed up 
 #       by setting kmRes to be higher, but we recommend fine resolution for 
-#       this step, since it only needs to be done once.
+#       this step, since it only needs to be done once. Instead of running this, 
+#       you can simply run data(kenyaPopulationData)
 system.time(poppsubKenya <- getPoppsub(
   kmRes=1, pop=pop, domainPoly=kenyaPoly,
   eastLim=eastLim, northLim=northLim, mapProjection=projKenya,
