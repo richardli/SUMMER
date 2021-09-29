@@ -1141,7 +1141,7 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
         eaDat$subarea = NULL
       }
       
-      eaDat$pFineScalePrevalence[eaDat$n == 0] = NA
+      eaDat$pFineScalePrevalence[eaDat$N == 0] = NA
       
       eaDat
     }
