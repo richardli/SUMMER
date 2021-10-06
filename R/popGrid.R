@@ -61,7 +61,7 @@
 #' @param pop Population density raster
 #' @param areaMapDat SpatialPolygonsDataFrame object with area level map information
 #' @param subareaMapDat SpatialPolygonsDataFrame object with subarea level map information
-#' @param areaNameVar The name of the area variable associated with \code{areaMapDat@data}
+#' @param areaNameVar The name of the area variable associated with \code{areaMapDat@data} and \code{subareaMapDat@data}
 #' @param subareaNameVar The name of the subarea variable associated with \code{subareaMapDat@data}
 #' @param areapa A vector of spatial areas (e.g. in km^2, although the exact units don't matter) 
 #' for each of the considered areas
@@ -255,10 +255,10 @@
 #' @importFrom fields make.surface.grid
 #' @export
 makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, mapProjection, 
+                                 areaMapDat, subareaMapDat, 
+                                 areaNameVar="NAME_1", subareaNameVar="NAME_2", 
                                  poppa=NULL, poppsub=NULL, stratifyByUrban=TRUE, 
                                  areapa=NULL, areapsub=NULL, 
-                                 areaMapDat=NULL, subareaMapDat=NULL, 
-                                 areaNameVar="NAME_1", subareaNameVar="NAME_2", 
                                  areaPolygonSubsetI=NULL, subareaPolygonSubsetI=NULL, 
                                  mean.neighbor=50, delta=.1, returnPoppTables=FALSE) {
   thresholdUrbanBy = ifelse(is.null(poppsub), "area", "subarea")
@@ -271,7 +271,7 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
     # get range of the grid that we actually need
     temp = areaMapDat@polygons[[areaPolygonSubsetI]]
     allPolygons = temp@Polygons
-    eastNorthCoords = do.call("rbind", lapply(1:length(allPolygons), function(i) {projKenya(allPolygons[[i]]@coords)}))
+    eastNorthCoords = do.call("rbind", lapply(1:length(allPolygons), function(i) {mapProjection(allPolygons[[i]]@coords)}))
     eastSubRange = range(eastNorthCoords[,1])
     northSubRange = range(eastNorthCoords[,2])
     
@@ -286,7 +286,7 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
     # get range of the grid that we actually need
     temp = subareaMapDat@polygons[[subareaPolygonSubsetI]]
     allPolygons = temp@Polygons
-    eastNorthCoords = do.call("rbind", lapply(1:length(allPolygons), function(i) {projKenya(allPolygons[[i]]@coords)}))
+    eastNorthCoords = do.call("rbind", lapply(1:length(allPolygons), function(i) {mapProjection(allPolygons[[i]]@coords)}))
     eastSubRange = range(eastNorthCoords[,1])
     northSubRange = range(eastNorthCoords[,2])
     
@@ -333,8 +333,39 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
     areas = character(0)
   }
   
+  if(!is.null(areaPolygonSubsetI)) {
+    areaSubsetName = areaMapDat@data[areaPolygonSubsetI,areaNameVar]
+    insideArea = areas == areaSubsetName
+    
+    # subset grid and area/subarea names so they're in the area of interest
+    utmGrid = matrix(utmGrid[insideArea,], ncol=2)
+    lonLatGrid = matrix(lonLatGrid[insideArea,], ncol=2)
+    areas = areas[insideArea]
+    subareas = subareas[insideArea]
+  }
+  
+  if(!is.null(subareaPolygonSubsetI)) {
+    subareaSubsetName = subareaMapDat@data[subareaPolygonSubsetI,subareaNameVar]
+    insideSubarea = subareas == subareaSubsetName
+    
+    # subset grid and area/subarea names so they're in the area of interest
+    utmGrid = matrix(utmGrid[insideSubarea,], ncol=2)
+    lonLatGrid = matrix(lonLatGrid[insideSubarea,], ncol=2)
+    areas = areas[insideSubarea]
+    subareas = subareas[insideSubarea]
+  }
+  
+  # determine what subareas we want our grid to contain
+  allSubareas = sort(unique(subareaMapDat@data[[subareaNameVar]]))
+  if(!is.null(areaPolygonSubsetI)) {
+    allSubareas = sort(unique(subareaMapDat@data[subareaMapDat@data[areaNameVar] == areaSubsetName,][[subareaNameVar]]))
+  }
+  if(!is.null(subareaPolygonSubsetI)) {
+    allSubareas = subareaSubsetName
+  }
+  
   # check to make sure every subarea has at least 2 pixels
-  subareasFactor = factor(subareas, levels=sort(unique(subareaMapDat@data[[subareaNameVar]])))
+  subareasFactor = factor(subareas, levels=allSubareas)
   if(length(lonLatGrid) > 0) {
     out = aggregate(subareas, by=list(subarea=subareasFactor), FUN=length, drop=FALSE)
   } else {
@@ -453,7 +484,7 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
   newPop = data.frame(list(lon=lonLatGrid[,1], lat=lonLatGrid[,2], pop=interpPopVals, area=areas, subarea=subareas, urban=NA))
   if(thresholdUrbanBy == "area") {
     threshes = SUMMER::setThresholdsByRegion(newPop, poppa, regionType="area")
-    popThreshes = sapply(1:nrow(newPop), function(i) {threshes$threshes[threshes$regions == newPop$area[i]]})
+    popThreshes = sapply(1:nrow(newPop), function(i) {threshes$threshes[as.character(threshes$regions) == as.character(newPop$area[i])]})
     urban = newPop$pop >= unlist(popThreshes)
     newPop$urban = urban
   } else {
@@ -462,7 +493,7 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
     allSubareas = sort(unique(tempPop$subarea))
     tempSubarea = tempSubarea[tempSubarea$subarea %in% allSubareas,]
     threshes = SUMMER::setThresholdsByRegion(tempPop, poppr = tempSubarea, regionType="subarea")
-    popThreshes = sapply(1:nrow(newPop), function(i) {threshes$threshes[threshes$regions == newPop$subarea[i]]})
+    popThreshes = sapply(1:nrow(newPop), function(i) {threshes$threshes[as.character(threshes$regions) == as.character(newPop$subarea[i])]})
     urban = newPop$pop >= unlist(popThreshes)
     newPop$urban = urban
   }
