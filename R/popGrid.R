@@ -358,10 +358,16 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
   # determine what subareas we want our grid to contain
   allSubareas = sort(unique(subareaMapDat@data[[subareaNameVar]]))
   if(!is.null(areaPolygonSubsetI)) {
-    allSubareas = sort(unique(subareaMapDat@data[subareaMapDat@data[areaNameVar] == areaSubsetName,][[subareaNameVar]]))
+    allSubareas = sort(unique(subareaMapDat@data[subareaMapDat@data[[areaNameVar]] == areaSubsetName,][[subareaNameVar]]))
   }
   if(!is.null(subareaPolygonSubsetI)) {
     allSubareas = subareaSubsetName
+  }
+  
+  # filter out parts of poppsub that are irrelevant for the subareas of 
+  # interest
+  if(!is.null(poppsub)) {
+    poppsub = poppsub[poppsub$subarea %in% allSubareas,]
   }
   
   # check to make sure every subarea has at least 2 pixels
@@ -379,6 +385,7 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
   badSubareas = noPixels | onePixel
   badSubareaNames = as.character(out$subarea[badSubareas])
   
+  
   if(any(badSubareas)) {
     badSubareaString = paste(badSubareaNames, collapse=", ")
     warning(paste0("The following subareas have < 2 regular grid points ", 
@@ -387,10 +394,10 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
     
     # get centroids of the subareas (or it's single pixel coordinates)
     thisSpatialPolyList = sp::as.SpatialPolygons.PolygonsList(subareaMapDat@polygons)
-    centroidsLonLat = matrix(ncol=2, nrow=nrow(subareaMapDat@data))
+    centroidsLonLat = matrix(ncol=2, nrow=length(allSubareas))
     
-    for(i in 1:nrow(subareaMapDat@data)) {
-      thisSubarea = subareaMapDat@data[[subareaNameVar]][i]
+    for(i in 1:length(allSubareas)) {
+      thisSubarea = allSubareas[i]
       if(thisSubarea %in% onePixelNames) {
         thisCentroid = lonLatGrid[subareas == thisSubarea,]
       } else {
@@ -401,7 +408,8 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
     }
     
     # sort to match results of aggregate (alphabetical order)
-    sortI = sort(as.character(subareaMapDat@data[[subareaNameVar]]), index.return=TRUE)$ix
+    # sortI = sort(as.character(subareaMapDat@data[[subareaNameVar]]), index.return=TRUE)$ix
+    sortI = sort(as.character(allSubareas), index.return=TRUE)$ix
     centroidsLonLat = centroidsLonLat[sortI,]
     
     # remove the one pixel for subareas with only one pixel 

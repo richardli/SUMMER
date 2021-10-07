@@ -1695,13 +1695,13 @@ sampleNMultilevelMultinomial = function(nDraws = ncol(pixelIndexMat), pixelIndex
   
   # Draw the number of households per stratum area that will be randomly distributed (total minus the minimum 25)
   if(stratifyByUrban) {
-    totalHouseholdsUrban = sweep(sapply(easpaList, function(x) {x$HHUrb}), 1, -25*totalEAsUrban, "+")
-    totalHouseholdsRural = sweep(sapply(easpaList, function(x) {x$HHRur}), 1, -25*totalEAsRural, "+")
-    totalChildrenUrban = sapply(easpaList, function(x) {x$popUrb})
-    totalChildrenRural = sapply(easpaList, function(x) {x$popRur})
+    totalHouseholdsUrban = sweep(matrix(sapply(easpaList, function(x) {x$HHUrb}), nrow=length(easpaList)), 1, -25*totalEAsUrban, "+")
+    totalHouseholdsRural = sweep(matrix(sapply(easpaList, function(x) {x$HHRur}), nrow=length(easpaList)), 1, -25*totalEAsRural, "+")
+    totalChildrenUrban = matrix(sapply(easpaList, function(x) {x$popUrb}), nrow=length(easpaList))
+    totalChildrenRural = matrix(sapply(easpaList, function(x) {x$popRur}), nrow=length(easpaList))
   } else {
-    totalHouseholds = sweep(sapply(easpaList, function(x) {x$HHTotal}), 1, -25*totalEAs, "+")
-    totalChildren = sapply(easpaList, function(x) {x$popHHTotal})
+    totalHouseholds = sweep(sapply(matrix(easpaList, function(x) {x$HHTotal}), nrow=length(easpaList)), 1, -25*totalEAs, "+")
+    totalChildren = matrix(sapply(easpaList, function(x) {x$popHHTotal}), nrow=length(easpaList))
   }
   
   # distribute the households throughout the enumeration areas with multinomial distribution, then 
