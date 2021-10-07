@@ -385,7 +385,6 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
   badSubareas = noPixels | onePixel
   badSubareaNames = as.character(out$subarea[badSubareas])
   
-  
   if(any(badSubareas)) {
     badSubareaString = paste(badSubareaNames, collapse=", ")
     warning(paste0("The following subareas have < 2 regular grid points ", 
@@ -401,7 +400,8 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
       if(thisSubarea %in% onePixelNames) {
         thisCentroid = lonLatGrid[subareas == thisSubarea,]
       } else {
-        thisCentroid = sp::coordinates(thisSpatialPolyList[i])
+        subareaI = match(as.character(thisSubarea), as.character(subareaMapDat@data[[subareaNameVar]]))
+        thisCentroid = sp::coordinates(thisSpatialPolyList[subareaI])
       }
       
       centroidsLonLat[i,] = thisCentroid
