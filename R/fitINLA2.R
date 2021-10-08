@@ -333,7 +333,7 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
     age.n <- 1
     age.rw.group <- 1
   }
-  age.strata.fixed.group <- age.strata.fixed.group[1:age.n]
+  age.strata.fixed.group <- age.strata.fixed.group[1:length(age.n)]
 
   message("\n  Number of age groups: ", length(age.n), appendLF=FALSE)
   msg <- paste0(msg, "\n  Number of age groups: ", length(age.n))
