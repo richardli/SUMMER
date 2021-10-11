@@ -1159,50 +1159,53 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
 #' Functions for calculating valuable quantities and for drawing from important 
 #' distributions for population simulation.
 #' 
-#' @param easpa census frame. See \code{\link{simPopCustom}} for details
+#' @param easpa Census frame. See \code{\link{simPopCustom}} for details
 #' @param popMat data.frame of pixellated grid of population densities. See \code{\link{simPopCustom}} for details
-#' @param i index
-#' @param urban if TRUE, calculate only for urban part of the area. If FALSE, for only rural part
+#' @param i Index
+#' @param urban If TRUE, calculate only for urban part of the area. If FALSE, for only rural part
 #' @param stratifyByUrban whether or not to stratify calculations by urban/rural classification
 #' @param validationPixelI CURRENTLY FOR TESTING PURPOSES ONLY a set of indices of pixels for which we want to simulate populations (used for pixel level validation)
-#' @param n number of samples
-#' @param poppsub population per subarea. See \code{\link{simPopCustom}} for details
-#' @param min1PerSubarea whether or not to ensure there is at least 1 EA per subarea. See \code{\link{simPopCustom}} for details
-#' @param method if min1PerSubarea is TRUE, the sampling method for the truncated multinomial to use with rmulitnom1. rmultinom1 automatically 
+#' @param n Number of samples
+#' @param poppsub Population per subarea. See \code{\link{simPopCustom}} for details
+#' @param min1PerSubarea Whether or not to ensure there is at least 1 EA per subarea. See \code{\link{simPopCustom}} for details
+#' @param method If min1PerSubarea is TRUE, the sampling method for the truncated multinomial to use with rmulitnom1. rmultinom1 automatically 
 #'         switches between them depending on the number of expected samples. The methods are:
 #' \describe{
 #'   \item{mult1}{rejection sampling from multinomial plus 1 in each category}
 #'   \item{mult}{rejection sampling from multinomial if any category has zero count}
 #'   \item{indepMH}{independent Metropolis-Hastings using multinomial plus 1 distribution as proposal}
 #' }
-#' @param minSample the minimum number of samples per `chunk` of samples for truncated multinomial sampling. Defaults to 1
-#' @param easpsub this could either be total EAs per subarea, or subarea crossed with urban or 
+#' @param minSample The minimum number of samples per `chunk` of samples for truncated multinomial sampling. Defaults to 1
+#' @param easpsub This could either be total EAs per subarea, or subarea crossed with urban or 
 #'          rural if stratifyByUrban is TRUE
-#' @param size multinomial size parameter. See \code{\link[stats]{rmultinom}}
-#' @param prob multinomial probability vector parameter. See \code{\link[stats]{rmultinom}}
-#' @param maxSize the maximum number of elements in a matrix drawn from the proposal distribution per sample chunk. 
-#' @param maxExpectedSizeBeforeSwitch max expected number of samples / k, the number of categories, before switching method
-#' @param init initial sample if method is `indepMH`
-#' @param burnIn number of initial samples before samples are collected if method is `indepMH`
-#' @param filterEvery store only every filterEvery samples if method is i`indepMH`
-#' @param zeroProbZeroSamples if TRUE, set samples for parts of prob vector that are zero to zero. Otherwise they are set to one.
-#' @param allowSizeLessThanK if TRUE, then if size < the number of categories (k), returns matrix where each 
+#' @param size Multinomial size parameter. See \code{\link[stats]{rmultinom}}
+#' @param prob Multinomial probability vector parameter. See \code{\link[stats]{rmultinom}}
+#' @param maxSize The maximum number of elements in a matrix drawn from the proposal distribution per sample chunk. 
+#' @param maxExpectedSizeBeforeSwitch Max expected number of samples / k, the number of categories, before switching method
+#' @param init Initial sample if method is `indepMH`
+#' @param burnIn Number of initial samples before samples are collected if method is `indepMH`
+#' @param filterEvery Store only every filterEvery samples if method is i`indepMH`
+#' @param zeroProbZeroSamples If TRUE, set samples for parts of prob vector that are zero to zero. Otherwise they are set to one.
+#' @param allowSizeLessThanK If TRUE, then if size < the number of categories (k), returns matrix where each 
 #'                     column is vector of size ones and k - size zeros. If FALSE, throws an error if size < k
 #' @param clustersPerPixel CURRENTLY FOR TESTING PURPOSES ONLY a vector of length nIntegrationPoints specifying the number of clusters per pixel if they are fixed
-#' @param pixelIndices a nEA x n matrix of pixel indices associated with each EA per simulation/draw
-#' @param urbanVals a nEA x n matrix of urbanicities associated with each EA per simulation/draw
-#' @param areaVals a nEA x n matrix of area names associated with each EA per simulation/draw
-#' @param easpaList a list of length n with each element being of the format of easpa 
+#' @param pixelIndices A nEA x n matrix of pixel indices associated with each EA per simulation/draw
+#' @param urbanVals A nEA x n matrix of urbanicities associated with each EA per simulation/draw
+#' @param areaVals A nEA x n matrix of area names associated with each EA per simulation/draw
+#' @param easpaList A list of length n with each element being of the format of easpa 
 #'            giving the number of households and EAs 
 #'            per stratum. It is assumed that the number of EAs per stratum is 
 #'            the same in each list element. If easpaList is a data frame, 
 #'            number of households per stratum is assumed constant
-#' @param nDraws number of draws
-#' @param pixelIndexMat matrix of pixel indices associated with each EA and draw
-#' @param urbanMat matrix of urbanicities associated with each EA and draw
-#' @param areaMat matrix of areas associated with each EA and draw
-#' @param verbose whether to print progress as the function proceeds
-#' @param returnEAinfo whether a data frame at the EA level is desired
+#' @param nDraws Number of draws
+#' @param pixelIndexMat Matrix of pixel indices associated with each EA and draw
+#' @param urbanMat Matrix of urbanicities associated with each EA and draw
+#' @param areaMat Matrix of areas associated with each EA and draw
+#' @param verbose Whether to print progress as the function proceeds
+#' @param returnEAinfo Whether a data frame at the EA level is desired
+#' @param minHHPerEA The minimum number of households per EA (defaults to 25, since 
+#' that is the number of households sampled per DHS cluster)
+#' @param fixHHPerEA If not NULL, the fixed number of households per EA
 #' 
 #' @name simPopInternal
 NULL
@@ -1662,7 +1665,11 @@ rmultinom1 = function(n=1, size, prob, maxSize=5000*5000, method=c("mult1", "mul
 #' distribution of the total target population per household given 
 #' the total per stratum
 sampleNMultilevelMultinomial = function(nDraws = ncol(pixelIndexMat), pixelIndexMat=NULL, urbanMat=NULL, areaMat=NULL, easpaList, 
-                                        popMat, stratifyByUrban=TRUE, verbose=TRUE, returnEAinfo=FALSE) {
+                                        popMat, stratifyByUrban=TRUE, verbose=TRUE, returnEAinfo=FALSE, minHHPerEA=25, fixHHPerEA=NULL) {
+  
+  if(length(easpaList) == 1) {
+    easpaList = replicate(nDraws, easpaList[[1]], simplify=FALSE)
+  }
   
   if((is.null(areaMat) || is.null(urbanMat)) && is.null(pixelIndexMat)) {
     stop("user must either supply pixelIndexMat or both areaMat and urbanMat")
@@ -1693,15 +1700,15 @@ sampleNMultilevelMultinomial = function(nDraws = ncol(pixelIndexMat), pixelIndex
     householdDraws = matrix(nrow=nEAs, ncol=nDraws)
   }
   
-  # Draw the number of households per stratum area that will be randomly distributed (total minus the minimum 25)
+  # Draw the number of households per stratum area that will be randomly distributed (total minus the minimum minHHPerEA)
   if(stratifyByUrban) {
-    totalHouseholdsUrban = sweep(matrix(sapply(easpaList, function(x) {x$HHUrb}), nrow=length(easpaList)), 1, -25*totalEAsUrban, "+")
-    totalHouseholdsRural = sweep(matrix(sapply(easpaList, function(x) {x$HHRur}), nrow=length(easpaList)), 1, -25*totalEAsRural, "+")
-    totalChildrenUrban = matrix(sapply(easpaList, function(x) {x$popUrb}), nrow=length(easpaList))
-    totalChildrenRural = matrix(sapply(easpaList, function(x) {x$popRur}), nrow=length(easpaList))
+    totalHouseholdsUrban = sweep(matrix(sapply(easpaList, function(x) {x$HHUrb}), ncol=length(easpaList)), 1, -minHHPerEA*totalEAsUrban, "+")
+    totalHouseholdsRural = sweep(matrix(sapply(easpaList, function(x) {x$HHRur}), ncol=length(easpaList)), 1, -minHHPerEA*totalEAsRural, "+")
+    totalChildrenUrban = matrix(sapply(easpaList, function(x) {x$popUrb}), ncol=length(easpaList))
+    totalChildrenRural = matrix(sapply(easpaList, function(x) {x$popRur}), ncol=length(easpaList))
   } else {
-    totalHouseholds = sweep(sapply(matrix(easpaList, function(x) {x$HHTotal}), nrow=length(easpaList)), 1, -25*totalEAs, "+")
-    totalChildren = matrix(sapply(easpaList, function(x) {x$popHHTotal}), nrow=length(easpaList))
+    totalHouseholds = sweep(sapply(matrix(easpaList, function(x) {x$HHTotal}), ncol=length(easpaList)), 1, -minHHPerEA*totalEAs, "+")
+    totalChildren = matrix(sapply(easpaList, function(x) {x$popHHTotal}), ncol=length(easpaList))
   }
   
   # distribute the households throughout the enumeration areas with multinomial distribution, then 
@@ -1716,9 +1723,11 @@ sampleNMultilevelMultinomial = function(nDraws = ncol(pixelIndexMat), pixelIndex
     
     # draw households per EA (make sure there are any rural EAs)
     if(stratifyByUrban) {
-      householdDrawsUrban <- matrix(sapply(totalHouseholdsUrban[i,], stats::rmultinom, n=1, prob=rep(1/totalEAsUrban[i], totalEAsUrban[i])), nrow=totalEAsUrban[i], ncol=nDraws) + 25
+      if(totalEAsUrban[i] != 0) {
+        householdDrawsUrban <- matrix(sapply(totalHouseholdsUrban[i,], stats::rmultinom, n=1, prob=rep(1/totalEAsUrban[i], totalEAsUrban[i])), nrow=totalEAsUrban[i], ncol=nDraws) + minHHPerEA
+      }
       if(totalEAsRural[i] != 0) {
-        householdDrawsRural <- matrix(sapply(totalHouseholdsRural[i,], stats::rmultinom, n=1, prob=rep(1/totalEAsRural[i], totalEAsRural[i])), nrow=totalEAsRural[i], ncol=nDraws) + 25
+        householdDrawsRural <- matrix(sapply(totalHouseholdsRural[i,], stats::rmultinom, n=1, prob=rep(1/totalEAsRural[i], totalEAsRural[i])), nrow=totalEAsRural[i], ncol=nDraws) + minHHPerEA
       }
       
       # if we must return EA info, we must return the household draws for each EA:
@@ -1731,7 +1740,7 @@ sampleNMultilevelMultinomial = function(nDraws = ncol(pixelIndexMat), pixelIndex
         }
       }
     } else {
-      householdDraws = matrix(sapply(totalHouseholds[i,], stats::rmultinom, n=1, prob=rep(1/totalEAs[i], totalEAs[i])), nrow=totalEAs[i], ncol=nDraws) + 25
+      householdDraws = matrix(sapply(totalHouseholds[i,], stats::rmultinom, n=1, prob=rep(1/totalEAs[i], totalEAs[i])), nrow=totalEAs[i], ncol=nDraws) + minHHPerEA
     }
     
     # drawing target population per EA, with probability proportional to the number of households
