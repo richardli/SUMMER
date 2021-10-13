@@ -574,7 +574,8 @@ pixelPopToArea = function(pixelLevelPop, eaSamples, areas, stratifyByUrban=TRUE,
     names(aggregationResultsFineScaleRisk)[-1] = paste(names(aggregationResultsFineScaleRisk)[-1], "FineScaleRisk", sep="")
     names(aggregationMatricesFineScaleRisk) = paste(names(aggregationMatricesFineScaleRisk), "FineScaleRisk", sep="")
     
-    aggregationResults = merge(aggregationResults, aggregationResultsFineScaleRisk, by="region")
+    # aggregationResults = merge(aggregationResults, aggregationResultsFineScaleRisk, by="region")
+    aggregationResults = c(aggregationResults, aggregationResultsFineScaleRisk[-1])
     aggregationMatrices = c(aggregationMatrices, aggregationMatricesFineScaleRisk)
   }
   
@@ -591,7 +592,8 @@ pixelPopToArea = function(pixelLevelPop, eaSamples, areas, stratifyByUrban=TRUE,
     names(aggregationResultsSmoothRisk)[-1] = paste(names(aggregationResultsSmoothRisk)[-1], "SmoothRisk", sep="")
     names(aggregationMatricesSmoothRisk) = paste(names(aggregationMatricesSmoothRisk), "SmoothRisk", sep="")
     
-    aggregationResults = merge(aggregationResults, aggregationResultsSmoothRisk, by="region")
+    # aggregationResults = merge(aggregationResults, aggregationResultsSmoothRisk, by="region")
+    aggregationResults = c(aggregationResults, aggregationResultsSmoothRisk[-1])
     aggregationMatrices = c(aggregationMatrices, aggregationMatricesSmoothRisk)
   }
   
