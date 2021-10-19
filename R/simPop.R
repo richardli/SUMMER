@@ -472,10 +472,10 @@ simPopSPDE = function(nsim=1, easpa, popMat, targetPopMat, poppsub, spdeMesh,
 #' @param areasFrom character vector of length equal to the number of areas from which 
 #'            we would like to aggregate containing the unique names of the areas. 
 #'            Can also be subareas, but these are smaller than the "to areas", and 
-#'            each "from area" but be entirely contained in a single "to area"
-#' @param areasTo character vector of length equal to the number of subareas to which 
-#'          we would like to aggregate containing the names of the areas associated 
-#'          with each respective subarea. Can also be a different set of subareas, 
+#'            each "from area" must be entirely contained in a single "to area"
+#' @param areasTo character vector of length equal to the number of areas from which 
+#'          we would like to aggregate containing the names of the areas containing 
+#'          with each respective `from' area. Can also be a set of subareas, 
 #'          but these are larger than the "from areas".
 #' 
 #' @author John Paige
@@ -548,8 +548,7 @@ NULL
 #' @export
 pixelPopToArea = function(pixelLevelPop, eaSamples, areas, stratifyByUrban=TRUE, targetPopMat=NULL, 
                           doFineScaleRisk=!is.null(pixelLevelPop$fineScaleRisk$p), 
-                          doSmoothRisk=!is.null(pixelLevelPop$smoothRisk$p), 
-                          easpa=NULL) {
+                          doSmoothRisk=!is.null(pixelLevelPop$smoothRisk$p)) {
   
   # fine scale prevalence aggregation model
   nSamples = pixelLevelPop$NFineScalePrevalence
@@ -872,7 +871,8 @@ areaPopToArea = function(areaLevelPop, areasFrom, areasTo,
     resFineScaleRisk = out$aggregationResults
     resAggregationMatrices = out$aggregationMatrices
     
-    aggregationResults = merge(aggregationResults, resFineScaleRisk, by="region")
+    # aggregationResults = merge(aggregationResults, resFineScaleRisk, by="region")
+    aggregationResults = c(aggregationResults, resFineScaleRisk)
     aggregationMatrices = c(aggregationMatrices, resAggregationMatrices)
   }
   
@@ -881,7 +881,8 @@ areaPopToArea = function(areaLevelPop, areasFrom, areasTo,
     resSmoothRisk = out$aggregationResults
     resAggregationMatrices = out$aggregationMatrices
     
-    aggregationResults = merge(aggregationResults, resSmoothRisk, by="region")
+    # aggregationResults = merge(aggregationResults, resSmoothRisk, by="region")
+    aggregationResults = c(aggregationResults, resSmoothRisk)
     aggregationMatrices = c(aggregationMatrices, resAggregationMatrices)
   }
   
@@ -1200,7 +1201,8 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
 #'            the same in each list element. If easpaList is a data frame, 
 #'            number of households per stratum is assumed constant
 #' @param nDraws Number of draws
-#' @param pixelIndexMat Matrix of pixel indices associated with each EA and draw
+#' @param pixelIndexMat Matrix of pixel indices associated with each EA and draw. Not 
+#' required by getExpectedNperEA unless level == "EA"
 #' @param urbanMat Matrix of urbanicities associated with each EA and draw
 #' @param areaMat Matrix of areas associated with each EA and draw
 #' @param verbose Whether to print progress as the function proceeds
@@ -1208,18 +1210,19 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
 #' @param minHHPerEA The minimum number of households per EA (defaults to 25, since 
 #' that is the number of households sampled per DHS cluster)
 #' @param fixHHPerEA If not NULL, the fixed number of households per EA
-#' 
+#' @param level Whether to calculate results at the integration grid or EA level
 #' @name simPopInternal
 NULL
 
-#' @describeIn simPopInternal Calculates expected denominator per enumeration area
-getExpectedNperEA = function(easpa, popMat) {
+#' @describeIn simPopInternal Calculates expected denominator per enumeration area.
+getExpectedNperEA = function(easpa, popMat, level=c("grid", "EA"), pixelIndexMat=NULL) {
+  level = match.arg(level)
   
   # calculate the expected denominator per enumeration area in each stratum. 
   nPerEAUrban = easpa$popUrb / easpa$EAUrb
   nPerEARural = easpa$popRur / easpa$EARur
   
-  # expanded the expected denominator values victor to be of length equal 
+  # expanded the expected denominator values vector to be of length equal 
   # to the number of grid cells
   uniqueAreas = sort(unique(popMat$area))
   outUrban = numeric(nrow(popMat))
@@ -1231,10 +1234,19 @@ getExpectedNperEA = function(easpa, popMat) {
     outRural[ruralI] = nPerEARural[i]
   }
   
-  outUrban + outRural
+  out = outUrban + outRural
+  
+  if(level == "EA") {
+    if(is.null(pixelIndexMat)) {
+      stop("if level == EA, must specify pixelIndexMat")
+    }
+    out = matrix(outPixel[pixelIndexMat], ncol=ncol(pixelIndexMat))
+  }
+  
+  out
 }
 
-#' @describeIn simPopInternal For recombining separate multinomials into the draws over all pixels
+#' @describeIn simPopInternal For recombining separate multinomials into the draws over all grid points
 getSortIndices = function(i, urban=TRUE, popMat, stratifyByUrban=TRUE, validationPixelI=NULL) {
   
   # get area names
