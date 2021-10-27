@@ -244,10 +244,18 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
           if(sum(AA$strata != "") == 0) AA$strata <- "strata_all"
         }
         AA <- merge(AA, unique(A[, c("time.struct", "time.unstruct", "region.struct",  "time.area")]), by = "time.area")
-        if(rep.time){ 
-          tmp <- unique(A[, c("age", "age.idx", "age.rep.idx", "age.intercept", "age.diff")])
-        }else{            
-          tmp <- unique(A[, c("age", "age.idx", "age.intercept", "age.diff")])
+        if("strata" %in% colnames(A)){
+          if(rep.time){ 
+            tmp <- unique(A[, c("strata", "age", "age.idx", "age.rep.idx", "age.intercept", "age.diff")])
+          }else{            
+            tmp <- unique(A[, c("strata", "age", "age.idx", "age.intercept", "age.diff")])
+          }        
+        }else{
+          if(rep.time){ 
+            tmp <- unique(A[, c("age", "age.idx", "age.rep.idx", "age.intercept", "age.diff")])
+          }else{            
+            tmp <- unique(A[, c("age", "age.idx", "age.intercept", "age.diff")])
+          }    
         }
         # check the filler data contains any NA, which will make the merge call go wrong.
         if(sum(!is.na(tmp$age.diff)) > 0){
@@ -255,7 +263,11 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         }else{
           tmp <- tmp[, colnames(tmp) != "age.diff"]
         }
-        AA <- merge(AA, tmp, by = "age")
+        if("strata" %in% colnames(tmp)){
+          AA <- merge(AA, tmp, by = c("age", "strata"))
+        }else{
+          AA <- merge(AA, tmp, by = c("age"))
+        }
 
         if(!is.null(inla_mod$covariate.names)){
           # adding covariates
@@ -274,8 +286,15 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         AA$age.intercept <- paste0("age.intercept", AA$age.intercept, ":1")
         AA$age.diff <- paste0("age.diff", AA$age.diff, ":1")
 
-        # When there's only one age group, smoothCluster uses the generic intercept
-        if(length(unique(AA$age.intercept)) == 1) AA$age.intercept <- "(Intercept):1"
+        # # When there's only one age group, smoothCluster uses the generic intercept
+        # # if(length(unique(AA$age.intercept)) == 1) AA$age.intercept <- "(Intercept):1"
+        
+        # Checking age intercept is tricky, directly check if intercept is in the posterior draws...
+        if("(Intercept):1" %in% fields){
+          AA$intercept <- "(Intercept):1"
+        }else{
+          AA$intercept <- NA
+        }
 
         #  AA.loc is the same  format as AA, but with location index
         AA.loc <- AA
@@ -288,6 +307,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         if(!is.null(inla_mod$covariate.names)){
             AA.loc[, inla_mod$covariate.names] <- NA
         }
+        AA.loc$intercept <- match(AA.loc$intercept, fields)
 
         AA.loc$time.area  <- match(paste0("time.area:", AA.loc$time.area), fields)
         # Update time.area as the row index of the correct samples
