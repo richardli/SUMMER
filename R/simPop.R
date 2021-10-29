@@ -1210,6 +1210,7 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
 #' @param minHHPerEA The minimum number of households per EA (defaults to 25, since 
 #' that is the number of households sampled per DHS cluster)
 #' @param fixHHPerEA If not NULL, the fixed number of households per EA
+#' @param fixPopPerHH If not NULL, the fixed target population per household
 #' @param level Whether to calculate results at the integration grid or EA level
 #' @name simPopInternal
 NULL
@@ -1679,7 +1680,8 @@ rmultinom1 = function(n=1, size, prob, maxSize=5000*5000, method=c("mult1", "mul
 #' distribution of the total target population per household given 
 #' the total per stratum
 sampleNMultilevelMultinomial = function(nDraws = ncol(pixelIndexMat), pixelIndexMat=NULL, urbanMat=NULL, areaMat=NULL, easpaList, 
-                                        popMat, stratifyByUrban=TRUE, verbose=TRUE, returnEAinfo=FALSE, minHHPerEA=25, fixHHPerEA=NULL) {
+                                        popMat, stratifyByUrban=TRUE, verbose=TRUE, returnEAinfo=FALSE, 
+                                        minHHPerEA=25, fixHHPerEA=NULL, fixPopPerHH=NULL) {
   
   if(length(easpaList) == 1) {
     easpaList = replicate(nDraws, easpaList[[1]], simplify=FALSE)
@@ -1757,20 +1759,35 @@ sampleNMultilevelMultinomial = function(nDraws = ncol(pixelIndexMat), pixelIndex
       householdDraws = matrix(sapply(totalHouseholds[i,], stats::rmultinom, n=1, prob=rep(1/totalEAs[i], totalEAs[i])), nrow=totalEAs[i], ncol=nDraws) + minHHPerEA
     }
     
-    # drawing target population per EA, with probability proportional to the number of households
-    if(stratifyByUrban) {
-      if(totalEAsUrban[i] != 0) {
-        probsUrban = sweep(householdDrawsUrban, 2, 1 / colSums(householdDrawsUrban), "*")
-        targetPopDraws[areaMat==thisArea & urbanMat] = sapply(1:nDraws, function(j) {stats::rmultinom(1, totalChildrenUrban[i,j], probsUrban[,j])})
-      }
-      
-      if(totalEAsRural[i] != 0) {
-        probsRural = sweep(householdDrawsRural, 2, 1 / colSums(householdDrawsRural), "*")
-        targetPopDraws[areaMat==thisArea & !urbanMat] = sapply(1:nDraws, function(j) {stats::rmultinom(1, totalChildrenRural[i,j], probsRural[,j])})
+    # drawing target population per EA
+    if(is.null(fixPopPerHH)) {
+      # draw target pop per EA with probability proportional to the number of households
+      if(stratifyByUrban) {
+        if(totalEAsUrban[i] != 0) {
+          probsUrban = sweep(householdDrawsUrban, 2, 1 / colSums(householdDrawsUrban), "*")
+          targetPopDraws[areaMat==thisArea & urbanMat] = sapply(1:nDraws, function(j) {stats::rmultinom(1, totalChildrenUrban[i,j], probsUrban[,j])})
+        }
+        
+        if(totalEAsRural[i] != 0) {
+          probsRural = sweep(householdDrawsRural, 2, 1 / colSums(householdDrawsRural), "*")
+          targetPopDraws[areaMat==thisArea & !urbanMat] = sapply(1:nDraws, function(j) {stats::rmultinom(1, totalChildrenRural[i,j], probsRural[,j])})
+        }
+      } else {
+        probs = sweep(householdDraws, 2, 1 / colSums(householdDraws), "*")
+        targetPopDraws[areaMat==thisArea] = sapply(1:nDraws, function(j) {stats::rmultinom(1, totalChildren[i,j], probs[,j])})
       }
     } else {
-      probs = sweep(householdDraws, 2, 1 / colSums(householdDraws), "*")
-      targetPopDraws[areaMat==thisArea] = sapply(1:nDraws, function(j) {stats::rmultinom(1, totalChildren[i,j], probs[,j])})
+      # set target pop per EA based on fixed number per household
+      if(stratifyByUrban) {
+        if(totalEAsUrban[i] != 0) {
+          targetPopDraws[areaMat==thisArea & urbanMat] = fixPopPerHH*householdDrawsUrban
+        }
+        if(totalEAsRural[i] != 0) {
+          targetPopDraws[areaMat==thisArea & !urbanMat] = fixPopPerHH*householdDrawsRural
+        }
+      } else {
+        targetPopDraws[areaMat==thisArea] = fixPopPerHH*householdDraws
+      }
     }
   }
   
