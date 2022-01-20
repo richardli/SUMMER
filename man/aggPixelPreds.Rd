@@ -16,15 +16,15 @@ aggPixelPreds(
 )
 }
 \arguments{
-\item{Zg}{nPixel x nsim matrix of simulated response (population numerators) for each pixel and sample}
+\item{Zg}{nIntegrationPoint x nsim matrix of simulated response (population numerators) for each pixel and sample}
 
-\item{Ng}{nPixel x nsim matrix of simulated counts (population denominators) for each pixel and sample}
+\item{Ng}{nIntegrationPoint x nsim matrix of simulated counts (population denominators) for each pixel and sample}
 
-\item{areas}{nPixel length character vector of areas (or subareas)}
+\item{areas}{nIntegrationPoint length character vector of areas (or subareas)}
 
-\item{urban}{nPixel length vector of indicators specifying whether or not pixels are urban or rural}
+\item{urban}{nIntegrationPoint length vector of indicators specifying whether or not pixels are urban or rural}
 
-\item{targetPopMat}{same as in \code{\link{simPopPixel}}}
+\item{targetPopMat}{same as in \code{\link{simPopCustom}}}
 
 \item{useDensity}{whether to use population density as aggregation weights.}
 

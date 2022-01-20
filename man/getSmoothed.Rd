@@ -22,7 +22,7 @@ getSmoothed(
 \arguments{
 \item{inla_mod}{output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}}
 
-\item{nsim}{number of simulations, only applicable for the cluster-level model.}
+\item{nsim}{number of simulations, only applicable for the cluster-level model. The smooth direct model always draws 1e5 samples from the marginal distribution since the computation is faster.}
 
 \item{weight.strata}{a data frame with two columns specifying time and region, followed by columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates on the probability scale.}
 

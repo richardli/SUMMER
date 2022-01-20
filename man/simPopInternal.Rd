@@ -97,9 +97,9 @@ sampleNMultilevelMultinomialFixed(
 )
 }
 \arguments{
-\item{easpa}{census frame. See \code{\link{simPopPixel}} for details}
+\item{easpa}{census frame. See \code{\link{simPopCustom}} for details}
 
-\item{popMat}{data.frame of pixellated grid of population densities. See \code{\link{simPopPixel}} for details}
+\item{popMat}{data.frame of pixellated grid of population densities. See \code{\link{simPopCustom}} for details}
 
 \item{i}{index}
 
@@ -111,9 +111,9 @@ sampleNMultilevelMultinomialFixed(
 
 \item{n}{number of samples}
 
-\item{poppsub}{population per subarea. See \code{\link{simPopPixel}} for details}
+\item{poppsub}{population per subarea. See \code{\link{simPopCustom}} for details}
 
-\item{min1PerSubarea}{whether or not to ensure there is at least 1 EA per subarea. See \code{\link{simPopPixel}} for details}
+\item{min1PerSubarea}{whether or not to ensure there is at least 1 EA per subarea. See \code{\link{simPopCustom}} for details}
 
 \item{minSample}{the minimum number of samples per `chunk` of samples for truncated multinomial sampling. Defaults to 1}
 
@@ -165,7 +165,7 @@ number of households per stratum is assumed constant}
 
 \item{returnEAinfo}{whether a data frame at the EA level is desired}
 
-\item{clustersPerPixel}{CURRENTLY FOR TESTING PURPOSES ONLY a vector of length nPixels specifying the number of clusters per pixel if they are fixed}
+\item{clustersPerPixel}{CURRENTLY FOR TESTING PURPOSES ONLY a vector of length nIntegrationPoints specifying the number of clusters per pixel if they are fixed}
 
 \item{pixelIndices}{a nEA x n matrix of pixel indices associated with each EA per simulation/draw}
 
@@ -183,10 +183,10 @@ distributions for population simulation.
 
 \item \code{getSortIndices}: For recombining separate multinomials into the draws over all pixels
 
-\item \code{rStratifiedMultnomial}: Gives nPixels x n matrix of draws from the stratified multinomial with values 
+\item \code{rStratifiedMultnomial}: Gives nIntegrationPoints x n matrix of draws from the stratified multinomial with values 
 corresponding to the value of |C^g| for each pixel, g (the number of EAs/pixel)
 
-\item \code{rStratifiedMultnomialBySubarea}: Gives nPixels x n matrix of draws from the stratified multinomial with values
+\item \code{rStratifiedMultnomialBySubarea}: Gives nIntegrationPoints x n matrix of draws from the stratified multinomial with values
 
 \item \code{rMyMultinomial}: 
 

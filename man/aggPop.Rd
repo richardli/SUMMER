@@ -13,6 +13,7 @@ pixelPopToArea(
   stratifyByUrban = TRUE,
   targetPopMat = NULL,
   doFineScaleRisk = !is.null(pixelLevelPop$fineScaleRisk$p),
+  doSmoothRisk = !is.null(pixelLevelPop$smoothRisk$p),
   easpa = NULL
 )
 
@@ -21,26 +22,29 @@ areaPopToArea(
   areasFrom,
   areasTo,
   stratifyByUrban = TRUE,
-  doFineScaleRisk = !is.null(areaLevelPop$fineScaleRisk$p)
+  doFineScaleRisk = !is.null(areaLevelPop$aggregationResults$pFineScaleRisk),
+  doSmoothRisk = !is.null(areaLevelPop$aggregationResults$pSmoothRisk)
 )
 }
 \arguments{
-\item{pixelLevelPop}{pixel level population information that we want aggregate. In the same format as output from \code{\link{simPopPixel}}}
+\item{pixelLevelPop}{pixel level population information that we want aggregate. In the same format as output from \code{\link{simPopCustom}}}
 
-\item{eaSamples}{nPixel x nsim matrix of the number of enumeration areas per pixel sampled in the input pixel level population}
+\item{eaSamples}{nIntegrationPoint x nsim matrix of the number of enumeration areas per pixel sampled in the input pixel level population}
 
-\item{areas}{character vector of length nPixels of area names over which we 
+\item{areas}{character vector of length nIntegrationPoints of area names over which we 
 want to aggregate. Can also be subareas}
 
 \item{stratifyByUrban}{whether or not to stratify simulations by urban/rural classification}
 
 \item{targetPopMat}{pixellated grid data frame with variables `lon`, `lat`, `pop` (target population), `area`, `subareas` (if subareaLevel is TRUE), `urban` (if stratifyByUrban is TRUE), `east`, and `north`}
 
-\item{doFineScaleRisk}{whether or not to calculate the fine scale risk in addition to the prevalence}
+\item{doFineScaleRisk}{whether or not to calculate the fine scale risk in addition to the prevalence. See details}
+
+\item{doSmoothRisk}{Whether or not to calculate the smooth risk in addition to the prevalence. See details}
 
 \item{easpa}{see \code{\link{simPopSPDE}}}
 
-\item{areaLevelPop}{output of \code{\link{simPopPixel}} containing pixel level information 
+\item{areaLevelPop}{output of \code{\link{simPopCustom}} containing pixel level information 
 about the population of interest}
 
 \item{areasFrom}{character vector of length equal to the number of areas from which 
@@ -96,8 +100,9 @@ rho=(1/3)^2 # spatial variance
 effRange = 400 # effective spatial range in km
 sigmaEpsilon=sqrt(1/2.5) # cluster (nugget) effect standard deviation
 
-# simulate the population! Note that this produces multiple dense nEA x nsim and nPixel x nsim 
-# matrices. In the future sparse matrices will and chunk by chunk computations may be incorporated.
+# simulate the population! Note that this produces multiple dense 
+# nEA x nsim and nIntegrationPoint x nsim matrices. In the future 
+# sparse matrices will and chunk by chunk computations may be incorporated.
 simPop = simPopSPDE(nsim=1, easpa=easpaKenyaNeonatal, 
                     popMat=popMatKenya, targetPopMat=popMatKenyaNeonatal, 
                     poppsub=poppsubKenya, spdeMesh=kenyaMesh, 

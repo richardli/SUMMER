@@ -6,11 +6,12 @@
 #' @return Spatial djacency matrix.
 #' @author Zehang Richard Li 
 #' @examples
+#' \dontrun{
 #' data(DemoMap) 
 #' mat <- getAmat(geo = DemoMap$geo, names = DemoMap$geo$REGNAME)
 #' mat
 #' DemoMap$Amat
-#'  
+#' } 
 #' @export
 
 

@@ -8,7 +8,6 @@
 smoothDirect(
   data,
   Amat,
-  X = NULL,
   formula = NULL,
   time.model = c("rw1", "rw2", "ar1")[2],
   st.time.model = NULL,
@@ -38,7 +37,6 @@ smoothDirect(
 fitINLA(
   data,
   Amat,
-  X = NULL,
   formula = NULL,
   time.model = c("rw1", "rw2", "ar1")[2],
   st.time.model = NULL,
@@ -69,8 +67,6 @@ fitINLA(
 \item{data}{Combined dataset}
 
 \item{Amat}{Adjacency matrix for the regions}
-
-\item{X}{Covariate matrix. It must contain either a column with name "region", or a column with name "years", or both. The covariates must not have missing values for all regions (if varying in space) and all time periods (if varying in time). The rest of the columns are treated as covariates in the mean model.}
 
 \item{formula}{INLA formula. See vignette for example of using customized formula.}
 
@@ -128,29 +124,34 @@ The function \code{smoothDirect} replaces the previous function name \code{fitIN
 }
 \examples{
 \dontrun{
-years <- levels(DemoData[[1]]$time)
-# obtain direct estimates
-data_multi <- getDirectList(births = DemoData, years = years,
+  years <- levels(DemoData[[1]]$time)
+  # obtain direct estimates
+  data_multi <- getDirectList(births = DemoData, years = years,
   regionVar = "region",  timeVar = "time", clusterVar = "~clustid+id",
   ageVar = "age", weightsVar = "weights", geo.recode = NULL)
-data <- aggregateSurvey(data_multi)
-
-#  national model
-years.all <- c(years, "15-19")
-fit1 <- smoothDirect(data = data, Amat = NULL, 
+  data <- aggregateSurvey(data_multi)
+  
+  #  national model
+  years.all <- c(years, "15-19")
+  fit1 <- smoothDirect(data = data, Amat = NULL, 
   year_label = years.all, year_range = c(1985, 2019), 
-  rw = 2, is.yearly=FALSE, m = 5)
-out1 <- getSmoothed(fit1)
-plot(out1, is.subnational=FALSE)
-
-#  subnational model
-fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat, 
+  time.model = 'rw2', is.yearly=FALSE, m = 5)
+  out1 <- getSmoothed(fit1)
+  plot(out1)
+  
+  #  subnational model
+  fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat, 
   year_label = years.all, year_range = c(1985, 2019), 
-  rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
-out2 <- getSmoothed(fit2)
-plot(out2,  is.subnational=TRUE)
-
-
+  time.model = 'rw2',is.yearly=TRUE, m = 5, type.st = 4)
+  out2 <- getSmoothed(fit2)
+  plot(out2)
+  
+  #  subnational space-only model for one period
+  fit3 <- smoothDirect(data = subset(data, years == "10-14"), 
+           time.model = NULL, Amat = DemoMap$Amat)
+  source('projINLA.R')
+  out3 <- getSmoothed(fit3)
+  plot(out3, plot.CI = TRUE)
 }
 }
 \references{

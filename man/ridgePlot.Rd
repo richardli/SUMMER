@@ -9,7 +9,6 @@ ridgePlot(
   x = NULL,
   nsim = 1000,
   draws = NULL,
-  Amat = NULL,
   year_plot = NULL,
   strata_plot = NULL,
   by.year = TRUE,
@@ -19,6 +18,7 @@ ridgePlot(
   order = 0,
   direction = 1,
   results = NULL,
+  save.density = FALSE,
   ...
 )
 
@@ -26,7 +26,6 @@ getSmoothedDensity(
   x = NULL,
   nsim = 1000,
   draws = NULL,
-  Amat = NULL,
   year_plot = NULL,
   strata_plot = NULL,
   by.year = TRUE,
@@ -36,6 +35,7 @@ getSmoothedDensity(
   order = 0,
   direction = 1,
   results = NULL,
+  save.density = FALSE,
   ...
 )
 }
@@ -45,8 +45,6 @@ getSmoothedDensity(
 \item{nsim}{number of posterior draws to take. Only used for cluster-level models when \code{draws} is NULL. Otherwise the posterior draws in \code{draws} will be used instead without resampling.}
 
 \item{draws}{Output of \code{\link{getSmoothed}} with \code{save.draws} set to TRUE. This argument allows the previously sampled draws (by setting \code{save.draws} to be TRUE) be used in new aggregation tasks. This argument is only used for cluster-level models.}
-
-\item{Amat}{adjacency matrix}
 
 \item{year_plot}{A vector indicate which years to plot}
 
@@ -64,12 +62,14 @@ getSmoothedDensity(
 
 \item{direction}{Direction of the color scheme. It can be either 1 (smaller values are darker) or -1 (higher values are darker). Default is set to 1.}
 
-\item{results}{output from \code{\link{ridgePlot}}. This argument can be specified to avoid calculating densities again when only the visualization changes.}
+\item{results}{output from \code{\link{ridgePlot}} returned object with \code{save.density = TRUE}. This argument can be specified to avoid calculating densities again when only the visualization changes.}
+
+\item{save.density}{Logical indicator of whether the densities will be returned with the ggplot object. If set to TRUE, the output will be a list consisting of (1) a data frame of computed densities and (2) a ggplot object of the plot.}
 
 \item{...}{additional configurations passed to inla.posterior.sample.}
 }
 \value{
-a data frame of the calculated densities and a ggplot figure.
+ridge plot of the density, and  if \code{save.density = TRUE}, also a data frame of the calculated densities
 }
 \description{
 The function \code{ridgePlot} replaces the previous function name \code{getSmoothedDensity} (before version 1.0.0).
@@ -94,36 +94,32 @@ data <- aggregateSurvey(data_multi)
 years.all <- c(years, "15-19")
 fit1 <- smoothDirect(data = data, geo = NULL, Amat = NULL, 
   year_label = years.all, year_range = c(1985, 2019), 
-  rw = 2, is.yearly=FALSE, m = 5)
+  rw = 2, m = 5)
 ## Plot marginal posterior densities over time
-density <- ridgePlot(fit1, year_plot = years.all, 
-ncol = 4, by.year = FALSE)
-density$g
+ridgePlot(fit1, year_plot = years.all, 
+          ncol = 4, by.year = FALSE)
 
 #  subnational model
-fit2 <- smoothDirect(data = data, geo = geo, Amat = mat, 
+fit2 <- smoothDirect(data = data, geo = DemoMap$geo, Amat = DemoMap$Amat, 
   year_label = years.all, year_range = c(1985, 2019), 
-  rw = 2, is.yearly=TRUE, m = 5, type.st = 1)
+  rw = 2, m = 5, type.st = 1)
 
 # Plot marginal posterior densities over time (regions are ordered alphabetically)
-density <- ridgePlot(fit2, Amat = mat, year_plot = years.all, ncol = 4)
-density$g
+ridgePlot(fit2, year_plot = years.all, ncol = 4)
 
-# Re-order the regions 
-density <- ridgePlot(fit2, Amat = mat,  year_plot = years.all,
- ncol = 4, per1000 = TRUE, order = -1)
+# Re-order the regions and save the density to avoid re-compute later
+density <- ridgePlot(fit2, year_plot = years.all,
+ ncol = 4, per1000 = TRUE, order = -1, save.density = TRUE)
 density$g
 
 # Show each region (instead of each year) in a panel 
 ## Instead of recalculate the posteriors, we can use previously calculated densities as input 
-density <- ridgePlot(results = density, year_plot = years.all, 
+ridgePlot(results = density, year_plot = years.all, 
 ncol = 4, by.year=FALSE, per1000 = TRUE)
-density$g
 
 # Show more years
-density <- ridgePlot(results = density, year_plot = c(1990:2019), 
+ridgePlot(results = density, year_plot = c(1990:2019), 
 ncol = 4, by.year=FALSE, per1000 = TRUE)
-density$g
 
 
 

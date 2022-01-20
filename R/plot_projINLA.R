@@ -70,6 +70,11 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
     plot.CI <- !is.subnational
   }
   is.yearly = sum(x$is.yearly) > 0
+  if(sum(!is.na(x$years)) == 0){
+    is.temporal <- FALSE
+  }else{
+    is.temporal <- TRUE
+  }
 
   if(!is.null(data.add)){
     if(!is.null(option.add$point)){
@@ -125,6 +130,19 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
     }
   }
   
+ 
+  # spatial only model
+  if(!is.temporal){
+    g <- ggplot2::ggplot(ggplot2::aes(x = region, y = median, ymin = lower, ymax = upper), data = x)
+    g <- g + ggplot2::geom_point(data = subset(x, !is.na(Comparisons)), ggplot2::aes(x = region, y = add_x, shape = Comparisons), color = color.add)
+    if(!is.null(option.add$lower)) g <- g + ggplot2::geom_errorbar(data = subset(x, !is.na(Comparisons)),  ggplot2::aes(x = region, ymin = add_lower, ymax = add_upper), size = 0.5, width = .03, alpha = 0.35, color = color.add)
+    g <- g + ggplot2::geom_point() + ggplot2::xlab("Region") + ggplot2::ylab("")
+    if(plot.CI){
+            g <- g + ggplot2::geom_errorbar(size = .5, width = .05, alpha = alpha.CI)
+    } 
+
+  }else{
+
   if(is.subnational){
     g <- ggplot2::ggplot(ggplot2::aes(x = years.num, y = median, ymin = lower, ymax = upper, color = region), data = x)
     my.dodge <- ggplot2::position_dodge(width = dodge.width * ifelse(plot.CI, 1, 0))
@@ -137,9 +155,7 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
     my.dodgeadd <- ggplot2::position_dodge2(width = 0.15*dodge.width, padding = 0.1)
     g <- g + ggplot2::geom_point(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, ggplot2::aes(x = years.num+0.5*dodge.width, y = add_x, shape = Comparisons), color = color.add)
     if(!is.null(option.add$lower)) g <- g + ggplot2::geom_errorbar(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, ggplot2::aes(x = years.num+0.5*dodge.width, ymin = add_lower, ymax = add_upper), size = 0.5, width = .03, alpha = 0.35, color = color.add)
-
   }
-  
   # period model
   if(!is.yearly){
     g <- g + ggplot2::geom_point(position = my.dodge)
@@ -178,6 +194,7 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
         g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project, color=region), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), alpha = alpha.CI)
     }
     g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("")
+  }
   }
   if(per1000){
     g <- g + ggplot2::ylab("deaths per 1000 live births")

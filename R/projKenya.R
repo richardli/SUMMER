@@ -1,7 +1,8 @@
 #' Map projection for Kenya
 #' 
-#' Projection specifically chosen for Kenya. Project from lat/lon to UTM northing/easting 
-#' in kilometers.  Uses epsg=21097
+#' Projection specifically chosen for Kenya. Project from lat/lon to northing/easting 
+#' in kilometers.  Uses epsg=21097 with km units. May not work on all systems due to 
+#' differences in the behavior between different PROJ and GDAL versions.
 #' 
 #' @param lon either longitude or, if inverse == TRUE, easting in km
 #' @param lat either latitude or, if inverse == TRUE, northing in km
@@ -13,6 +14,24 @@
 #' northLim = c(-555.1739, 608.7130)
 #' coordMatrixEN = cbind(eastLim, northLim)
 #' coordMatrixLL = projKenya(coordMatrixEN, inverse=TRUE)
+#' 
+#' coordMatrixLL
+#' # if the coordMatrixLL isn't the following, projKenya may not support 
+#' # your installation of GDAL and/or PROJ:
+#' #      east north
+#' # [1,] 33.5  -5.0
+#' # [2,] 42.0   5.5
+#' 
+#' projKenya(coordMatrixLL, inverse=FALSE)
+#' # regardless of your PROJ/GDAL installations, the result of the 
+#' # above line of could should be:
+#' #            lon       lat
+#' # [1,] -110.6405 -555.1739
+#' # [2,]  832.4544  608.7130
+#' 
+#' @importFrom rgdal rgdal_extSoftVersion
+#' @importFrom sp SpatialPoints
+#' @importFrom sp CRS
 #' @export
 projKenya = function(lon, lat=NULL, inverse=FALSE) {
   if(is.null(lat)) {
@@ -20,124 +39,44 @@ projKenya = function(lon, lat=NULL, inverse=FALSE) {
     lon = lon[,1]
   }
   
+  # determine version of PROJ
+  ver = rgdal::rgdal_extSoftVersion()
+  theseNames = names(ver)
+  thisI = which(grepl("PROJ", theseNames))
+  PROJ6 <- as.numeric(substr(ver[thisI], 1, 1)) >= 6
+  
   if(!inverse) {
     # from lon/lat coords to easting/northing
-    lonLatCoords = sp::SpatialPoints(cbind(lon, lat), proj4string=sp::CRS("+proj=longlat"))
-    coordsUTM = sp::spTransform(lonLatCoords, sp::CRS("+init=epsg:21097 +units=km"))
-    out = attr(coordsUTM, "coords")
-    colnames(out) = c("lon", "lat")
+    if(!PROJ6) {
+      lonLatCoords = sp::SpatialPoints(cbind(lon, lat), proj4string=sp::CRS("+proj=longlat"))
+    } else {
+      lonLatCoords = sp::SpatialPoints(cbind(lon, lat), proj4string=sp::CRS(SRS_string="EPSG:4326"))
+    }
+    coordsEN = sp::spTransform(lonLatCoords, sp::CRS("+init=epsg:21097 +units=m"))
+    
+    out = attr(coordsEN, "coords")
+    colnames(out) = c("east", "north")
+    
+    # convert coordinates from m to km
+    out = out/1000
   }
   else {
     # from easting/northing coords to lon/lat
-    east = lon
-    north = lat
-    coordsUTM = sp::SpatialPoints(cbind(east, north), proj4string=sp::CRS("+init=epsg:21097 +units=km"))
-    lonLatCoords = sp::spTransform(coordsUTM, sp::CRS("+proj=longlat"))
+    
+    # first convert from km to m
+    east = lon*1000
+    north = lat*1000
+    
+    coordsEN = sp::SpatialPoints(cbind(east, north), proj4string=sp::CRS("+init=epsg:21097 +units=m"))
+    if(!PROJ6) {
+      lonLatCoords = sp::spTransform(coordsEN, sp::CRS("+proj=longlat"))
+    } else {
+      lonLatCoords = sp::spTransform(coordsEN, sp::CRS(SRS_string="EPSG:4326"))
+    }
+    
     out = attr(lonLatCoords, "coords")
+    colnames(out) = c("lon", "lat")
   }
   
   out
-}
-
-#' Utility functions for Kenya administrative areas
-#' 
-#' @param pts 2 column matrix of lon/lat (if project == FALSE) or east/north (if project == TRUE) coordinates
-#' @param project project to longitude/latitude coordinates
-#' @param delta argument passed to fields.rdist.near in fields package
-#' @param mean.neighbor argument passed to fields.rdist.near in fields package
-#' @param constituencyNames character vector of Kenya constituency (Admin1) 
-#' names to convert to county (Admin2) names using adm2Kenya
-#' 
-#' @author John Paige
-#' 
-#' @seealso \code{\link{projKenya}}
-#' @name kenyaMapUtilities
-NULL
-
-#' @describeIn kenyaMapUtilities Calculates Admin2 areas of the input 
-#' spatial coordinates using adm2Kenya variable from kenyaMaps dataset. 
-#' NOTE: this calls \code{data(kenyaMaps)}
-#' 
-#' @export
-getAdmin2Kenya = function(pts, project=FALSE, delta=.05, mean.neighbor=50) {
-  # require(fields)
-  
-  # project pts to lon/lat coordinate system if user specifies
-  if(project)
-    pts = projKenya(pts, inverse=TRUE)
-  
-  # data(kenyaMaps, envir = environment())
-  constituencyNames = SUMMER::adm2Kenya@data$CONSTITUEN
-  
-  # get constituency map polygons and set helper function for testing if pts are in the constituencies
-  polys = SUMMER::adm2Kenya@polygons
-  inRegion = function(i) {
-    countyPolys = polys[[i]]@Polygons
-    inside = sapply(1:length(countyPolys), function(x) {fields::in.poly(pts, countyPolys[[x]]@coords, inflation=0)})
-    insideAny = apply(inside, 1, any)
-    
-    return(insideAny*i)
-  }
-  out = sapply(1:length(polys), inRegion)
-  multipleRegs = apply(out, 1, function(vals) {sum(vals != 0) > 1})
-  constituencyID = apply(out, 1, function(vals) {match(1, vals != 0)})
-  constituencyNameVec = constituencyNames[constituencyID]
-  
-  # for all points not in a constituency polygon, determine the nearest constituency
-  insideAny = apply(out, 1, function(x) {any(x != 0)})
-  if(any(!insideAny)) {
-    problemPointsI = which(!insideAny)
-    
-    # get nearby points (points within .2 lon/lat units), remove self matches
-    nearbyPoints = fields::fields.rdist.near(pts[problemPointsI,], pts, delta=delta, mean.neighbor=mean.neighbor)
-    selfI = nearbyPoints$ra == 0
-    nearbyPoints$ind = nearbyPoints$ind[!selfI,]
-    nearbyPoints$ra = nearbyPoints$ra[!selfI]
-    nearbyI = lapply(sort(unique(nearbyPoints$ind[,1])), function(x) {nearbyPoints$ind[nearbyPoints$ind[,1] == x,2]})
-    
-    # get nearby constituencies, counties, and distances
-    nearbyConstituencies = lapply(nearbyI, function(x) {constituencyNameVec[x]})
-    nearbyLengths = sapply(nearbyI, function(x) {length(x)})
-    nearbyDistances = c()
-    # nearbyCounties = c()
-    startI = 1
-    for(i in 1:length(nearbyI)) {
-      endI = startI + nearbyLengths[i] - 1
-      nearbyDistances = c(nearbyDistances, list(nearbyPoints$ra[startI:endI]))
-      startI = endI + 1
-    }
-    
-    # sort nearby constituencies and indices by distance
-    for(i in 1:length(nearbyI)) {
-      thisDistances = nearbyDistances[[i]]
-      sortI = sort(thisDistances, index.return=TRUE)$ix
-      nearbyDistances[[i]] = nearbyDistances[[i]][sortI]
-      nearbyConstituencies[[i]] = nearbyConstituencies[[i]][sortI]
-      nearbyI[[i]] = nearbyI[[i]][sortI]
-    }
-    
-    # get nearest non-NA constituency and assign it
-    closestConstituency = sapply(nearbyConstituencies, function(x) {x[match(TRUE, !is.na(x))]})
-    
-    constituencyNameVec[problemPointsI] = closestConstituency
-  }
-  
-  list(constituencyID=constituencyID, constituencyNames=constituencyNameVec, multipleRegs=multipleRegs)
-}
-
-#' @describeIn kenyaMapUtilities Computes what administrative regions the given points are in
-#' @export
-getAdmin1Kenya = function(pts, project=FALSE, delta=.05, mean.neighbor=50) {
-  out = getAdmin2Kenya(pts, project, delta, mean.neighbor)
-  constituencies = out$constituencyNames
-  admin2ToAdmin1Kenya(constituencies)
-}
-
-#' @describeIn kenyaMapUtilities Gives Kenya Admin1 area containing Admin2 area
-#' @export
-admin2ToAdmin1Kenya = function(constituencyNames) {
-  constituencies = SUMMER::adm2Kenya@data$CONSTITUEN
-  counties = SUMMER::adm2Kenya@data$COUNTY_NAM
-  matchI = match(constituencyNames, constituencies)
-  counties[matchI]
 }

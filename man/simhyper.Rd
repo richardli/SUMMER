@@ -8,7 +8,7 @@ simhyper(
   R = 2,
   nsamp = 1e+05,
   nsamp.check = 5000,
-  Amat,
+  Amat = NULL,
   nperiod = 6,
   only.iid = TRUE
 )

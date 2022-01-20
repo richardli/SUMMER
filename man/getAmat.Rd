@@ -18,11 +18,12 @@ Spatial djacency matrix.
 Extract adjacency matrix from the map
 }
 \examples{
+\dontrun{
 data(DemoMap) 
 mat <- getAmat(geo = DemoMap$geo, names = DemoMap$geo$REGNAME)
 mat
 DemoMap$Amat
- 
+} 
 }
 \author{
 Zehang Richard Li
