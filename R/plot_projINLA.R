@@ -23,6 +23,7 @@
 #'  \item{\code{year_med}}{ median of year intervals, e.g., \code{c(1987, 1992, 1997, 2002, 2007, 2012, 2017)}}
 #' }
 #' @method plot SUMMERproj
+#' @importFrom ggplot2 ggplot aes geom_point geom_line geom_errorbar position_dodge position_dodge2 xlab ylab scale_x_continuous theme_bw scale_shape_discrete
 #' @seealso \code{\link{getSmoothed}}
 #' @author Zehang Richard Li
 #' @examples
@@ -133,73 +134,77 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
  
   # spatial only model
   if(!is.temporal){
-    g <- ggplot2::ggplot(ggplot2::aes(x = region, y = median, ymin = lower, ymax = upper), data = x)
-    g <- g + ggplot2::geom_point(data = subset(x, !is.na(Comparisons)), ggplot2::aes(x = region, y = add_x, shape = Comparisons), color = color.add)
-    if(!is.null(option.add$lower)) g <- g + ggplot2::geom_errorbar(data = subset(x, !is.na(Comparisons)),  ggplot2::aes(x = region, ymin = add_lower, ymax = add_upper), size = 0.5, width = .03, alpha = 0.35, color = color.add)
-    g <- g + ggplot2::geom_point() + ggplot2::xlab("Region") + ggplot2::ylab("")
+    g <- ggplot(data = x)
+    g <- g + geom_point(data = subset(x, !is.na(Comparisons)), aes(x = region, y = add_x, shape = Comparisons), color = color.add)
+    if(!is.null(option.add$lower)) g <- g + geom_errorbar(data = subset(x, !is.na(Comparisons)),  aes(x = region, ymin = add_lower, ymax = add_upper), size = 0.5, width = .03, alpha = 0.35, color = color.add)
+    g <- g + geom_point(aes(x = region, y = median)) + xlab("Region") + ylab("")
     if(plot.CI){
-            g <- g + ggplot2::geom_errorbar(size = .5, width = .05, alpha = alpha.CI)
+            g <- g + geom_errorbar(aes(ymin = lower, ymax = upper), size = .5, width = .05, alpha = alpha.CI)
     } 
 
   }else{
 
   if(is.subnational){
-    g <- ggplot2::ggplot(ggplot2::aes(x = years.num, y = median, ymin = lower, ymax = upper, color = region), data = x)
-    my.dodge <- ggplot2::position_dodge(width = dodge.width * ifelse(plot.CI, 1, 0))
+    g <- ggplot(aes(x = years.num, color = region), data = x)
+    my.dodge <- position_dodge(width = dodge.width * ifelse(plot.CI, 1, 0))
   }else{
     dodge.width <- dodge.width / 5
-    g <- ggplot2::ggplot(ggplot2::aes(x = years.num, y = median, ymin = lower, ymax = upper), data = x)
-    my.dodge <- ggplot2::position_dodge(width = dodge.width* ifelse(plot.CI, 1, 0))
+    g <- ggplot(aes(x = years.num), data = x)
+    my.dodge <- position_dodge(width = dodge.width* ifelse(plot.CI, 1, 0))
   }
   if(!is.null(data.add)){
-    my.dodgeadd <- ggplot2::position_dodge2(width = 0.15*dodge.width, padding = 0.1)
-    g <- g + ggplot2::geom_point(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, ggplot2::aes(x = years.num+0.5*dodge.width, y = add_x, shape = Comparisons), color = color.add)
-    if(!is.null(option.add$lower)) g <- g + ggplot2::geom_errorbar(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, ggplot2::aes(x = years.num+0.5*dodge.width, ymin = add_lower, ymax = add_upper), size = 0.5, width = .03, alpha = 0.35, color = color.add)
+    my.dodgeadd <- position_dodge2(width = 0.15*dodge.width, padding = 0.1)
+    g <- g + geom_point(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, aes(x = years.num+0.5*dodge.width, y = add_x, shape = Comparisons), color = color.add)
+    if(!is.null(option.add$lower)) g <- g + geom_errorbar(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, aes(x = years.num+0.5*dodge.width, ymin = add_lower, ymax = add_upper), size = 0.5, width = .03, alpha = 0.35, color = color.add)
   }
   # period model
   if(!is.yearly){
-    g <- g + ggplot2::geom_point(position = my.dodge)
-    g <- g + ggplot2::geom_line(position = my.dodge)
+    g <- g + geom_point(aes(y = median), position = my.dodge)
+    g <- g + geom_line(aes(y = median), position = my.dodge)
     if(plot.CI & !is.null(color.CI)){
-        g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .7, width = .05, position = my.dodge, color = color.CI, alpha = alpha.CI)
+        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), size = .7, width = .05, position = my.dodge, color = color.CI, alpha = alpha.CI)
     }else if(plot.CI &length(unique(x$region))==1){
-       g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .7, width = .05, position = my.dodge, color = "black", alpha = alpha.CI)
+       g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), size = .7, width = .05, position = my.dodge, color = "black", alpha = alpha.CI)
     }else if(plot.CI & is.null(color.CI)){
-        g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project, color=region), size = .7, width = .05, position = my.dodge, alpha = alpha.CI)
+        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project, color=region), size = .7, width = .05, position = my.dodge, alpha = alpha.CI)
     }
-    g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("")
-    if(!period.1yr) g <- g + ggplot2::scale_x_continuous(breaks=year_med, labels=year_label)
+    g <- g + theme_bw() + xlab("Year") + ylab("")
+    if(!period.1yr){
+      g <- g + scale_x_continuous(breaks=year_med, labels=year_label)
+    }else{
+      g <- g + scale_x_continuous(breaks=scales::pretty_breaks())
+    }
   
   # yearly model with only one color
   }else if(!is.subnational){
-    g <- g + ggplot2::geom_point(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5, color = 1)
-    g <- g + ggplot2::geom_line(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5, color = 1)
+    g <- g + geom_point(aes(y = median), position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5, color = 1)
+    g <- g + geom_line(aes(y = median), position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5, color = 1)
     
-    g <- g + ggplot2::geom_point(shape = 17, size = 2.5, position = my.dodge, data=subset(x, is.periods==TRUE), color = 2)
+    g <- g + geom_point(aes(y = median), shape = 17, size = 2.5, position = my.dodge, data=subset(x, is.periods==TRUE), color = 2)
     if(plot.CI){
-        g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .5, width = .05, position = my.dodge, data=subset(x, is.periods==FALSE), alpha = alpha.CI, color = "black")
-        g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), color = "red")
+        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), size = .5, width = .05, position = my.dodge, data=subset(x, is.periods==FALSE), alpha = alpha.CI, color = "black")
+        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), color = "red")
     } 
-    g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("")
+    g <- g + theme_bw() + xlab("Year") + ylab("") + scale_x_continuous(breaks=scales::pretty_breaks())
 
   # yearly model with multiple colors
   }else if(is.subnational){
-    g <- g + ggplot2::geom_point(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5)
-    g <- g + ggplot2::geom_line(position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5)
-    # if(plot.CI) g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .5, width = .05, alpha = alpha.CI, position = my.dodge, color = color.CI)
-    g <- g + ggplot2::geom_point(shape = 17, size = 2.5, position = my.dodge, data=subset(x, is.periods==TRUE), alpha = 0.7)
+    g <- g + geom_point(aes(y = median), position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5)
+    g <- g + geom_line(aes(y = median), position = my.dodge, data=subset(x, is.periods==FALSE), alpha = 0.5)
+    # if(plot.CI) g <- g + geom_errorbar(aes(linetype=project), size = .5, width = .05, alpha = alpha.CI, position = my.dodge, color = color.CI)
+    g <- g + geom_point(aes(y = median), shape = 17, size = 2.5, position = my.dodge, data=subset(x, is.periods==TRUE), alpha = 0.7)
     if(plot.CI && !is.null(color.CI)){
-        g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), color = color.CI, alpha = alpha.CI)
+        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), color = color.CI, alpha = alpha.CI)
     }else if(plot.CI){
-        g <- g + ggplot2::geom_errorbar(ggplot2::aes(linetype=project, color=region), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), alpha = alpha.CI)
+        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project, color=region), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), alpha = alpha.CI)
     }
-    g <- g + ggplot2::theme_bw() + ggplot2::xlab("Year") + ggplot2::ylab("")
+    g <- g + theme_bw() + xlab("Year") + ylab("") + scale_x_continuous(breaks=scales::pretty_breaks())
   }
   }
   if(per1000){
-    g <- g + ggplot2::ylab("deaths per 1000 live births")
+    g <- g + ylab("deaths per 1000 live births")
   }
 
-  if(!is.null(label.add)) g <- g + ggplot2::scale_shape_discrete("") 
+  if(!is.null(label.add)) g <- g + scale_shape_discrete("") 
   g
 }

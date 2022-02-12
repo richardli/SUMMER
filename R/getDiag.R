@@ -99,7 +99,7 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 		quants <- rbind(quants, getquants(unstruct, lower = lower, upper = upper))
 		quants$years <- c(label, label.unstruct)
 		if(!is.null(inla_mod$age.rw.group)){
-			quants$group <- c(group, rep(NA, m))
+			quants$group <- c(group, rep("IID", m))
 		}
 	  	quants$years.num <- suppressWarnings(as.numeric(as.character(quants$years)))
 		quants$label <- c(rep("RW", n), rep("IID", m))
@@ -214,7 +214,7 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 	           names(select)[i] <- fixed[i]
 	        }
         	if(is.null(draws)){
-				message("AR1 model diagnostics are still experimental, starting posterior sampling...")
+				message("Posterior draws not provided. Start new posterior sampling...")
 	        	sampAll <- INLA::inla.posterior.sample(n = 1000, result = inla_mod$fit, intern = TRUE, selection = select, verbose = FALSE)
 	        }else{
 	        	sampAll <- draws

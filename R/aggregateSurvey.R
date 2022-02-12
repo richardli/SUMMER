@@ -55,7 +55,6 @@ aggregateSurvey <- function(data) {
       data[i, "lower"] <- expit(data[i, "logit.est"] + stats::qnorm(0.025)*sqrt(data[i, "var.est"]))
       data[i, "upper"] <- expit(data[i, "logit.est"] + stats::qnorm(0.975)*sqrt(data[i, "var.est"]))
     }
-    data[i, "region_num"] <- data0[tmp, "region_num"][1]
   }
   return(data)
 }

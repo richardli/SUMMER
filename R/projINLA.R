@@ -58,7 +58,7 @@
 #' @export
 getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, include_subnational = TRUE, ...){
 
-      years <- region <- NA
+      years <- region <- age.diff <- NA
       lowerCI <- (1 - CI) / 2
       upperCI <- 1 - lowerCI
       save.draws.est <- save.draws
