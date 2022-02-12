@@ -686,18 +686,18 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
     }   
 
     if(is.unit.level && responseType == "binary"){
-        fit <- INLA::inla(formula, family="betabinomial", Ntrials=dat$total, control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+        fit <- INLA::inla(formula, family="betabinomial", Ntrials=dat$total, control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     
     }else if(is.unit.level && responseType == "gaussian"){
-        fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2))  
+        fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2))  
 
     }else if(!svy && responseType == "binary"){
-         fit <- INLA::inla(formula, family="binomial", Ntrials=n, control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+         fit <- INLA::inla(formula, family="binomial", Ntrials=n, control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     
     }else if(!svy && responseType == "gaussian"){
-        fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+        fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     }else{
-         fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.logit.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+         fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.logit.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     }
     
 
