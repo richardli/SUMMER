@@ -43,4 +43,8 @@ jobs:
         with:
           extra-packages: rcmdcheck
 
+      - name: Install INLA
+        run: install.packages("INLA",repos=c(getOption("repos"),INLA="https://inla.r-inla-download.org/R/stable"), dep=TRUE)
+        shell: Rscript {0}
+
       - uses: r-lib/actions/check-r-package@v1
