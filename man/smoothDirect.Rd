@@ -88,7 +88,7 @@ fitINLA(
 
 \item{type.st}{type for space-time interaction}
 
-\item{survey.effect}{logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0.}
+\item{survey.effect}{logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0. Notice this survey effect is implemented according to the Merter et al. (2015) model, and differently compared to the smoothCluster() function.}
 
 \item{hyper}{which hyperpriors to use. Default to be using the PC prior ("pc").}
 

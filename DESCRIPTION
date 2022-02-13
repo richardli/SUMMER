@@ -27,3 +27,4 @@ Additional_repositories: https://inla.r-inla-download.org/R/testing/
 Suggests: INLA, knitr, rmarkdown, readstata13, patchwork, rdhs, R.rsp, fields
 VignetteBuilder: R.rsp, knitr
 NeedsCompilation: no
+Config/build/clean-inst-doc: FALSE
