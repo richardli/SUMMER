@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main, master]
 
-name: R-CMD-check
+name: R-CMD-check_INLA_stable
 
 jobs:
   R-CMD-check:
