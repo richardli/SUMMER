@@ -1,5 +1,5 @@
 # SUMMER
-[![](https://github.com/richardli/SUMMER/workflows/R-CMD-check_INLA_stable/badge.svg)](https://github.com/richardli/SUMMER/actions)[![](https://github.com/richardli/SUMMER/workflows/R-CMD-check_INLA_testing/badge.svg)](https://github.com/richardli/SUMMER/actions)[![](https://cranlogs.r-pkg.org/badges/SUMMER)](https://cran.r-project.org/package=SUMMER) [![](https://cranlogs.r-pkg.org/badges/grand-total/SUMMER?color=orange)](https://cran.r-project.org/package=SUMMER)
+[![](https://github.com/richardli/SUMMER/workflows/R-CMD-check_INLA_stable/badge.svg)](https://github.com/richardli/SUMMER/actions) [![](https://github.com/richardli/SUMMER/workflows/R-CMD-check_INLA_testing/badge.svg)](https://github.com/richardli/SUMMER/actions) [![](https://cranlogs.r-pkg.org/badges/SUMMER)](https://cran.r-project.org/package=SUMMER) [![](https://cranlogs.r-pkg.org/badges/grand-total/SUMMER?color=orange)](https://cran.r-project.org/package=SUMMER)
 
 SAE Unit/area Models and Methods for Estimation in R
 
