@@ -1,7 +1,7 @@
 #' Adjust direct estimates and their associated variances
 #' 
 #' @param data data frame of the adjusted estimates and the associated uncertainties, see the arguments below for specific columns.
-#' @param ratio the ratio of unadjusted mortality rates to the true mortality rates. It can be either a data frame with the following three columns (region, time, and adj) if adjustment factor differ by region; or a data frame with the following two columns (time and adj) if adjustment factor only varies over time. The column names specifying region, time and ratio, and adjustment are specified by the arguments in the function call.
+#' @param ratio the ratio of unadjusted mortality rates to the true mortality rates. It can be either a data frame with the following three columns (region, time, and adj) if adjustment factor differ by region; or a data frame with the following two columns (time and adj) if adjustment factor only varies over time. The column names specifying region, time, and adjustment are specified by the arguments in the function call.
 #' @param time the column name for time in the data and adjustment ratio.
 #' @param region the column name for region in the data  and adjustment ratio.
 #' @param est the column name for unadjusted mortality rates in the data 
