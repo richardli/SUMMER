@@ -1,5 +1,5 @@
 # SUMMER
-[![Build Status](https://travis-ci.com/richardli/SUMMER.svg?branch=master)](https://travis-ci.com/richardli/SUMMER) [![](https://cranlogs.r-pkg.org/badges/SUMMER)](https://cran.r-project.org/package=SUMMER) [![](https://cranlogs.r-pkg.org/badges/grand-total/SUMMER?color=orange)](https://cran.r-project.org/package=SUMMER)
+[![R-CMD-check](https://github.com/richardli/SUMMER/workflows/R-CMD-check/badge.svg)](https://github.com/richardli/SUMMER/actions)[![](https://cranlogs.r-pkg.org/badges/SUMMER)](https://cran.r-project.org/package=SUMMER) [![](https://cranlogs.r-pkg.org/badges/grand-total/SUMMER?color=orange)](https://cran.r-project.org/package=SUMMER)
 
 SAE Unit/area Models and Methods for Estimation in R
 
