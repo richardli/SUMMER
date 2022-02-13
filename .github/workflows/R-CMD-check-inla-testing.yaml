@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main, master]
 
-name: R-CMD-check-inla-testing
+name: R-CMD-check_INLA_testing
 
 jobs:
   R-CMD-check:
