@@ -88,6 +88,9 @@ mapPlot <- function(data = NULL, variables, values = NULL, labels = NULL, geo, b
             g <- g + ggplot2::theme_bw() + ggplot2::theme(legend.title=ggplot2::element_text(size=ggplot2::rel(0.7)), axis.title.x=ggplot2::element_blank(), axis.text.x=ggplot2::element_blank(), axis.ticks.x=ggplot2::element_blank(), axis.title.y=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank(), axis.ticks.y=ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank())
         }
         return(g)
+    }else{
+        # handling potential tibble issue
+        data <- as.data.frame(data)
     }
 
     if (is.null(labels) & !is.long) {
