@@ -518,12 +518,12 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
             n <- y <- NA
         }else if(is.null(direct.est)){
             if(!is.null(timeVar)){
-                mean <- stats::aggregate(response0 ~ region0+time0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})    
+                mean <- stats::aggregate(response0 ~ region0+time0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))}, drop = FALSE)    
                   name.i <- mean$region0
                   time.i <- as.numeric(as.character(mean$time0))
                   mean <- data.frame(mean[, -c(1:2)])
             }else{
-                mean <- stats::aggregate(response0 ~ region0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})
+                mean <- stats::aggregate(response0 ~ region0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))}, drop = FALSE)
                 name.i <- mean$region0
                 mean <- data.frame(mean[, -1])
             }
@@ -692,7 +692,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2))  
 
     }else if(!svy && responseType == "binary"){
-         fit <- INLA::inla(formula, family="binomial", Ntrials=n, control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+         fit <- INLA::inla(formula, family="binomial", Ntrials=n, control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE, link=1),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     
     }else if(!svy && responseType == "gaussian"){
         fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
