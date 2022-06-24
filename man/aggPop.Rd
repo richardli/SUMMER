@@ -13,8 +13,7 @@ pixelPopToArea(
   stratifyByUrban = TRUE,
   targetPopMat = NULL,
   doFineScaleRisk = !is.null(pixelLevelPop$fineScaleRisk$p),
-  doSmoothRisk = !is.null(pixelLevelPop$smoothRisk$p),
-  easpa = NULL
+  doSmoothRisk = !is.null(pixelLevelPop$smoothRisk$p)
 )
 
 areaPopToArea(
@@ -42,20 +41,20 @@ want to aggregate. Can also be subareas}
 
 \item{doSmoothRisk}{Whether or not to calculate the smooth risk in addition to the prevalence. See details}
 
-\item{easpa}{see \code{\link{simPopSPDE}}}
-
 \item{areaLevelPop}{output of \code{\link{simPopCustom}} containing pixel level information 
 about the population of interest}
 
 \item{areasFrom}{character vector of length equal to the number of areas from which 
 we would like to aggregate containing the unique names of the areas. 
 Can also be subareas, but these are smaller than the "to areas", and 
-each "from area" but be entirely contained in a single "to area"}
+each "from area" must be entirely contained in a single "to area"}
 
-\item{areasTo}{character vector of length equal to the number of subareas to which 
-we would like to aggregate containing the names of the areas associated 
-with each respective subarea. Can also be a different set of subareas, 
+\item{areasTo}{character vector of length equal to the number of areas from which 
+we would like to aggregate containing the names of the areas containing 
+with each respective `from' area. Can also be a set of subareas, 
 but these are larger than the "from areas".}
+
+\item{easpa}{see \code{\link{simPopSPDE}}}
 }
 \value{
 A list containing elements `fineScalePrevalence` and `fineScaleRisk`. Each 
