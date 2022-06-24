@@ -25,7 +25,8 @@ mapPlot(
   add.adj = FALSE,
   color.adj = "red",
   alpha.adj = 0.85,
-  direction = 1
+  direction = 1,
+  cut = NULL
 )
 }
 \arguments{
@@ -70,6 +71,8 @@ mapPlot(
 \item{alpha.adj}{alpha level (transparency) of the adjacency matrix edges.}
 
 \item{direction}{Direction of the color scheme. It can be either 1 (smaller values are darker) or -1 (higher values are darker). Default is set to 1.}
+
+\item{cut}{a vector of values to cut the continuous scale color to discrete intervals.}
 }
 \description{
 This function visualizes the map with different variables. The input data frame can be either the long or wide format.

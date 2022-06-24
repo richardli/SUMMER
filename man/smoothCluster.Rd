@@ -12,6 +12,7 @@ smoothCluster(
   age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"),
   age.n = c(1, 11, 12, 12, 12, 12),
   age.rw.group = c(1, 2, 3, 3, 3, 3),
+  age.strata.fixed.group = c(1, 2, 3, 4, 5, 6),
   time.model = c("rw1", "rw2", "ar1")[2],
   st.time.model = NULL,
   Amat,
@@ -21,6 +22,7 @@ smoothCluster(
   year_label,
   type.st = 4,
   survey.effect = FALSE,
+  linear.trend = TRUE,
   common.trend = FALSE,
   strata.time.effect = FALSE,
   hyper = "pc",
@@ -53,6 +55,7 @@ fitINLA2(
   age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"),
   age.n = c(1, 11, 12, 12, 12, 12),
   age.rw.group = c(1, 2, 3, 3, 3, 3),
+  age.strata.fixed.group = c(1, 2, 3, 4, 5, 6),
   time.model = c("rw1", "rw2", "ar1")[2],
   st.time.model = NULL,
   Amat,
@@ -62,6 +65,7 @@ fitINLA2(
   year_label,
   type.st = 4,
   survey.effect = FALSE,
+  linear.trend = TRUE,
   common.trend = FALSE,
   strata.time.effect = FALSE,
   hyper = "pc",
@@ -109,9 +113,13 @@ fitINLA2(
 
 \item{age.rw.group}{vector indicating grouping of the ages groups. For example, if each age group is assigned a different random walk component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate random walk to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.}
 
+\item{age.strata.fixed.group}{vector indicating grouping of the ages groups for different strata. The default is c(1:length(age.groups)), which correspond to each age group within each stratum receives a separate intercept. If several age groups are specified to be the same value in this vector, the stratum specific deviation from the baseline is assumed to be the same for these age groups. For example, if \code{age.strata.fixed.group = c(1, 2, 3, 3, 3, 3)}, then the fixed effect part of the linear predictor consists of 6 overall age-specific intercepts and 3 set of strata effects (where a base stratum is chosen internally), for age groups 1, 2, and the rest respectively.
+
+For example, if each age group is assigned a different intercept, then set age.strata.fixed.group to c(1:length(age.groups)); if all age groups share the same intercept, then set age.strata.fixed.group to a rep(1, length(age.groups)). The default for 6 age groups is the former. It can also be set to be the same as \code{age.rw.group}. The vector should contain values starting from 1.}
+
 \item{time.model}{Model for the main temporal trend, can be rw1, rw2, ar1, or NULL (for spatial-only smoothing). Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale.}
 
-\item{st.time.model}{Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. For ar1 interaction model, region-specific random slopes can be added by specifying \code{pc.st.slope.u} and \code{pc.st.slope.alpha}.}
+\item{st.time.model}{Temporal component model for the interaction term, can be rw1, rw2, or ar1. Default to be the same as time.model unless specified otherwise. The default does not include region-specific random slopes. They can be added to the interaction term by specifying \code{pc.st.slope.u} and \code{pc.st.slope.alpha}.}
 
 \item{Amat}{Adjacency matrix for the regions}
 
@@ -125,9 +133,11 @@ fitINLA2(
 
 \item{type.st}{type for space-time interaction}
 
-\item{survey.effect}{logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0.}
+\item{survey.effect}{logical indicator whether to include a survey fixed effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this effect term will be set to 0.}
 
-\item{common.trend}{logical indicator whether all age groups and/or strata share the same linear trend in the temporal main effect. Only used when the temporal main effect is an AR(1) process.}
+\item{linear.trend}{logical indicator whether a linear trend is added to the temporal main effect. If the temporal main effect is RW2, then it will be forced to FALSE. Default is TRUE.}
+
+\item{common.trend}{logical indicator whether all age groups and/or strata share the same linear trend in the temporal main effect.}
 
 \item{strata.time.effect}{logical indicator whether to include strata specific temporal trends.}
 

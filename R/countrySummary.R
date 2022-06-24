@@ -233,7 +233,7 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
     results[, 4:8] <- t(x)
     results$survey <- NA
     results$logit.prec <- 1/results$var.est
-    results <- results[, c("region", "years", "mean", "lower", "upper", "logit.est", "var.est", "region_num", "survey", "logit.prec")]
+    results <- results[, c("region", "years", "mean", "lower", "upper", "logit.est", "var.est", "survey", "logit.prec")]
      
     return(results)
 }

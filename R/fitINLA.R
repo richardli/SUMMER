@@ -12,7 +12,7 @@
 #' @param is.yearly Logical indicator for fitting yearly or period model.
 #' @param m Number of years in each period.
 #' @param type.st type for space-time interaction
-#' @param survey.effect logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0. 
+#' @param survey.effect logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0. Notice this survey effect is implemented according to the Merter et al. (2015) model, and differently compared to the smoothCluster() function.
 #' @param hyper which hyperpriors to use. Default to be using the PC prior ("pc"). 
 #' @param pc.u hyperparameter U for the PC prior on precisions.
 #' @param pc.alpha hyperparameter alpha for the PC prior on precisions.
@@ -22,12 +22,13 @@
 #' @param pc.alpha.cor hyperparameter alpha for the PC prior on the autocorrelation parameter in the AR prior.
 #' @param pc.st.u hyperparameter U for the PC prior on precisions for the interaction term.
 #' @param pc.st.alpha hyperparameter alpha for the PC prior on precisions for the interaction term.
-#' @param options list of options to be passed to control.compute() in the inla() function.
+#' @param control.compute list of options to be passed to control.compute() in the inla() function.
 #' @param control.inla list of options to be passed to control.inla() in the inla() function. Default to the "adaptive" integration strategy.
 #' @param verbose logical indicator to print out detailed inla() intermediate steps.
 #' @param geo Deprecated.
 #' @param rw Deprecated.
 #' @param ar Deprecated.
+#' @param options Deprecated.
 #' @seealso \code{\link{getDirect}}
 #' @import Matrix
 #' @importFrom stats dgamma
@@ -49,7 +50,7 @@
 #'   years.all <- c(years, "15-19")
 #'   fit1 <- smoothDirect(data = data, Amat = NULL, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
-#'   time.model = 'rw2', is.yearly=FALSE, m = 5)
+#'   time.model = 'rw2', is.yearly=FALSE, m = 5, control.compute = list(config =TRUE))
 #'   out1 <- getSmoothed(fit1)
 #'   plot(out1)
 #'   
@@ -68,7 +69,7 @@
 #'   plot(out3, plot.CI = TRUE)
 #' }
 #' @export
-smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, year_label, year_range = c(1980, 2014), is.yearly=TRUE, m = 5, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA, pc.st.alpha = NA, options = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy = 'default'), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL){
+smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, year_label, year_range = c(1980, 2014), is.yearly=TRUE, m = 5, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA, pc.st.alpha = NA, control.compute = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy = 'default'), control.inla = list(strategy = "adaptive", int.strategy = "auto"), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, options = NULL){
 
   if(!is.null(geo)){
     message("Argument geo is deprecated in the smoothDirect function. Only Amat is needed.")
@@ -76,6 +77,10 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
   X <- NULL
   #   message("Covariates in smooth direct estimation is not supported.")
 
+  if(!is.null(options)){
+    control.compute = options
+    message("The options argument in previous versions is replaced with control.compute argument.")
+  }
   msg <- NULL
   # define whether there is the temporal component
   is.temporal <- TRUE
@@ -207,6 +212,9 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
         stop("Row and column names of Amat needs to be the same.")
     }
     is.spatial <- TRUE
+    if(sum(!data$region %in% c("All", colnames(Amat))) > 0){
+        stop("Exist regions in the data frame but not in Amat.")
+    }
   }else{
     is.spatial <- FALSE
     is.ar <- FALSE
@@ -965,7 +973,7 @@ if(is.main.ar){
     }
     
 
-    fit <- INLA::inla(mod, family = "gaussian", control.compute = options, data = exdat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE ))), scale = exdat$logit.prec, lincomb = lincombs.fit, control.inla = control.inla, verbose = verbose)
+    fit <- INLA::inla(mod, family = "gaussian", control.compute = control.compute, data = exdat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE ))), scale = exdat$logit.prec, lincomb = lincombs.fit, control.inla = control.inla, verbose = verbose)
     out <- list(model = mod, fit = fit, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, lincombs.info = lincombs.info, is.yearly = is.yearly, type.st = type.st, year_range = year_range, year_label = year_label, Amat = Amat, has.Amat = TRUE, is.temporal = is.temporal, msg = msg)
     class(out) <- "SUMMERmodel"
     return(out)

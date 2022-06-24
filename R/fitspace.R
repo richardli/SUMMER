@@ -29,6 +29,7 @@
 #' @param formula a string of user-specified random effects model to be used in the INLA call
 #' @param timeVar The variable indicating time period. If set to NULL then the temporal model and space-time interaction model are ignored.
 #' @param time.model the model for temporal trends and interactions. It can be either "rw1" or "rw2".
+#' @param include_time_unstruct  Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates from cluster-level model. The argument only applies to the unit-level models. Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included. 
 #' @param type.st can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.
 #' @param direct.est data frame of direct estimates, with column names of response and region specified by \code{responseVar}, \code{regionVar}, and \code{timeVar}.  When \code{direct.est} is specified, it overwrites the \code{data} input. 
 #' @param direct.est.var the column name corresponding to the variance of direct estimates.
@@ -38,6 +39,7 @@
 #' @param totalVar the variable specifying total observations in \code{counts}. This is only used for the unit-level model when \code{counts} is specified. 
 #' @param weight.strata a data frame with one column corresponding to \code{regionVar}, and columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates. This is only used for the unit-level model. 
 #' @param nsim number of posterior draws to take. This is only used for the unit-level model when \code{weight.strata} is provided. 
+#' @param save.draws logical indicator of whether to save the full posterior draws.
 #' @param ... additional arguments passed to \code{svydesign} function.
 #' 
 #' 
@@ -65,6 +67,15 @@
 #' weightVar="weights", regionVar="region", 
 #' clusterVar = "~clustid+id", CI = 0.95)
 #' summary(fit0)
+#' 
+#' # posterior draws can be returned with save.draws = TRUE
+#' fit0.draws <- smoothSurvey(data=DemoData2,  
+#' Amat=DemoMap2$Amat, responseType="binary", 
+#' responseVar="tobacco.use", strataVar="strata", 
+#' weightVar="weights", regionVar="region", 
+#' clusterVar = "~clustid+id", CI = 0.95, save.draws = TRUE)
+#' # notice the posterior draws are on the latent scale
+#' head(fit0.draws$draws.est[, 1:10]) 
 #' 
 #' # Example with region-level covariates
 #'  Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
@@ -246,7 +257,7 @@
 #' @export
 
 
-smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, ...){
+smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], include_time_unstruct = FALSE, type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, save.draws = FALSE, ...){
 
     svy <- TRUE
     if(is.null(responseVar)){
@@ -507,12 +518,12 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
             n <- y <- NA
         }else if(is.null(direct.est)){
             if(!is.null(timeVar)){
-                mean <- stats::aggregate(response0 ~ region0+time0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})    
+                mean <- stats::aggregate(response0 ~ region0+time0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))}, drop = FALSE)    
                   name.i <- mean$region0
                   time.i <- as.numeric(as.character(mean$time0))
                   mean <- data.frame(mean[, -c(1:2)])
             }else{
-                mean <- stats::aggregate(response0 ~ region0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))})
+                mean <- stats::aggregate(response0 ~ region0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))}, drop = FALSE)
                 name.i <- mean$region0
                 mean <- data.frame(mean[, -1])
             }
@@ -675,18 +686,18 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
     }   
 
     if(is.unit.level && responseType == "binary"){
-        fit <- INLA::inla(formula, family="betabinomial", Ntrials=dat$total, control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+        fit <- INLA::inla(formula, family="betabinomial", Ntrials=dat$total, control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     
     }else if(is.unit.level && responseType == "gaussian"){
-        fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2))  
+        fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2))  
 
     }else if(!svy && responseType == "binary"){
-         fit <- INLA::inla(formula, family="binomial", Ntrials=n, control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+         fit <- INLA::inla(formula, family="binomial", Ntrials=n, control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE, link=1),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     
     }else if(!svy && responseType == "gaussian"){
-        fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+        fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     }else{
-         fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.logit.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+         fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.logit.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     }
     
 
@@ -757,11 +768,30 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
       
     }
 
+    if("strata" %in% colnames(proj)){
+        draws.out <- proj[, c("region", "time", "strata")]
+    }else{
+        draws.out <- proj[, c("region", "time")]        
+    }
+    for(j in 1:nsim) draws.out[, paste0("sample:", j)] <- NA
+    sampAll <- NULL
+    if(save.draws){
+        sampAll <- INLA::inla.posterior.sample(n = nsim, result = fit, intern = TRUE)
+        for(i in 1:dim(draws.out)[1]){
+            for(j in 1:nsim){
+                draws.out[i, paste0("sample:", j)]  <- sampAll[[j]]$latent[i, 1]
+                if(!include_time_unstruct && !is.null(timeVar)){
+                    draws.out[i, paste0("sample:", j)]  <- draws.out[i, paste0("sample:", j)] - sampAll[[j]]$latent[paste0("time.unstruct:", draws.out$time[i, 1])]
+                }
+            }
+        }
+    }
+
    # Aggregation with posterior samples
    if(is.unit.level && !is.null(weight.strata) && length(unique(data$strata0)) > 1){
      proj.agg <- expand.grid(region = colnames(Amat), time = temp)
      proj.agg <- cbind(proj.agg, data.frame(mean=NA, var=NA, median=NA, lower=NA, upper=NA, logit.mean=NA, logit.var=NA, logit.median=NA, logit.lower=NA, logit.upper=NA)) 
-     sampAll <- INLA::inla.posterior.sample(n = nsim, result = fit, intern = TRUE)
+     if(is.null(sampAll)) sampAll <- INLA::inla.posterior.sample(n = nsim, result = fit, intern = TRUE)
 
      for(i in 1:dim(proj.agg)[1]){
         if(is.null(timeVar)){
@@ -774,6 +804,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         for(j in 1:length(sampAll)){
             r <- sampAll[[j]]$latent[paste0("region.struct:", match(proj.agg$region[i], colnames(Amat))), ]
             if(!is.null(timeVar)) r <- r + sampAll[[j]]$latent[paste0("time.struct:", proj.agg$time[i]), ]
+            if(!is.null(timeVar) && include_time_unstruct) r <- r + sampAll[[j]]$latent[paste0("time.unstruct:", proj.agg$time[i]), ]
 
             # only handling region-level covariates  
             if(!is.null(X)){
@@ -838,6 +869,10 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
                responseType = responseType,
                formula = formula, 
                msg = msg)
+   if(save.draws){
+    out$draws <- sampAll
+    out$draws.est <- draws.out
+   }
    class(out) <-  "SUMMERmodel.svy"
 
    return(out)

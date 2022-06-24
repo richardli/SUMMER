@@ -1,4 +1,12 @@
 # SUMMER - changes
+Version 1.2.1  
+==========================
++ `smoothSurvey` now can return posterior draws.
++ More flexible strata effect specification in `smoothCluster`.
++ Discrete cut option for `mapPlot`
++ Internal changes to work with the latest INLA version 21.11.22.
+ 
+
 Version 1.2.0 (2021-07-01) 
 ==========================
 + Major expansion for `smoothSurvey` to implement popular SAE methods. Syntax change to the function. 

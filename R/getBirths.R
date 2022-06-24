@@ -7,7 +7,7 @@
 #' @param variables vector of variables to be used in obtaining the person-month files. The variables correspond the the DHS recode manual VI. For early DHS data, the variable names may need to be changed.
 #' @param strata vector of variable names used for strata. If a single variable is specified, then that variable will be used as strata indicator If multiple variables are specified, the interaction of these variables will be used as strata indicator. 
 #' @param dob variable name for the date of birth.
-#' @param alive variable name for the indicator of whether child was alive or dead at the time of interview.
+#' @param alive variable name for the indicator of whether child was alive or dead at the time of interview. It should be factor or character variable with levels "no" or "yes". Other coding scheme will not be recognized and can lead to errors.
 #' @param age variable name for the age at death of the child in completed months.
 #' @param age.truncate the smallest age in months where only full years are reported. The default value is 24, which corresponds to the DHS practice of recording only age in full years for children over 2 years old. That is, for children with age starting from 24 months old, we assume the age variable reported in multiples of 12 are truncated from its true value. For example, children between age 24 to 35 months are all recorded as 24. To account for the truncation of age, 5 months are added to all ages recorded in multiples of 12 starting from 24. To avoid this adjustment, set this argument to NA. 
 #' @param date.interview variable name for the date of interview.
