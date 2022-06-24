@@ -31,6 +31,7 @@
 #'
 #' @examples
 #' \dontrun{
+#' library(survey)
 #' data(DemoData2)
 #' data(DemoMap2)
 #' des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
@@ -90,6 +91,7 @@ smoothArea <- function(formula,
                        n.sample = 250,
                        var.tol = 1e-10) {
   
+
   # SETUP
   domain.var <- all.vars(domain)[1]
   resp.frm <- as.formula(paste0("~", all.vars(update(formula, . ~ NULL))[1]))
@@ -100,13 +102,13 @@ smoothArea <- function(formula,
   if (is.null(direct.est)) {
     # calculate direct estimates
     if (!is.null(domain.size)) {
-      dir.est <- svyby(resp.frm, domain, design = design, svytotal, na.rm = T)
+      dir.est <- survey::svyby(resp.frm, domain, design = design, survey::svytotal, na.rm = T)
       dir.est$domain.size <- domain.size$size[match(dir.est[, 1], domain.size[[domain.var]])]
       dir.est[, 2] = dir.est[, 2] / dir.est$domain.size
       dir.est[, 3] = (dir.est[, 3] / dir.est$domain.size) ^ 2
       dir.est <- dir.est[, 1:3]
     } else {
-      dir.est <- svyby(resp.frm, domain, design = design, svymean, na.rm = T)
+      dir.est <- survey::svyby(resp.frm, domain, design = design, survey::svymean, na.rm = T)
       dir.est[, 3] <- dir.est[, 3] ^ 2
     }
     
@@ -132,13 +134,13 @@ smoothArea <- function(formula,
     mod.dat <- merge(mod.dat, mod.X.area,  by = "domain")
   }
   mod.dat <- mod.dat[match(1:nrow(mod.dat), mod.dat$domain.id), ]
-  mm.area <- model.matrix(cov.frm, mod.dat)
+  mm.area <- stats::model.matrix(cov.frm, mod.dat)
   
   h <- function(x) x
   h.inv <- function(x) x
   if (responseType == "binary") {
-    h <- function(x) SUMMER:::logit(x)
-    h.inv <- function(x) SUMMER:::expit(x)
+    h <- function(x) logit(x)
+    h.inv <- function(x) expit(x)
     mod.dat$dir.est.prec <- 
       (mod.dat$dir.est^2*(1-mod.dat$dir.est)^2) / mod.dat$dir.est.var
     mod.dat$dir.est <- h(mod.dat$dir.est)

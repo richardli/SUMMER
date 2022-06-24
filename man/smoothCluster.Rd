@@ -133,7 +133,7 @@ For example, if each age group is assigned a different intercept, then set age.s
 
 \item{type.st}{type for space-time interaction}
 
-\item{survey.effect}{logical indicator whether to include a survey iid random effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this random effect term will be set to 0.}
+\item{survey.effect}{logical indicator whether to include a survey fixed effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this effect term will be set to 0.}
 
 \item{linear.trend}{logical indicator whether a linear trend is added to the temporal main effect. If the temporal main effect is RW2, then it will be forced to FALSE. Default is TRUE.}
 

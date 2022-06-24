@@ -8,7 +8,7 @@
 #' @param design an object of class "svydesign" containing the data for the model
 #' @param family of the response variable, currently supports 'binomial' (default with logit link function) or 'gaussian'.
 #' @param Amat Adjacency matrix for the regions. If set to NULL, the IID spatial effect will be used.
-#' @param X.area unit-level covariates data frame. One of the column name needs to match the domain specified, in order to be linked to the data input. Currently only supporting time-invariant domain-level covariates.
+#' @param X.pop unit-level covariates data frame. One of the column name needs to match the domain specified, in order to be linked to the data input. Currently only supporting time-invariant domain-level covariates.
 #' @param domain.size Domain size data frame. One of the column name needs to match the domain specified, in order to be linked to the data input and there must be a size column containing domain sizes.
 #' @param pc.u 	hyperparameter U for the PC prior on precisions.
 #' @param pc.alpha hyperparameter alpha for the PC prior on precisions.
@@ -21,10 +21,14 @@
 #' \item{direct.est}{direct estimates}
 #' \item{model.fit}{fitted INLA object for iid domain effects model}
 #' \item{model.est}{smoothed estimates}
+#' @importFrom stats model.frame
+#' @importFrom stats model.matrix 
+#' @importFrom stats model.response 
 #' @export
 #'
 #' @examples
 #' \dontrun{
+#' library(survey)
 #' data(DemoData2)
 #' data(DemoMap2)
 #' des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
@@ -72,13 +76,13 @@ smoothUnit <- function(formula,
   cov.frm <- update(formula, NULL ~ .)
   out <- list()
   if (!is.null(domain.size)) {
-    dir.est <- svyby(resp.frm, domain, design = design, svytotal, na.rm = T)
+    dir.est <- survey::svyby(resp.frm, domain, design = design, survey::svytotal, na.rm = T)
     dir.est$domain.size <- domain.size$size[match(dir.est[, 1], domain.size[[domain.var]])]
     dir.est[, 2] = dir.est[, 2] / dir.est$domain.size
     dir.est[, 3] = (dir.est[, 3] / dir.est$domain.size) ^ 2
     dir.est <- dir.est[, 1:3]
   } else {
-    dir.est <- svyby(resp.frm, domain, design = design, svymean, na.rm = T)
+    dir.est <- survey::svyby(resp.frm, domain, design = design, survey::svymean, na.rm = T)
     dir.est[, 3] <- dir.est[, 3] ^ 2
   }
   rownames(dir.est) <- NULL
@@ -162,7 +166,7 @@ smoothUnit <- function(formula,
     # pop.unit.ests <- pop.unit.ests + 
     #   rnorm(nrow(mm.pop), sd = sqrt(1 / exp(x$hyperpar[1])))
     if (family == "binomial") {
-      pop.unit.ests <- SUMMER::expit(pop.unit.ests)
+      pop.unit.ests <- expit(pop.unit.ests)
     }
     area.ests <- aggregate(pop.unit.ests, list(domain = pop.dat$domain.struct), mean)
     return(area.ests[match(1:length(re.idx), area.ests[, 1]), 2])
