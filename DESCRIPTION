@@ -23,7 +23,7 @@ License: GPL (>= 2)
 Imports: survey, stats, spdep, survival, ggplot2, scales, utils, Matrix, reshape2, viridis, sp, shadowtext, ggridges, methods, data.table, RColorBrewer, grDevices
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 Additional_repositories: https://inla.r-inla-download.org/R/testing/
 Suggests: INLA, knitr, rmarkdown, readstata13, patchwork, rdhs, R.rsp, fields, sae, dplyr, tidyr
 VignetteBuilder: R.rsp, knitr
