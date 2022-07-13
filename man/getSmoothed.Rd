@@ -17,7 +17,7 @@ getSmoothed(
   save.draws = FALSE,
   include_subnational = TRUE,
   only.age = NULL,
-  å...
+  ...
 )
 }
 \arguments{
