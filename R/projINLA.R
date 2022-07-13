@@ -346,6 +346,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         slope0 <- grep("time.slope:1", fields)
         if(length(slope) > 0){
            AA$tstar <- (AA$time.unstruct - (T + 1)/2) / (T + 1)
+           ## TODO: when slopes become more complicated, this might not be sufficient to get the correct indicator
            AA$slope  <- match(paste0("time.slope.group", AA$age.rep.idx, ":1"), fields)
         }else if(length(slope0) > 0){
            AA$tstar <- (AA$time.unstruct - (T + 1)/2) / (T + 1)

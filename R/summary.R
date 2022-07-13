@@ -65,6 +65,15 @@ summary.SUMMERmodel <- function(object,...){
 	cat("Fixed Effects\n")
 	fixed <- summary(object$fit)$fixed
 	print(fixed)
+	if(!is.null(x$slope.fixed.output)){
+		cat("\nSlope fixed effect index:\n")
+		for(i in 1:length(x$slope.fixed.output)){
+			cat(names(x$slope.fixed.output)[i])
+			cat(": ")
+			cat(paste(x$slope.fixed.output[[i]], collapse = ", "))
+			cat("\n")
+		}
+	}
 	cat("----------------------------------\n")
 	cat("Random Effects\n")
 	random <- data.frame(Name = summary(object$fit)$random.names,
