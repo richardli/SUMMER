@@ -10,6 +10,7 @@
 #' @param mc number of monte carlo draws to approximate the marginal prevalence/hazards for binomial model. If mc = 0, analytical approximation is used. The analytical approximation is invalid for hazard modeling with more than one age groups.
 #' @param include_time_unstruct  Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates from cluster-level model. The argument only applies to the cluster-level models (from \code{\link{smoothCluster}}). Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included. Alternatively, if this is specified as a vector of   subset of year labels (as in the year_label argument), only the unstructured terms in the corresponding time periods will be added to the prediction.
 #' @param include_subnational logical indicator whether to include the spatial and space-time interaction components in the smoothed estimates. If set to FALSE, only the main temporal trends are returned.
+#' @param only.age a vector of age groups used to compute the final estimates. Default to be NULL, which includes all age groups in the model. This argument can be used to extract mortality rates of finer age groups when fitting multiple age groups jointly.
 #' @param CI Desired level of credible intervals
 #' @param draws Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.  
 #' @param save.draws Logical indicator whether the raw posterior draws will be saved. Saved draws can be used to accelerate aggregations with different weights.
@@ -56,7 +57,7 @@
 #' 
 
 #' @export
-getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, include_subnational = TRUE, ...){
+getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.frame = NULL, verbose = FALSE, mc = 0, include_time_unstruct = FALSE, CI = 0.95, draws = NULL, save.draws = FALSE, include_subnational = TRUE, only.age = NULL, å...){
 
       years <- region <- age.diff <- NA
       lowerCI <- (1 - CI) / 2
@@ -286,6 +287,13 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         AA$age.intercept <- paste0("age.intercept", AA$age.intercept, ":1")
         AA$age.diff <- paste0("age.diff", AA$age.diff, ":1")
 
+        # allow subsetting only some age groups in the final calculation
+        AA$age.raw <- NULL
+        for(j in 1:dim(AA)[1]){
+           AA$age.raw[j] <- gsub(paste0(":", AA$strata[j]), "", AA$age[j])
+        }
+        if(is.null(only.age)) only.age <- unique(AA$age.raw)
+ 
         # # When there's only one age group, smoothCluster uses the generic intercept
         # # if(length(unique(AA$age.intercept)) == 1) AA$age.intercept <- "(Intercept):1"
         
@@ -300,7 +308,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         AA.loc <- AA
         AA.loc$age.intercept  <- match(AA.loc$age.intercept, fields)
         AA.loc$age.diff  <- match(AA.loc$age.diff, fields)
-        AA.loc$age <- NA
+        AA.loc$age <- AA.loc$age.raw <- NA
         # For constant case, base strata will end up being NA here, which is fine.
         if(!is.dynamic) AA.loc$strata <- paste0("strata", AA.loc$strata, ":1")
         AA.loc$strata  <- match(AA.loc$strata, fields)
@@ -585,7 +593,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
             draws.sub.agg <- matrix(NA, nsim, length(stratalabels))
             # For each strata
             for(k in 1:length(stratalabels)){
-              strata.sub <- which(AA.sub$strata == stratalabels[k])
+              strata.sub <- which(AA.sub$strata == stratalabels[k] & AA.sub$age.raw %in% only.age)
               draws.hazards <- draws.sub[, strata.sub, drop=FALSE]
               # Monte Carlo approximation of the marginal effects
               if(inla_mod$family == "binomial" && mc > 0){

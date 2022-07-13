@@ -16,7 +16,8 @@ getSmoothed(
   draws = NULL,
   save.draws = FALSE,
   include_subnational = TRUE,
-  ...
+  only.age = NULL,
+  å...
 )
 }
 \arguments{
@@ -41,6 +42,8 @@ getSmoothed(
 \item{save.draws}{Logical indicator whether the raw posterior draws will be saved. Saved draws can be used to accelerate aggregations with different weights.}
 
 \item{include_subnational}{logical indicator whether to include the spatial and space-time interaction components in the smoothed estimates. If set to FALSE, only the main temporal trends are returned.}
+
+\item{only.age}{a vector of age groups used to compute the final estimates. Default to be NULL, which includes all age groups in the model. This argument can be used to extract mortality rates of finer age groups when fitting multiple age groups jointly.}
 
 \item{...}{Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.}
 }
