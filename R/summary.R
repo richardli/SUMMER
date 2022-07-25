@@ -65,12 +65,12 @@ summary.SUMMERmodel <- function(object,...){
 	cat("Fixed Effects\n")
 	fixed <- summary(object$fit)$fixed
 	print(fixed)
-	if(!is.null(x$slope.fixed.output)){
+	if(!is.null(object$slope.fixed.output)){
 		cat("\nSlope fixed effect index:\n")
-		for(i in 1:length(x$slope.fixed.output)){
-			cat(names(x$slope.fixed.output)[i])
+		for(i in 1:length(object$slope.fixed.output)){
+			cat(names(object$slope.fixed.output)[i])
 			cat(": ")
-			cat(paste(x$slope.fixed.output[[i]], collapse = ", "))
+			cat(paste(object$slope.fixed.output[[i]], collapse = ", "))
 			cat("\n")
 		}
 	}
@@ -158,6 +158,53 @@ print.SUMMERmodel <- function(x,...){
 }
 
 
+#' Summary method for the combined projection output.
+#' This function is the print method for class \code{SUMMERprojlist}.
+#' 
+#' 
+#' @param object output from \code{\link{getSmoothed}}
+#' @param ... not used
+#' @method summary SUMMERprojlist
+#' @author Zehang Li 
+#' 
+#' @examples
+#' \dontrun{
+#'  library(SUMMER)
+#'  library(dplyr)
+#'  data(DemoData)
+#'  # Create dataset of counts
+#'  counts.all <- NULL
+#'  for(i in 1:length(DemoData)){
+#'  counts <- getCounts(DemoData[[i]][, c("clustid", "time", "age", "died",
+#'                                       "region", "strata")],
+#'           variables = 'died', by = c("age", "clustid", "region", 
+#'                                        "time", "strata"))
+#'  counts <- counts %>% mutate(cluster = clustid, years = time, Y=died)
+#'  counts$strata <- gsub(".*\\.","",counts$strata)
+#'  counts$survey <- names(DemoData)[i] 
+#'  counts.all <- rbind(counts.all, counts)
+#'  }
+#'  
+#'  # fit cluster-level model on the periods
+#'  periods <- levels(DemoData[[1]]$time)
+#'  fit <- smoothCluster(data = counts.all, 
+#'     Amat = DemoMap$Amat, 
+#'     time.model = "rw2", 
+#'     st.time.model = "rw1",
+#'     strata.time.effect =  TRUE, 
+#'     survey.effect = TRUE,
+#'     family = "betabinomial",
+#'     year_label = c(periods, "15-19"))
+#'  summary(fit)
+#'  est <- getSmoothed(fit, nsim = 1000)
+#' }
+#' @export 
+
+
+summary.SUMMERprojlist <- function(object, ...){
+	print(object)
+}
+ 
 #' Print method for the combined projection output.
 #' 
 #' This function is the print method for class \code{SUMMERprojlist}.
@@ -203,8 +250,16 @@ print.SUMMERmodel <- function(x,...){
 
 print.SUMMERprojlist <- function(x, ...){
 	cat("---------------------------------------------\n")
+	if(!is.null(x$benchmarked) && x$benchmarked){
+		cat("The estimates have been benchmarked.\n")
+	}
 	cat("Stratified estimates stored in ...$stratified\n")
-	cat("Aggregated estimates stored in ...$overall\n")
+	if(is.null(x$final)){
+		cat("Aggregated estimates stored in ...$overall\n")
+	}else{
+		cat("Aggregated estimates by sampling frame stored in ...$overall\n")
+		cat("Final estimates aggregated over sampling frames stored in ...$final\n")
+	}
 	cat("---------------------------------------------\n")
 	cat(paste0("Estimates computed for ", max(x$overall$time), " time period(s) and ", max(x$overall$area), " area(s)"))
 	cat(x$msg)  
