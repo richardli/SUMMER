@@ -1,6 +1,6 @@
 #' Extract posterior summaries of random effects
 #' 
-#' @param inla_mod output from \code{\link{smoothDirect}}
+#' @param inla_mod output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}
 #' @param field which random effects to plot. It can be one of the following: space, time, and spacetime.
 #' @param CI Desired level of credible intervals
 #' @param draws Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.  

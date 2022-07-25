@@ -619,7 +619,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         X <- data.frame(X)        
         fixed <- colnames(X)[colnames(X) != regionVar]
         colnames(X)[colnames(X) == regionVar] <- "region"
-        if(fixed %in% colnames(dat)){
+        if(sum(fixed %in% colnames(dat)) > 0){
             message("The following covariates exist in the input data frame. They are replaced with region-level covariates provided in X: ", fixed[fixed %in% colnames(dat)])
             dat <- dat[, !colnames(dat) %in% fixed]
         }

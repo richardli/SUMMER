@@ -209,6 +209,8 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
      
        }else{
           message("Use posterior draws from input.")
+          save.draws <- TRUE
+          save.draws.est <- TRUE
           sampAll <- draws
           nsim <- length(draws)
        }
@@ -700,6 +702,9 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
       }
       out$msg <- msg
       out$nsim <- nsim
+      out$weight.strata = weight.strata
+      out$weight.frame = weight.frame
+      out$CI <- CI
       class(out) <- "SUMMERprojlist"
       return(out) 
 

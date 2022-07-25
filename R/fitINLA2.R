@@ -689,7 +689,8 @@ if(strata.time.effect){
     # cluster.time$nugget.id <- 1:dim(cluster.time)[1]
     # exdat <- merge(exdat, cluster.time, by.x = c("cluster", "time.struct"), by.y = c("cluster", "time"))
     # # exdat$nugget.id <- 1:dim(exdat)[1]
-
+    slope.fixed.output <- NULL
+    
     if(is.ar || is.main.ar || linear.trend){
       exdat$time.slope <- exdat$time.struct 
       center <- N/2 + 1e-5 # avoid exact zero in the lincomb creation
