@@ -13,7 +13,7 @@ getDiag(
 )
 }
 \arguments{
-\item{inla_mod}{output from \code{\link{smoothDirect}}}
+\item{inla_mod}{output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}}
 
 \item{field}{which random effects to plot. It can be one of the following: space, time, and spacetime.}
 
