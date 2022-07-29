@@ -35,6 +35,7 @@ Benchmark posterior draws to national estimates
 \examples{
 \dontrun{
 data(DemoData)
+# fit unstratified cluster-level model
 counts.all <- NULL
 for(i in 1:length(DemoData)){
 vars <- c("clustid", "region", "time", "age")
@@ -63,32 +64,70 @@ weight.region$proportion <- 0.25
 national <- data.frame(years = periods, 
 				   est = seq(0.25, 0.15, length = 7), 
 				   sd = runif(7, 0.01, 0.03))
+national <- national[sample(1:7),]
+
 # benchmarking
 est.bb.bench <- Benchmark(est.bb, national, weight.region = weight.region, 
-					estVar = "est", sdVar = "sd", timeVar = "years")
+						estVar = "est", sdVar = "sd", timeVar = "years")
 
-# Sanity check
+# Sanity check: more similar to national estimates when national is larger
 compare <- national
 compare$before <- NA
 compare$after <- NA
 for(i in 1:dim(compare)[1]){
-weights <- subset(weight.region, years == national$years[i])
-sub <- subset(est.bb$overall, years == national$years[i])
-sub <- merge(sub, weights)
-sub.bench <- subset(est.bb.bench$overall, years == national$years[i])
-sub.bench <- merge(sub.bench, weights)
-compare$before[i] <- sum(sub$proportion * sub$median)
-compare$after[i] <- sum(sub.bench$proportion * sub.bench$median)
+	weights <- subset(weight.region, years == national$years[i])
+	sub <- subset(est.bb$overall, years == national$years[i])
+	sub <- merge(sub, weights)
+	sub.bench <- subset(est.bb.bench$overall, years == national$years[i])
+	sub.bench <- merge(sub.bench, weights)
+	compare$before[i] <- sum(sub$proportion * sub$median)
+	compare$after[i] <- sum(sub.bench$proportion * sub.bench$median)
 }
 plot(compare$est, compare$after, col = 2, pch = 10,
-	 xlim = range(c(compare$est, compare$before, compare$after)),
-	 ylim = range(c(compare$est, compare$before, compare$after)),
-	 xlab = "External national estimates", 
-	 ylab = "Weighted posterior median after benchmarking",
-      main = "Sanity check: weighted average of area medians")
+		 xlim = range(c(compare$est, compare$before, compare$after)),
+		 ylim = range(c(compare$est, compare$before, compare$after)),
+		 xlab = "External national estimates", 
+		 ylab = "Weighted posterior median after benchmarking",
+       main = "Sanity check: weighted average of area medians")
 points(compare$est, compare$before)
 abline(c(0, 1))
-legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, #'10), col = c(1, 2))
+ legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, 10), col = c(1, 2))
+
+# construct a simple national estimates
+national <- data.frame(years = periods, 
+					   est = seq(0.25, 0.15, length = 7), 
+					   sd = seq(.01, .1, len = 7))
+# national does not need to have all years
+national_sub <- national[1:3,]
+
+# benchmarking
+est.bb.bench <- Benchmark(est.bb, national_sub, 
+						weight.region = weight.region, 
+						estVar = "est", sdVar = "sd", timeVar = "years")
+
+# Sanity check: only benchmarked for two years
+compare <- national
+compare$before <- NA
+compare$after <- NA
+for(i in 1:dim(compare)[1]){
+	weights <- subset(weight.region, years == national$years[i])
+	sub <- subset(est.bb$overall, years == national$years[i])
+	sub <- merge(sub, weights)
+	sub.bench <- subset(est.bb.bench$overall, years == national$years[i])
+	sub.bench <- merge(sub.bench, weights)
+	compare$before[i] <- sum(sub$proportion * sub$median)
+	compare$after[i] <- sum(sub.bench$proportion * sub.bench$median)
+}
+plot(compare$est, compare$after, col = 2, pch = 10,
+		 xlim = range(c(compare$est, compare$before, compare$after)),
+		 ylim = range(c(compare$est, compare$before, compare$after)),
+		 xlab = "External national estimates", 
+		 ylab = "Weighted posterior median after benchmarking",
+       main = "Sanity check: weighted average of area medians")
+points(compare$est, compare$before)
+abline(c(0, 1))
+ legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, 10), col = c(1, 2))
+
 
 weight.region$proportion <- 0.01
 weight.region$proportion[weight.region$region == "central"] <- 0.97

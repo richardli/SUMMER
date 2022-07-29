@@ -13,9 +13,9 @@
 #' @examples
 #' \dontrun{
 #' data(DemoData)
-# fit unstratified cluster-level model
-#'counts.all <- NULL
-#'for(i in 1:length(DemoData)){
+#' # fit unstratified cluster-level model
+#' counts.all <- NULL
+#' for(i in 1:length(DemoData)){
 #'	vars <- c("clustid", "region", "time", "age")
 #'  counts <- getCounts(DemoData[[i]][, c(vars, "died")], 
 #' 						variables = 'died',
@@ -26,58 +26,97 @@
 #'	counts$survey <- names(DemoData)[i]	
 #'	counts.all <- rbind(counts.all, counts)
 #'}
-#'periods <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")
-#'fit.bb  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat, 
+#' periods <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")
+#' fit.bb  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat, 
 #'					family = "betabinomial",
 #'					year_label = periods, 
 #'					survey.effect = TRUE)
-#'est.bb <- getSmoothed(fit.bb, nsim = 1000, CI = 0.95, save.draws=TRUE)
+#' est.bb <- getSmoothed(fit.bb, nsim = 1000, CI = 0.95, save.draws=TRUE)
 #'
-#'# construct a simple population weight data frame with equal weights
-#'weight.region <- expand.grid(region = unique(counts.all$region), 
+#' # construct a simple population weight data frame with equal weights
+#' weight.region <- expand.grid(region = unique(counts.all$region), 
 #'							 years = periods)
-#'weight.region$proportion <- 0.25
+#' weight.region$proportion <- 0.25
 #'
-#'# construct a simple national estimates
-#'national <- data.frame(years = periods, 
+#' # construct a simple national estimates
+#' national <- data.frame(years = periods, 
 #'					   est = seq(0.25, 0.15, length = 7), 
 #'					   sd = runif(7, 0.01, 0.03))
-#'# benchmarking
-#'est.bb.bench <- Benchmark(est.bb, national, weight.region = weight.region, 
-#'						estVar = "est", sdVar = "sd", timeVar = "years")
-#'
-#'# Sanity check
-#'compare <- national
-#'compare$before <- NA
-#'compare$after <- NA
-#'for(i in 1:dim(compare)[1]){
-#'	weights <- subset(weight.region, years == national$years[i])
-#'	sub <- subset(est.bb$overall, years == national$years[i])
-#'	sub <- merge(sub, weights)
-#'	sub.bench <- subset(est.bb.bench$overall, years == national$years[i])
-#'	sub.bench <- merge(sub.bench, weights)
-#'	compare$before[i] <- sum(sub$proportion * sub$median)
-#'	compare$after[i] <- sum(sub.bench$proportion * sub.bench$median)
-#'}
-#'plot(compare$est, compare$after, col = 2, pch = 10,
-#'		 xlim = range(c(compare$est, compare$before, compare$after)),
-#'		 ylim = range(c(compare$est, compare$before, compare$after)),
-#'		 xlab = "External national estimates", 
-#'		 ylab = "Weighted posterior median after benchmarking",
-#'       main = "Sanity check: weighted average of area medians")
-#'points(compare$est, compare$before)
-#'abline(c(0, 1))
-#' legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, #'10), col = c(1, 2))
+# the row order does not matter as long as the years variable can be matched
+#' national <- national[sample(1:7),]
+#' 
+#' # benchmarking
+#' est.bb.bench <- Benchmark(est.bb, national, weight.region = weight.region, 
+#' 						estVar = "est", sdVar = "sd", timeVar = "years")
+#' 
+#' # Sanity check: more similar to national estimates when national is larger
+#' compare <- national
+#' compare$before <- NA
+#' compare$after <- NA
+#' for(i in 1:dim(compare)[1]){
+#' 	weights <- subset(weight.region, years == national$years[i])
+#' 	sub <- subset(est.bb$overall, years == national$years[i])
+#' 	sub <- merge(sub, weights)
+#' 	sub.bench <- subset(est.bb.bench$overall, years == national$years[i])
+#' 	sub.bench <- merge(sub.bench, weights)
+#' 	compare$before[i] <- sum(sub$proportion * sub$median)
+#' 	compare$after[i] <- sum(sub.bench$proportion * sub.bench$median)
+#' }
+#' plot(compare$est, compare$after, col = 2, pch = 10,
+#' 		 xlim = range(c(compare$est, compare$before, compare$after)),
+#' 		 ylim = range(c(compare$est, compare$before, compare$after)),
+#' 		 xlab = "External national estimates", 
+#' 		 ylab = "Weighted posterior median after benchmarking",
+#'        main = "Sanity check: weighted average of area medians")
+#' points(compare$est, compare$before)
+#' abline(c(0, 1))
+#'  legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, 10), col = c(1, 2))
+#' 
+#' # construct a simple national estimates
+#' national <- data.frame(years = periods, 
+#' 					   est = seq(0.25, 0.15, length = 7), 
+#' 					   sd = seq(.01, .1, len = 7))
+#' # national does not need to have all years
+#' national_sub <- national[1:3,]
+#' 
+#' # benchmarking
+#' est.bb.bench <- Benchmark(est.bb, national_sub, 
+#' 						weight.region = weight.region, 
+#' 						estVar = "est", sdVar = "sd", timeVar = "years")
+#' 
+#' # Sanity check: only benchmarked for two years
+#' compare <- national
+#' compare$before <- NA
+#' compare$after <- NA
+#' for(i in 1:dim(compare)[1]){
+#' 	weights <- subset(weight.region, years == national$years[i])
+#' 	sub <- subset(est.bb$overall, years == national$years[i])
+#' 	sub <- merge(sub, weights)
+#' 	sub.bench <- subset(est.bb.bench$overall, years == national$years[i])
+#' 	sub.bench <- merge(sub.bench, weights)
+#' 	compare$before[i] <- sum(sub$proportion * sub$median)
+#' 	compare$after[i] <- sum(sub.bench$proportion * sub.bench$median)
+#' }
+#' plot(compare$est, compare$after, col = 2, pch = 10,
+#' 		 xlim = range(c(compare$est, compare$before, compare$after)),
+#' 		 ylim = range(c(compare$est, compare$before, compare$after)),
+#' 		 xlab = "External national estimates", 
+#' 		 ylab = "Weighted posterior median after benchmarking",
+#'        main = "Sanity check: weighted average of area medians")
+#' points(compare$est, compare$before)
+#' abline(c(0, 1))
+#'  legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, 10), col = c(1, 2))
+#' 
 #'
 # Another extreme benchmarking example, where almost all weights in central #'region
-#'weight.region$proportion <- 0.01
-#'weight.region$proportion[weight.region$region == "central"] <- 0.97
-#'# benchmarking
-#'est.bb.bench <- Benchmark(est.bb, national, weight.region = weight.region, 
+#' weight.region$proportion <- 0.01
+#' weight.region$proportion[weight.region$region == "central"] <- 0.97
+#' # benchmarking
+#' est.bb.bench <- Benchmark(est.bb, national, weight.region = weight.region, 
 #'						estVar = "est", sdVar = "sd", timeVar = "years")
-#'# It can be seen the central region are pulled to the national benchmark
-#'subset(est.bb.bench$overall, region == "central")
-#'subset(est.bb$overall, region == "central") 
+#' # It can be seen the central region are pulled to the national benchmark
+#' subset(est.bb.bench$overall, region == "central")
+#' subset(est.bb$overall, region == "central") 
 #'  }
 #' @export
 #' 
@@ -104,7 +143,7 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 	# Check the population weight matrix
 	is.time <- length(unique(fitted$stratified$years)) > 1
 	ntime <- max(fitted$overall$time)
-	nregion <- max(fitted$overall$region)
+	nregion <- max(fitted$overall$area)
 	years <- fitted$overall$years[match(1:max(fitted$overall$time), fitted$overall$time)]
 	if(is.null(weight.region)){
 		stop("weight.region argument is required.")
@@ -132,8 +171,12 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 		stop("weight.region$region does not contain all the regions in the fitted model.")
 	}
 	if(is.time){
+		if(sum(!weight.region$years %in% national$years) > 0){
+			weight.region <- weight.region[weight.region$years %in% national$years, ]
+		}
 		if(sum(!fitted$stratified$years %in% weight.region$years) > 0){
-			stop("weight.region$years does not contain all the time periods in the fitted model.")
+			tmp <- unique(fitted$stratified$years[fitted$stratified$years %in% weight.region$years])
+			warning(paste0("weight.region$years does not contain all the time periods in the fitted model. Benchmarking only performed for the following period:\n", paste(tmp, collapse = ", ")))
 		}
 	}
 	if(is.time){
@@ -151,10 +194,14 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 
 
 	# Match benchmarked values
-	nat <- list(est = national[, estVar], 
+	t_sub <- 1:ntime
+	nat <- data.frame(est = national[, estVar], 
 				sd = national[, sdVar])
 	if(!is.null(timeVar)){
 		nat$years = national[, timeVar]
+		order <- match(years, nat$years)
+		nat <- nat[order[which(!is.na(order))], ]
+		t_sub <- 1:dim(nat)[1]
 	}
 
 
@@ -174,10 +221,15 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 			index <- which(years == fitted$draws.est.overall[[i]]$years)
 			tmp <- which(weight.region$years == fitted$draws.est.overall[[i]]$years &
 							 weight.region$region == fitted$draws.est.overall[[i]]$region)
+			if(length(tmp) == 0) next
 			tmp_pop <- weight.region$proportion[tmp]
 			q_mat[index, ] <- q_mat[index, ] + fitted$draws.est.overall[[i]]$draws * tmp_pop
 		}
 	}
+
+	# if benchmarking only happens in subset of years
+	q_mat <- q_mat[t_sub, ]
+
 
 	# generate Us
 	U <- runif(n0, 0, 1)
@@ -186,7 +238,7 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 	fitted_list <- list()
 	prop_accepted <- 0
 	accept_ratio <- matrix(0, nrow = nrow(q_mat), ncol = ncol(q_mat))
-	for (i in 1:ntime) {
+	for (i in 1:dim(q_mat)[1]) {
 		for (j in 1:ncol(q_mat)) {
 		  accept_ratio[i, j] <- exp((-1 / (2 * nat$sd[i] ^ 2)) * (q_mat[i, j] - nat$est[i]) ^ 2)
 		}
