@@ -49,8 +49,8 @@ jobs:
           writeLines('options(repos = c(INLA = "https://inla.r-inla-download.org/R/stable/", getOption(\"repos\")))', file("~/.Rprofile", "ab"))
         shell: Rscript {0}
 
-      - uses: r-lib/actions/setup-r-dependencies@v1
+      - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: rcmdcheck
+          extra-packages: any::rcmdcheck
 
       - uses: r-lib/actions/check-r-package@v1
