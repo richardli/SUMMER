@@ -13,15 +13,15 @@ makePopIntegrationTab(
   eastLim,
   northLim,
   mapProjection,
+  areaMapDat,
+  subareaMapDat,
+  areaNameVar = "NAME_1",
+  subareaNameVar = "NAME_2",
   poppa = NULL,
   poppsub = NULL,
   stratifyByUrban = TRUE,
   areapa = NULL,
   areapsub = NULL,
-  areaMapDat = NULL,
-  subareaMapDat = NULL,
-  areaNameVar = "NAME_1",
-  subareaNameVar = "NAME_2",
   areaPolygonSubsetI = NULL,
   subareaPolygonSubsetI = NULL,
   mean.neighbor = 50,
@@ -73,6 +73,14 @@ northing in km. Or the inverse if inverse is set to TRUE. For example,
 \code{\link{projKenya}}. Check https://epsg.io/ for example for best projection EPSG codes 
 for specific countries}
 
+\item{areaMapDat}{SpatialPolygonsDataFrame object with area level map information}
+
+\item{subareaMapDat}{SpatialPolygonsDataFrame object with subarea level map information}
+
+\item{areaNameVar}{The name of the area variable associated with \code{areaMapDat@data} and \code{subareaMapDat@data}}
+
+\item{subareaNameVar}{The name of the subarea variable associated with \code{subareaMapDat@data}}
+
 \item{poppa}{data.frame of population per area separated by urban/rural. If `poppsub` 
   is not included, this is used for normalization of populations associated with 
   population integration points. Contains variables:
@@ -105,14 +113,6 @@ for each of the considered areas}
 
 \item{areapsub}{A vector of spatial areas (e.g. in km^2, although the exact units don't matter) 
 for each of the considered subareas}
-
-\item{areaMapDat}{SpatialPolygonsDataFrame object with area level map information}
-
-\item{subareaMapDat}{SpatialPolygonsDataFrame object with subarea level map information}
-
-\item{areaNameVar}{The name of the area variable associated with \code{areaMapDat@data}}
-
-\item{subareaNameVar}{The name of the subarea variable associated with \code{subareaMapDat@data}}
 
 \item{areaPolygonSubsetI}{Index in areaMapDat for a specific area to subset the grid over. This 
 option can help reduce computation time relative to constructing the whole grid 

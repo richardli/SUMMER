@@ -466,7 +466,6 @@ simPopSPDE = function(nsim=1, easpa, popMat, targetPopMat, poppsub, spdeMesh,
 #' @param targetPopMat pixellated grid data frame with variables `lon`, `lat`, `pop` (target population), `area`, `subareas` (if subareaLevel is TRUE), `urban` (if stratifyByUrban is TRUE), `east`, and `north`
 #' @param doFineScaleRisk whether or not to calculate the fine scale risk in addition to the prevalence. See details
 #' @param doSmoothRisk Whether or not to calculate the smooth risk in addition to the prevalence. See details
-#' @param easpa see \code{\link{simPopSPDE}}
 #' @param areaLevelPop output of \code{\link{simPopCustom}} containing pixel level information 
 #'               about the population of interest
 #' @param areasFrom character vector of length equal to the number of areas from which 
@@ -963,8 +962,9 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
     if(!is.null(clustersPerPixel)) {
       urbanVals = popMat$urban[pixelIndices]
       uniqueUrbanVals = popMat$urban[uniquePixelIndices]
-    }else {
-      urbanMat = matrix(popMat$urban[pixelIndexMat], ncol=nDraws)
+    } else {
+      # urbanMat = matrix(popMat$urban[pixelIndexMat], ncol=nDraws)
+      urbanMat = NULL # don't calculate here for memory's sake
     }
   } else {
     urbanMat = NULL
@@ -975,7 +975,8 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
     areaVals = popMat$area[pixelIndices]
     uniqueAreaVals = popMat$area[uniquePixelIndices]
   } else {
-    areaMat = matrix(popMat$area[pixelIndexMat], ncol=nDraws)
+    # areaMat = matrix(popMat$area[pixelIndexMat], ncol=nDraws)
+    areaMat = NULL # don't calculate here for memory's sake
   }
   
   ##### Line 2: draw cluster effects, epsilon
@@ -999,12 +1000,12 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
                                             verbose=TRUE)
   } else {
     if(returnEAinfo) {
-      out = sampleNMultilevelMultinomial(pixelIndexMat=pixelIndexMat, urbanMat=urbanMat, areaMat=areaMat, easpaList=list(easpa), 
+      out = sampleNMultilevelMultinomial(pixelIndexMat=pixelIndexMat, easpaList=list(easpa), 
                                          popMat=popMat, stratifyByUrban=stratifyByUrban, verbose=TRUE, returnEAinfo=returnEAinfo)
       householdDraws = out$householdDraws
       Ncs = out$targetPopDraws
     } else {
-      Ncs <- sampleNMultilevelMultinomial(pixelIndexMat=pixelIndexMat, urbanMat=urbanMat, areaMat=areaMat, easpaList=list(easpa), 
+      Ncs <- sampleNMultilevelMultinomial(pixelIndexMat=pixelIndexMat, easpaList=list(easpa), 
                                        popMat=popMat, stratifyByUrban=stratifyByUrban, verbose=TRUE, returnEAinfo=returnEAinfo)
       householdDraws = NULL
     }
@@ -1241,7 +1242,7 @@ getExpectedNperEA = function(easpa, popMat, level=c("grid", "EA"), pixelIndexMat
     if(is.null(pixelIndexMat)) {
       stop("if level == EA, must specify pixelIndexMat")
     }
-    out = matrix(outPixel[pixelIndexMat], ncol=ncol(pixelIndexMat))
+    out = matrix(out[pixelIndexMat], ncol=ncol(pixelIndexMat))
   }
   
   out
@@ -1341,9 +1342,7 @@ rStratifiedMultnomialBySubarea = function(n, popMat, easpa, stratifyByUrban=TRUE
   if(any(areas != easpa$area))
     stop("area names and easpa do not match popMat or are not in the correct order")
   
-  # we will need to draw separate multinomial for each stratum. Start by 
-  # creating matrix of all draws of |C^g|
-  eaSamples = matrix(NA, nrow=nrow(popMat), ncol=n)
+  # we will need to draw separate multinomial for each stratum
   
   # create temporary popMat, except with one row for each constituency
   popSubareaMat = popMat[1:length(subareas),]
@@ -1391,7 +1390,8 @@ rStratifiedMultnomialBySubarea = function(n, popMat, easpa, stratifyByUrban=TRUE
     urbanIndices = unlist(sapply(1:length(subareas), getSortIndices, urban=TRUE, popMat=tempPopMat, stratifyByUrban=stratifyByUrban))
     ruralIndices = unlist(sapply(1:length(subareas), getSortIndices, urban=FALSE, popMat=tempPopMat, stratifyByUrban=stratifyByUrban))
     
-    # recombine into eaSamples
+    # create matrix of all draws of |C^g| and recombine urban/rural draws into eaSamples
+    eaSamples = matrix(NA, nrow=nrow(popMat), ncol=n)
     eaSamples[urbanIndices,] = urbanSamples
     eaSamples[ruralIndices,] = ruralSamples
   } else {
@@ -1416,7 +1416,8 @@ rStratifiedMultnomialBySubarea = function(n, popMat, easpa, stratifyByUrban=TRUE
     tempPopMat$area = tempPopMat$subarea
     stratumIndices = c(sapply(1:length(subareas), getSortIndices, popMat=tempPopMat, stratifyByUrban=stratifyByUrban))
     
-    # recombine into eaSamples
+    # create matrix of all draws of |C^g|
+    eaSamples = matrix(NA, nrow=nrow(popMat), ncol=n)
     eaSamples[stratumIndices,] = stratumSamples
   }
   
@@ -1686,12 +1687,14 @@ sampleNMultilevelMultinomial = function(nDraws = ncol(pixelIndexMat), pixelIndex
   if(length(easpaList) == 1) {
     easpaList = replicate(nDraws, easpaList[[1]], simplify=FALSE)
   }
+  areas = easpaList[[1]]$area
   
   if((is.null(areaMat) || is.null(urbanMat)) && is.null(pixelIndexMat)) {
     stop("user must either supply pixelIndexMat or both areaMat and urbanMat")
   }
   if(is.null(areaMat)) {
-    areaMat = matrix(popMat$area[pixelIndexMat], ncol=nDraws)
+    areaIs = match(popMat$area, sort(unique(areas))) # convert from character to indices to save memory
+    areaMat = matrix(areaIs[pixelIndexMat], ncol=nDraws)
   }
   if(is.null(urbanMat)) {
     urbanMat = matrix(popMat$urban[pixelIndexMat], ncol=nDraws)
@@ -1703,7 +1706,7 @@ sampleNMultilevelMultinomial = function(nDraws = ncol(pixelIndexMat), pixelIndex
   ##### Draw the totals
   
   # get the total number of enumeration areas per stratum (this does not change between draws)
-  areas = easpaList[[1]]$area
+  areasIs = match(areas, sort(unique(areas))) # convert from character to indices
   totalEAsUrban = easpaList[[1]]$EAUrb
   totalEAsRural = easpaList[[1]]$EARur
   totalEAs = easpaList[[1]]$EATotal
@@ -1729,8 +1732,9 @@ sampleNMultilevelMultinomial = function(nDraws = ncol(pixelIndexMat), pixelIndex
   
   # distribute the households throughout the enumeration areas with multinomial distribution, then 
   # distribute the target population amongst the households, also with a multinomial distribution
-  for(i in 1:length(areas)) {
-    thisArea = areas[i]
+  for(i in 1:length(areasIs)) {
+    thisArea = areasIs[i]
+    thisAreaL = areaMat==thisArea
     
     # print progress if in verbose mode
     if(verbose) {
@@ -1749,10 +1753,10 @@ sampleNMultilevelMultinomial = function(nDraws = ncol(pixelIndexMat), pixelIndex
       # if we must return EA info, we must return the household draws for each EA:
       if(returnEAinfo) {
         if(totalEAsUrban[i] != 0) {
-          householdDraws[areaMat==thisArea & urbanMat] = householdDrawsUrban
+          householdDraws[thisAreaL & urbanMat] = householdDrawsUrban
         }
         if(totalEAsRural[i] != 0) {
-          householdDraws[areaMat==thisArea & !urbanMat] = householdDrawsRural
+          householdDraws[thisAreaL & !urbanMat] = householdDrawsRural
         }
       }
     } else {
@@ -1765,28 +1769,28 @@ sampleNMultilevelMultinomial = function(nDraws = ncol(pixelIndexMat), pixelIndex
       if(stratifyByUrban) {
         if(totalEAsUrban[i] != 0) {
           probsUrban = sweep(householdDrawsUrban, 2, 1 / colSums(householdDrawsUrban), "*")
-          targetPopDraws[areaMat==thisArea & urbanMat] = sapply(1:nDraws, function(j) {stats::rmultinom(1, totalChildrenUrban[i,j], probsUrban[,j])})
+          targetPopDraws[thisAreaL & urbanMat] = sapply(1:nDraws, function(j) {stats::rmultinom(1, totalChildrenUrban[i,j], probsUrban[,j])})
         }
         
         if(totalEAsRural[i] != 0) {
           probsRural = sweep(householdDrawsRural, 2, 1 / colSums(householdDrawsRural), "*")
-          targetPopDraws[areaMat==thisArea & !urbanMat] = sapply(1:nDraws, function(j) {stats::rmultinom(1, totalChildrenRural[i,j], probsRural[,j])})
+          targetPopDraws[thisAreaL & !urbanMat] = sapply(1:nDraws, function(j) {stats::rmultinom(1, totalChildrenRural[i,j], probsRural[,j])})
         }
       } else {
         probs = sweep(householdDraws, 2, 1 / colSums(householdDraws), "*")
-        targetPopDraws[areaMat==thisArea] = sapply(1:nDraws, function(j) {stats::rmultinom(1, totalChildren[i,j], probs[,j])})
+        targetPopDraws[thisAreaL] = sapply(1:nDraws, function(j) {stats::rmultinom(1, totalChildren[i,j], probs[,j])})
       }
     } else {
       # set target pop per EA based on fixed number per household
       if(stratifyByUrban) {
         if(totalEAsUrban[i] != 0) {
-          targetPopDraws[areaMat==thisArea & urbanMat] = fixPopPerHH*householdDrawsUrban
+          targetPopDraws[thisAreaL & urbanMat] = fixPopPerHH*householdDrawsUrban
         }
         if(totalEAsRural[i] != 0) {
-          targetPopDraws[areaMat==thisArea & !urbanMat] = fixPopPerHH*householdDrawsRural
+          targetPopDraws[thisAreaL & !urbanMat] = fixPopPerHH*householdDrawsRural
         }
       } else {
-        targetPopDraws[areaMat==thisArea] = fixPopPerHH*householdDraws
+        targetPopDraws[thisAreaL] = fixPopPerHH*householdDraws
       }
     }
   }
