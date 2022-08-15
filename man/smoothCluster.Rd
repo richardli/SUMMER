@@ -40,6 +40,7 @@ smoothCluster(
   overdisp.prec = 0.4,
   options = list(config = TRUE),
   control.inla = list(strategy = "adaptive", int.strategy = "auto"),
+  control.fixed = list(),
   verbose = FALSE,
   geo = NULL,
   rw = NULL,
@@ -83,6 +84,7 @@ fitINLA2(
   overdisp.prec = 0.4,
   options = list(config = TRUE),
   control.inla = list(strategy = "adaptive", int.strategy = "auto"),
+  control.fixed = list(),
   verbose = FALSE,
   geo = NULL,
   rw = NULL,
@@ -170,6 +172,8 @@ More specific examples: (1) if each age group is assigned a different intercept,
 \item{options}{list of options to be passed to control.compute() in the inla() function.}
 
 \item{control.inla}{list of options to be passed to control.inla() in the inla() function. Default to the "adaptive" integration strategy.}
+
+\item{control.fixed}{list of options to be passed to control.fixed() in the inla() function.}
 
 \item{verbose}{logical indicator to print out detailed inla() intermediate steps.}
 
