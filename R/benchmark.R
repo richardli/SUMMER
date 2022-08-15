@@ -171,8 +171,8 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 		stop("weight.region$region does not contain all the regions in the fitted model.")
 	}
 	if(is.time){
-		if(sum(!weight.region$years %in% national$years) > 0){
-			weight.region <- weight.region[weight.region$years %in% national$years, ]
+		if(sum(!weight.region$years %in% national[, timeVar]) > 0){
+			weight.region <- weight.region[weight.region$years %in% national[, timeVar], ]
 		}
 		if(sum(!fitted$stratified$years %in% weight.region$years) > 0){
 			tmp <- unique(fitted$stratified$years[fitted$stratified$years %in% weight.region$years])
