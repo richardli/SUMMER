@@ -705,6 +705,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
       out$weight.strata = weight.strata
       out$weight.frame = weight.frame
       out$CI <- CI
+      out$control.fixed <- inla_mod$control.fixed
       class(out) <- "SUMMERprojlist"
       return(out) 
 
