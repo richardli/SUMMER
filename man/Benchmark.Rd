@@ -67,6 +67,7 @@ weight.region$proportion <- 0.25
 national <- data.frame(years = periods, 
 				   est = seq(0.25, 0.15, length = 7), 
 				   sd = runif(7, 0.01, 0.03))
+# the row order does not matter as long as the years variable can be matched
 national <- national[sample(1:7),]
 
 # benchmarking
@@ -140,6 +141,33 @@ est.bb.bench <- Benchmark(est.bb, national, weight.region = weight.region,
 # It can be seen the central region are pulled to the national benchmark
 subset(est.bb.bench$overall, region == "central")
 subset(est.bb$overall, region == "central") 
+
+## Example with the MH method
+periods <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")
+# Benchmarking can be applied when customized priors are 
+#  specified for fixed effects when fitting the model
+fit.bb.new  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat, 
+				family = "betabinomial",
+				year_label = periods, 
+				survey.effect = TRUE, 
+				control.fixed = list(
+					mean=list(`age.intercept0::1`=-4, 
+						       `age.intercept1-11::1`=-5,
+						       `age.intercept12-23::1`=-8,
+						       `age.intercept24-35::1`=-9,
+						       `age.intercept36-47::1`=-10,
+						       `age.intercept48-59::1`=-11), 
+					prec=list(`age.intercept0::1`=10, 
+						       `age.intercept1-11::1`=10,
+						       `age.intercept12-23::1`=10,
+						       `age.intercept24-35::1`=10,
+						       `age.intercept36-47::1`=10,
+						       `age.intercept48-59::1`=10)))
+est.bb.new <- getSmoothed(fit.bb.new, nsim = 1000, CI = 0.95, save.draws=TRUE)
+est.bb.bench.MH <- Benchmark(est.bb.new, national, 
+											weight.region = weight.region, 
+											estVar = "est", sdVar = "sd", timeVar = "years",
+											method = "MH")
  }
 }
 \author{
