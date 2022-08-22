@@ -143,8 +143,7 @@ subset(est.bb.bench$overall, region == "central")
 subset(est.bb$overall, region == "central") 
 
 ## Example with the MH method
-periods <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")
-# Benchmarking can be applied when customized priors are 
+# Benchmarking with MH should be applied when customized priors are 
 #  specified for fixed effects when fitting the model
 fit.bb.new  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat, 
 				family = "betabinomial",
@@ -165,9 +164,9 @@ fit.bb.new  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat,
 						       `age.intercept48-59::1`=10)))
 est.bb.new <- getSmoothed(fit.bb.new, nsim = 1000, CI = 0.95, save.draws=TRUE)
 est.bb.bench.MH <- Benchmark(est.bb.new, national, 
-											weight.region = weight.region, 
-											estVar = "est", sdVar = "sd", timeVar = "years",
-											method = "MH")
+	weight.region = weight.region, 
+	estVar = "est", sdVar = "sd", timeVar = "years",
+	method = "MH")
  }
 }
 \author{
