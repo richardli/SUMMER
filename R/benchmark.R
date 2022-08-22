@@ -6,6 +6,7 @@
 #' @param sdVar column name in \code{national} that indicates standard errors of national estimates.
 #' @param timeVar column name in \code{national} that indicates time periods.
 #' @param weight.region a data frame with a column `region` specifying subnational regions, a column `proportion` that specifies the proportion of population in each region. When multiple time periods exist, a third column `years` is required and the population proportions are the population proportions of each region in the corresponding time period.  
+#' @param method a string denoting the algorithm to use for benchmarking. Options include `MH` for Metropolis-Hastings, and `Rejection` for rejection sampler. Defaults to `Rejection`.
 #' 
 #' @return Benchmarked object in S3 class SUMMERproj or SUMMERprojlist in the same format as the input object \code{fitted}.
 #' @author Taylor Okonek, Zehang Richard Li 
@@ -121,7 +122,7 @@
 #' @export
 #' 
 
-Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.region = NULL){
+Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.region = NULL, method = c("MH","Rejection")[2]) {
 	# Check input types
 	if(!is(fitted, "SUMMERprojlist")){
 		if(is(fitted, "SUMMERproj")){
@@ -139,6 +140,10 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 		lowerCI <- (1 - fitted$CI) / 2
 		upperCI <- 1 - (1 - fitted$CI) / 2
 	}
+  if(!(method %in% c("MH","Rejection"))) {
+    stop(paste0("Method ", method, " is not available. Choose one of 'MH', 'Rejection'."))
+  }
+  message(paste0("Method ", method, " being used."))
 
 	# Check the population weight matrix
 	is.time <- length(unique(fitted$stratified$years)) > 1
@@ -204,9 +209,7 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 		t_sub <- 1:dim(nat)[1]
 	}
 
-
-
-	# Rejection sampling and save message
+	# Sampling and save message
 	n0 <- length(fitted$draws)
 	q_mat <- matrix(0, nrow = ntime, ncol = n0)
 
@@ -230,38 +233,104 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 	# if benchmarking only happens in subset of years
 	q_mat <- q_mat[t_sub, ]
 
-
-	# generate Us
-	U <- runif(n0, 0, 1)
-
-	# set up fitted_list and prop_accepted for return
-	fitted_list <- list()
-	prop_accepted <- 0
-	accept_ratio <- matrix(0, nrow = nrow(q_mat), ncol = ncol(q_mat))
-	for (i in 1:dim(q_mat)[1]) {
-		for (j in 1:ncol(q_mat)) {
-		  accept_ratio[i, j] <- exp((-1 / (2 * nat$sd[i] ^ 2)) * (q_mat[i, j] - nat$est[i]) ^ 2)
-		}
+  # if rejection algorithm...
+	if (method == "Rejection") {
+	  # generate Us
+	  U <- runif(n0, 0, 1)
+	  
+	  # set up fitted_list and prop_accepted for return
+	  fitted_list <- list()
+	  prop_accepted <- 0
+	  accept_ratio <- matrix(0, nrow = nrow(q_mat), ncol = ncol(q_mat))
+	  for (i in 1:dim(q_mat)[1]) {
+	    for (j in 1:ncol(q_mat)) {
+	      accept_ratio[i, j] <- exp((-1 / (2 * nat$sd[i] ^ 2)) * (q_mat[i, j] - nat$est[i]) ^ 2)
+	    }
+	  }
+	  
+	  # get accepted samples if we take all time points at once
+	  multi_accepted_samps <- rep(FALSE, ncol(accept_ratio))
+	  for (i in 1:ncol(accept_ratio)) {
+	    multi_accepted_samps[i] <- ( U[i] < prod(accept_ratio[,i]) )
+	  }
+	  acc <- which(multi_accepted_samps == TRUE)
+	  
+	  if(length(acc) == 0){
+	    stop("All posterior samples have been rejected. Please rerun getSmoothed() with a larger 'nsim' argument.")
+	  } 
+	  
+	  fitted$msg <- paste0(fitted$msg, 
+	                       "\nThe posterior draws have been benchmarked to external information. The acceptance ratio is ", 
+	                       round(length(acc) / n0, 3),
+	                       "\n")
+	  message("The posterior draws have been benchmarked to external information. The acceptance ratio is ", 
+	          round(length(acc) / n0, 3),
+	          "\n")
+	  
+	# if Metropolis-Hastings...
+	} else {
+	  # get intercept draws and priors for fixed effects
+	  ints <- get_intercepts(fitted)
+	  if (any(ints$priors[,2] <= 0)) {
+	    stop("fitted model cannot have fixed effect precisions <= 0")
+	  }
+	  
+	  # Initialize (beta^0, theta^0)
+	  old_thetas <- q_mat[,1]
+	  old_betas <- ints$draws[,1]
+	  
+	  accepted_ids <- c()
+	  num_accepted <- 0
+	  for (i in 2:ncol(q_mat)) {
+	    # Sample new (beta', theta')
+	    new_thetas <- q_mat[,i]
+	    new_betas <- ints$draws[,i]
+	    
+	    # compute A
+	    accept_prob <- A_full(old_thetas = old_thetas,
+	                          old_betas = old_betas,
+	                          new_thetas = new_thetas,
+	                          new_betas = new_betas,
+	                          z = nat$est,
+	                          intercept_means = ints$priors[,1], 
+	                          var_z = nat$sd^2,
+	                          var_plus = 1/ints$priors[,2],
+	                          nregion = nregion,
+	                          ntime = ntime)
+	    
+	    accept_yn <- rbernoulli(n = 1, p = accept_prob)
+	    
+	    if (accept_yn) {
+	      accepted_ids <- c(accepted_ids, i)
+	      old_betas <- new_betas
+	      old_thetas <- new_thetas
+	      num_accepted <- num_accepted + 1
+	      # print(i)
+	    } else {
+	      # if we're not at the initialization value...
+	      if (i > 2) {
+	        accepted_ids <- c(accepted_ids, tail(accepted_ids,1))
+	      }
+	    }
+	  }
+	  
+	  # messaging
+	  if(num_accepted == 0){
+	    stop("All posterior samples have been rejected. Please rerun getSmoothed() with a larger 'nsim' argument.")
+	  } 
+	  
+	  fitted$msg <- paste0(fitted$msg, 
+	                       "\nThe posterior draws have been benchmarked to external information. The acceptance ratio is ", 
+	                       round(num_accepted / n0, 3),
+	                       "\n")
+	  message("The posterior draws have been benchmarked to external information. The acceptance ratio is ", 
+	          round(num_accepted / n0, 3),
+	          "\n")
+	  
+	  acc <- accepted_ids
+	  
 	}
-
-	# get accepted samples if we take all time points at once
-	multi_accepted_samps <- rep(FALSE, ncol(accept_ratio))
-	for (i in 1:ncol(accept_ratio)) {
-		multi_accepted_samps[i] <- ( U[i] < prod(accept_ratio[,i]) )
-	}
-	acc <- which(multi_accepted_samps == TRUE)
-
-	fitted$msg <- paste0(fitted$msg, 
-						"\nThe posterior draws have been benchmarked to external information. The acceptance ratio is ", 
-						round(length(acc) / n0, 3),
-						"\n")
-	message("The posterior draws have been benchmarked to external information. The acceptance ratio is ", 
-						round(length(acc) / n0, 3),
-						"\n")
-
-	if(length(acc) == 0){
-		stop("All posterior samples have been rejected. Please rerun getSmoothed() with a larger 'nsim' argument.")
-	} 
+	
 
 	# Update fitted
 	for(i in 1:length(fitted$draws.est )){
@@ -294,7 +363,11 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 	}
 
 	fitted$nsim <- length(acc)
-	fitted$accept.ratio <- length(acc) / n0
+	if (method == "Rejection") {
+	  fitted$accept.ratio <- length(acc) / n0
+	} else {
+	  fitted$accept.ratio <- num_accepted / n0
+	}
 	fitted$benchmarked <- TRUE
 
 	return(fitted)

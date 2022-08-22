@@ -10,7 +10,8 @@ Benchmark(
   estVar,
   sdVar,
   timeVar = NULL,
-  weight.region = NULL
+  weight.region = NULL,
+  method = c("MH", "Rejection")[2]
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ Benchmark(
 \item{timeVar}{column name in \code{national} that indicates time periods.}
 
 \item{weight.region}{a data frame with a column `region` specifying subnational regions, a column `proportion` that specifies the proportion of population in each region. When multiple time periods exist, a third column `years` is required and the population proportions are the population proportions of each region in the corresponding time period.}
+
+\item{method}{a string denoting the algorithm to use for benchmarking. Options include `MH` for Metropolis-Hastings, and `Rejection` for rejection sampler. Defaults to `Rejection`.}
 }
 \value{
 Benchmarked object in S3 class SUMMERproj or SUMMERprojlist in the same format as the input object \code{fitted}.
