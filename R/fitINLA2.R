@@ -495,8 +495,15 @@ if(strata.time.effect){
       data$age.intercept <- data$strata
     }else{
       age.groups <- expand.grid(age.groups.vec, stratalevels)
-      age.groups <- paste(age.groups[,1], age.groups[,2], sep = ":")
-      data$age <- paste(data$age, data$strata, sep = ":")
+      # avoid extra ":" at the end
+      if(sum(age.groups[,2] != "") > 0){
+        age.groups <- paste(age.groups[,1], age.groups[,2], sep = ":")
+      }else{
+        age.groups <- age.groups[,1]
+      }
+      if(sum(data$age != "") > 0){
+        data$age <- paste(data$age, data$strata, sep = ":")
+      }
       # deal with age.intercept in the next section
     }
   }
@@ -520,7 +527,10 @@ if(strata.time.effect){
         data$age.intercept <- data$age.orig
         # add new age.diff variable as the difference 
         data$age.diff <- age.groups.new[match(data$age.orig, age.groups.vec)]
-        data$age.diff <- paste(data$age.diff, data$strata, sep = ":") 
+        # avoid extra ":" at the end
+        if(sum(data$strata != "") > 0){
+          data$age.diff <- paste(data$age.diff, data$strata, sep = ":") 
+        }
         ## 
         ##  This artificial first level (instead of NA) is needed to 
         ##    make inla specify the model.matrix correctly.
@@ -531,11 +541,18 @@ if(strata.time.effect){
       }else{          
         # new age.intercept variable as age * strata
         data$age.intercept <- age.groups.new[match(data$age.orig, age.groups.vec)]
-        data$age.intercept <- paste(data$age.intercept, data$strata, sep = ":") 
+        # avoid additional ":" at the end
+        if(sum(data$strata != "") > 0){
+          data$age.intercept <- paste(data$age.intercept, data$strata, sep = ":") 
+        }
         data$age.diff <- NA
 
         age.groups.new <- expand.grid(age.groups.new, stratalevels)
-        age.groups.new <- paste(age.groups.new[,1], age.groups.new[,2], sep = ":")
+        if(sum(age.groups.new[,2] != "") > 0){
+          age.groups.new <- paste(age.groups.new[,1], age.groups.new[,2], sep = ":")
+        }else{
+          age.groups.new <- age.groups.new[,1]
+        }
       }
   }
   if(strata.time.effect){
