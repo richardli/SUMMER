@@ -461,6 +461,13 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 	for(i in 1:length(fitted$draws.est.overall )){
 		fitted$draws.est.overall[[i]]$draws <- fitted$draws.est.overall[[i]]$draws[acc]  
 	}
+	draws.raw <- NULL
+	counter <- 1
+	for(i in acc){
+		draws.raw[[counter]] <- fitted$draws[[i]]
+		counter <- counter + 1
+	}
+	fitted$draws <- draws.raw
 
 
 	fitted$stratified$variance <- fitted$stratified$median <- fitted$stratified$mean <-  fitted$stratified$lower <-  fitted$stratified$upper <- NA
