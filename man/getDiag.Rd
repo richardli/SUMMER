@@ -9,6 +9,7 @@ getDiag(
   field = c("space", "time", "spacetime")[1],
   CI = 0.95,
   draws = NULL,
+  nsim = 1000,
   ...
 )
 }
@@ -20,6 +21,8 @@ getDiag(
 \item{CI}{Desired level of credible intervals}
 
 \item{draws}{Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.}
+
+\item{nsim}{number of simulations, only applicable for the cluster-level model space-time interaction terms when random slopes are included.}
 
 \item{...}{Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.}
 }
