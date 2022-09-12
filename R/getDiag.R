@@ -4,6 +4,7 @@
 #' @param field which random effects to plot. It can be one of the following: space, time, and spacetime.
 #' @param CI Desired level of credible intervals
 #' @param draws Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.  
+#' @param nsim number of simulations, only applicable for the cluster-level model space-time interaction terms when random slopes are included.
 #' @param ... Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.
 #' 
 #' @return List of diagnostic plots
@@ -39,7 +40,7 @@
 #' @export
 
 
-getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0.95, draws = NULL, ...){
+getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0.95, draws = NULL, nsim = 1000, ...){
 	lower <- (1 - CI) / 2
 	upper <- 1 - lower
 	if(!is.null(inla_mod$year_range)){
@@ -102,7 +103,7 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 			quants$group <- c(group, rep("IID", m))
 		}
 	  	quants$years.num <- suppressWarnings(as.numeric(as.character(quants$years)))
-		quants$label <- c(rep("RW", n), rep("IID", m))
+		quants$label <- c(rep("Structured", n), rep("IID", m))
 		quants$is.yearly <- !(quants$years %in% year_label)
 
 	}else if(field == "time" && has.slope > 0){
@@ -175,7 +176,7 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 			quants$group <- c(group, rep(NA, m))
 		}
 	  	quants$years.num <- suppressWarnings(as.numeric(as.character(quants$years)))
-		quants$label <- c(rep("RW", n), rep("IID", m))
+		quants$label <- c(rep("Structured", n), rep("IID", m))
 		quants$is.yearly <- !(quants$years %in% year_label)
 
 	}else if(field == "space"){
@@ -207,7 +208,8 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 		 }
 		has.random.slope <- sum(grepl("slope", names(inla_mod$fit$summary.random)))
 		if(has.random.slope){
-			fixed <- c("st.slope.id", "region.int", "time.area")
+					fixed <- c("st.slope.id", "region.int", "time.area")
+	  	    fixed <- fixed[fixed %in% c(rownames(inla_mod$fit$summary.fixed), names(inla_mod$fit$summary.random))]
 	        select <- list()
 	        for(i in 1:length(fixed)){
 	           select[[i]] <- 0
@@ -215,7 +217,7 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 	        }
         	if(is.null(draws)){
 				message("Posterior draws not provided. Start new posterior sampling...")
-	        	sampAll <- INLA::inla.posterior.sample(n = 1000, result = inla_mod$fit, intern = TRUE, selection = select, verbose = FALSE)
+	        	sampAll <- INLA::inla.posterior.sample(n = nsim, result = inla_mod$fit, intern = TRUE, selection = select, verbose = FALSE)
 	        }else{
 	        	sampAll <- draws
 	        }
