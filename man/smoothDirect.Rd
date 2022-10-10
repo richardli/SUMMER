@@ -29,6 +29,7 @@ smoothDirect(
   control.compute = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy =
     "default"),
   control.inla = list(strategy = "adaptive", int.strategy = "auto"),
+  control.fixed = list(),
   verbose = FALSE,
   geo = NULL,
   rw = NULL,
@@ -60,6 +61,7 @@ fitINLA(
   control.compute = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy =
     "default"),
   control.inla = list(strategy = "adaptive", int.strategy = "auto"),
+  control.fixed = list(),
   verbose = FALSE,
   geo = NULL,
   rw = NULL,
@@ -111,6 +113,8 @@ fitINLA(
 \item{control.compute}{list of options to be passed to control.compute() in the inla() function.}
 
 \item{control.inla}{list of options to be passed to control.inla() in the inla() function. Default to the "adaptive" integration strategy.}
+
+\item{control.fixed}{list of options to be passed to control.fixed() in the inla() function.}
 
 \item{verbose}{logical indicator to print out detailed inla() intermediate steps.}
 
