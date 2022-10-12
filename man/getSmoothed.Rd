@@ -17,13 +17,14 @@ getSmoothed(
   save.draws = FALSE,
   include_subnational = TRUE,
   only.age = NULL,
+  joint = FALSE,
   ...
 )
 }
 \arguments{
 \item{inla_mod}{output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}}
 
-\item{nsim}{number of simulations, only applicable for the cluster-level model. The smooth direct model always draws 1e5 samples from the marginal distribution since the computation is faster.}
+\item{nsim}{number of simulations, only applicable for the cluster-level model or direct model when \code{joint = TRUE} is specified. The smooth direct model will draw 1e5 samples from the marginal distribution when \code{joint = FALSE} since the computation is faster.}
 
 \item{weight.strata}{a data frame with two columns specifying time and region, followed by columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates on the probability scale.}
 
@@ -44,6 +45,8 @@ getSmoothed(
 \item{include_subnational}{logical indicator whether to include the spatial and space-time interaction components in the smoothed estimates. If set to FALSE, only the main temporal trends are returned.}
 
 \item{only.age}{a vector of age groups used to compute the final estimates. Default to be NULL, which includes all age groups in the model. This argument can be used to extract mortality rates of finer age groups when fitting multiple age groups jointly.}
+
+\item{joint}{Logical indicator whether the posterior draws should be drawn from the joint posterior or marginal distributions. Only releveant for the smooth direct model. Default from the marginal distribution (joint = FALSE).}
 
 \item{...}{Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.}
 }
@@ -70,6 +73,10 @@ data_multi <- getDirectList(births = DemoData, years = years,
   ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 data <- aggregateSurvey(data_multi)
 
+##
+## The following example shows extracting estimates from 
+##   fitted smoothDirect() model
+##
 #  national model
 years.all <- c(years, "15-19")
 fit1 <- smoothDirect(data = data, Amat = NULL, 
@@ -85,7 +92,69 @@ fit2 <- smoothDirect(data = data, Amat = mat,
 out2 <- getSmoothed(fit2)
 plot(out2, is.yearly=TRUE, is.subnational=TRUE)
 
+## The following examples compare the marginal posterior draws
+##    with joint posterior draws. The latter gives draws of 
+##    all estimates in addition to marginal summaries.
+## The plots should fall closely along the 45 degree line 
 
+#  national period model
+years.all <- c(years, "15-19")
+fit0 <- smoothDirect(data = data, Amat = NULL, 
+year_label = years, year_range = c(1985, 2019), 
+time.model = 'rw2', m = 1, control.compute = list(config =TRUE))
+out0 <- getSmoothed(fit0)
+out0a <- getSmoothed(fit0, joint = TRUE, nsim = 1e5)
+par(mfrow = c(1, 3))
+plot(out0$median, out0a$overall$median)
+abline(c(0, 1))
+plot(out0$upper, out0a$overall$upper)
+abline(c(0, 1))
+plot(out0$lower, out0a$overall$lower)
+abline(c(0, 1))
+
+#  national yearly model
+years.all <- c(years, "15-19")
+fit1 <- smoothDirect(data = data, Amat = NULL, 
+year_label = years.all, year_range = c(1985, 2019), 
+time.model = 'rw2', m = 5, control.compute = list(config =TRUE))
+out1 <- getSmoothed(fit1)
+out1a <- getSmoothed(fit1, joint = TRUE, nsim = 1e5, save.draws = TRUE)
+par(mfrow = c(1, 3))
+plot(out1$median, out1a$overall$median)
+abline(c(0, 1))
+plot(out1$upper, out1a$overall$upper)
+abline(c(0, 1))
+plot(out1$lower, out1a$overall$lower)
+abline(c(0, 1))
+
+#  subnational model
+fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat, 
+year_label = years.all, year_range = c(1985, 2019), 
+time.model = 'rw2',is.yearly=TRUE, m = 5, type.st = 4, 
+control.compute = list(config =TRUE))
+out2 <- getSmoothed(fit2)
+out2a <- getSmoothed(fit2, joint = TRUE, nsim = 1e5, save.draws = TRUE)
+par(mfrow = c(1, 3))
+plot(out2$median, out2a$overall$median)
+abline(c(0, 1))
+plot(out2$upper, out2a$overall$upper)
+abline(c(0, 1))
+plot(out2$lower, out2a$overall$lower)
+abline(c(0, 1))
+
+#  subnational space-only model combining all periods
+fit3 <- smoothDirect(data = data, 
+       time.model = NULL, Amat = DemoMap$Amat, 
+   control.compute = list(config =TRUE))
+out3 <- getSmoothed(fit3)
+out3a <- getSmoothed(fit3, joint = TRUE, nsim = 1e5, save.draws = TRUE)
+par(mfrow = c(1, 3))
+plot(out3$median, out3a$overall$median)
+abline(c(0, 1))
+plot(out3$upper, out3a$overall$upper)
+abline(c(0, 1))
+plot(out3$lower#' , out3a$overall$lower)
+abline(c(0, 1))
 }
 
 }
