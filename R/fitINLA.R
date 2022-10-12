@@ -51,21 +51,20 @@
 #'   years.all <- c(years, "15-19")
 #'   fit1 <- smoothDirect(data = data, Amat = NULL, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
-#'   time.model = 'rw2', is.yearly=FALSE, m = 5, control.compute = list(config =TRUE))
+#'   time.model = 'rw2', m = 5, control.compute = list(config =TRUE))
 #'   out1 <- getSmoothed(fit1)
 #'   plot(out1)
 #'   
 #'   #  subnational model
 #'   fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat, 
 #'   year_label = years.all, year_range = c(1985, 2019), 
-#'   time.model = 'rw2',is.yearly=TRUE, m = 5, type.st = 4)
+#'   time.model = 'rw2', m = 5, type.st = 4)
 #'   out2 <- getSmoothed(fit2)
 #'   plot(out2)
 #'   
 #'   #  subnational space-only model for one period
 #'   fit3 <- smoothDirect(data = subset(data, years == "10-14"), 
 #'            time.model = NULL, Amat = DemoMap$Amat)
-#'   source('projINLA.R')
 #'   out3 <- getSmoothed(fit3)
 #'   plot(out3, plot.CI = TRUE)
 #' }
