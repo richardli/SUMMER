@@ -909,6 +909,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
       # the order of draws corresponding to rows in the out3 data frame
       order <- rep(NA, N*T)
       counter <- 1
+      has.time.slope <- FALSE
       for(i in 1:T){
         for(j in 1:N){
           index <- lincombs.info$Index[lincombs.info$District == region_nums[j] & lincombs.info$Year == i]
@@ -917,9 +918,14 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
             label <- names(inla_mod$fit$.args$lincomb[[index]][[k]])
             # for intercept, the first element is weight = 1
             # for random effect, the first element is idx
-            # for covariate this is left to future work 
+            # for time.slope this is the covariate value
             AA[counter, label] <- unlist(inla_mod$fit$.args$lincomb[[index]][[k]])[1]
-            AA.loc[counter, label] <- match(paste0(label, ":", AA[counter, label]), rownames(sampAll[[1]]$latent))
+            if(label == "time.slope"){
+              AA.loc[counter, label] <- NA
+              has.time.slope <- TRUE
+            }else{
+              AA.loc[counter, label] <- match(paste0(label, ":", AA[counter, label]), rownames(sampAll[[1]]$latent))
+            }
           }
           counter <- counter + 1
         }
@@ -931,6 +937,13 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
       for(i in 1:nsim){
         draw <- sampAll[[i]]$latent
         theta[i,  ] <-  apply(AA.loc, 1, function(x, ff){sum(ff[x], na.rm=TRUE)}, draw)
+        
+        # time slope
+        if(has.time.slope){
+            slope <- draw["time.slope:1", ]
+            add.slope <- slope * AA[, "time.slope"]
+            theta[i,  ] <-  theta[i,  ] + add.slope
+        }
         
         # Right now we do not have covariate, so this will not be used
         if(!is.null(inla_mod$covariate.names)){
