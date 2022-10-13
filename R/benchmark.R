@@ -254,7 +254,7 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
   message(paste0("Method ", method, " being used."))
 
 	# Check the population weight matrix
-	is.time <- length(unique(fitted$stratified$years)) > 1
+	is.time <- length(unique(fitted$overall$years)) > 1
 	ntime <- max(fitted$overall$time)
 	nregion <- max(fitted$overall$area)
 	years <- fitted$overall$years[match(1:max(fitted$overall$time), fitted$overall$time)]
@@ -280,15 +280,15 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 			stop("Cannot determine the column indicating population proportion. Specify the column name to be 'proportion'.")
 		}
 	}
-	if(sum(!fitted$stratified$region %in% weight.region$region) > 0 && nregion > 1){
+	if(sum(!fitted$overall$region %in% weight.region$region) > 0 && nregion > 1){
 		stop("weight.region$region does not contain all the regions in the fitted model.")
 	}
 	if(is.time){
 		if(sum(!weight.region$years %in% national[, timeVar]) > 0){
 			weight.region <- weight.region[weight.region$years %in% national[, timeVar], ]
 		}
-		if(sum(!fitted$stratified$years %in% weight.region$years) > 0){
-			tmp <- unique(fitted$stratified$years[fitted$stratified$years %in% weight.region$years])
+		if(sum(!fitted$overall$years %in% weight.region$years) > 0){
+			tmp <- unique(fitted$overall$years[fitted$overall$years %in% weight.region$years])
 			warning(paste0("weight.region$years does not contain all the time periods in the fitted model. Benchmarking only performed for the following period:\n", paste(tmp, collapse = ", ")))
 		}
 	}
@@ -469,7 +469,7 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 	}
 	fitted$draws <- draws.raw
 
-
+	if(!is.null(fitted$stratified)){
 	fitted$stratified$variance <- fitted$stratified$median <- fitted$stratified$mean <-  fitted$stratified$lower <-  fitted$stratified$upper <- NA
 	for(i in 1:length(fitted$draws.est)){
 		y <- fitted$draws.est[[i]]$years
@@ -479,6 +479,7 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 		fitted$stratified[j, c("lower", "median", "upper")] <- stats::quantile(fitted$draws.est[[j]]$draws, c(lowerCI, 0.5, upperCI))
         fitted$stratified[j, "mean"] <- mean(fitted$draws.est[[j]]$draws)
         fitted$stratified[j, "variance"] <- var(fitted$draws.est[[j]]$draws)
+	}
 	}
 
 	fitted$overall$variance <- fitted$overall$median <- fitted$overall$mean <-  fitted$overall$lower <-  fitted$overall$upper <- NA
