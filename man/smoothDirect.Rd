@@ -27,7 +27,7 @@ smoothDirect(
   pc.st.u = NA,
   pc.st.alpha = NA,
   control.compute = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy =
-    "default"),
+    "default", config = TRUE),
   control.inla = list(strategy = "adaptive", int.strategy = "auto"),
   control.fixed = list(),
   verbose = FALSE,
@@ -59,7 +59,7 @@ fitINLA(
   pc.st.u = NA,
   pc.st.alpha = NA,
   control.compute = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy =
-    "default"),
+    "default", config = TRUE),
   control.inla = list(strategy = "adaptive", int.strategy = "auto"),
   control.fixed = list(),
   verbose = FALSE,
@@ -110,7 +110,7 @@ fitINLA(
 
 \item{pc.st.alpha}{hyperparameter alpha for the PC prior on precisions for the interaction term.}
 
-\item{control.compute}{list of options to be passed to control.compute() in the inla() function.}
+\item{control.compute}{list of options to be passed to control.compute() in the inla() function. The default argument saves the internal objects created by INLA for posterior sampling later. If the fitted object is too large in size and there is no need to perform joint posterior sampling from the model (only used in benchmarking), this argument can be set to \code{control.compute = list(config = FALSE)} to reduce the size of the fitted object.}
 
 \item{control.inla}{list of options to be passed to control.inla() in the inla() function. Default to the "adaptive" integration strategy.}
 
