@@ -6,7 +6,7 @@
 #' @param Amat Adjacency matrix for the regions
 #' @param formula INLA formula. See vignette for example of using customized formula.
 #' @param time.model Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale. 
-#' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. For ar1 interaction model, region-specific random slopes can be added by specifying \code{pc.st.slope.u} and \code{pc.st.slope.alpha}.
+#' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. For ar1 interaction model, region-specific random slopes are currently not implemented.
 #' @param year_label string vector of year names
 #' @param year_range Entire range of the years (inclusive) defined in year_label.
 #' @param is.yearly Logical indicator for fitting yearly or period model.
@@ -950,11 +950,12 @@ if(is.main.ar){
         object.name <- paste("lc", index, sep = "")
         
         lincombs.info[index, c("District", "Year")] <- c(0,i)
-        if(rw == 1){
-          assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
-                                                time.struct= time ,
-                                                time.unstruct= time), 
-                                                XX)))         
+        if(is.main.ar){
+           tmplin <- list("(Intercept)" = 1,
+                            time.struct= time ,
+                            time.unstruct= time)   
+          tmplin <- c(tmplin, time.slope = (i - center)/(N - 1))
+          assign(object.name, INLA::inla.make.lincomb(c(tmplin, XX)))     
         }else{
           assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
                                                 time.struct= time ,
