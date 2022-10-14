@@ -239,8 +239,10 @@ plot(out2a$overall)
 plot(out2b$overall) 
 
 # combine the point estimate and compare with the benchmark values
-national.est <- aggregate(mean ~ years, data = out2a$overall[out2a$overall$is.yearly, ], FUN = mean)
-national.est.bench <- aggregate(mean ~ years, data = out2b$overall[out2b$overall$is.yearly, ], FUN = mean)
+national.est <- aggregate(mean ~ years, 
+   data = out2a$overall[out2a$overall$is.yearly, ], FUN = mean)
+national.est.bench <- aggregate(mean ~ years, 
+   data = out2b$overall[out2b$overall$is.yearly, ], FUN = mean)
 
 plot(national$est, national.est$mean,  
 		 xlim = range(c(national$est, national.est$mean, national.est.bench$mean)),
@@ -271,8 +273,10 @@ plot(out2a$overall)
 plot(out2c$overall)
 
 # combine the point estimate and compare with the benchmark values
-national.est <- aggregate(mean ~ years, data = out2a$overall[!out2a$overall$is.yearly, ], FUN = mean)
-national.est.bench <- aggregate(mean ~ years, data = out2c$overall[!out2b$overall$is.yearly, ], FUN = mean)
+national.est <- aggregate(mean ~ years, 
+			data = out2a$overall[!out2a$overall$is.yearly, ], FUN = mean)
+national.est.bench <- aggregate(mean ~ years, 
+			data = out2c$overall[!out2b$overall$is.yearly, ], FUN = mean)
 
 plot(national$est, national.est$mean,  
 		 xlim = range(c(national$est, national.est$mean, national.est.bench$mean)),
