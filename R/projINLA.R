@@ -978,7 +978,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
         }
       }
       
-      out3$is.yearly <- !(out3$years %in% year_label)
+      out3$is.yearly <- !(out3$years %in% inla_mod$year_label)
       out3$years.num <- suppressWarnings(as.numeric(as.character(out3$years)))
       out3$years <- factor(out3$years, year_label)
       class(out3) <- c("SUMMERproj", "data.frame")
