@@ -336,17 +336,17 @@ Benchmark <- function(fitted, national, estVar, sdVar, timeVar = NULL, weight.re
 	  
 	  # add likelihoods for z
 	  for (i in 1:ntime) {
-	    num <- num * dnorm(z[i], new_thetas[i], sqrt(var_z[i]))
-	    denom <- denom * dnorm(z[i], old_thetas[i], sqrt(var_z[i]))
+	    num <- num + dnorm(z[i], new_thetas[i], sqrt(var_z[i]), log = TRUE)
+	    denom <- denom + dnorm(z[i], old_thetas[i], sqrt(var_z[i]), log = TRUE)
 	  }
 	  
 	  # add likelihoods for intercepts
 	  for (i in 1:length(old_betas)) {
-	    num <- num * dnorm(old_betas[i], intercept_means[i], sqrt(var_plus[i]))
-	    denom <- denom * dnorm(new_betas[i], intercept_means[i], sqrt(var_plus[i]))
+	    num <- num + dnorm(old_betas[i], intercept_means[i], sqrt(var_plus[i]), log = TRUE)
+	    denom <- denom + dnorm(new_betas[i], intercept_means[i], sqrt(var_plus[i]), log = TRUE)
 	  }
 	  # print(num/denom)
-	  return(min(1, num/denom))
+	  return(min(1, exp(num - denom)))
 	}
 
 	############################################################################
