@@ -1242,7 +1242,7 @@ if(family == "betabinomialna"){
   }else{
     control.family <- NULL
     if(family == "betabinomial"){
-      control.family <- list(hyper = list(rho = list(param = c(overdisp.mean, overdisp.prec))))
+      control.family <- list(hyper = list(rho = list(param = c(overdisp.mean, overdisp.prec), initial = overdisp.mean)))
       fit <- INLA::inla(formula, family = family, control.compute = options, control.family = control.family, data = exdat, control.predictor = list(compute = FALSE, link=1), Ntrials = exdat$total, lincomb = NULL, control.inla = control.inla, verbose = verbose, control.fixed = control.fixed, ...)
     }else{
       fit <- INLA::inla(formula, family = family, control.compute = options, data = exdat, control.predictor = list(compute = FALSE, link=1), Ntrials = exdat$total, lincomb = NULL, control.inla = control.inla, verbose = verbose, control.fixed = control.fixed, ...)
