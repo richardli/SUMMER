@@ -250,7 +250,7 @@
 #' print(head(poppsubKenyaNeonatal))
 #' }
 #' @importFrom raster extract
-#' @importFrom rgdal rgdal_extSoftVersion
+#' @importFrom terra gdal
 #' @importFrom sp SpatialPoints
 #' @importFrom sp CRS
 #' @importFrom sp coordinates
@@ -467,10 +467,8 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
   }
   
   # determine version of PROJ
-  ver = rgdal::rgdal_extSoftVersion()
-  theseNames = names(ver)
-  thisI = which(grepl("PROJ", theseNames))
-  PROJ6 <- as.numeric(substr(ver[thisI], 1, 1)) >= 6
+  ver = terra::gdal(lib="proj")
+  PROJ6 <- as.numeric(substr(ver, 1, 1)) >= 6
   
   # get population density at those coordinates
   if(!PROJ6) {

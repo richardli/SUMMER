@@ -29,7 +29,7 @@
 #' # [1,] -110.6405 -555.1739
 #' # [2,]  832.4544  608.7130
 #' 
-#' @importFrom rgdal rgdal_extSoftVersion
+#' @importFrom terra gdal
 #' @importFrom sp SpatialPoints
 #' @importFrom sp CRS
 #' @export
@@ -40,10 +40,8 @@ projKenya = function(lon, lat=NULL, inverse=FALSE) {
   }
   
   # determine version of PROJ
-  ver = rgdal::rgdal_extSoftVersion()
-  theseNames = names(ver)
-  thisI = which(grepl("PROJ", theseNames))
-  PROJ6 <- as.numeric(substr(ver[thisI], 1, 1)) >= 6
+  ver = terra::gdal(lib="proj")
+  PROJ6 <- as.numeric(substr(ver, 1, 1)) >= 6
   
   if(!inverse) {
     # from lon/lat coords to easting/northing
