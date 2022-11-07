@@ -84,6 +84,10 @@
 #' directly fall into an area. See \code{\link[fields]{fields.rdist.near}} for details.
 #' @param delta For determining what area or subarea points are nearest to if they do not 
 #' directly fall into an area. See \code{\link[fields]{fields.rdist.near}} for details.
+#' @param setNAsToZero If TRUE, sets NA populations to 0.
+#' @param fixZeroPopDensitySubareas If TRUE, if population density in a subarea is estimated to be 
+#' zero, but the total population in the subarea is nonzero, population is filled into the 
+#' area uniformly
 #' 
 #' @author John Paige
 #' @seealso \code{\link{setThresholdsByRegion}}, \code{\link{poppRegionFromPopMat}}, \code{\link{simPopSPDE}}, \code{\link{simPopCustom}}
@@ -260,7 +264,8 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
                                  poppa=NULL, poppsub=NULL, stratifyByUrban=TRUE, 
                                  areapa=NULL, areapsub=NULL, 
                                  areaPolygonSubsetI=NULL, subareaPolygonSubsetI=NULL, 
-                                 mean.neighbor=50, delta=.1, returnPoppTables=FALSE) {
+                                 mean.neighbor=50, delta=.1, returnPoppTables=FALSE, 
+                                 setNAsToZero=TRUE, fixZeroPopDensitySubareas=FALSE) {
   thresholdUrbanBy = ifelse(is.null(poppsub), "area", "subarea")
   
   # get a rectangular grid
@@ -469,10 +474,59 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
   
   # get population density at those coordinates
   if(!PROJ6) {
-    interpPopVals = raster::extract(pop, SpatialPoints(lonLatGrid),method="bilinear")
+    # extract the raster values for each chunk of points
+    interpPopVals <- tryCatch(
+      {
+        raster::extract(pop, sp::SpatialPoints(lonLatGrid),method="bilinear")
+      },
+      error=function(cond) {
+        message(cond)
+        stop(paste0("Error extracting raster values. In case of memory limitations, see ", 
+                    "maxmemory, memfrac, chunksize, and todisk in raster::rasterOptions()"))
+        # Choose a return value in case of error
+        return(NA)
+      }
+    )
   } else {
     sp::proj4string(pop) = sp::CRS(SRS_string="EPSG:4326")
-    interpPopVals = raster::extract(pop, sp::SpatialPoints(lonLatGrid, proj4string=sp::CRS(SRS_string="EPSG:4326")), method="bilinear")
+    interpPopVals <- tryCatch(
+      {
+        raster::extract(pop, sp::SpatialPoints(lonLatGrid, proj4string=sp::CRS(SRS_string="EPSG:4326")), method="bilinear")
+      },
+      error=function(cond) {
+        message(cond)
+        stop(paste0("Error extracting raster values. In case of memory limitations, see ", 
+                    "raster::aggregate, raster::resample, and raster::projectRaster"))
+        # Choose a return value in case of error
+        return(NA)
+      }
+    )
+  }
+  
+  if(setNAsToZero) {
+    interpPopVals[is.na(interpPopVals)] = 0
+  }
+  
+  # if requested, fix subareas with entirely zero population density
+  if(fixZeroPopDensitySubareas && !is.null(poppsub)) {
+    newPop = data.frame(list(lon=lonLatGrid[,1], lat=lonLatGrid[,2], pop=interpPopVals, area=areas, subarea=subareas, urban=NA))
+    poppsubCurrent = poppRegionFromPopMat(newPop, newPop$subarea)
+    
+    zeroPopSubareas = poppsubCurrent$region[poppsubCurrent$popTotal == 0]
+    if(any(zeroPopSubareas)) {
+      warning(paste0("The following subareas have entirely zero population density ", 
+                     "but nonzero total population, and their population will be filled ", 
+                     "in uniformly: ", paste(zeroPopSubareas, sep=", ")))
+      # fill in population density uniformly in these subareas
+      for(i in 1:length(zeroPopSubareas)) {
+        thisSub = zeroPopSubareas[i]
+        thisSubI = newPop$subarea == thisSub
+        thisSubPop = poppsubCurrent$popTotal[poppsubCurrent$region == thisSub]
+        newPop$pop[thisSubI] = thisSubPop/sum(thisSubI)
+      }
+    }
+    
+    interpPop = newPop$pop
   }
   
   if(any(badSubareas)) {
