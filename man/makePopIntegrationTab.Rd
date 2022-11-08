@@ -110,11 +110,17 @@ Has variables:
 \item{stratifyByUrban}{Whether to stratify the pixellated grid by urban/rural. If TRUE, 
 renormalizes population densities within areas or subareas crossed with urban/rural}
 
-\item{areapa}{A vector of spatial areas (e.g. in km^2, although the exact units don't matter) 
-for each of the considered areas}
+\item{areapa}{A list with variables:
+\describe{
+  \item{area}{name of area}
+  \item{spatialArea}{spatial area of the subarea (e.g. in km^2)}
+}}
 
-\item{areapsub}{A vector of spatial areas (e.g. in km^2, although the exact units don't matter) 
-for each of the considered subareas}
+\item{areapsub}{A list with variables:
+\describe{
+  \item{subarea}{name of subarea}
+  \item{spatialArea}{spatial area of the subarea (e.g. in km^2)}
+}}
 
 \item{areaPolygonSubsetI}{Index in areaMapDat for a specific area to subset the grid over. This 
 option can help reduce computation time relative to constructing the whole grid 

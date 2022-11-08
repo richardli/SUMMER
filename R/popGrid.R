@@ -45,7 +45,12 @@
 #'   \item{popTotal}{total (general) population of subarea}
 #'   \item{pctUrb}{percentage of population in the subarea that is urban (between 0 and 100)}
 #' }
-#' @param areapsub A table with variables:
+#' @param areapa A list with variables:
+#' \describe{
+#'   \item{area}{name of area}
+#'   \item{spatialArea}{spatial area of the subarea (e.g. in km^2)}
+#' }
+#' @param areapsub A list with variables:
 #' \describe{
 #'   \item{subarea}{name of subarea}
 #'   \item{spatialArea}{spatial area of the subarea (e.g. in km^2)}
@@ -63,10 +68,6 @@
 #' @param subareaMapDat SpatialPolygonsDataFrame object with subarea level map information
 #' @param areaNameVar The name of the area variable associated with \code{areaMapDat@data} and \code{subareaMapDat@data}
 #' @param subareaNameVar The name of the subarea variable associated with \code{subareaMapDat@data}
-#' @param areapa A vector of spatial areas (e.g. in km^2, although the exact units don't matter) 
-#' for each of the considered areas
-#' @param areapsub A vector of spatial areas (e.g. in km^2, although the exact units don't matter) 
-#' for each of the considered subareas
 #' @param stratifyByUrban Whether to stratify the pixellated grid by urban/rural. If TRUE, 
 #'   renormalizes population densities within areas or subareas crossed with urban/rural
 #' @param poppaTarget Target population per area stratified by urban rural. Same format as poppa
