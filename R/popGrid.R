@@ -738,9 +738,9 @@ getPoppsub = function(kmRes=1, pop, domainPoly, eastLim, northLim, mapProjection
                       poppa, areapa=NULL, areapsub, subareaMapDat, subareaNameVar="NAME_2", 
                       stratifyByUrban=TRUE, areaMapDat=NULL, areaNameVar="NAME_1", 
                       areaPolygonSubsetI=NULL, subareaPolygonSubsetI=NULL, 
-                      mean.neighbor=50, delta=.1) {
+                      mean.neighbor=50, delta=.1, setNAsToZero=TRUE, fixZeroPopDensitySubareas=FALSE) {
   
-  out = makePopIntegrationTab(kmRes=kmRes, pop=pop, domainPoly=domainPoly, 
+  out = SUMMER::makePopIntegrationTab(kmRes=kmRes, pop=pop, domainPoly=domainPoly, 
                               areapa=areapa, areapsub=areapsub, 
                               eastLim=eastLim, northLim=northLim, mapProjection=mapProjection, 
                               subareaMapDat=subareaMapDat, areaMapDat=areaMapDat, 
@@ -749,6 +749,8 @@ getPoppsub = function(kmRes=1, pop, domainPoly, eastLim, northLim, mapProjection
                               areaPolygonSubsetI=areaPolygonSubsetI, 
                               subareaPolygonSubsetI=subareaPolygonSubsetI, 
                               mean.neighbor=mean.neighbor, delta=delta, 
+                              setNAsToZero=setNAsToZero, 
+                              fixZeroPopDensitySubareas=fixZeroPopDensitySubareas, 
                               returnPoppTables=TRUE)
   out$poppsub
 }
@@ -1163,7 +1165,7 @@ setThresholdsByRegion = function(popMat, poppr, regionType="area") {
     # do the setup
     thisRegion = as.character(popMat[[regionType]]) == regionName
     thisPop = popMat$pop[thisRegion]
-    thisTot = sum(thisPop)
+    thisTot = sum(thisPop, na.rm=TRUE)
     pctUrb = poppr$pctUrb[poppr[[regionType]] == regionName]/100
     pctRural = 1 - pctUrb
     
@@ -1183,9 +1185,9 @@ setThresholdsByRegion = function(popMat, poppr, regionType="area") {
     } else {
       # make sure not all pixels are urban or all are rural
       if(threshI == 1) {
-        thresh = mean(c(sortedPop[1], sortedPop[2]))
+        thresh = mean(c(sortedPop[1], sortedPop[2]), na.rm=TRUE)
       } else {
-        thresh = mean(c(sortedPop[length(thisPop)], sortedPop[length(thisPop)-1]))
+        thresh = mean(c(sortedPop[length(thisPop)], sortedPop[length(thisPop)-1]), na.rm=TRUE)
       }
     }
     
