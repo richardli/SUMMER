@@ -336,13 +336,13 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
   # compute areas associated with locations
   if(length(lonLatGrid) > 0) {
     if(!is.null(subareaMapDat)) {
-      subareas = getAreaName(lonLatGrid, subareaMapDat, areaNameVar=subareaNameVar, mean.neighbor=mean.neighbor, delta=delta)$areaNames
+      subareas = SUMMER::getAreaName(lonLatGrid, subareaMapDat, areaNameVar=subareaNameVar, mean.neighbor=mean.neighbor, delta=delta)$areaNames
     } else {
       subareas = NULL
     }
     
     if(!is.null(areaMapDat)) {
-      areas = getAreaName(lonLatGrid, areaMapDat, areaNameVar=areaNameVar, mean.neighbor=mean.neighbor, delta=delta)$areaNames
+      areas = SUMMER::getAreaName(lonLatGrid, areaMapDat, areaNameVar=areaNameVar, mean.neighbor=mean.neighbor, delta=delta)$areaNames
     } else {
       areas = NULL
     }

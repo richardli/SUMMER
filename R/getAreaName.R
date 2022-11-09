@@ -1,13 +1,17 @@
 #' Determines which administrative areas contain the given points
 #' 
 #' For any points not in an area, they are assigned the nearest area using 
-#' fields.rdist.near with a warning.
+#' fields::fields.rdist.near or fields::rdist depending on the number of points 
+#' and the maximum memory in bytes with a warning.
 #' 
 #' @param pts 2 column matrix of lon/lat coordinates
 #' @param shapefile A SpatialPolygonsDataFrame object
 #' @param areaNameVar The column name in \code{slot(shapefile, "data")} corresponding to the area level of interest
-#' @param delta Argument passed to fields.rdist.near in fields package
-#' @param mean.neighbor Argument passed to fields.rdist.near in fields package
+#' @param delta Argument passed to fields::fields.rdist.near in fields package
+#' @param mean.neighbor Argument passed to fields::fields.rdist.near in fields package
+#' @param maxBytes Maximum allowed memory in bytes. Determines whether to call 
+#' fields::fields.rdist.near which saves memory bute requires delta and 
+#' mean.neighbor inputs to be specified or fields::rdist.
 #' 
 #' @details delta and mean.neighbor arguments only used when some points 
 #' are not in areas, perhaps due to inconsistencies in shapefiles.
@@ -41,7 +45,7 @@
 #' @importFrom fields fields.rdist.near
 #' @importFrom fields in.poly
 #' @export
-getAreaName = function(pts, shapefile, areaNameVar="NAME_1", delta=.05, mean.neighbor=50) {
+getAreaName = function(pts, shapefile, areaNameVar="NAME_1", delta=.05, mean.neighbor=50, maxBytes=3*2^30) {
   # require(fields)
   
   if(nrow(pts) == 1) {

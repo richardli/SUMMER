@@ -9,7 +9,8 @@ getAreaName(
   shapefile,
   areaNameVar = "NAME_1",
   delta = 0.05,
-  mean.neighbor = 50
+  mean.neighbor = 50,
+  maxBytes = 3 * 2^30
 )
 }
 \arguments{
@@ -19,9 +20,13 @@ getAreaName(
 
 \item{areaNameVar}{The column name in \code{slot(shapefile, "data")} corresponding to the area level of interest}
 
-\item{delta}{Argument passed to fields.rdist.near in fields package}
+\item{delta}{Argument passed to fields::fields.rdist.near in fields package}
 
-\item{mean.neighbor}{Argument passed to fields.rdist.near in fields package}
+\item{mean.neighbor}{Argument passed to fields::fields.rdist.near in fields package}
+
+\item{maxBytes}{Maximum allowed memory in bytes. Determines whether to call 
+fields::fields.rdist.near which saves memory bute requires delta and 
+mean.neighbor inputs to be specified or fields::rdist.}
 }
 \value{
 A list of area IDs, area names, whether or not 
@@ -30,7 +35,8 @@ are in no areas and assigned to the nearest one.
 }
 \description{
 For any points not in an area, they are assigned the nearest area using 
-fields.rdist.near with a warning.
+fields::fields.rdist.near or fields::rdist depending on the number of points 
+and the maximum memory in bytes with a warning.
 }
 \details{
 delta and mean.neighbor arguments only used when some points 
