@@ -18,15 +18,17 @@ getAreaName(
 
 \item{shapefile}{A SpatialPolygonsDataFrame object}
 
-\item{areaNameVar}{The column name in \code{slot(shapefile, "data")} corresponding to the area level of interest}
+\item{areaNameVar}{The column name in \code{slot(shapefile, "data")} 
+corresponding to the area level of interest}
 
 \item{delta}{Argument passed to fields::fields.rdist.near in fields package}
 
-\item{mean.neighbor}{Argument passed to fields::fields.rdist.near in fields package}
+\item{mean.neighbor}{Argument passed to fields::fields.rdist.near in fields 
+package}
 
-\item{maxBytes}{Maximum allowed memory in bytes. Determines whether to call 
-fields::fields.rdist.near which saves memory bute requires delta and 
-mean.neighbor inputs to be specified or fields::rdist.}
+\item{maxBytes}{Maximum allowed memory in bytes (default is 3Gb). Determines 
+whether to call fields::fields.rdist.near which saves memory bute requires 
+delta and mean.neighbor inputs to be specified or fields::rdist.}
 }
 \value{
 A list of area IDs, area names, whether or not 
