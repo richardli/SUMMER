@@ -9,7 +9,7 @@
 makePopIntegrationTab(
   kmRes = 5,
   pop,
-  domainPoly,
+  domainMapDat,
   eastLim,
   northLim,
   mapProjection,
@@ -34,7 +34,7 @@ makePopIntegrationTab(
 getPoppsub(
   kmRes = 1,
   pop,
-  domainPoly,
+  domainMapDat,
   eastLim,
   northLim,
   mapProjection,
@@ -49,7 +49,9 @@ getPoppsub(
   areaPolygonSubsetI = NULL,
   subareaPolygonSubsetI = NULL,
   mean.neighbor = 50,
-  delta = 0.1
+  delta = 0.1,
+  setNAsToZero = TRUE,
+  fixZeroPopDensitySubareas = FALSE
 )
 
 adjustPopMat(
@@ -64,7 +66,7 @@ adjustPopMat(
 
 \item{pop}{Population density raster}
 
-\item{domainPoly}{A polygon representing the full spatial domain (e.g. country)}
+\item{domainMapDat}{A shapefile representing the full spatial domain (e.g. country)}
 
 \item{eastLim}{Range in km easting over the spatial domain under the input projection}
 
@@ -295,7 +297,7 @@ require(fields)
 #       this step, since it only needs to be done once. Instead of running this, 
 #       you can simply run data(kenyaPopulationData)
 system.time(poppsubKenya <- getPoppsub(
-  kmRes=1, pop=pop, domainPoly=kenyaPoly,
+  kmRes=1, pop=pop, domainMapDat=adm0,
   eastLim=eastLim, northLim=northLim, mapProjection=projKenya,
   poppa = poppaKenya, areapa=areapaKenya, areapsub=areapsubKenya, 
   areaMapDat=adm1, subareaMapDat=adm2, 
@@ -305,7 +307,7 @@ system.time(poppsubKenya <- getPoppsub(
 # based on subarea (Admin-2) x urban/rural population totals. This takes 
 # ~1 minute
 system.time(popMatKenya <- makePopIntegrationTab(
-  kmRes=5, pop=pop, domainPoly=kenyaPoly,
+  kmRes=5, pop=pop, domainMapDat=adm0,
   eastLim=eastLim, northLim=northLim, mapProjection=projKenya,
   poppa = poppaKenya, poppsub=poppsubKenya, 
   areaMapDat = adm1, subareaMapDat = adm2,

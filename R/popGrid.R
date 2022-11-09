@@ -56,7 +56,7 @@
 #'   \item{spatialArea}{spatial area of the subarea (e.g. in km^2)}
 #' }
 #' @param kmRes The resolution of the pixelated grid in km
-#' @param domainPoly A polygon representing the full spatial domain (e.g. country)
+#' @param domainMapDat A shapefile representing the full spatial domain (e.g. country)
 #' @param eastLim Range in km easting over the spatial domain under the input projection
 #' @param northLim Range in km northing over the spatial domain under the input projection
 #' @param mapProjection A projection function taking longitude and latitude and returning easting and 
@@ -203,7 +203,7 @@
 #' #       this step, since it only needs to be done once. Instead of running this, 
 #' #       you can simply run data(kenyaPopulationData)
 #' system.time(poppsubKenya <- getPoppsub(
-#'   kmRes=1, pop=pop, domainPoly=kenyaPoly,
+#'   kmRes=1, pop=pop, domainMapDat=adm0,
 #'   eastLim=eastLim, northLim=northLim, mapProjection=projKenya,
 #'   poppa = poppaKenya, areapa=areapaKenya, areapsub=areapsubKenya, 
 #'   areaMapDat=adm1, subareaMapDat=adm2, 
@@ -213,7 +213,7 @@
 #' # based on subarea (Admin-2) x urban/rural population totals. This takes 
 #' # ~1 minute
 #' system.time(popMatKenya <- makePopIntegrationTab(
-#'   kmRes=5, pop=pop, domainPoly=kenyaPoly,
+#'   kmRes=5, pop=pop, domainMapDat=adm0,
 #'   eastLim=eastLim, northLim=northLim, mapProjection=projKenya,
 #'   poppa = poppaKenya, poppsub=poppsubKenya, 
 #'   areaMapDat = adm1, subareaMapDat = adm2,
@@ -254,12 +254,13 @@
 #' @importFrom terra gdal
 #' @importFrom sp SpatialPoints
 #' @importFrom sp CRS
+#' @importFrom sp over
 #' @importFrom sp coordinates
 #' @importFrom sp as.SpatialPolygons.PolygonsList
 #' @importFrom sp proj4string<-
 #' @importFrom fields make.surface.grid
 #' @export
-makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, mapProjection, 
+makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, mapProjection, 
                                  areaMapDat, subareaMapDat, 
                                  areaNameVar="NAME_1", subareaNameVar="NAME_2", 
                                  poppa=NULL, poppsub=NULL, stratifyByUrban=TRUE, 
@@ -316,7 +317,19 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
   }
   
   # subset grid so it's in the domain
-  inDomain = in.poly(lonLatGrid, domainPoly)
+  # inDomain = in.poly(lonLatGrid, domainPoly)
+  # determine version of PROJ
+  ver = terra::gdal(lib="proj")
+  PROJ6 <- as.numeric(substr(ver, 1, 1)) >= 6
+  
+  # from lon/lat coords to easting/northing
+  if(!PROJ6) {
+    lonLatCoords = sp::SpatialPoints(lonLatGrid, proj4string=sp::CRS("+proj=longlat"))
+  } else {
+    lonLatCoords = sp::SpatialPoints(lonLatGrid, proj4string=sp::CRS(SRS_string="EPSG:4326"))
+  }
+  inDomain = sp::over(lonLatCoords, domainMapDat)
+  inDomain = !is.na(inDomain[,1])
   utmGrid = matrix(utmGrid[inDomain,], ncol=2)
   lonLatGrid = matrix(lonLatGrid[inDomain,], ncol=2)
   
@@ -466,10 +479,6 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
     subareas = c(as.character(subareas), as.character(newSubareas))
     areas = c(as.character(areas), as.character(newAreas))
   }
-  
-  # determine version of PROJ
-  ver = terra::gdal(lib="proj")
-  PROJ6 <- as.numeric(substr(ver, 1, 1)) >= 6
   
   # get population density at those coordinates
   if(!PROJ6) {
@@ -734,13 +743,13 @@ makePopIntegrationTab = function(kmRes=5, pop, domainPoly, eastLim, northLim, ma
 #' combination based on population density raster at `kmres` resolution "grid", including 
 #' custom integration points for any subarea too small to include grid points at their centroids.
 #' @export
-getPoppsub = function(kmRes=1, pop, domainPoly, eastLim, northLim, mapProjection, 
+getPoppsub = function(kmRes=1, pop, domainMapDat, eastLim, northLim, mapProjection, 
                       poppa, areapa=NULL, areapsub, subareaMapDat, subareaNameVar="NAME_2", 
                       stratifyByUrban=TRUE, areaMapDat=NULL, areaNameVar="NAME_1", 
                       areaPolygonSubsetI=NULL, subareaPolygonSubsetI=NULL, 
                       mean.neighbor=50, delta=.1, setNAsToZero=TRUE, fixZeroPopDensitySubareas=FALSE) {
   
-  out = SUMMER::makePopIntegrationTab(kmRes=kmRes, pop=pop, domainPoly=domainPoly, 
+  out = SUMMER::makePopIntegrationTab(kmRes=kmRes, pop=pop, domainMapDat=domainMapDat, 
                               areapa=areapa, areapsub=areapsub, 
                               eastLim=eastLim, northLim=northLim, mapProjection=mapProjection, 
                               subareaMapDat=subareaMapDat, areaMapDat=areaMapDat, 
@@ -999,7 +1008,7 @@ calibrateByRegion = function(pointTotals, pointRegions, regions, regionTotals) {
 #' # based on subarea (Admin-2) x urban/rural population totals. This takes 
 #' # ~1 minute
 #' system.time(popMatKenya <- makePopIntegrationTab(
-#'   kmRes=5, pop=pop, domainPoly=kenyaPoly,
+#'   kmRes=5, pop=pop, domainMapDat=adm0,
 #'   eastLim=eastLim, northLim=northLim, mapProjection=projKenya,
 #'   poppa = poppaKenya, poppsub=poppsubKenya, 
 #'   areaMapDat = adm1, subareaMapDat = adm2,
@@ -1143,7 +1152,7 @@ poppRegionFromPopMat = function(popMat, regions) {
 #' # based on subarea (Admin-2) x urban/rural population totals. This takes 
 #' # ~1 minute
 #' system.time(popMatKenya <- makePopIntegrationTab(
-#'   kmRes=5, pop=pop, domainPoly=kenyaPoly,
+#'   kmRes=5, pop=pop, domainMapDat=adm0,
 #'   eastLim=eastLim, northLim=northLim, mapProjection=projKenya,
 #'   poppa = poppaKenya, poppsub=poppsubKenya, 
 #'   areaMapDat = adm1, subareaMapDat = adm2,

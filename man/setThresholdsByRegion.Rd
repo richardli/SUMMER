@@ -109,7 +109,7 @@ require(fields)
 # based on subarea (Admin-2) x urban/rural population totals. This takes 
 # ~1 minute
 system.time(popMatKenya <- makePopIntegrationTab(
-  kmRes=5, pop=pop, domainPoly=kenyaPoly,
+  kmRes=5, pop=pop, domainMapDat=adm0,
   eastLim=eastLim, northLim=northLim, mapProjection=projKenya,
   poppa = poppaKenya, poppsub=poppsubKenya, 
   areaMapDat = adm1, subareaMapDat = adm2,
