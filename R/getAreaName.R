@@ -45,6 +45,7 @@
 #' are in no areas and assigned to the nearest one.
 #' 
 #' @importFrom fields fields.rdist.near
+#' @importFrom fields rdist
 #' @importFrom fields in.poly
 #' @export
 getAreaName = function(pts, shapefile, areaNameVar="NAME_1", 
