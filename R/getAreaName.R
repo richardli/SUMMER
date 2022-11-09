@@ -91,7 +91,7 @@ getAreaName = function(pts, shapefile, areaNameVar="NAME_1",
     bytesUsed = length(problemPointsI) * nrow(pts)
     if(bytesUsed > maxBytes) {
       # get nearby points (points within delta lon/lat units), remove self matches
-      nearbyPoints = fields::fields.rdist.near(pts[problemPointsI,], pts, 
+      nearbyPoints = fields::fields.rdist.near(matrix(pts[problemPointsI,], ncol=2), pts, 
                                                delta=delta, mean.neighbor=mean.neighbor)
       selfI = nearbyPoints$ra == 0
       nearbyPoints$ind = nearbyPoints$ind[!selfI,]
@@ -101,7 +101,7 @@ getAreaName = function(pts, shapefile, areaNameVar="NAME_1",
         })
     } else {
       # get all points, remove self matches
-      dists = fields::rdist(pts[problemPointsI,], pts)
+      dists = fields::rdist(matrix(pts[problemPointsI,], ncol=2), pts)
       dists[cbind(1:length(problemPointsI), problemPointsI)] = Inf
       nearbyI = apply(dists, 1, which.min)
     }
@@ -134,10 +134,6 @@ getAreaName = function(pts, shapefile, areaNameVar="NAME_1",
     
     # get nearest non-NA area and assign it
     closestArea = sapply(nearbyAreas, function(x) {x[match(TRUE, !is.na(x))]})
-    
-    if(length(problemPointsI) != length(closestArea)) {
-      stop("problem with assigning closest areas")
-    }
     areaNameVec[problemPointsI] = closestArea
   }
   
