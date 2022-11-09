@@ -135,6 +135,9 @@ getAreaName = function(pts, shapefile, areaNameVar="NAME_1",
     # get nearest non-NA area and assign it
     closestArea = sapply(nearbyAreas, function(x) {x[match(TRUE, !is.na(x))]})
     
+    if(length(problemPointsI) != length(closestArea)) {
+      stop("problem with assigning closest areas")
+    }
     areaNameVec[problemPointsI] = closestArea
   }
   
