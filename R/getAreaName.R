@@ -6,12 +6,14 @@
 #' 
 #' @param pts 2 column matrix of lon/lat coordinates
 #' @param shapefile A SpatialPolygonsDataFrame object
-#' @param areaNameVar The column name in \code{slot(shapefile, "data")} corresponding to the area level of interest
+#' @param areaNameVar The column name in \code{slot(shapefile, "data")} 
+#' corresponding to the area level of interest
 #' @param delta Argument passed to fields::fields.rdist.near in fields package
-#' @param mean.neighbor Argument passed to fields::fields.rdist.near in fields package
-#' @param maxBytes Maximum allowed memory in bytes. Determines whether to call 
-#' fields::fields.rdist.near which saves memory bute requires delta and 
-#' mean.neighbor inputs to be specified or fields::rdist.
+#' @param mean.neighbor Argument passed to fields::fields.rdist.near in fields 
+#' package
+#' @param maxBytes Maximum allowed memory in bytes (default is 3Gb). Determines 
+#' whether to call fields::fields.rdist.near which saves memory bute requires 
+#' delta and mean.neighbor inputs to be specified or fields::rdist.
 #' 
 #' @details delta and mean.neighbor arguments only used when some points 
 #' are not in areas, perhaps due to inconsistencies in shapefiles.
@@ -45,7 +47,8 @@
 #' @importFrom fields fields.rdist.near
 #' @importFrom fields in.poly
 #' @export
-getAreaName = function(pts, shapefile, areaNameVar="NAME_1", delta=.05, mean.neighbor=50, maxBytes=3*2^30) {
+getAreaName = function(pts, shapefile, areaNameVar="NAME_1", 
+                       delta=.05, mean.neighbor=50, maxBytes=3*2^30) {
   # require(fields)
   
   if(nrow(pts) == 1) {
@@ -63,7 +66,9 @@ getAreaName = function(pts, shapefile, areaNameVar="NAME_1", delta=.05, mean.nei
   polys = shapefile@polygons
   inRegion = function(i) {
     countyPolys = polys[[i]]@Polygons
-    inside = sapply(1:length(countyPolys), function(x) {fields::in.poly(pts, countyPolys[[x]]@coords, inflation=0)})
+    inside = sapply(1:length(countyPolys), function(x) {
+      fields::in.poly(pts, countyPolys[[x]]@coords, inflation=0)
+      })
     insideAny = apply(inside, 1, any)
     
     return(insideAny*i)
@@ -82,24 +87,40 @@ getAreaName = function(pts, shapefile, areaNameVar="NAME_1", delta=.05, mean.nei
     warning("Some points not inside any areas. Assigning them to nearest area")
     problemPointsI = which(!insideAny)
     
-    # get nearby points (points within .2 lon/lat units), remove self matches
-    nearbyPoints = fields::fields.rdist.near(pts[problemPointsI,], pts, delta=delta, mean.neighbor=mean.neighbor)
-    selfI = nearbyPoints$ra == 0
-    nearbyPoints$ind = nearbyPoints$ind[!selfI,]
-    nearbyPoints$ra = nearbyPoints$ra[!selfI]
-    nearbyI = lapply(sort(unique(nearbyPoints$ind[,1])), function(x) {nearbyPoints$ind[nearbyPoints$ind[,1] == x,2]})
+    bytesUsed = length(problemPointsI) * nrow(pts)
+    if(bytesUsed > maxBytes) {
+      # get nearby points (points within delta lon/lat units), remove self matches
+      nearbyPoints = fields::fields.rdist.near(pts[problemPointsI,], pts, 
+                                               delta=delta, mean.neighbor=mean.neighbor)
+      selfI = nearbyPoints$ra == 0
+      nearbyPoints$ind = nearbyPoints$ind[!selfI,]
+      nearbyPoints$ra = nearbyPoints$ra[!selfI]
+      nearbyI = lapply(sort(unique(nearbyPoints$ind[,1])), function(x) {
+        nearbyPoints$ind[nearbyPoints$ind[,1] == x,2]
+        })
+    } else {
+      # get all points, remove self matches
+      dists = fields::rdist(pts[problemPointsI,], pts)
+      dists[cbind(1:length(problemPointsI), problemPointsI)] = Inf
+      nearbyI = apply(dists, 1, which.min)
+    }
     
     # get nearby constituencies, counties, and distances
     nearbyAreas = lapply(nearbyI, function(x) {areaNameVec[x]})
     nearbyLengths = sapply(nearbyI, function(x) {length(x)})
-    nearbyDistances = c()
-    # nearbyCounties = c()
-    startI = 1
-    for(i in 1:length(nearbyI)) {
-      endI = startI + nearbyLengths[i] - 1
-      nearbyDistances = c(nearbyDistances, list(nearbyPoints$ra[startI:endI]))
-      startI = endI + 1
+    
+    if(bytesUsed > maxBytes) {
+      nearbyDistances = c()
+      startI = 1
+      for(i in 1:length(nearbyI)) {
+        endI = startI + nearbyLengths[i] - 1
+        nearbyDistances = c(nearbyDistances, list(nearbyPoints$ra[startI:endI]))
+        startI = endI + 1
+      }
+    } else {
+      nearbyDistances = dists[cbind(1:nrow(dists), nearbyI)]
     }
+    
     
     # sort nearby constituencies and indices by distance
     for(i in 1:length(nearbyI)) {
@@ -116,5 +137,6 @@ getAreaName = function(pts, shapefile, areaNameVar="NAME_1", delta=.05, mean.nei
     areaNameVec[problemPointsI] = closestArea
   }
   
-  list(areaID=areaID, areaNames=areaNameVec, multipleRegs=multipleRegs, notInAnyAreas=!insideAny)
+  list(areaID=areaID, areaNames=areaNameVec, 
+       multipleRegs=multipleRegs, notInAnyAreas=!insideAny)
 }
