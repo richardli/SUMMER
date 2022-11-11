@@ -179,9 +179,10 @@ using area and subarea population tables, and generates area and subarea populat
 tables from population density information if not already given. Can be used for integrating 
 predictions from the given coordinates to area and subarea levels using population weights.
 
-\item \code{getPoppsub}: Generate table of population totals per subarea x urban/rural 
-combination based on population density raster at `kmres` resolution "grid", including 
-custom integration points for any subarea too small to include grid points at their centroids.
+\item \code{getPoppsub}: Generate table of estimates of population
+totals per subarea x urban/rural combination based on population density
+raster at `kmres` resolution "grid", including custom integration points
+for any subarea too small to include grid points at their centroids.
 
 \item \code{adjustPopMat}: Adjust population densities in grid based on a population frame.
 }}

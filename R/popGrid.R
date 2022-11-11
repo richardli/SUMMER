@@ -739,9 +739,10 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
 #   newPop
 # }
 
-#' @describeIn makePopIntegrationTab Generate table of population totals per subarea x urban/rural 
-#' combination based on population density raster at `kmres` resolution "grid", including 
-#' custom integration points for any subarea too small to include grid points at their centroids.
+#' @describeIn makePopIntegrationTab Generate table of estimates of population
+#'   totals per subarea x urban/rural combination based on population density
+#'   raster at `kmres` resolution "grid", including custom integration points
+#'   for any subarea too small to include grid points at their centroids.
 #' @export
 getPoppsub = function(kmRes=1, pop, domainMapDat, eastLim, northLim, mapProjection, 
                       poppa, areapa=NULL, areapsub, subareaMapDat, subareaNameVar="NAME_2", 
