@@ -89,6 +89,8 @@
 #' @param fixZeroPopDensitySubareas If TRUE, if population density in a subarea is estimated to be 
 #' zero, but the total population in the subarea is nonzero, population is filled into the 
 #' area uniformly
+#' @param extractMethod Either 'bilinear' or 'simple'. see `method` from 
+#' \code{\link[terra]{extract}}
 #' 
 #' @author John Paige
 #' @seealso \code{\link{setThresholdsByRegion}}, \code{\link{poppRegionFromPopMat}}, \code{\link{simPopSPDE}}, \code{\link{simPopCustom}}
@@ -155,7 +157,7 @@
 #' }
 #' 
 #' # load it in
-#' require(raster)
+#' require(terra)
 #' out = load(popFilename)
 #' out
 #' 
@@ -250,7 +252,7 @@
 #'                              poppsubKenyaNeonatal[,-1])
 #' print(head(poppsubKenyaNeonatal))
 #' }
-#' @importFrom raster extract
+#' @importFrom terra extract
 #' @importFrom terra gdal
 #' @importFrom sp SpatialPoints
 #' @importFrom sp CRS
@@ -267,7 +269,8 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
                                  areapa=NULL, areapsub=NULL, 
                                  areaPolygonSubsetI=NULL, subareaPolygonSubsetI=NULL, 
                                  mean.neighbor=50, delta=.1, returnPoppTables=FALSE, 
-                                 setNAsToZero=TRUE, fixZeroPopDensitySubareas=FALSE) {
+                                 setNAsToZero=TRUE, fixZeroPopDensitySubareas=FALSE, 
+                                 extractMethod="bilinear") {
   thresholdUrbanBy = ifelse(is.null(poppsub), "area", "subarea")
   
   # get a rectangular grid
@@ -485,12 +488,12 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
     # extract the raster values for each chunk of points
     interpPopVals <- tryCatch(
       {
-        raster::extract(pop, sp::SpatialPoints(lonLatGrid),method="bilinear")
+        terra::extract(pop, sp::SpatialPoints(lonLatGrid),method=extractMethod)
       },
       error=function(cond) {
         message(cond)
         stop(paste0("Error extracting raster values. In case of memory limitations, see ", 
-                    "maxmemory, memfrac, chunksize, and todisk in raster::rasterOptions()"))
+                    "terra::terraOptions()"))
         # Choose a return value in case of error
         return(NA)
       }
@@ -499,12 +502,12 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
     sp::proj4string(pop) = sp::CRS(SRS_string="EPSG:4326")
     interpPopVals <- tryCatch(
       {
-        raster::extract(pop, sp::SpatialPoints(lonLatGrid, proj4string=sp::CRS(SRS_string="EPSG:4326")), method="bilinear")
+        terra::extract(pop, sp::SpatialPoints(lonLatGrid, proj4string=sp::CRS(SRS_string="EPSG:4326")), method="bilinear")
       },
       error=function(cond) {
         message(cond)
         stop(paste0("Error extracting raster values. In case of memory limitations, see ", 
-                    "raster::aggregate, raster::resample, and raster::projectRaster"))
+                    "terra::aggregate, terra::resample, terra::projectRaster, and terra::terraOptions"))
         # Choose a return value in case of error
         return(NA)
       }
@@ -690,7 +693,7 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
 #   lonLatGrid = cbind(pixelGrid$lon, pixelGrid$lat)
 #   
 #   # get population density at those coordinates
-#   interpPopVals = raster::extract(pop, sp::SpatialPoints(lonLatGrid),method="bilinear")
+#   interpPopVals = terra::extract(pop, sp::SpatialPoints(lonLatGrid),method="bilinear")
 #   
 #   # determine which points are urban
 #   newPop = data.frame(list(lon=lonLatGrid[,1], lat=lonLatGrid[,2], pop=interpPopVals, area=areas, subarea=subareas))
@@ -993,7 +996,7 @@ calibrateByRegion = function(pointTotals, pointRegions, regions, regionTotals) {
 #' }
 #' 
 #' # load it in
-#' require(raster)
+#' require(terra)
 #' out = load(popFilename)
 #' out
 #' 
@@ -1137,7 +1140,7 @@ poppRegionFromPopMat = function(popMat, regions) {
 #' }
 #' 
 #' # load it in
-#' require(raster)
+#' require(terra)
 #' out = load(popFilename)
 #' out
 #' 
