@@ -566,7 +566,7 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
     if(length(zeroPopSubareas) > 0) {
       warning(paste0("The following subareas have entirely zero population density ", 
                      "but nonzero total population, and their population will be filled ", 
-                     "in uniformly: ", paste(zeroPopSubareas, sep=", ")))
+                     "in uniformly: ", paste(zeroPopSubareas, collapse=", ")))
       # fill in population density uniformly in these subareas
       for(i in 1:length(zeroPopSubareas)) {
         thisSub = zeroPopSubareas[i]
