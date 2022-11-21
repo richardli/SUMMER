@@ -10,7 +10,8 @@
 #' level, or at the pixel level of a specified resolution. Totals 
 #' are calculated using population density information, shapefiles, 
 #' and, possibly, preexisting population frames at different 
-#' areal levels.
+#' areal levels. Note that area names should each be unique, and similarly for 
+#' subarea names.
 #' 
 #' @describeIn makePopIntegrationTab Generate pixellated `grid` of coordinates (both longitude/latitude and east/north) 
 #' over spatial domain of the given resolution with associated population totals, areas, subareas, 
@@ -272,6 +273,44 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
                                  setNAsToZero=TRUE, fixZeroPopDensitySubareas=FALSE, 
                                  extractMethod="bilinear") {
   thresholdUrbanBy = ifelse(is.null(poppsub), "area", "subarea")
+  
+  # some basic checks to make sure inputs are correct
+  
+  # make sure area and subarea names are unique
+  nameCounts = aggregate(areaMapDat@data[[areaNameVar]], by=list(area=areaMapDat@data[[areaNameVar]]), FUN=length)
+  if(any(nameCounts$x > 1)) {
+    stop("area names are not unique in areaMapDat")
+  }
+  if(!is.null(subareaMapDat)) {
+    nameCounts = aggregate(subareaMapDat@data[[areaNameVar]], by=list(area=subareaMapDat@data[[areaNameVar]]), FUN=length)
+    if(any(nameCounts$x > 1)) {
+      stop("subarea names are not unique in subareaMapDat")
+    }
+  }
+  if(!is.null(poppa)) {
+    nameCounts = aggregate(poppa$area, by=list(area=poppa$area), FUN=length)
+    if(any(nameCounts$x > 1)) {
+      stop("area names are not unique in poppa")
+    }
+    
+    # make sure area names match up
+    if(!all.equal(sort(poppa$area), sort(areaMapDat@data[[areaNameVar]]))) {
+      stop("area names in poppa do not match those in areaMapDat@data")
+    }
+  }
+  if(!is.null(poppsub)) {
+    nameCounts = aggregate(poppsub$subarea, by=list(area=poppsub$subarea), FUN=length)
+    if(any(nameCounts$x > 1)) {
+      stop("subarea names are not unique in poppsub")
+    }
+    
+    # make sure subarea names match up
+    if(!is.null(subareaMapDat)) {
+      if(!all.equal(sort(poppsub$subarea), sort(subareaMapDat@data[[subareaNameVar]]))) {
+        stop("subarea names in poppsub do not match those in subareaMapDat@data")
+      }
+    }
+  }
   
   # get a rectangular grid
   eastGrid = seq(eastLim[1], eastLim[2], by=kmRes)

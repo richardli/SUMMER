@@ -93,7 +93,7 @@ if(!file.exists(popTIFFilename)) {
 }
 
 # load it in
-require(raster)
+require(terra)
 out = load(popFilename)
 out
 
