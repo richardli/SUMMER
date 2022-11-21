@@ -563,7 +563,7 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
     poppsubCurrent = poppRegionFromPopMat(newPop, newPop$subarea)
     
     zeroPopSubareas = poppsubCurrent$region[poppsubCurrent$popTotal == 0]
-    if(any(zeroPopSubareas)) {
+    if(length(zeroPopSubareas) > 0) {
       warning(paste0("The following subareas have entirely zero population density ", 
                      "but nonzero total population, and their population will be filled ", 
                      "in uniformly: ", paste(zeroPopSubareas, sep=", ")))
