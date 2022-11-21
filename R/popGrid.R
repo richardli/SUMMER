@@ -282,7 +282,7 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
     stop("area names are not unique in areaMapDat")
   }
   if(!is.null(subareaMapDat)) {
-    nameCounts = aggregate(subareaMapDat@data[[areaNameVar]], by=list(area=subareaMapDat@data[[areaNameVar]]), FUN=length)
+    nameCounts = aggregate(subareaMapDat@data[[subareaNameVar]], by=list(area=subareaMapDat@data[[subareaNameVar]]), FUN=length)
     if(any(nameCounts$x > 1)) {
       stop("subarea names are not unique in subareaMapDat")
     }
