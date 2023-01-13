@@ -101,7 +101,7 @@ mapPlot <- function(data = NULL, variables, values = NULL, labels = NULL, geo, b
         g <- g + ggplot2::geom_segment(data = edges, ggplot2::aes(x = x0, y = y0, xend = x1, yend = y1), color = color.adj, alpha = alpha.adj)
         }
 
-        g <- g + ggplot2::scale_fill_discrete(guide = FALSE) + shadowtext::geom_shadowtext(data = centroids, ggplot2::aes(x = long, y = lat, label = name), check.overlap = TRUE, size = size.label, color = border, bg.colour='white') + ggplot2::theme_bw()
+        g <- g + ggplot2::scale_fill_discrete(guide = 'none') + shadowtext::geom_shadowtext(data = centroids, ggplot2::aes(x = long, y = lat, label = name), check.overlap = TRUE, size = size.label, color = border, bg.colour='white') + ggplot2::theme_bw()
 
         if(clean){
             g <- g + ggplot2::theme_bw() + ggplot2::theme(legend.title=ggplot2::element_text(size=ggplot2::rel(0.7)), axis.title.x=ggplot2::element_blank(), axis.text.x=ggplot2::element_blank(), axis.ticks.x=ggplot2::element_blank(), axis.title.y=ggplot2::element_blank(), axis.text.y=ggplot2::element_blank(), axis.ticks.y=ggplot2::element_blank(), panel.grid.major = ggplot2::element_blank(), panel.grid.minor = ggplot2::element_blank())
