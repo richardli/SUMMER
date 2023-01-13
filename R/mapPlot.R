@@ -124,7 +124,6 @@ mapPlot <- function(data = NULL, variables, values = NULL, labels = NULL, geo, b
     # deal with sf and sp
     if(is.sf){
         has.coord <- !is.na(sf::st_crs(geo))
-        print(has.coord)
     }else{
         has.coord <- !is.na(sp::proj4string(geo))
     }
