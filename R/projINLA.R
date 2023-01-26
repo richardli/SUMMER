@@ -156,7 +156,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
   ########################
   if(!is.null(inla_mod$family)){
     if("region.struct" %in% names(inla_mod$fit$summary.random) == FALSE && !is.null(Amat)){
-      warning("No spatial random effects in the model. Amat not used", immediate. = TRUE)
+      message("No spatial random effects in the model. Amat not used")
       Amat <- matrix(1,1,1)
       colnames(Amat) <- rownames(Amat) <- inla_mod$fit$.args$data$region[1]
     }
@@ -438,6 +438,8 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
     if(!include_subnational){
       AA.loc$time.area <- NA
       AA.loc$region.struct <- NA
+      AA$ststar <-  NA
+      AA$st.slope <- "st.slope.id:NA"
     }
     
     # time.unstruct <- grep("time.unstruct", fields)
@@ -858,7 +860,7 @@ getSmoothed <- function(inla_mod, nsim = 1000, weight.strata = NULL, weight.fram
     } else {
 
       if("region.struct" %in% names(inla_mod$fit$summary.random) == FALSE && !is.null(Amat)){
-        warning("No spatial random effects in the model. Amat not used", immediate. = TRUE)
+        message("No spatial random effects in the model. Amat not used")
         Amat <- matrix(1,1,1)
         colnames(Amat) <- rownames(Amat) <- inla_mod$fit$.args$data$region[1]
       }
