@@ -67,7 +67,8 @@
 #' @param pop Population density raster
 #' @param areaMapDat SpatialPolygonsDataFrame object with area level map information
 #' @param subareaMapDat SpatialPolygonsDataFrame object with subarea level map information
-#' @param areaNameVar The name of the area variable associated with \code{areaMapDat@data} and \code{subareaMapDat@data}
+#' @param areaNameVar The name of the area variable associated with \code{areaMapDat@data} 
+#'            and \code{subareaMapDat@data}
 #' @param subareaNameVar The name of the subarea variable associated with \code{subareaMapDat@data}
 #' @param stratifyByUrban Whether to stratify the pixellated grid by urban/rural. If TRUE, 
 #'   renormalizes population densities within areas or subareas crossed with urban/rural
@@ -80,6 +81,11 @@
 #'            specific area to subset the grid over. This 
 #'            option can help reduce computation time relative to constructing the whole grid 
 #'            and subsetting afterwards
+#' @param customSubsetPolygons 'SpatialPolygonsDataFrame' or 'SpatialPolygons' object to subset 
+#'            the grid over. This option can help reduce computation time relative to 
+#'            constructing the whole grid and subsetting afterwards. `areaPolygonSubsetI` or 
+#'            `subareaPolygonSubsetI` can be used when subsetting by areas or subareas in 
+#'            `areaMapDat` or `subareaMapDat`. Must be in latitude/longitude projection "EPSG:4326"
 #' @param returnPoppTables If TRUE, poppa and poppsub will be calculated based on the generated 
 #'                          population integration matrix and input area/subarea map data
 #' @param mean.neighbor For determining what area or subarea points are nearest to if they do not 
@@ -267,7 +273,7 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
                                  areaMapDat, subareaMapDat, 
                                  areaNameVar="NAME_1", subareaNameVar="NAME_2", 
                                  poppa=NULL, poppsub=NULL, stratifyByUrban=TRUE, 
-                                 areapa=NULL, areapsub=NULL, 
+                                 areapa=NULL, areapsub=NULL, customSubsetPolygons=NULL, 
                                  areaPolygonSubsetI=NULL, subareaPolygonSubsetI=NULL, 
                                  mean.neighbor=50, delta=.1, returnPoppTables=FALSE, 
                                  setNAsToZero=TRUE, fixZeroPopDensitySubareas=FALSE, 
@@ -346,6 +352,40 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
     northGrid = northGrid[northGrid <= northSubRange[2]]
   }
   
+  if(!is.null(customSubsetPolygons)) {
+    if(("SpatialPolygons" %in% class(customSubsetPolygons)) || ("SpatialPolygonsDataFrame" %in% class(customSubsetPolygons))) {
+      
+      # calculate the east/north range of each polygon
+      getPolygonENrange = function(pol) {
+        # get range of the grid that we actually need
+        temp = pol
+        allPolygons = temp@Polygons
+        eastNorthCoords = do.call("rbind", lapply(1:length(allPolygons), function(i) {mapProjection(allPolygons[[i]]@coords)}))
+        eastSubRange = range(eastNorthCoords[,1])
+        northSubRange = range(eastNorthCoords[,2])
+        
+        # subset grid to the range we need
+        rbind(eastSubRange, 
+              northSubRange)
+      }
+      allRanges = lapply(getPolygonENrange, customSubsetPolygons@polygons)
+      
+      # calculate the full range based on each individual polygon range
+      eastings = sapply(allRanges, function(x) {x[1,]})
+      northings = sapply(allRanges, function(x) {x[2,]})
+      eastSubRange = range(eastings)
+      northSubRange = range(northings)
+      
+      # subset grid to the range we need
+      eastGrid = eastGrid[eastGrid >= eastSubRange[1]]
+      eastGrid = eastGrid[eastGrid <= eastSubRange[2]]
+      northGrid = northGrid[northGrid >= northSubRange[1]]
+      northGrid = northGrid[northGrid <= northSubRange[2]]
+    } else {
+      stop("customSubsetPolygons must be of class 'SpatialPolygons' or 'SpatialPolygonsDataFrame'")
+    }
+  }
+  
   utmGrid = matrix(fields::make.surface.grid(list(east=eastGrid, north=northGrid)), ncol=2)
   
   # project coordinates into lat/lon
@@ -416,13 +456,42 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
     subareas = subareas[insideSubarea]
   }
   
-  # determine what subareas we want our grid to contain
-  allSubareas = sort(unique(subareaMapDat@data[[subareaNameVar]]))
-  if(!is.null(areaPolygonSubsetI)) {
-    allSubareas = sort(unique(subareaMapDat@data[subareaMapDat@data[[areaNameVar]] == areaSubsetName,][[subareaNameVar]]))
+  if(!is.null(customSubsetPolygons)) {
+    if(!grepl("+proj=longlat", customSubsetPolygons@proj4string@projargs)) {
+      warning(paste0("customSubsetPolygons does not use longitude/latitude ", 
+                     "coordinate system? Using makePopIntegrationTab outside ", 
+                     "its use case, which may result in errors"))
+    }
+    
+    if(!PROJ6) {
+      lonLatCoords = sp::SpatialPoints(lonLatGrid, proj4string=sp::CRS("+proj=longlat"))
+    } else {
+      lonLatCoords = sp::SpatialPoints(lonLatGrid, proj4string=sp::CRS(SRS_string="EPSG:4326"))
+    }
+    insideCustomSubset = sp::over(lonLatCoords, customSubsetPolygons)
+    
+    # subset grid and area/subarea names so they're in the area of interest
+    utmGrid = matrix(utmGrid[insideCustomSubset,], ncol=2)
+    lonLatGrid = matrix(lonLatGrid[insideCustomSubset,], ncol=2)
+    areas = areas[insideCustomSubset]
+    
+    if(!is.null(subareaMapDat)) {
+      subareas = subareas[insideCustomSubset]
+    }
   }
-  if(!is.null(subareaPolygonSubsetI)) {
-    allSubareas = subareaSubsetName
+  
+  # determine what subareas we want our grid to contain
+  if(!is.null(subareaMapDat)) {
+    allSubareas = sort(unique(subareaMapDat@data[[subareaNameVar]]))
+    if(!is.null(areaPolygonSubsetI)) {
+      allSubareas = sort(unique(subareaMapDat@data[subareaMapDat@data[[areaNameVar]] == areaSubsetName,][[subareaNameVar]]))
+    }
+    if(!is.null(subareaPolygonSubsetI)) {
+      allSubareas = subareaSubsetName
+    }
+    if(!is.null(customSubsetPolygons)) {
+      allSubareas = sort(unique(subareas))
+    }
   }
   
   # filter out parts of poppsub that are irrelevant for the subareas of 
@@ -431,95 +500,99 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
     poppsub = poppsub[poppsub$subarea %in% allSubareas,]
   }
   
-  # check to make sure every subarea has at least 2 pixels
-  subareasFactor = factor(subareas, levels=allSubareas)
-  if(length(lonLatGrid) > 0) {
-    out = aggregate(subareas, by=list(subarea=subareasFactor), FUN=length, drop=FALSE)
-  } else {
-    out = data.frame(subarea=sort(unique(subareaMapDat@data[[subareaNameVar]])), 
-                     x=NA)
-  }
-  noPixels = is.na(out$x)
-  onePixel = out$x == 1
-  onePixel[is.na(onePixel)] = FALSE
-  onePixelNames = out$subarea[onePixel]
-  badSubareas = noPixels | onePixel
-  badSubareaNames = as.character(out$subarea[badSubareas])
-  
-  if(any(badSubareas)) {
-    badSubareaString = paste(badSubareaNames, collapse=", ")
-    warning(paste0("The following subareas have < 2 regular grid points ", 
-                   "at the given resolution: ", badSubareaString, ", so ", 
-                   "they will be given custom integration points"))
+  if(!is.null(subareaMapDat)) {
+    # check to make sure every subarea has at least 2 pixels
+    subareasFactor = factor(subareas, levels=allSubareas)
+    if(length(lonLatGrid) > 0) {
+      out = aggregate(subareas, by=list(subarea=subareasFactor), FUN=length, drop=FALSE)
+    } else {
+      out = data.frame(subarea=sort(unique(subareaMapDat@data[[subareaNameVar]])), 
+                       x=NA)
+    }
+    noPixels = is.na(out$x)
+    onePixel = out$x == 1
+    onePixel[is.na(onePixel)] = FALSE
+    onePixelNames = out$subarea[onePixel]
+    badSubareas = noPixels | onePixel
+    badSubareaNames = as.character(out$subarea[badSubareas])
     
-    # get centroids of the subareas (or it's single pixel coordinates)
-    thisSpatialPolyList = sp::as.SpatialPolygons.PolygonsList(subareaMapDat@polygons)
-    centroidsLonLat = matrix(ncol=2, nrow=length(allSubareas))
-    
-    for(i in 1:length(allSubareas)) {
-      thisSubarea = allSubareas[i]
-      if(thisSubarea %in% onePixelNames) {
-        thisCentroid = lonLatGrid[subareas == thisSubarea,]
-      } else {
-        subareaI = match(as.character(thisSubarea), as.character(subareaMapDat@data[[subareaNameVar]]))
-        thisCentroid = sp::coordinates(thisSpatialPolyList[subareaI])
+    if(any(badSubareas)) {
+      badSubareaString = paste(badSubareaNames, collapse=", ")
+      warning(paste0("The following subareas have < 2 regular grid points ", 
+                     "at the given resolution: ", badSubareaString, ", so ", 
+                     "they will be given custom integration points"))
+      
+      # get centroids of the subareas (or it's single pixel coordinates)
+      thisSpatialPolyList = sp::as.SpatialPolygons.PolygonsList(subareaMapDat@polygons)
+      centroidsLonLat = matrix(ncol=2, nrow=length(allSubareas))
+      
+      for(i in 1:length(allSubareas)) {
+        thisSubarea = allSubareas[i]
+        if(thisSubarea %in% onePixelNames) {
+          thisCentroid = lonLatGrid[subareas == thisSubarea,]
+        } else {
+          subareaI = match(as.character(thisSubarea), as.character(subareaMapDat@data[[subareaNameVar]]))
+          thisCentroid = sp::coordinates(thisSpatialPolyList[subareaI])
+        }
+        
+        centroidsLonLat[i,] = thisCentroid
       }
       
-      centroidsLonLat[i,] = thisCentroid
+      # sort to match results of aggregate (alphabetical order)
+      # sortI = sort(as.character(subareaMapDat@data[[subareaNameVar]]), index.return=TRUE)$ix
+      sortI = sort(as.character(allSubareas), index.return=TRUE)$ix
+      centroidsLonLat = centroidsLonLat[sortI,]
+      
+      # remove the one pixel for subareas with only one pixel 
+      # (we will add it in again later, twice if stratified: both urban and rural)
+      onePixel = which(subareas %in% onePixelNames)
+      if(length(onePixel) > 0) {
+        lonLatGrid = lonLatGrid[-onePixel,]
+        utmGrid = utmGrid[-onePixel,]
+        subareas = subareas[-onePixel]
+        areas = areas[-onePixel]
+      }
+      
+      # add centroids of only the bad subareas
+      centroidsLonLat = matrix(centroidsLonLat[badSubareas,], ncol=2)
+      
+      # convert to east/north
+      centroidsEastNorth = projKenya(centroidsLonLat[,1], centroidsLonLat[,2])
+      
+      # only add centroid in stratum if bad subareas have any population in the stratum. 
+      # If poppsub not included and resolution not high enough to have multiple points 
+      # in a subarea, treat it as entirely urban or rural
+      if(is.null(poppsub)) {
+        hasUrbanPop = rep(TRUE, sum(badSubareas))
+        hasRuralPop = rep(FALSE, sum(badSubareas))
+      } else {
+        hasUrbanPop = (poppsub$popUrb > 0)[badSubareas]
+        hasRuralPop = (poppsub$popRur > 0)[badSubareas]
+      }
+      
+      # add centroids to the matrices of pixellated grid coordinates. 
+      # Add them twice: once for urban, once for rural
+      lonLatGrid = rbind(lonLatGrid, centroidsLonLat[hasUrbanPop,], centroidsLonLat[hasRuralPop,])
+      utmGrid = rbind(utmGrid, centroidsEastNorth[hasUrbanPop,], centroidsEastNorth[hasRuralPop,])
+      
+      # add associated consituencies, areas, provinces to respective vectors
+      # Normally, we could just caluclate what subarea/area the points are in. 
+      # However, since centroids might not be in the associated subarea, we 
+      # instead just assign the known subareas directly
+      # newSubareas = getAreaName(rbind(centroidsLonLat[hasUrbanPop,], 
+      #                                 centroidsLonLat[hasRuralPop,]), 
+      #                           subareaMapDat, subareaNameVar, delta, mean.neighbor)$areaNames
+      # newAreas = getAreaName(rbind(centroidsLonLat[hasUrbanPop,], 
+      #                              centroidsLonLat[hasRuralPop,]), 
+      #                        areaMapDat, areaNameVar, delta, mean.neighbor)$areaNames
+      newSubareas = c(badSubareaNames[hasUrbanPop], badSubareaNames[hasRuralPop])
+      newAreas = subareaMapDat@data[[areaNameVar]][match(newSubareas, subareaMapDat@data[[subareaNameVar]])]
+      
+      subareas = c(as.character(subareas), as.character(newSubareas))
+      areas = c(as.character(areas), as.character(newAreas))
     }
-    
-    # sort to match results of aggregate (alphabetical order)
-    # sortI = sort(as.character(subareaMapDat@data[[subareaNameVar]]), index.return=TRUE)$ix
-    sortI = sort(as.character(allSubareas), index.return=TRUE)$ix
-    centroidsLonLat = centroidsLonLat[sortI,]
-    
-    # remove the one pixel for subareas with only one pixel 
-    # (we will add it in again later, twice if stratified: both urban and rural)
-    onePixel = which(subareas %in% onePixelNames)
-    if(length(onePixel) > 0) {
-      lonLatGrid = lonLatGrid[-onePixel,]
-      utmGrid = utmGrid[-onePixel,]
-      subareas = subareas[-onePixel]
-      areas = areas[-onePixel]
-    }
-    
-    # add centroids of only the bad subareas
-    centroidsLonLat = matrix(centroidsLonLat[badSubareas,], ncol=2)
-    
-    # convert to east/north
-    centroidsEastNorth = projKenya(centroidsLonLat[,1], centroidsLonLat[,2])
-    
-    # only add centroid in stratum if bad subareas have any population in the stratum. 
-    # If poppsub not included and resolution not high enough to have multiple points 
-    # in a subarea, treat it as entirely urban or rural
-    if(is.null(poppsub)) {
-      hasUrbanPop = rep(TRUE, sum(badSubareas))
-      hasRuralPop = rep(FALSE, sum(badSubareas))
-    } else {
-      hasUrbanPop = (poppsub$popUrb > 0)[badSubareas]
-      hasRuralPop = (poppsub$popRur > 0)[badSubareas]
-    }
-    
-    # add centroids to the matrices of pixellated grid coordinates. 
-    # Add them twice: once for urban, once for rural
-    lonLatGrid = rbind(lonLatGrid, centroidsLonLat[hasUrbanPop,], centroidsLonLat[hasRuralPop,])
-    utmGrid = rbind(utmGrid, centroidsEastNorth[hasUrbanPop,], centroidsEastNorth[hasRuralPop,])
-    
-    # add associated consituencies, areas, provinces to respective vectors
-    # Normally, we could just caluclate what subarea/area the points are in. 
-    # However, since centroids might not be in the associated subarea, we 
-    # instead just assign the known subareas directly
-    # newSubareas = getAreaName(rbind(centroidsLonLat[hasUrbanPop,], 
-    #                                 centroidsLonLat[hasRuralPop,]), 
-    #                           subareaMapDat, subareaNameVar, delta, mean.neighbor)$areaNames
-    # newAreas = getAreaName(rbind(centroidsLonLat[hasUrbanPop,], 
-    #                              centroidsLonLat[hasRuralPop,]), 
-    #                        areaMapDat, areaNameVar, delta, mean.neighbor)$areaNames
-    newSubareas = c(badSubareaNames[hasUrbanPop], badSubareaNames[hasRuralPop])
-    newAreas = subareaMapDat@data[[areaNameVar]][match(newSubareas, subareaMapDat@data[[subareaNameVar]])]
-    
-    subareas = c(as.character(subareas), as.character(newSubareas))
-    areas = c(as.character(areas), as.character(newAreas))
+  } else {
+    badSubareas = FALSE
   }
   
   # get population density at those coordinates
@@ -725,62 +798,6 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
   newPop
 }
 
-# makePopIntegrationTab = function(pop, pixelGrid, areas, subareas, poppa, poppsub=NULL, 
-#                             stratifyByUrban=TRUE) {
-#   
-#   # extract information about pixellated grid
-#   lonLatGrid = cbind(pixelGrid$lon, pixelGrid$lat)
-#   
-#   # get population density at those coordinates
-#   interpPopVals = terra::extract(pop, sp::SpatialPoints(lonLatGrid),method="bilinear")
-#   
-#   # determine which points are urban
-#   newPop = data.frame(list(lon=lonLatGrid[,1], lat=lonLatGrid[,2], pop=interpPopVals, area=areas, subarea=subareas))
-#   if(is.null(poppsub)) {
-#     # the set thresholds at the area level
-#     threshes = setThresholdsArea(newPop, poppa)
-#     popThreshes = sapply(1:nrow(newPop), function(i) {threshes$threshes[threshes$areas == newPop$area[i]]})
-#     urban = newPop$pop >= unlist(popThreshes)
-#   } else {
-#     # the set thresholds at the subarea level
-#     threshes = setThresholdsSubarea(newPop, poppsub)
-#     popThreshes = sapply(1:nrow(newPop), function(i) {threshes$threshes[threshes$subarea == newPop$subarea[i]]})
-#     urban = newPop$pop >= unlist(popThreshes)
-#   }
-#   
-#   newPop$urban = urban
-#   
-#   newPop$east = pixelGrid$east
-#   newPop$north = pixelGrid$north
-#   
-#   # if necessary, renormalize population values within subareas crossed with 
-#   # urban/rural to be the correct value
-#   if(!is.null(poppsub)) {
-#     for(i in 1:nrow(poppsub)) {
-#       thisSub = poppsub$subarea[i]
-#       substratumUrban = (subareas == thisSub) & urban
-#       substratumRural = (subareas == thisSub) & !urban
-#       factorUrban = poppsub$popUrb[i] / sum(newPop$pop[substratumUrban])
-#       factorRural = poppsub$popRur[i] / sum(newPop$pop[substratumRural])
-#       newPop$pop[substratumUrban] = newPop$pop[substratumUrban] * factorUrban
-#       newPop$pop[substratumRural] = newPop$pop[substratumRural] * factorRural
-#     }
-#   } else {
-#     # same as above but at the area level
-#     for(i in 1:nrow(poppa)) {
-#       thisArea = poppa$area[i]
-#       substratumUrban = (areas == thisArea) & urban
-#       substratumRural = (areas == thisArea) & !urban
-#       factorUrban = poppa$popUrb[i] / sum(newPop$pop[substratumUrban])
-#       factorRural = poppa$popRur[i] / sum(newPop$pop[substratumRural])
-#       newPop$pop[substratumUrban] = newPop$pop[substratumUrban] * factorUrban
-#       newPop$pop[substratumRural] = newPop$pop[substratumRural] * factorRural
-#     }
-#   }
-#   
-#   newPop
-# }
-
 #' @describeIn makePopIntegrationTab Generate table of estimates of population
 #'   totals per subarea x urban/rural combination based on population density
 #'   raster at `kmres` resolution "grid", including custom integration points
@@ -790,6 +807,7 @@ getPoppsub = function(kmRes=1, pop, domainMapDat, eastLim, northLim, mapProjecti
                       poppa, areapa=NULL, areapsub, subareaMapDat, subareaNameVar="NAME_2", 
                       stratifyByUrban=TRUE, areaMapDat=NULL, areaNameVar="NAME_1", 
                       areaPolygonSubsetI=NULL, subareaPolygonSubsetI=NULL, 
+                      customSubsetPolygons=NULL, 
                       mean.neighbor=50, delta=.1, setNAsToZero=TRUE, fixZeroPopDensitySubareas=FALSE) {
   
   out = SUMMER::makePopIntegrationTab(kmRes=kmRes, pop=pop, domainMapDat=domainMapDat, 
@@ -800,6 +818,7 @@ getPoppsub = function(kmRes=1, pop, domainMapDat, eastLim, northLim, mapProjecti
                               poppa=poppa, stratifyByUrban=stratifyByUrban, 
                               areaPolygonSubsetI=areaPolygonSubsetI, 
                               subareaPolygonSubsetI=subareaPolygonSubsetI, 
+                              customSubsetPolygons=customSubsetPolygons, 
                               mean.neighbor=mean.neighbor, delta=delta, 
                               setNAsToZero=setNAsToZero, 
                               fixZeroPopDensitySubareas=fixZeroPopDensitySubareas, 
@@ -902,7 +921,7 @@ adjustPopMat = function(popMat, poppaTarget=NULL, adjustBy=c("area", "subarea"),
 #' @param pointTotals Vector of point level totals that will be calibrated/normalized
 #' @param pointRegions Vector of regions associated with each point
 #' @param regions Vector of region names
-#' @param regionTotals Vector Of region level totals associated with `regions`
+#' @param regionTotals Vector of desired region level totals associated with `regions`
 #' 
 #' @return A vector of same length as pointTotals and pointRegions containing 
 #' the calibrated/normalized point totals that sum to the correct regional totals
@@ -1253,46 +1272,5 @@ setThresholdsByRegion = function(popMat, poppr, regionType="area") {
   list(regions=regions, threshes=threshes)
 }
 
-# #' @describeIn makePopIntegrationTab Set thresholds of population density for urbanicity classifications within each subarea 
-# #' based on that subarea's percent population urban. Intended as a helper function of \code{\link{makePopIntegrationTab}}
-# #' @export
-# setThresholdsSubarea = function(popMat, poppsub) {
-#   
-#   getSubareaThresh = function(subareaName) {
-#     # do the setup
-#     thisSubarea = as.character(popMat$subarea) == subareaName
-#     thisPop = popMat$pop[thisSubarea]
-#     thisTot = sum(thisPop)
-#     pctUrb = poppsub$popUrb[poppsub$subarea == subareaName]/poppsub$popTotal[poppsub$subarea == subareaName]
-#     pctRural = 1 - pctUrb
-#     
-#     if(pctUrb == 1) {
-#       return(-Inf)
-#     } else if(pctUrb == 0) {
-#       return(Inf)
-#     }
-#     
-#     # calculate threshold by integrating ecdf via sorted value cumulative sum
-#     sortedPop = sort(thisPop)
-#     cumsumPop = cumsum(sortedPop)
-#     threshI = match(1, cumsumPop >= thisTot*pctRural)
-#     if((threshI != 1) && (threshI != length(thisPop))) {
-#       thresh = sortedPop[threshI]
-#     } else {
-#       # make sure not all pixels are urban or all are rural
-#       if(threshI == 1) {
-#         thresh = mean(c(sortedPop[1], sortedPop[2]))
-#       } else {
-#         thresh = mean(c(sortedPop[length(thisPop)], sortedPop[length(thisPop)-1]))
-#       }
-#     }
-#     
-#     thresh
-#   }
-#   
-#   # compute threshold for each area
-#   subarea = poppsub$subarea
-#   threshes = sapply(subarea, getSubareaThresh)
-#   
-#   list(subarea=subarea, threshes=threshes)
-# }
+
+
