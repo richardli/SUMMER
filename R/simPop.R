@@ -1256,7 +1256,7 @@ getSortIndices = function(i, urban=TRUE, popMat, stratifyByUrban=TRUE, validatio
   
   # determine which pixels and how many EAs are in this stratum
   if(stratifyByUrban) {
-    includeI = popMat$area == areas[i] & popMat$urban == urban
+    includeI = (popMat$area == areas[i]) & (popMat$urban == urban)
   }
   else {
     includeI = popMat$area == areas[i]
@@ -1357,7 +1357,7 @@ rStratifiedMultnomialBySubarea = function(n, popMat, easpa, stratifyByUrban=TRUE
   } else {
     popSubareaMat$pop = poppsub$popTotal
   }
-  # browser()
+  
   # now draw multinomials
   if(stratifyByUrban) {
     # draw for each constituency in each area crossed with urban/rural
@@ -1437,7 +1437,7 @@ rMyMultinomial = function(n, i, stratifyByUrban=TRUE, urban=TRUE, popMat=NULL, e
   
   # determine which pixels and how many EAs are in this stratum
   if(stratifyByUrban) {
-    includeI = popMat$area == areas[i] & popMat$urban == urban
+    includeI = (popMat$area == areas[i]) & (popMat$urban == urban)
     nEA = ifelse(urban, easpa$EAUrb[i], easpa$EARur[i])
   }
   else {
@@ -1468,7 +1468,7 @@ rMyMultinomialSubarea = function(n, i, easpsub, stratifyByUrban=TRUE, urban=TRUE
   
   # determine which pixels and how many EAs are in this stratum
   if(stratifyByUrban) {
-    includeI = popMat$subarea == subareas[i] & popMat$urban == urban
+    includeI = (popMat$subarea == subareas[i]) & (popMat$urban == urban)
   }
   else {
     includeI = popMat$subarea == subareas[i]
@@ -1478,15 +1478,21 @@ rMyMultinomialSubarea = function(n, i, easpsub, stratifyByUrban=TRUE, urban=TRUE
   # sample from the pixels if this stratum exists
   if(sum(includeI) == 0){
     if(any(nEA != 0))
-      stop(paste0("no valid pixels to put EAs in for constituency ", as.character(subareas[i]), " and urban level ", urban))
+      stop(paste0("no valid pixels to put EAs in for subarea ", as.character(subareas[i]), " and urban level ", urban))
     return(matrix(nrow=0, ncol=n))
   }
+  
   thesePixelProbs = popMat$pop[includeI]
-  sapply(nEA, stats::rmultinom, n=1, prob=thesePixelProbs)
+  nonZeroEAs = nEA != 0
+  out = matrix(0, nrow=sum(includeI), ncol=n)
+  if(any(nonZeroEAs)) {
+    out[,nonZeroEAs] = sapply(nEA[nonZeroEAs], stats::rmultinom, n=1, prob=thesePixelProbs)
+  }
+  out
 }
 
 #' @describeIn simPopInternal Random (truncated) multinomial draws conditional on the number of each type being at least one
-rmultinom1 = function(n=1, size, prob, maxSize=5000*5000, method=c("mult1", "mult", "indepMH"), verbose=FALSE, minSample=100, 
+rmultinom1 = function(n=1, size, prob, maxSize=8000*8000, method=c("mult1", "mult", "indepMH"), verbose=FALSE, minSample=100, 
                       maxExpectedSizeBeforeSwitch=1000*1e7, init=NULL, burnIn=floor(n/4), filterEvery=10, zeroProbZeroSamples=TRUE, 
                       allowSizeLessThanK=FALSE) {
   method = match.arg(method)
@@ -1527,8 +1533,14 @@ rmultinom1 = function(n=1, size, prob, maxSize=5000*5000, method=c("mult1", "mul
       samplesLeft = sum(apply(samples, 2, function(x) {any(is.na(x))}))
       
       # approximate expected number of samples so that, after some are rejected, we will 
-      # have the right number of samples
+      # have the right number of samples. Kappa is approximated for when p_1=p_2=...=p_k
       expectedSamples = ceiling(samplesLeft/averageProb)
+      # logMStar = lfactorial(size) - lfactorial(size-k) + sum(log(prob)) - log(size-k+1)
+      # avgAcceptProb = exp(-logMStar)
+      # logKappaApprox = lchoose(size + k - 1, k - 1) - lchoose(size - 1, k - 1)
+      # logM = logMStar -logKappaApprox
+      # avgAcceptProb = exp(-logM)
+      # expectedSamples = ceiling(samplesLeft/avgAcceptProb)
       
       if(expectedSamples*k > maxExpectedSizeBeforeSwitch) {
         warning("too many samples expected with method=='mult1'. Switching to method=='indepMH'")
@@ -1541,23 +1553,24 @@ rmultinom1 = function(n=1, size, prob, maxSize=5000*5000, method=c("mult1", "mul
       thisNumberOfSamples = max(minSample, min(maxSamples, expectedSamples * 1.1))
       if(verbose)
         print(paste0("Sampling ", thisNumberOfSamples, ". Sampled ", n-samplesLeft, "/", n, ". Expected remaining samples: ", expectedSamples))
-      thisSamples = 1 + stats::rmultinom(thisNumberOfSamples, size-k, prob=prob)
+      thisSamples = matrix(1 + stats::rmultinom(thisNumberOfSamples, size-k, prob=prob), nrow=length(prob))
       
       # calculate accept probabilities
-      thisProbs = (size-k) / apply(thisSamples, 2, prod)
+      thisProbs = exp(log(size-k) - apply(log(thisSamples), 2, sum))
+      # thisProbs = (size-k) / apply(thisSamples, 2, prod)
       if(verbose) {
         print(paste0("Max sampled accept prob: ", max(thisProbs), ". Mean sampled accept prob: ", mean(thisProbs)))
-        print(paste0("Max theoretical accept prob: ", 1, ". Mean 'theoretical' accept prob: ", averageProb))
+        print(paste0("Expected number of samples based on avg sampled acceptance prob: ", ceiling(samplesLeft/mean(thisProbs))))
       }
       
       # reject relevant samples
       u = stats::runif(thisNumberOfSamples)
-      thisSamples = thisSamples[,u<thisProbs]
+      thisSamples = matrix(thisSamples[,u<thisProbs], nrow=length(prob))
       
       # remove excess samples if necessary
       totalSamples = ncol(thisSamples) + n - samplesLeft
       if(totalSamples > n) {
-        thisSamples = thisSamples[,1:samplesLeft]
+        thisSamples = matrix(thisSamples[,1:samplesLeft], nrow=length(prob))
       }
       
       # add in accepted samples, if any
@@ -1668,6 +1681,11 @@ rmultinom1 = function(n=1, size, prob, maxSize=5000*5000, method=c("mult1", "mul
     if(verbose) {
       print(paste0("acceptance percentage: ", ar/ncol(samples)))
     }
+    
+    # estimate autocorrelation in samples (if it is na then all samples have the same value there)
+    calcCor = apply(samples, 1, function(x) {cor(x[-1], x[-length(x)])})
+    calcCor[is.na(calcCor)] = 1
+    print(paste0("estimated mean (max) lag 1 correlation after filtering: ", mean(calcCor^filterEvery), " (", max(calcCor^filterEvery), ")"))
     
     # filter out samples to reduce autocorrelation
     samples = samples[,seq(from=1, to=ncol(samples), by=filterEvery)]

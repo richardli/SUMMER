@@ -174,15 +174,15 @@ and information on the spatial population density and the population frame.
 }
 \section{Functions}{
 \itemize{
-\item \code{simPopSPDE}: Simulate populations and population prevalences given census frame and population density 
+\item \code{simPopSPDE()}: Simulate populations and population prevalences given census frame and population density 
 information. Uses SPDE model for generating spatial risk and can include iid cluster 
 level effect.
 
-\item \code{simPopCustom}: Simulate populations and population prevalences given census frame and population density 
+\item \code{simPopCustom()}: Simulate populations and population prevalences given census frame and population density 
 information. Uses custom spatial logit risk function and can include iid cluster 
 level effect.
-}}
 
+}}
 \examples{
 \dontrun{
 ## In this script we will create 5km resolution pixellated grid over Kenya, 
@@ -251,7 +251,7 @@ if(!file.exists(popTIFFilename)) {
 }
 
 # load it in
-require(raster)
+require(terra)
 out = load(popFilename)
 out
 
@@ -266,7 +266,6 @@ northLim = c(-555.1739, 608.7130)
 ## poppsubKenya via data(kenyaPopulationData). First, we will need to calculate 
 ## the areas in km^2 of the areas and subareas
 
-library(rgdal)
 library(sp)
 
 # use Lambert equal area projection of areas (Admin-1) and subareas (Admin-2)
@@ -274,8 +273,6 @@ midLon = mean(adm1@bbox[1,])
 midLat = mean(adm1@bbox[2,])
 p4s = paste0("+proj=laea +x_0=0 +y_0=0 +lon_0=", midLon, 
              " +lat_0=", midLat, " +units=km")
-
-library(rgdal)
 
 adm1proj <- spTransform(adm1, CRS(p4s))
 adm2proj <- spTransform(adm2, CRS(p4s))

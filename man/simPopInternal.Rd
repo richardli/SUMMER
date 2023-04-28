@@ -4,6 +4,7 @@
 \alias{simPopInternal}
 \alias{getExpectedNperEA}
 \alias{getSortIndices}
+\alias{getSortIndicesSubarea}
 \alias{rStratifiedMultnomial}
 \alias{rStratifiedMultnomialBySubarea}
 \alias{rMyMultinomial}
@@ -16,6 +17,14 @@
 getExpectedNperEA(easpa, popMat, level = c("grid", "EA"), pixelIndexMat = NULL)
 
 getSortIndices(
+  i,
+  urban = TRUE,
+  popMat,
+  stratifyByUrban = TRUE,
+  validationPixelI = NULL
+)
+
+getSortIndicesSubarea(
   i,
   urban = TRUE,
   popMat,
@@ -192,26 +201,30 @@ distributions for population simulation.
 }
 \section{Functions}{
 \itemize{
-\item \code{getExpectedNperEA}: Calculates expected denominator per enumeration area.
+\item \code{getExpectedNperEA()}: Calculates expected denominator per enumeration area.
 
-\item \code{getSortIndices}: For recombining separate multinomials into the draws over all grid points
+\item \code{getSortIndices()}: For recombining separate multinomials over 
+multiple areas into the draws over all grid points
 
-\item \code{rStratifiedMultnomial}: Gives nIntegrationPoints x n matrix of draws from the stratified multinomial with values 
+\item \code{getSortIndicesSubarea()}: For recombining separate multinomials over 
+multiple areas into the draws over all grid points
+
+\item \code{rStratifiedMultnomial()}: Gives nIntegrationPoints x n matrix of draws from the stratified multinomial with values 
 corresponding to the value of |C^g| for each pixel, g (the number of EAs/pixel)
 
-\item \code{rStratifiedMultnomialBySubarea}: Gives nIntegrationPoints x n matrix of draws from the stratified multinomial with values
+\item \code{rStratifiedMultnomialBySubarea()}: Gives nIntegrationPoints x n matrix of draws from the stratified multinomial with values
 
-\item \code{rMyMultinomial}: 
+\item \code{rMyMultinomial()}: 
 
-\item \code{rMyMultinomialSubarea}: 
+\item \code{rMyMultinomialSubarea()}: 
 
-\item \code{rmultinom1}: Random (truncated) multinomial draws conditional on the number of each type being at least one
+\item \code{rmultinom1()}: Random (truncated) multinomial draws conditional on the number of each type being at least one
 
-\item \code{sampleNMultilevelMultinomial}: Take multilevel multinomial draws first from joint distribution of 
+\item \code{sampleNMultilevelMultinomial()}: Take multilevel multinomial draws first from joint distribution of 
 number of households per EA given the total per stratum, and then from the joint 
 distribution of the total target population per household given 
 the total per stratum
 
-\item \code{sampleNMultilevelMultinomialFixed}: Same as sampleNMultilevelMultinomial, except the number of EAs per pixel is fixed
-}}
+\item \code{sampleNMultilevelMultinomialFixed()}: Same as sampleNMultilevelMultinomial, except the number of EAs per pixel is fixed
 
+}}

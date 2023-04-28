@@ -22,6 +22,7 @@ makePopIntegrationTab(
   stratifyByUrban = TRUE,
   areapa = NULL,
   areapsub = NULL,
+  customSubsetPolygons = NULL,
   areaPolygonSubsetI = NULL,
   subareaPolygonSubsetI = NULL,
   mean.neighbor = 50,
@@ -49,6 +50,7 @@ getPoppsub(
   areaNameVar = "NAME_1",
   areaPolygonSubsetI = NULL,
   subareaPolygonSubsetI = NULL,
+  customSubsetPolygons = NULL,
   mean.neighbor = 50,
   delta = 0.1,
   setNAsToZero = TRUE,
@@ -82,7 +84,8 @@ for specific countries}
 
 \item{subareaMapDat}{SpatialPolygonsDataFrame object with subarea level map information}
 
-\item{areaNameVar}{The name of the area variable associated with \code{areaMapDat@data} and \code{subareaMapDat@data}}
+\item{areaNameVar}{The name of the area variable associated with \code{areaMapDat@data} 
+and \code{subareaMapDat@data}}
 
 \item{subareaNameVar}{The name of the subarea variable associated with \code{subareaMapDat@data}}
 
@@ -124,6 +127,12 @@ renormalizes population densities within areas or subareas crossed with urban/ru
   \item{subarea}{name of subarea}
   \item{spatialArea}{spatial area of the subarea (e.g. in km^2)}
 }}
+
+\item{customSubsetPolygons}{'SpatialPolygonsDataFrame' or 'SpatialPolygons' object to subset 
+the grid over. This option can help reduce computation time relative to 
+constructing the whole grid and subsetting afterwards. `areaPolygonSubsetI` or 
+`subareaPolygonSubsetI` can be used when subsetting by areas or subareas in 
+`areaMapDat` or `subareaMapDat`. Must be in latitude/longitude projection "EPSG:4326"}
 
 \item{areaPolygonSubsetI}{Index in areaMapDat for a specific area to subset the grid over. This 
 option can help reduce computation time relative to constructing the whole grid 
@@ -175,7 +184,7 @@ subarea names.
 }
 \section{Functions}{
 \itemize{
-\item \code{makePopIntegrationTab}: Generate pixellated `grid` of coordinates (both longitude/latitude and east/north) 
+\item \code{makePopIntegrationTab()}: Generate pixellated `grid` of coordinates (both longitude/latitude and east/north) 
 over spatial domain of the given resolution with associated population totals, areas, subareas, 
 and urban/rural levels. For very small areas that might not 
 otherwise have a grid point in them, a custom integration point is added at their 
@@ -184,14 +193,14 @@ using area and subarea population tables, and generates area and subarea populat
 tables from population density information if not already given. Can be used for integrating 
 predictions from the given coordinates to area and subarea levels using population weights.
 
-\item \code{getPoppsub}: Generate table of estimates of population
+\item \code{getPoppsub()}: Generate table of estimates of population
 totals per subarea x urban/rural combination based on population density
 raster at `kmres` resolution "grid", including custom integration points
 for any subarea too small to include grid points at their centroids.
 
-\item \code{adjustPopMat}: Adjust population densities in grid based on a population frame.
-}}
+\item \code{adjustPopMat()}: Adjust population densities in grid based on a population frame.
 
+}}
 \examples{
 \dontrun{
 # download Kenya GADM shapefiles from SUMMERdata github repository

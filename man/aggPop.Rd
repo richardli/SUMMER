@@ -81,11 +81,11 @@ them to the specified areal level. Also calculates the aggregated risk and preva
 }
 \section{Functions}{
 \itemize{
-\item \code{pixelPopToArea}: Aggregate from pixel to areal level
+\item \code{pixelPopToArea()}: Aggregate from pixel to areal level
 
-\item \code{areaPopToArea}: Aggregate areal populations to another areal level
+\item \code{areaPopToArea()}: Aggregate areal populations to another areal level
+
 }}
-
 \examples{
 \dontrun{
 ##### Now we make a model for the risk. We will use an SPDE model with these 

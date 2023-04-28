@@ -13,7 +13,7 @@ calibrateByRegion(pointTotals, pointRegions, regions, regionTotals)
 
 \item{regions}{Vector of region names}
 
-\item{regionTotals}{Vector Of region level totals associated with `regions`}
+\item{regionTotals}{Vector of desired region level totals associated with `regions`}
 }
 \value{
 A vector of same length as pointTotals and pointRegions containing 
