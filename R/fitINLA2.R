@@ -15,7 +15,7 @@
 #' @param X Covariate matrix. It must contain either a column with name "region", or a column with name "years", or both. The covariates must not have missing values for all regions (if varying in space) and all time periods (if varying in time). The rest of the columns are treated as covariates in the mean model.
 #' @param age.groups a character vector of age groups in increasing order.
 #' @param age.n number of months in each age groups in the same order.
-#' @param age.rw.group vector indicating grouping of the ages groups in the temporal model. For example, if each age group is assigned a different temporal component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate temporal trend to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1.
+#' @param age.time.group vector indicating grouping of the ages groups in the temporal model. For example, if each age group is assigned a different temporal component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate temporal trend to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1. This argument replaces the previous \code{age.rw.group} argument. 
 #' @param age.strata.fixed.group vector indicating grouping of the ages groups for different strata in the intercept. The default is c(1:length(age.groups)), which correspond to each age group within each stratum receives a separate intercept. If several age groups are specified to be the same value in this vector, the stratum specific deviation from the baseline is assumed to be the same for these age groups. For example, if \code{age.strata.fixed.group = c(1, 2, 3, 3, 3, 3)}, then the intercept part of the linear predictor consists of 6 overall age-specific intercepts and 3 set of strata effects (where a base stratum is chosen internally), for age groups 1, 2, and the rest respectively. Notice that this argument does not control the linear temporal trends (which is also parameterized as fixed effect, but determined by the \code{age.rw.group} argument). The vector should contain values starting from 1.
 #' 
 #' More specific examples: (1) if each age group is assigned a different intercept, then set age.strata.fixed.group to c(1:length(age.groups)) (2) if all age groups share the same intercept, then set age.strata.fixed.group to a rep(1, length(age.groups)). The default for 6 age groups is the former. (3) If each temporal trend is associated with its own intercept, set it to be the same as \code{age.rw.group}. 
@@ -53,6 +53,7 @@
 #' @param ar Deprecated. Order of the autoregressive component. If ar is specified to be positive integer, the random walk components will be replaced by AR(p) terms in the interaction part. The main temporal trend remains to be random walk of order rw unless rw = 0.
 #' @param st.rw Deprecated. Take values 1 or 2, indicating the order of random walk for the interaction term. If not specified, it will take the same order as the argument rw in the main effect. Notice that this argument is only used if ar is set to 0.
 #' @param geo Deprecated. Spatial polygon file, legacy parameter from previous versions of the package.
+#' @param age.rw.group Deprecated. Legacy parameter replaced by \code{age.time.group}.
 #' @param ... arguments to be passed to the inla() function call.
 #' @seealso \code{\link{getDirect}}
 #' @import Matrix
@@ -140,7 +141,7 @@
 #' 
 #' 
 
-smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.rw.group = c(1,2,3,3,3,3), age.strata.fixed.group = c(1,2,3,4,5,6), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label, type.st = 4, survey.effect = FALSE, linear.trend = TRUE, common.trend = FALSE, strata.time.effect = FALSE, hyper = "pc", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), control.fixed = list(), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, ...){
+smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.time.group = c(1,2,3,3,3,3), age.strata.fixed.group = c(1,2,3,4,5,6), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label, type.st = 4, survey.effect = FALSE, linear.trend = TRUE, common.trend = FALSE, strata.time.effect = FALSE, hyper = "pc", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), control.fixed = list(), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, age.rw.group = NULL, ...){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
@@ -156,6 +157,20 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
   }
   if(!is.null(geo)){
     message("Argument geo is deprecated in the smoothCluster function. Only Amat is needed.")
+  }
+
+  if(sum(!unique(data$age) %in% age.groups) > 0){
+    stop("The data consist of more age groups than specified by the 'age.groups' argument. Please check your data and subset your data properly.")
+  }
+  if(!is.null(age.rw.group)){
+    age.time.group <- age.rw.group
+    message("Argument 'age.rw.group' have been deprecated and replaced by 'age.time.group' in version 1.4.0. The value for 'age.time.group' has been set to be the input argument 'age.rw.group'")
+  }else{
+    age.rw.group <- age.time.group
+  }
+  check.age <- c(length(age.groups), length(age.n), length(age.time.group), length(age.strata.fixed.group))
+  if(length(unique(check.age)) > 1){
+    stop("The arguments 'age.group', 'age.n', 'age.time.group', and 'age.strata.fixed.group' are of different lengths. Please check the specification of these arguments.")
   }
 
   # get around CRAN check of using un-exported INLA functions
@@ -180,6 +195,7 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
   }
   # define whether there is the temporal component
   is.temporal <- TRUE
+
 
   if(!is.null(rw) || !is.null(ar) || !is.null(st.rw)){
 
@@ -272,12 +288,21 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
   }else{
     message("----------------------------------",
             "\nCluster-level model",
-            "\n  Main temporal model:        ", time.model, appendLF = FALSE)
+            "\n  Main temporal model:        ", time.model, 
+            "\n  Number of time periods:     ", length(year_label), 
+            appendLF = FALSE)
     msg <- paste0(msg, "\nCluster-level model",
-                       "\n  Main temporal model:        ", time.model)
+                       "\n  Main temporal model:        ", time.model, 
+                       "\n  Number of time periods:     ", length(year_label))
     if(linear.trend && !common.trend){
-        message("\n  Additional linear trends:   stratum-age-specific", appendLF = FALSE)
-        msg <- paste0(msg, "\n  Additional linear trends:   stratum-age-specific")
+        if("strata" %in% colnames(data) == FALSE || sum(!is.na(data$strata)) == 0){
+          message("\n  Additional linear trends:   age-specific", appendLF = FALSE)
+          msg <- paste0(msg, "\n  Additional linear trends:   age-specific")
+        }else{
+          message("\n  Additional linear trends:   stratum-age-specific", appendLF = FALSE)
+          msg <- paste0(msg, "\n  Additional linear trends:   stratum-age-specific")
+        }
+
     }
     if(linear.trend && common.trend){
         message("\n  Additional linear trends:   shared", appendLF = FALSE)
@@ -311,8 +336,11 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
   }
 
   if(is.spatial){ 
-    message("\n  Spatial effect:             bym2", appendLF=FALSE) 
-    msg <- paste0(msg, "\n  Spatial effect:             bym2")
+    message("\n  Spatial effect:             bym2", 
+            "\n  Number of regions:          ", dim(Amat)[1], 
+            appendLF=FALSE) 
+    msg <- paste0(msg, "\n  Spatial effect:             bym2", 
+                   "\n  Number of regions:          ", dim(Amat)[1])
   }
   if(is.spatial && is.temporal){
     message("\n  Interaction temporal model: ", st.time.model, 

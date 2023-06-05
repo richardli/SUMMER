@@ -170,11 +170,18 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
             "\n  No temporal components")
 
   }else{
+    T <- year_range[2] - year_range[1] + 1
+    if(!is.yearly){
+      T <- length(year_label)
+    }
     message("----------------------------------",
           "\nSmoothed Direct Model",
-            "\n  Main temporal model:        ", time.model, appendLF = FALSE)
-    msg <- paste0(msg, "\nSmoothed Direct Model",
-            "\n  Main temporal model:        ")
+            "\n  Main temporal model:        ", time.model, 
+            "\n  Number of time periods:     ", T, 
+            appendLF = FALSE)
+    msg <- paste0(msg, "\nSmoothed Direct Model", 
+            "\n  Main temporal model:        ", time.model, 
+            "\n  Number of time periods:     ", T)
     if(m == 1){
       if(is.yearly){
         message("\n  Temporal resolution:        period model (m = 1)", appendLF=FALSE)
@@ -221,8 +228,11 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
   }
 
   if(is.spatial){ 
-    message("\n  Spatial effect:             bym2", appendLF=FALSE) 
-    msg <- paste0(msg, "\n  Spatial effect:             bym2")
+    message("\n  Spatial effect:             bym2",
+            "\n  Number of regions:          ", dim(Amat)[1], 
+             appendLF=FALSE) 
+    msg <- paste0(msg, "\n  Spatial effect:             bym2",
+            "\n  Number of regions:          ", dim(Amat)[1])
   }
   if(is.spatial && is.temporal){
     message("\n  Interaction temporal model: ", st.time.model, 

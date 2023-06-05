@@ -102,7 +102,7 @@ legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, 10)
 #  construct a simple national estimates
 national <- data.frame(years = periods, 
 					   est = seq(0.22, 0.1, length = 7), 
-					   sd = seq(.01, .1, len = 7))
+					   sd = runif(7, 0.01, 0.03))
 # national does not need to have all years
 national_sub <- national[1:3,]
 
@@ -111,7 +111,7 @@ est.bb.bench <- Benchmark(est.bb, national_sub,
 						weight.region = weight.region, 
 						estVar = "est", sdVar = "sd", timeVar = "years")
 
-# Sanity check: only benchmarked for two years
+# Sanity check: only benchmarked for three periods
 compare <- national
 compare$before <- NA
 compare$after <- NA
@@ -175,7 +175,7 @@ est.bb.new <- getSmoothed(fit.bb.new, nsim = 10000, CI = 0.95, save.draws=TRUE)
 #  construct a simple national estimates
 national <- data.frame(years = periods, 
 					   est = seq(0.22, 0.1, length = 7), 
-					   sd = seq(.01, .1, len = 7))
+					   sd = runif(7, 0.01, 0.03))
 weight.region <- expand.grid(region = unique(counts.all$region), 
 						 years = periods)
 weight.region$proportion <- 0.25					   
@@ -249,7 +249,7 @@ plot(national$est, national.est$mean,
 		 ylim = range(c(national$est, national.est$mean, national.est.bench$mean)),
 		 xlab = "External national estimates", 
 		 ylab = "Weighted posterior median after benchmarking",
-    main = "Sanity check: weighted average of area medians")
+    main = "Sanity check: weighted average of area means")
 points(national$est, national.est.bench$mean, col = 2, pch = 10)
 abline(c(0, 1))
 legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, 10), col = c(1, 2))
@@ -283,7 +283,7 @@ plot(national$est, national.est$mean,
 		 ylim = range(c(national$est, national.est$mean, national.est.bench$mean)),
 		 xlab = "External national estimates", 
 		 ylab = "Weighted posterior median after benchmarking",
-    main = "Sanity check: weighted average of area medians")
+    main = "Sanity check: weighted average of area means")
 points(national$est, national.est.bench$mean, col = 2, pch = 10)
 abline(c(0, 1))
 legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, 10), col = c(1, 2))
