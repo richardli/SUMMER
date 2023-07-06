@@ -14,7 +14,8 @@ getDirect(
   weightsVar = "v005",
   Ntrials = NULL,
   geo.recode = NULL,
-  national.only = FALSE
+  national.only = FALSE,
+  CI = 0.95
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ getDirect(
 \item{geo.recode}{The recode matrix to be used if region name is not consistent across different surveys. See \code{\link{ChangeRegion}}.}
 
 \item{national.only}{Logical indicator to obtain only the national estimates}
+
+\item{CI}{the desired confidence interval to calculate}
 }
 \value{
 a matrix of period-region summary of the Horvitz-Thompson direct estimates by region and time period specified in the argument, the standard errors using delta method for a single survey, the 95\% confidence interval, and the logit of the estimates.

@@ -11,7 +11,7 @@
 #' @param Ntrials Variable for the total number of person-months if the input data (births) is in the compact form.
 #' @param geo.recode The recode matrix to be used if region name is not consistent across different surveys. See \code{\link{ChangeRegion}}.
 #' @param national.only Logical indicator to obtain only the national estimates
-#'
+#' @param CI the desired confidence interval to calculate
 #' @return a matrix of period-region summary of the Horvitz-Thompson direct estimates by region and time period specified in the argument, the standard errors using delta method for a single survey, the 95\% confidence interval, and the logit of the estimates.
 #' @seealso \code{\link{getDirectList}}
 #' @author Zehang Richard Li, Bryan Martin, Laina Mercer
@@ -26,7 +26,7 @@
 #' ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 #' }
 #' @export
-getDirect <- function(births, years, regionVar = "region", timeVar = "time", clusterVar = "~v001+v002",  ageVar = "age", weightsVar = "v005",  Ntrials = NULL, geo.recode = NULL, national.only = FALSE) {
+getDirect <- function(births, years, regionVar = "region", timeVar = "time", clusterVar = "~v001+v002",  ageVar = "age", weightsVar = "v005",  Ntrials = NULL, geo.recode = NULL, national.only = FALSE, CI = 0.95) {
     # check all elements are provided
     if (is.null(births)) {
         stop("No births file specified!")
@@ -168,7 +168,7 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
               }
             var.est <- stats::vcov(glm.ob)
             mean <- expit(summary(glm.ob)$coefficient[1])
-            lims <- expit(logit(mean) + stats::qnorm(c(0.025, 0.975)) * sqrt(c(var.est)))
+            lims <- expit(logit(mean) + stats::qnorm(c((1 - CI) / 2, 1 - (1 - CI) / 2)) * sqrt(c(var.est)))
 
             ## Alternative calculation
             # p.i <- survey::svymean(~died, design = tmp)
@@ -224,7 +224,7 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
         derivatives[which(is.na(derivatives))] <- 0
         ## Items to return ##
         var.est <- t(derivatives) %*% V %*% derivatives
-        lims <- logit(mean.est) + stats::qnorm(c(0.025, 0.975)) * sqrt(c(var.est))
+        lims <- logit(mean.est) + stats::qnorm(c((1 - CI) / 2, 1 - (1 - CI) / 2)) * sqrt(c(var.est))
         return(c(mean.est, expit(lims), logit(mean.est), var.est))
     }
     
