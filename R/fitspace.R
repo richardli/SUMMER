@@ -40,6 +40,7 @@
 #' @param weight.strata a data frame with one column corresponding to \code{regionVar}, and columns specifying proportion of each strata for each region. This argument specifies the weights for strata-specific estimates. This is only used for the unit-level model. 
 #' @param nsim number of posterior draws to take. This is only used for the unit-level model when \code{weight.strata} is provided. 
 #' @param save.draws logical indicator of whether to save the full posterior draws.
+#' @param smooth logical indicator of whether to perform smoothing. If set to FALSE, a data frame of direct estimate is returned. Only used when \code{is.unit.level} is FALSE.
 #' @param ... additional arguments passed to \code{svydesign} function.
 #' 
 #' 
@@ -67,6 +68,13 @@
 #' weightVar="weights", regionVar="region", 
 #' clusterVar = "~clustid+id", CI = 0.95)
 #' summary(fit0)
+#' 
+#' # if only direct estimates without smoothing is of interest
+#' fit0.dir <- smoothSurvey(data=DemoData2,  
+#' Amat=DemoMap2$Amat, responseType="binary", 
+#' responseVar="tobacco.use", strataVar="strata", 
+#' weightVar="weights", regionVar="region", 
+#' clusterVar = "~clustid+id", CI = 0.95, smooth = FALSE)
 #' 
 #' # posterior draws can be returned with save.draws = TRUE
 #' fit0.draws <- smoothSurvey(data=DemoData2,  
@@ -257,7 +265,7 @@
 #' @export
 
 
-smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], include_time_unstruct = FALSE, type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, save.draws = FALSE, ...){
+smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], include_time_unstruct = FALSE, type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, save.draws = FALSE, smooth = TRUE, ...){
 
     svy <- TRUE
     if(is.null(responseVar)){
@@ -590,7 +598,6 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
     dat$region.unstruct <- dat$region.struct <- dat$region.int <-  match(dat$region, rownames(Amat))
     if(!is.unit.level) dat$HT.logit.est[is.infinite(abs(dat$HT.logit.est))] <- NA  
 
-
     if(!is.null(timeVar)){
         dat <- dat[order(dat[, "time.struct"], dat[, "region.struct"]), ]
     }else{
@@ -685,6 +692,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         formula <- as.formula(paste(formulatext, formula, sep = "+"))
     }   
 
+    if(smooth){
     if(is.unit.level && responseType == "binary"){
         fit <- INLA::inla(formula, family="betabinomial", Ntrials=dat$total, control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     
@@ -699,8 +707,9 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
     }else{
          fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.logit.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     }
-    
-
+    }else{
+        fit <- NULL
+    }
     
     n <- max(dat$region.struct) 
     temp <- NA
@@ -719,7 +728,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
     }
   
 
-  
+    if(smooth){
     for(i in 1:dim(proj)[1]){
         if(!is.unit.level){
             tmp <- matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[i]]))
@@ -835,6 +844,9 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
             proj.agg[i, "logit.median"] <- median(logit(draws))
         }
      }
+    }else{
+        proj.agg <- NULL
+    }
     }else{
         proj.agg <- NULL
     }

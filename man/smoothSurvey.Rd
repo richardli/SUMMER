@@ -36,6 +36,7 @@ smoothSurvey(
   weight.strata = NULL,
   nsim = 1000,
   save.draws = FALSE,
+  smooth = TRUE,
   ...
 )
 
@@ -70,6 +71,7 @@ fitGeneric(
   weight.strata = NULL,
   nsim = 1000,
   save.draws = FALSE,
+  smooth = TRUE,
   ...
 )
 }
@@ -139,6 +141,8 @@ fitGeneric(
 
 \item{save.draws}{logical indicator of whether to save the full posterior draws.}
 
+\item{smooth}{logical indicator of whether to perform smoothing. If set to FALSE, a data frame of direct estimate is returned. Only used when \code{is.unit.level} is FALSE.}
+
 \item{...}{additional arguments passed to \code{svydesign} function.}
 }
 \value{
@@ -171,6 +175,13 @@ responseVar="tobacco.use", strataVar="strata",
 weightVar="weights", regionVar="region", 
 clusterVar = "~clustid+id", CI = 0.95)
 summary(fit0)
+
+# if only direct estimates without smoothing is of interest
+fit0.dir <- smoothSurvey(data=DemoData2,  
+Amat=DemoMap2$Amat, responseType="binary", 
+responseVar="tobacco.use", strataVar="strata", 
+weightVar="weights", regionVar="region", 
+clusterVar = "~clustid+id", CI = 0.95, smooth = FALSE)
 
 # posterior draws can be returned with save.draws = TRUE
 fit0.draws <- smoothSurvey(data=DemoData2,  
