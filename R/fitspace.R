@@ -274,7 +274,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
     if(is.null(responseType)){
         stop("responseType not specified")
     }  
-    if(is.null(Amat)){
+    if(is.null(Amat) && smooth){
         message("No spatial adjacency matrix is specified. IID area random effect is used.")
     }
     is.iid.space <- FALSE
