@@ -2,8 +2,7 @@
 % Please edit documentation in R/smoothArea.R
 \name{compareEstimates}
 \alias{compareEstimates}
-\title{Plot heatmap comparing pairwise posterior exceedence probabilities for all
-areas}
+\title{Plot heatmap comparing pairwise posterior exceedence probabilities for svysae object}
 \usage{
 compareEstimates(x, posterior.sample = NULL)
 }
@@ -16,13 +15,13 @@ compareEstimates(x, posterior.sample = NULL)
 ggplot containing heat map of pairwise comparisons
 }
 \description{
-Plot heatmap comparing pairwise posterior exceedence probabilities for all
-areas
+Plot heatmap comparing pairwise posterior exceedence probabilities for svysae object
 }
 \examples{
 \dontrun{
 data(DemoData2)
 data(DemoMap2)
+library(survey)
 des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
                   weights = ~weights, data = DemoData2, nest = T)
 Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)

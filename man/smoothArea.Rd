@@ -68,11 +68,12 @@ area level model
 \dontrun{
 data(DemoData2)
 data(DemoMap2)
+library(survey)
 des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
                   weights = ~weights, data = DemoData2, nest = T)
 Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
 
-EXAMPLE 1: Continuous response model
+# EXAMPLE 1: Continuous response model
 cts.res <- smoothArea(tobacco.use ~ 1,
                       domain = ~region,
                       design = des0,
@@ -82,7 +83,7 @@ cts.res <- smoothArea(tobacco.use ~ 1,
                       pc.u.phi = 0.5,
                       pc.alpha.phi = 2/3)
 
-EXAMPLE 2: Including area level covariates
+# EXAMPLE 2: Including area level covariates
 cts.cov.res <- smoothArea(tobacco.use ~ age, 
                           domain = ~region,
                           design = des0,
@@ -93,7 +94,7 @@ cts.cov.res <- smoothArea(tobacco.use ~ age,
                           pc.u.phi = 0.5,
                           pc.alpha.phi = 2/3)
 
-EXAMPLE 3: Binary response model
+# EXAMPLE 3: Binary response model
 bin.res <- smoothArea(tobacco.use ~ 1, 
                       domain = ~region,
                       design = des0,
@@ -104,7 +105,7 @@ bin.res <- smoothArea(tobacco.use ~ 1,
                       pc.u.phi = 0.5,
                       pc.alpha.phi = 2/3)
 
-EXAMPLE 4: Including area level covariates in binary response model
+# EXAMPLE 4: Including area level covariates in binary response model
 bin.cov.res <- smoothArea(tobacco.use ~ age, 
                           domain = ~region,
                           design = des0,

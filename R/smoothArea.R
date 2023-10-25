@@ -391,8 +391,8 @@ plot.svysae <- function(x, return_list = F, plot.factor = NULL, ...) {
   }
 }
 
-#' Plot heatmap comparing pairwise posterior exceedence probabilities for all
-#' areas
+#' Plot heatmap comparing pairwise posterior exceedence probabilities for svysae object
+#' 
 #'
 #' @param x svysae object. Plots are created for all models in this object.
 #' @param posterior.sample Matrix of posteriors samples of area level quantities with one row for each area and one column for each sample. This argument may be specified to only provide a heatmap for the desired samples.
@@ -405,6 +405,7 @@ plot.svysae <- function(x, return_list = F, plot.factor = NULL, ...) {
 #' \dontrun{
 #' data(DemoData2)
 #' data(DemoMap2)
+#' library(survey)
 #' des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
 #'                   weights = ~weights, data = DemoData2, nest = T)
 #' Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
@@ -500,7 +501,7 @@ compareEstimates <- function(x,
     suppressWarnings(print(g_heat))
   }
 }
-#' Title
+#' Mapping estimates for svysae object
 #'
 #' 
 #' @param x syvsae object

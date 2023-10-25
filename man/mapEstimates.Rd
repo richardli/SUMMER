@@ -2,7 +2,7 @@
 % Please edit documentation in R/smoothArea.R
 \name{mapEstimates}
 \alias{mapEstimates}
-\title{Title}
+\title{Mapping estimates for svysae object}
 \usage{
 mapEstimates(x, geo.data, variable, viridis.option = "viridis")
 }
@@ -19,7 +19,7 @@ mapEstimates(x, geo.data, variable, viridis.option = "viridis")
 ggplot containing map of small area posterior summary statistics
 }
 \description{
-Title
+Mapping estimates for svysae object
 }
 \examples{
 \dontrun{

@@ -26,15 +26,16 @@
 #' \dontrun{
 #' data(DemoData2)
 #' data(DemoMap2)
+#' library(survey)
 #' des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
 #'                  weights = ~weights, data = DemoData2, nest = T)
 #'                  
-#' EXAMPLE 1: Continuous response model
+#' # EXAMPLE 1: Continuous response model
 #' cts.res <- smoothUnit(formula = tobacco.use ~ 1,
 #'                       domain = ~region,
 #'                       design = des0, X.pop = DemoData2)
 #'                       
-#' EXAMPLE 2: Binary response model
+#' # EXAMPLE 2: Binary response model
 #' bin.res <- smoothUnit(formula = tobacco.use ~ 1,
 #'                       family = "binomial",
 #'                       domain = ~region,
