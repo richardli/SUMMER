@@ -2,64 +2,63 @@
 % Please edit documentation in R/smoothUnit.R
 \name{smoothUnit}
 \alias{smoothUnit}
-\title{Smooth via unit level model}
+\title{Smooth via basic unit level model}
 \usage{
 smoothUnit(
   formula,
   domain,
   design,
   family = c("gaussian", "binomial")[1],
-  Amat = NULL,
   X.pop = NULL,
+  adj.mat = NULL,
   domain.size = NULL,
   pc.u = 1,
   pc.alpha = 0.01,
   pc.u.phi = 0.5,
   pc.alpha.phi = 2/3,
-  CI = 0.95,
-  n.sample = 250
+  level = 0.95,
+  n.sample = 250,
+  return.samples = F
 )
 }
 \arguments{
-\item{formula}{an object of class "formula" describing the model to be fitted.}
+\item{formula}{An object of class 'formula' describing the model to be fitted.}
 
-\item{domain}{formula specifying variable containing domain labels}
+\item{domain}{One-sided formula specifying factors containing domain labels}
 
-\item{design}{an object of class "svydesign" containing the data for the model}
+\item{design}{An object of class "svydesign" containing the data for the model}
 
 \item{family}{of the response variable, currently supports 'binomial' (default with logit link function) or 'gaussian'.}
 
-\item{Amat}{Adjacency matrix for the regions. If set to NULL, the IID spatial effect will be used.}
+\item{X.pop}{Data frame of population unit-level covariates. One of the column name needs to match the domain specified, in order to be linked to the data input. Currently only supporting time-invariant covariates.}
 
-\item{X.pop}{unit-level covariates data frame. One of the column name needs to match the domain specified, in order to be linked to the data input. Currently only supporting time-invariant domain-level covariates.}
+\item{adj.mat}{Adjacency matrix with rownames matching the domain labels. If set to NULL, the IID spatial effect will be used.}
 
-\item{domain.size}{Domain size data frame. One of the column name needs to match the domain specified, in order to be linked to the data input and there must be a size column containing domain sizes.}
+\item{domain.size}{Data frame of domain sizes. One of the column names needs to match the name of the domain variable, in order to be linked to the data input and there must be a column names 'size' containing domain sizes. The default option is no transformation, but logit and log are implemented.}
 
-\item{pc.u}{hyperparameter U for the PC prior on precisions.}
+\item{pc.u}{Hyperparameter U for the PC prior on precisions. See the INLA documentation for more details on the parameterization.}
 
-\item{pc.alpha}{hyperparameter alpha for the PC prior on precisions.}
+\item{pc.alpha}{Hyperparameter alpha for the PC prior on precisions.}
 
-\item{pc.u.phi}{hyperparameter U for the PC prior on the mixture probability phi in BYM2 model.}
+\item{pc.u.phi}{Hyperparameter U for the PC prior on the mixture probability phi in BYM2 model.}
 
-\item{pc.alpha.phi}{hyperparameter alpha for the PC prior on the mixture probability phi in BYM2 model.}
+\item{pc.alpha.phi}{Hyperparameter alpha for the PC prior on the mixture probability phi in BYM2 model.}
 
-\item{CI}{the desired posterior credible interval to calculate}
+\item{level}{The specified level for the posterior credible intervals}
 
-\item{n.sample}{number of draws from posterior used to compute summaries}
+\item{n.sample}{Number of draws from posterior used to compute summaries}
+
+\item{return.samples}{If TRUE, return matrix of posterior samples of area level quantities}
 }
 \value{
-A list with elements
-\item{direct.est}{direct estimates}
-\item{model.fit}{fitted INLA object for iid domain effects model}
-\item{model.est}{smoothed estimates}
+A svysae object
 }
 \description{
-Generates small area estimates by smoothing direct estimates using a unit 
-level model
+Generates small area estimates by smoothing direct estimates using a basic 
+unit level model
 }
 \examples{
 \dontrun{
-library(survey)
 data(DemoData2)
 data(DemoMap2)
 des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
