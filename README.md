@@ -4,10 +4,25 @@
 
 SAE Unit/area Models and Methods for Estimation in R
 
+
 ## Next major update (version 1.4.0)
-+ New major functions for simulation and using SPDE spatial model and aggregation over grids.
-+ New datasets on Kenya population map.
-+ New methods for benchmarking.
++ New major functions for  population and prevalence simulation based on population frame and population density information, along with methods for aggregating pixel level prevalences and populations to the areal level. 
+
++ New major functions.
+    * ``simSPDE``: Simulates from the SPDE spatial model.
+    * ``simPopSPDE``: Simulates population in a country based on SPDE spatial model and population frame information.
+    * ``simPopPixel``: Simulates population in a country based on custom spatial model and population frame information.
++ New minor functions.
+    * ``aggPixelPreds`` and ``areaPopToArea``: Functions for aggregating populations and prevalences to the areal level.
+    * Functions for setting pixellated grid and population density grid.
+    * Functions for adjusting population density grid based on population frame information.
+    * Functions for projections to use with Kenya maps and for getting Admin areas given spatial locations.
++ New internal functions for helping with population simulation.
++ New datasets
+    * ``kenyaMaps``: Kenya administrative area map shapefiles, and a triangular mesh for the SPDE model for Kenya.
+    * ``kenyaPopulationData``: General and neonatal population frames for Kenya, and general and neonatal population density information for Kenya.
+    * ``popMatKenya`` and ``popMatKenyaNeonatal``: General and neonatal population density grids at 5km resolution.
+
 
 ## Major update (version 1.3.0)
 + New SAE functions and vignette.
@@ -16,6 +31,12 @@ SAE Unit/area Models and Methods for Estimation in R
 + Major expansion for `smoothSurvey` to implement popular SAE methods. Syntax change to the function. 
 + Allows `smoothDirect` and `smoothCluster` to fit space-only models.
 + S3 class output.
+
+## Major update (version 1.1.0)
++ Major expansion for `smoothSurvey` to implement popular SAE methods. Syntax change to the function. 
++ Allows `smoothDirect` and `smoothCluster` to fit space-only models.
++ `smoothSurvey`, `smoothDirect`, and `smoothCluster` now returns S3 classed objects.
+ 
 
 ## Major update (version 1.1.0)
 + Major expansion for `smoothSurvey` to implement popular SAE methods. Syntax change to the function. 

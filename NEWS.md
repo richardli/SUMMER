@@ -1,4 +1,16 @@
 # SUMMER - changes
+
+
+Version 1.4.0
+==========================
++ New major functions for  population and prevalence simulation based on population frame and population density information, along with methods for aggregating pixel level prevalences and populations to the areal level. 
+
+
+Version 1.3.0
+==========================
++ New SAE functions and vignette.
+
+
 Version 1.2.1  
 ==========================
 + `smoothSurvey` now can return posterior draws.
