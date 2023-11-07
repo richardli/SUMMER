@@ -18,7 +18,8 @@ smoothUnit(
   pc.alpha.phi = 2/3,
   level = 0.95,
   n.sample = 250,
-  return.samples = F
+  return.samples = F,
+  X.pop.weights = NULL
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ smoothUnit(
 \item{n.sample}{Number of draws from posterior used to compute summaries}
 
 \item{return.samples}{If TRUE, return matrix of posterior samples of area level quantities}
+
+\item{X.pop.weights}{Optional vector of weights to use when aggregating unit level predictions}
 }
 \value{
 A svysae object

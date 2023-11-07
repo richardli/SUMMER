@@ -144,10 +144,7 @@ smoothArea <- function(formula,
                upper = direct.est$mean +
                  qnorm(1 - (1-level)/2) * sqrt(direct.est$var),
                method = paste0("Direct"))
-  out$direct.est <- direct.est
-  attr(out, "domain.names") <- sort(direct.est$domain)
-  attr(out, "method.names") <- c("direct.est")
-  
+
   # prepare data for modeling, removing any areas with zero/low sampling variances
   mod.dat <- direct.est
   mod.dat$mean <- 
@@ -155,17 +152,46 @@ smoothArea <- function(formula,
   mod.dat$var <-
     ifelse(mod.dat$var > var.tol, mod.dat$var, NA)
   mod.dat$prec  <- 1 / mod.dat$var
-  mod.dat$domain.id <- 1:nrow(mod.dat)
-  if(!is.null(X.domain)) {
+  
+  # identify domains for estimation (including estimates for regions in X.domain or adj.mat)
+  if (!is.null(X.domain)) {
+    if (!is.null(adj.mat) & !setequal(X.domain[[domain.var]], rownames(adj.mat))) {
+      stop("Domains in X.domain do not match domains in adj.mat.")
+    }
+    if (any(is.na(match(X.domain[[domain.var]], mod.dat$domain)))) {
+      warning(cat("There are domains in X.domain not in design/direct estimates.",
+                  "\nGenerating estimates for all domains in X.domain."))
+    }
     mod.X.domain <- X.domain
     mod.X.domain$domain <- X.domain[[domain.var]]
     mod.X.domain <- mod.X.domain[, names(mod.X.domain) != domain.var]
-    mod.dat <- merge(mod.dat, mod.X.domain,  by = "domain")
+    mod.dat <- merge(mod.dat, mod.X.domain,  by = "domain", all.y = T)
+    direct.est <- 
+      merge(direct.est, data.frame(domain = mod.X.domain$domain), 
+            by = "domain", all.y = T)
+    direct.est$method = "Direct"
+  } else if(!is.null(adj.mat)) {
+    if (any(is.na(match(mod.dat$domain, rownames(adj.mat))))) {
+      stop("Domains in adj.mat do not match domains in design/direct estimates.")
+    }
+    if (any(is.na(match(rownames(adj.mat), mod.dat$domain)))) {
+      warning(cat("There are domains in adj.mat not in design/direct estimates.",
+                  "\nGenerating estimates for all domains in adj.mat."))
+    }
+    mod.dat <- 
+      merge(mod.dat, data.frame(domain = rownames(adj.mat)), 
+            by = "domain", all.y = T)
+    direct.est <- 
+      merge(direct.est, data.frame(domain = rownames(adj.mat)), 
+            by = "domain", all.y = T)
+    direct.est$method = "Direct"
   }
-  mod.dat <- mod.dat[match(1:nrow(mod.dat), mod.dat$domain.id), ]
-  
+  mod.dat$domain.id <- 1:nrow(mod.dat)
   mm.domain <- model.matrix(cov.frm, mod.dat)
-  
+  out$direct.est <- direct.est
+  attr(out, "domain.names") <- sort(direct.est$domain)
+  attr(out, "method.names") <- c("direct.est")
+
   transform <- match.arg(transform)
   attr(out, "transform") <- transform
   
@@ -241,17 +267,21 @@ smoothArea <- function(formula,
                upper = apply(iid.model.mat, 1,
                              function(x) quantile(x, 1-(1-level)/2, na.rm = T)),
                method = paste0("Area level model: IID"))
-  attr(out, "method.names") <- c(attr(out, "method.names"), "iid.model.est")
-  attr(out, "inla.fitted") <- c(attr(out, "inla.fitted"), "iid.model")
-  
+
+  out$iid.model.est <- 
+    out$iid.model.est[match(out$direct.est$domain, out$iid.model.est$domain),]
+  rownames(out$iid.model.est) <- NULL
   if (return.samples) {
     out$iid.model.sample <- iid.model.mat
   } else {
     out$iid.model.sample <- NULL
   }
+  attr(out, "method.names") <- c(attr(out, "method.names"), "iid.model.est")
+  attr(out, "inla.fitted") <- c(attr(out, "inla.fitted"), "iid.model")
   
   # SMOOTHED DIRECT w/ BYM2 RE
   if (!is.null(adj.mat)) {
+
     mod.dat$domain.id <- match(mod.dat$domain, rownames(adj.mat))
     mod.dat <- mod.dat[match(1:nrow(mod.dat), mod.dat$domain.id), ]
     mm.domain <- model.matrix(cov.frm, mod.dat)
@@ -259,7 +289,6 @@ smoothArea <- function(formula,
       prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)),  
       phi = list(prior = 'pc', param = c(pc.u.phi , pc.alpha.phi))
     )
-    
     # prepare formula for INLA
     bym2.model.ftxt <- 
       paste0(s.dir.ftxt,
@@ -300,6 +329,7 @@ smoothArea <- function(formula,
                  method = paste0("Area level model: BYM2"))
     out$bym2.model.est <- 
       out$bym2.model.est[match(out$direct.est$domain, out$bym2.model.est$domain),]
+    rownames(out$bym2.model.est) <- NULL
     if (return.samples) {
       out$bym2.model.sample <- bym2.model.mat
     } else {

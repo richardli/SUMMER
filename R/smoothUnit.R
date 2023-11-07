@@ -17,6 +17,7 @@
 #' @param level The specified level for the posterior credible intervals
 #' @param n.sample Number of draws from posterior used to compute summaries
 #' @param return.samples If TRUE, return matrix of posterior samples of area level quantities
+#' @param X.pop.weights Optional vector of weights to use when aggregating unit level predictions
 #'
 #' @return A svysae object
 #' 
@@ -53,7 +54,8 @@ smoothUnit <- function(formula,
                        pc.u.phi = 0.5,
                        pc.alpha.phi = 2/3,
                        level = .95, n.sample = 250,
-                       return.samples = F) {
+                       return.samples = F,
+                       X.pop.weights = NULL) {
   
   if (design$has.strata) {
     warning("This model does not account for stratification yet.")
@@ -105,10 +107,30 @@ smoothUnit <- function(formula,
                lower = direct.est$mean + qnorm((1-level)/2) * sqrt(direct.est$var),
                upper = direct.est$mean + qnorm(1 - (1-level)/2) * sqrt(direct.est$var),
                method = paste0("Direct"))
+  
+  
+  if (!is.null(adj.mat) & !setequal(X.pop[[domain.var]], rownames(adj.mat))) {
+    stop("Domains in X.pop do not match domains in adj.mat.")
+  }
+  if (any(is.na(match(X.pop[[domain.var]], direct.est$domain)))) {
+    warning(cat("There are domains in X.pop not in design/direct estimates.",
+                "\nGenerating estimates for all domains in X.pop."))
+  }
+  # if no adjacency matrix matches, take domain names from X.pop
+  domain.table <- data.frame(domain = unique(as.character(X.pop[[domain.var]])))
+  # if adjacency matrix provided, take domain names from row names
+  if (!is.null(adj.mat)) {
+    domain.table <- data.frame(domain = rownames(adj.mat))
+  }
+  
+  direct.est <- 
+    merge(direct.est, data.frame(domain = domain.table$domain), 
+          by = "domain", all.y = T)
+  direct.est$method = "Direct"
+  
   out$direct.est <- direct.est
   attr(out, "domain.names") <- sort(direct.est$domain)
   attr(out, "method.names") <- c("direct.est")
-  
   
   # UNIT LEVEL MODEL -----------------------------------------------------------
   mf <- model.frame(formula, design$variables)
@@ -124,13 +146,7 @@ smoothUnit <- function(formula,
   )
   mod.dat <- cbind(mod.dat, model.matrix(cov.frm, design$variables))
   
-  # if no adjacency matrix, take domain names from X.pop
-  domain.table <- data.frame(domain = unique(as.character(pop.dat$domain)))
   
-  # if adjacency matrix provided, take domain names from row names
-  if (!is.null(adj.mat)) {
-    domain.table <- data.frame(domain = rownames(adj.mat))
-  }
   
   # domain labels as indexes for use in INLA
   domain.table$domain.struct <- seq_len(nrow(domain.table))
@@ -186,13 +202,20 @@ smoothUnit <- function(formula,
     if (family == "binomial") {
       pop.unit.ests <- expit(pop.unit.ests)
     }
-    area.ests <- aggregate(pop.unit.ests, list(domain = pop.dat$domain.struct), mean)
-    return(area.ests[match(1:length(re.idx), area.ests[, 1]), 2])
+    if (!is.null(X.pop.weights)) {
+      area.ests <- 
+        aggregate(pop.unit.ests * X.pop.weights,  list(domain = pop.dat$domain.struct), sum)
+    } else {
+      area.ests <- 
+        aggregate(pop.unit.ests, list(domain = pop.dat$domain.struct), mean)
+    }
+    
+    return(area.ests[match(1:nrow(domain.table), area.ests[, 1]), 2])
   }
   est.mat <- do.call(cbind, lapply(samp.all, summary.sample))
   out[[paste0(model.method, ".fit")]] <- fit
   out[[paste0(model.method, ".est")]]  <-
-    data.frame(domain = unique(pop.dat$domain),
+    data.frame(domain = domain.table$domain,
                mean = rowMeans(est.mat),
                median = apply(est.mat, 1,
                               function(x) median(x, na.rm = T)),
@@ -201,10 +224,14 @@ smoothUnit <- function(formula,
                              function(x) quantile(x, (1-level)/2, na.rm = T)),
                upper = apply(est.mat, 1,
                              function(x) quantile(x, 1-(1-level)/2, na.rm = T)),
-               method = paste0("Unit level model: IID"))
+               method = paste0("Unit level model: ", 
+                               ifelse(is.null(adj.mat), "IID", "BYM2")))
   if (return.samples) {
     out[[paste0(model.method, ".sample")]]  <- est.mat
   }
+  out[[paste0(model.method, ".est")]] <- 
+    out[[paste0(model.method, ".est")]][match(out$direct.est$domain, 
+                                              out[[paste0(model.method, ".est")]]$domain),]
   attr(out, "method.names") <- c(attr(out, "method.names"), paste0(model.method, ".est"))
   attr(out, "inla.fitted") <- c(attr(out, "inla.fitted"), model.method)
   
