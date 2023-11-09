@@ -34,7 +34,7 @@
 #' data(DemoMap2)
 #' library(survey)
 #' des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
-#'                   weights = ~weights, data = DemoData2, nest = T)
+#'                   weights = ~weights, data = DemoData2, nest = TRUE)
 #' Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
 #' 
 #' # EXAMPLE 1: Continuous response model
@@ -118,7 +118,7 @@ smoothArea <- function(formula,
     # known domain sizes
     if (!is.null(domain.size)) {
       direct.est <- 
-        survey::svyby(resp.frm, domain, design = design, svytotal, na.rm = T)
+        survey::svyby(resp.frm, domain, design = design, svytotal, na.rm = TRUE)
       direct.est$domain.size <-
         domain.size[match(direct.est[, 1], domain.size[, 1]), 2]
       direct.est[, 2] = direct.est[, 2] / direct.est$domain.size
@@ -126,7 +126,7 @@ smoothArea <- function(formula,
       direct.est <- direct.est[, 1:3]
     } else {
       direct.est <-
-        survey::svyby(resp.frm, domain, design = design, svymean, na.rm = T)
+        survey::svyby(resp.frm, domain, design = design, svymean, na.rm = TRUE)
       direct.est[, 3] <- direct.est[, 3] ^ 2
     }
   } else {
@@ -165,10 +165,10 @@ smoothArea <- function(formula,
     mod.X.domain <- X.domain
     mod.X.domain$domain <- X.domain[[domain.var]]
     mod.X.domain <- mod.X.domain[, names(mod.X.domain) != domain.var]
-    mod.dat <- merge(mod.dat, mod.X.domain,  by = "domain", all.y = T)
+    mod.dat <- merge(mod.dat, mod.X.domain,  by = "domain", all.y = TRUE)
     direct.est <- 
       merge(direct.est, data.frame(domain = mod.X.domain$domain), 
-            by = "domain", all.y = T)
+            by = "domain", all.y = TRUE)
     direct.est$method = "Direct"
   } else if(!is.null(adj.mat)) {
     if (any(is.na(match(mod.dat$domain, rownames(adj.mat))))) {
@@ -180,10 +180,10 @@ smoothArea <- function(formula,
     }
     mod.dat <- 
       merge(mod.dat, data.frame(domain = rownames(adj.mat)), 
-            by = "domain", all.y = T)
+            by = "domain", all.y = TRUE)
     direct.est <- 
       merge(direct.est, data.frame(domain = rownames(adj.mat)), 
-            by = "domain", all.y = T)
+            by = "domain", all.y = TRUE)
     direct.est$method = "Direct"
   }
   mod.dat$domain.id <- 1:nrow(mod.dat)
@@ -260,12 +260,12 @@ smoothArea <- function(formula,
     data.frame(domain = mod.dat$domain,
                mean = rowMeans(iid.model.mat),
                median = apply(iid.model.mat, 1,
-                              function(x) median(x, na.rm = T)),
+                              function(x) median(x, na.rm = TRUE)),
                var = apply(iid.model.mat, 1, var),
                lower = apply(iid.model.mat, 1,
-                             function(x) quantile(x, (1-level)/2, na.rm = T)),
+                             function(x) quantile(x, (1-level)/2, na.rm = TRUE)),
                upper = apply(iid.model.mat, 1,
-                             function(x) quantile(x, 1-(1-level)/2, na.rm = T)),
+                             function(x) quantile(x, 1-(1-level)/2, na.rm = TRUE)),
                method = paste0("Area level model: IID"))
 
   out$iid.model.est <- 
@@ -320,12 +320,12 @@ smoothArea <- function(formula,
       data.frame(domain = mod.dat$domain,
                  mean = rowMeans(bym2.model.mat),
                  median = apply(bym2.model.mat, 1,
-                                function(x) median(x, na.rm = T)),
+                                function(x) median(x, na.rm = TRUE)),
                  var = apply(bym2.model.mat, 1, var),
                  lower = apply(bym2.model.mat, 1,
-                               function(x) quantile(x, (1-level)/2, na.rm = T)),
+                               function(x) quantile(x, (1-level)/2, na.rm = TRUE)),
                  upper = apply(bym2.model.mat, 1,
-                               function(x) quantile(x, 1-(1-level)/2, na.rm = T)),
+                               function(x) quantile(x, 1-(1-level)/2, na.rm = TRUE)),
                  method = paste0("Area level model: BYM2"))
     out$bym2.model.est <- 
       out$bym2.model.est[match(out$direct.est$domain, out$bym2.model.est$domain),]
@@ -437,7 +437,7 @@ plot.svysae <- function(x, return_list = F, plot.factor = NULL, ...) {
 #' data(DemoMap2)
 #' library(survey)
 #' des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
-#'                   weights = ~weights, data = DemoData2, nest = T)
+#'                   weights = ~weights, data = DemoData2, nest = TRUE)
 #' Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
 #' 
 #' cts.res <- smoothArea(tobacco.use ~ 1,
@@ -448,7 +448,7 @@ plot.svysae <- function(x, return_list = F, plot.factor = NULL, ...) {
 #'                       pc.alpha = 0.01,
 #'                       pc.u.phi = 0.5,
 #'                       pc.alpha.phi = 2/3,
-#'                       return.samples = T)
+#'                       return.samples = TRUE)
 #' compareEstimates(cts.res)
 #' }
 compareEstimates <- function(x,
@@ -549,7 +549,7 @@ compareEstimates <- function(x,
 #' data(DemoMap2)
 #' library(survey)
 #' des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
-#'                   weights = ~weights, data = DemoData2, nest = T)
+#'                   weights = ~weights, data = DemoData2, nest = TRUE)
 #' Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
 #' geo.data <- sf::st_as_sf(DemoMap2$geo)
 #' geo.data$domain <- geo.data$REGNAME
@@ -561,7 +561,7 @@ compareEstimates <- function(x,
 #'                       pc.alpha = 0.01,
 #'                       pc.u.phi = 0.5,
 #'                       pc.alpha.phi = 2/3,
-#'                       return.samples = T)
+#'                       return.samples = TRUE)
 #' mapEstimates(cts.res, geo.data = geo.data, variable = "median")
 #' mapEstimates(cts.res, geo.data = geo.data, variable = "var")
 #' }

@@ -66,7 +66,7 @@ data(DemoData2)
 data(DemoMap2)
 library(survey)
 des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
-                 weights = ~weights, data = DemoData2, nest = T)
+                 weights = ~weights, data = DemoData2, nest = TRUE)
                  
 # EXAMPLE 1: Continuous response model
 cts.res <- smoothUnit(formula = tobacco.use ~ 1,

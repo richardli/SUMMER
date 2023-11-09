@@ -23,7 +23,7 @@ data(DemoData2)
 data(DemoMap2)
 library(survey)
 des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
-                  weights = ~weights, data = DemoData2, nest = T)
+                  weights = ~weights, data = DemoData2, nest = TRUE)
 Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
 
 cts.res <- smoothArea(tobacco.use ~ 1,
@@ -34,7 +34,7 @@ cts.res <- smoothArea(tobacco.use ~ 1,
                       pc.alpha = 0.01,
                       pc.u.phi = 0.5,
                       pc.alpha.phi = 2/3,
-                      return.samples = T)
+                      return.samples = TRUE)
 compareEstimates(cts.res)
 }
 }

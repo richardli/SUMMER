@@ -29,7 +29,7 @@
 #' data(DemoMap2)
 #' library(survey)
 #' des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
-#'                  weights = ~weights, data = DemoData2, nest = T)
+#'                  weights = ~weights, data = DemoData2, nest = TRUE)
 #'                  
 #' # EXAMPLE 1: Continuous response model
 #' cts.res <- smoothUnit(formula = tobacco.use ~ 1,
@@ -87,14 +87,14 @@ smoothUnit <- function(formula,
   # DIRECT ESTIMATES -----------------------------------------------------------
   # compute direct estimates (Hajek estimates if domain size unknown)
   if (!is.null(domain.size)) {
-    direct.est <- svyby(resp.frm, domain, design = design, svytotal, na.rm = T)
+    direct.est <- svyby(resp.frm, domain, design = design, svytotal, na.rm = TRUE)
     direct.est$domain.size <- 
       domain.size$size[match(direct.est[, 1], domain.size[[domain.var]])]
     direct.est[, 2] = direct.est[, 2] / direct.est$domain.size
     direct.est[, 3] = (direct.est[, 3] / direct.est$domain.size) ^ 2
     direct.est <- direct.est[, 1:3]
   } else {
-    direct.est <- svyby(resp.frm, domain, design = design, svymean, na.rm = T)
+    direct.est <- svyby(resp.frm, domain, design = design, svymean, na.rm = TRUE)
     direct.est[, 3] <- direct.est[, 3] ^ 2
   }
   rownames(direct.est) <- NULL
@@ -125,7 +125,7 @@ smoothUnit <- function(formula,
   
   direct.est <- 
     merge(direct.est, data.frame(domain = domain.table$domain), 
-          by = "domain", all.y = T)
+          by = "domain", all.y = TRUE)
   direct.est$method = "Direct"
   
   out$direct.est <- direct.est
@@ -181,8 +181,8 @@ smoothUnit <- function(formula,
   # fit model
   mod.frm <- as.formula(ftxt)
   fit <- INLA::inla(mod.frm, family = family, data = mod.dat,
-                    control.compute = list(dic = T, mlik = T,
-                                           cpo = T, config = TRUE),
+                    control.compute = list(dic = TRUE, mlik = TRUE,
+                                           cpo = TRUE, config = TRUE),
                     control.predictor = list(compute = TRUE),
                     lincomb = NULL, quantiles = c((1-level)/2, 0.5, 1-(1-level)/2))
   
@@ -218,12 +218,12 @@ smoothUnit <- function(formula,
     data.frame(domain = domain.table$domain,
                mean = rowMeans(est.mat),
                median = apply(est.mat, 1,
-                              function(x) median(x, na.rm = T)),
+                              function(x) median(x, na.rm = TRUE)),
                var = apply(est.mat, 1, var),
                lower = apply(est.mat, 1,
-                             function(x) quantile(x, (1-level)/2, na.rm = T)),
+                             function(x) quantile(x, (1-level)/2, na.rm = TRUE)),
                upper = apply(est.mat, 1,
-                             function(x) quantile(x, 1-(1-level)/2, na.rm = T)),
+                             function(x) quantile(x, 1-(1-level)/2, na.rm = TRUE)),
                method = paste0("Unit level model: ", 
                                ifelse(is.null(adj.mat), "IID", "BYM2")))
   if (return.samples) {

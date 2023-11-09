@@ -70,7 +70,7 @@ data(DemoData2)
 data(DemoMap2)
 library(survey)
 des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
-                  weights = ~weights, data = DemoData2, nest = T)
+                  weights = ~weights, data = DemoData2, nest = TRUE)
 Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
 
 # EXAMPLE 1: Continuous response model
