@@ -4,7 +4,6 @@
 \alias{simPopInternal}
 \alias{getExpectedNperEA}
 \alias{getSortIndices}
-\alias{getSortIndicesSubarea}
 \alias{rStratifiedMultnomial}
 \alias{rStratifiedMultnomialBySubarea}
 \alias{rMyMultinomial}
@@ -17,14 +16,6 @@
 getExpectedNperEA(easpa, popMat, level = c("grid", "EA"), pixelIndexMat = NULL)
 
 getSortIndices(
-  i,
-  urban = TRUE,
-  popMat,
-  stratifyByUrban = TRUE,
-  validationPixelI = NULL
-)
-
-getSortIndicesSubarea(
   i,
   urban = TRUE,
   popMat,
@@ -69,7 +60,7 @@ rmultinom1(
   n = 1,
   size,
   prob,
-  maxSize = 5000 * 5000,
+  maxSize = 8000 * 8000,
   method = c("mult1", "mult", "indepMH"),
   verbose = FALSE,
   minSample = 100,
@@ -203,11 +194,7 @@ distributions for population simulation.
 \itemize{
 \item \code{getExpectedNperEA()}: Calculates expected denominator per enumeration area.
 
-\item \code{getSortIndices()}: For recombining separate multinomials over 
-multiple areas into the draws over all grid points
-
-\item \code{getSortIndicesSubarea()}: For recombining separate multinomials over 
-multiple areas into the draws over all grid points
+\item \code{getSortIndices()}: For recombining separate multinomials into the draws over all grid points
 
 \item \code{rStratifiedMultnomial()}: Gives nIntegrationPoints x n matrix of draws from the stratified multinomial with values 
 corresponding to the value of |C^g| for each pixel, g (the number of EAs/pixel)

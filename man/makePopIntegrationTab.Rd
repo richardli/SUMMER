@@ -241,20 +241,18 @@ newadm2$NAME_2[newadm2$NAME_2 \%in\% c("unknown 8", "Kapenguria")] <-
   "Kapenguria + unknown 8"
 admin2.IDs <- newadm2$NAME_2
 
-library(maptools)
-temp <- unionSpatialPolygons(newadm2, admin2.IDs)
+newadm2@data = cbind(newadm2@data, NAME_2OLD = newadm2@data$NAME_2)
+newadm2@data$NAME_2OLD = newadm2@data$NAME_2
+newadm2@data$NAME_2 = admin2.IDs
+newadm2$NAME_2 = admin2.IDs
+temp <- terra::aggregate(newadm2, by="NAME_2")
+
 tempData = newadm2@data[-unknown8I,]
 tempData = tempData[order(tempData$NAME_2),]
 newadm2 <- SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
 adm2 = newadm2
 
-# download 2014 Kenya population density and associated TIF file
-githubURL <- paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/", 
-                    "Kenya2014Pop/pop.rda?raw=true")
-popFilename = paste0(tempDirectory, "/pop.rda")
-if(!file.exists(popFilename)) {
-  download.file(githubURL,popFilename)
-}
+# download 2014 Kenya population density TIF file
 
 githubURL <- paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/", 
                     "Kenya2014Pop/worldpop_total_1y_2014_00_00.tif?raw=true")
@@ -264,12 +262,7 @@ if(!file.exists(popTIFFilename)) {
 }
 
 # load it in
-require(terra)
-out = load(popFilename)
-out
-
-# make sure this is correct for re-projections
-pop@file@name = paste0(tempDirectory, "/worldpop_total_1y_2014_00_00.tif")
+pop = terra::rast(popTIFFilename)
 
 eastLim = c(-110.6405, 832.4544)
 northLim = c(-555.1739, 608.7130)
@@ -279,7 +272,6 @@ northLim = c(-555.1739, 608.7130)
 ## poppsubKenya via data(kenyaPopulationData). First, we will need to calculate 
 ## the areas in km^2 of the areas and subareas
 
-library(rgdal)
 library(sp)
 
 # use Lambert equal area projection of areas (Admin-1) and subareas (Admin-2)
@@ -288,15 +280,19 @@ midLat = mean(adm1@bbox[2,])
 p4s = paste0("+proj=laea +x_0=0 +y_0=0 +lon_0=", midLon, 
              " +lat_0=", midLat, " +units=km")
 
-library(rgdal)
+library(sf)
+adm1_sf = st_as_sf(adm1)
+adm1proj_sf = st_transform(adm1_sf, p4s)
+adm1proj = as(adm1proj_sf, "Spatial")
 
-adm1proj <- spTransform(adm1, CRS(p4s))
-adm2proj <- spTransform(adm2, CRS(p4s))
+adm2_sf = st_as_sf(adm2)
+adm2proj_sf = st_transform(adm2_sf, p4s)
+adm2proj = as(adm2proj_sf, "Spatial")
 
 # now calculate spatial area in km^2
-library(rgeos)
-admin1Areas = gArea(adm1proj, TRUE)
-admin2Areas = gArea(adm2proj, TRUE)
+admin1Areas = as.numeric(st_area(adm1proj_sf))
+admin2Areas = as.numeric(st_area(adm2proj_sf))
+
 areapaKenya = data.frame(area=adm1proj@data$NAME_1, spatialArea=admin1Areas)
 areapsubKenya = data.frame(area=adm2proj@data$NAME_1, subarea=adm2proj@data$NAME_2, 
                            spatialArea=admin2Areas)
@@ -307,7 +303,7 @@ areapsubKenya = data.frame(area=adm2proj@data$NAME_1, subarea=adm2proj@data$NAME
 # urban/rural, making sure total area (Admin-1) urban/rural populations in 
 # each area matches poppaKenya.
 require(fields)
-# NOTE: the following function will typically take ~20 minutes. Can speed up 
+# NOTE: the following function will typically take ~15-20 minutes. Can speed up 
 #       by setting kmRes to be higher, but we recommend fine resolution for 
 #       this step, since it only needs to be done once. Instead of running this, 
 #       you can simply run data(kenyaPopulationData)

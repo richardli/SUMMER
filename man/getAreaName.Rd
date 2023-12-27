@@ -27,8 +27,8 @@ corresponding to the area level of interest}
 package}
 
 \item{maxBytes}{Maximum allowed memory in bytes (default is 3Gb). Determines 
-whether to call fields::fields.rdist.near which saves memory bute requires 
-delta and mean.neighbor inputs to be specified or fields::rdist.}
+whether to call fields::fields.rdist.near which saves memory but requires 
+delta and mean.neighbor inputs to be specified for fields::fields.rdist.near}
 }
 \value{
 A list of area IDs, area names, whether or not 

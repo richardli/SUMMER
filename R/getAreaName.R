@@ -12,8 +12,8 @@
 #' @param mean.neighbor Argument passed to fields::fields.rdist.near in fields 
 #' package
 #' @param maxBytes Maximum allowed memory in bytes (default is 3Gb). Determines 
-#' whether to call fields::fields.rdist.near which saves memory bute requires 
-#' delta and mean.neighbor inputs to be specified or fields::rdist.
+#' whether to call fields::fields.rdist.near which saves memory but requires 
+#' delta and mean.neighbor inputs to be specified for fields::fields.rdist.near
 #' 
 #' @details delta and mean.neighbor arguments only used when some points 
 #' are not in areas, perhaps due to inconsistencies in shapefiles.
