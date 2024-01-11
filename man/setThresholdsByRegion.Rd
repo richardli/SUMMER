@@ -69,36 +69,28 @@ unknown8I = which(newadm2$NAME_2 == "unknown 8")
 newadm2$NAME_2[newadm2$NAME_2 \%in\% c("unknown 8", "Kapenguria")] <- "Kapenguria + unknown 8"
 admin2.IDs <- newadm2$NAME_2
 
-library(maptools)
-temp <- unionSpatialPolygons(newadm2, admin2.IDs)
+newadm2@data = cbind(newadm2@data, NAME_2OLD = newadm2@data$NAME_2)
+newadm2@data$NAME_2OLD = newadm2@data$NAME_2
+newadm2@data$NAME_2 = admin2.IDs
+newadm2$NAME_2 = admin2.IDs
+temp <- terra::aggregate(newadm2, by="NAME_2")
+
 tempData = newadm2@data[-unknown8I,]
 tempData = tempData[order(tempData$NAME_2),]
 newadm2 <- SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
 adm2 = newadm2
 
-# download 2014 Kenya population density and associated TIF file
-githubURL <- 
-  "https://github.com/paigejo/SUMMERdata/blob/main/data/Kenya2014Pop/pop.rda?raw=true"
-popFilename = paste0(tempDirectory, "/pop.rda")
-if(!file.exists(popFilename)) {
-  download.file(githubURL,popFilename)
-}
+# download 2014 Kenya population density TIF file
 
-githubURL <- 
-  paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/Kenya2014Pop/", 
-    "worldpop_total_1y_2014_00_00.tif?raw=true")
+githubURL <- paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/", 
+                    "Kenya2014Pop/worldpop_total_1y_2014_00_00.tif?raw=true")
 popTIFFilename = paste0(tempDirectory, "/worldpop_total_1y_2014_00_00.tif")
 if(!file.exists(popTIFFilename)) {
   download.file(githubURL,popTIFFilename)
 }
 
 # load it in
-require(terra)
-out = load(popFilename)
-out
-
-# make sure this is correct for re-projections
-pop@file@name = paste0(tempDirectory, "/worldpop_total_1y_2014_00_00.tif")
+pop = terra::rast(popTIFFilename)
 
 eastLim = c(-110.6405, 832.4544)
 northLim = c(-555.1739, 608.7130)
@@ -114,7 +106,7 @@ system.time(popMatKenya <- makePopIntegrationTab(
   poppa = poppaKenya, poppsub=poppsubKenya, 
   areaMapDat = adm1, subareaMapDat = adm2,
   areaNameVar = "NAME_1", subareaNameVar="NAME_2"))
-  
+
 out = setThresholdsByRegion(popMatKenya, poppaKenya)
 out
 

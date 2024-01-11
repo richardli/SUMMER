@@ -168,8 +168,8 @@ quantity is the fine scale prevalence in that areal unit.
 
 Note that these functions can be used for either simulating populations for simulation 
 studies, or for generating predictions accounting for uncertainty in EA locations 
-and fine scale variation occuring at the EA level due to EA level iid random effects. 
-Required, however, is a seperately fit EA level spatial risk model 
+and fine scale variation occurring at the EA level due to EA level iid random effects. 
+Required, however, is a separately fit EA level spatial risk model 
 and information on the spatial population density and the population frame.
 }
 \section{Functions}{
@@ -228,20 +228,18 @@ newadm2$NAME_2[newadm2$NAME_2 \%in\% c("unknown 8", "Kapenguria")] <-
   "Kapenguria + unknown 8"
 admin2.IDs <- newadm2$NAME_2
 
-library(maptools)
-temp <- unionSpatialPolygons(newadm2, admin2.IDs)
+newadm2@data = cbind(newadm2@data, NAME_2OLD = newadm2@data$NAME_2)
+newadm2@data$NAME_2OLD = newadm2@data$NAME_2
+newadm2@data$NAME_2 = admin2.IDs
+newadm2$NAME_2 = admin2.IDs
+temp <- terra::aggregate(newadm2, by="NAME_2")
+
 tempData = newadm2@data[-unknown8I,]
 tempData = tempData[order(tempData$NAME_2),]
 newadm2 <- SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
 adm2 = newadm2
 
-# download 2014 Kenya population density and associated TIF file
-githubURL <- paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/", 
-                    "Kenya2014Pop/pop.rda?raw=true")
-popFilename = paste0(tempDirectory, "/pop.rda")
-if(!file.exists(popFilename)) {
-  download.file(githubURL,popFilename)
-}
+# download 2014 Kenya population density TIF file
 
 githubURL <- paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/", 
                     "Kenya2014Pop/worldpop_total_1y_2014_00_00.tif?raw=true")
@@ -251,12 +249,7 @@ if(!file.exists(popTIFFilename)) {
 }
 
 # load it in
-require(raster)
-out = load(popFilename)
-out
-
-# make sure this is correct for re-projections
-pop@file@name = paste0(tempDirectory, "/worldpop_total_1y_2014_00_00.tif")
+pop = terra::rast(popTIFFilename)
 
 eastLim = c(-110.6405, 832.4544)
 northLim = c(-555.1739, 608.7130)
@@ -266,24 +259,25 @@ northLim = c(-555.1739, 608.7130)
 ## poppsubKenya via data(kenyaPopulationData). First, we will need to calculate 
 ## the areas in km^2 of the areas and subareas
 
-library(rgdal)
-library(sp)
-
 # use Lambert equal area projection of areas (Admin-1) and subareas (Admin-2)
 midLon = mean(adm1@bbox[1,])
 midLat = mean(adm1@bbox[2,])
 p4s = paste0("+proj=laea +x_0=0 +y_0=0 +lon_0=", midLon, 
              " +lat_0=", midLat, " +units=km")
 
-library(rgdal)
+library(sf)
+adm1_sf = st_as_sf(adm1)
+adm1proj_sf = st_transform(adm1_sf, p4s)
+adm1proj = as(adm1proj_sf, "Spatial")
 
-adm1proj <- spTransform(adm1, CRS(p4s))
-adm2proj <- spTransform(adm2, CRS(p4s))
+adm2_sf = st_as_sf(adm2)
+adm2proj_sf = st_transform(adm2_sf, p4s)
+adm2proj = as(adm2proj_sf, "Spatial")
 
 # now calculate spatial area in km^2
-library(rgeos)
-admin1Areas = gArea(adm1proj, TRUE)
-admin2Areas = gArea(adm2proj, TRUE)
+admin1Areas = as.numeric(st_area(adm1proj_sf))
+admin2Areas = as.numeric(st_area(adm2proj_sf))
+
 areapaKenya = data.frame(area=adm1proj@data$NAME_1, spatialArea=admin1Areas)
 areapsubKenya = data.frame(area=adm2proj@data$NAME_1, subarea=adm2proj@data$NAME_2, 
                            spatialArea=admin2Areas)
@@ -293,12 +287,12 @@ areapsubKenya = data.frame(area=adm2proj@data$NAME_1, subarea=adm2proj@data$NAME
 # thresholding population density based on estimated proportion population 
 # urban/rural, making sure total area (Admin-1) urban/rural populations in 
 # each area matches poppaKenya.
-require(fields)
-# NOTE: the following function will typically take ~20 minutes. Can speed up 
+
+# NOTE: the following function will typically take ~15-20 minutes. Can speed up 
 #       by setting kmRes to be higher, but we recommend fine resolution for 
 #       this step, since it only needs to be done once.
 system.time(poppsubKenya <- getPoppsub(
-  kmRes=1, pop=pop, domainPoly=kenyaPoly,
+  kmRes=1, pop=pop, domainMapDat=adm0,
   eastLim=eastLim, northLim=northLim, mapProjection=projKenya,
   poppa = poppaKenya, areapa=areapaKenya, areapsub=areapsubKenya, 
   areaMapDat=adm1, subareaMapDat=adm2, 
@@ -308,7 +302,7 @@ system.time(poppsubKenya <- getPoppsub(
 # based on subarea (Admin-2) x urban/rural population totals. This takes 
 # ~1 minute
 system.time(popMatKenya <- makePopIntegrationTab(
-  kmRes=5, pop=pop, domainPoly=kenyaPoly,
+  kmRes=5, pop=pop, domainMapDat=adm0,
   eastLim=eastLim, northLim=northLim, mapProjection=projKenya,
   poppa = poppaKenya, poppsub=poppsubKenya, 
   areaMapDat = adm1, subareaMapDat = adm2,
@@ -375,7 +369,7 @@ simPop = simPopSPDE(nsim=1, easpa=easpaKenyaNeonatal,
                     min1PerSubarea=TRUE)
 
 # get average absolute percent error relative to fine scale prevalence at Admin-2 level
-tempDat = simPop$subareaPop$aggregationResults[,c("region", "pFineScalePrevalence", 
+tempDat = simPop$subareaPop$aggregationResults[c("region", "pFineScalePrevalence", 
                                                   "pFineScaleRisk", "pSmoothRisk")]
 100*mean(abs(tempDat$pFineScalePrevalence - tempDat$pFineScaleRisk) / 
            tempDat$pFineScalePrevalence)
@@ -394,7 +388,9 @@ aggregate(simPop$eaPop$eaSamples[,1], by=list(area=popMatKenya$subarea), FUN=sum
 # (mapPlot takes longer when it doesn't save to a file)
 tempDirectory = "~/"
 
-# pixel level
+# pixel level plots. Some pixels have no simulated EAs, in which case they will be 
+# plotted as white. Expected noisy looking plots of fine scale risk and prevalence 
+# due to EAs being discrete, as compared to a very smooth plot of smooth risk.
 zlim = c(0, quantile(probs=.995, c(simPop$pixelPop$pFineScalePrevalence, 
                                    simPop$pixelPop$pFineScaleRisk, 
                                    simPop$pixelPop$pSmoothRisk), na.rm=TRUE))
@@ -417,7 +413,7 @@ range(simPop$eaPop$eaDatList[[1]]$N)
 
 # areal (Admin-1) level: these results should look essentially identical
 
-tempDat = simPop$areaPop$aggregationResults[,c("region", "pFineScalePrevalence", 
+tempDat = simPop$areaPop$aggregationResults[c("region", "pFineScalePrevalence", 
                                                "pFineScaleRisk", "pSmoothRisk")]
 pdf(file=paste0(tempDirectory, "simPopSPDEAdmin-1.pdf"), width=7, height=7)
 mapPlot(tempDat, 
@@ -427,7 +423,7 @@ dev.off()
 
 # subareal (Admin-2) level: these results should look subtley different 
 # depending on the type of prevalence/risk considered
-tempDat = simPop$subareaPop$aggregationResults[,c("region", "pFineScalePrevalence", 
+tempDat = simPop$subareaPop$aggregationResults[c("region", "pFineScalePrevalence", 
                                                   "pFineScaleRisk", "pSmoothRisk")]
 pdf(file=paste0(tempDirectory, "simPopSPDEAdmin-2.pdf"), width=7, height=7)
 mapPlot(tempDat, 
