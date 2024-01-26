@@ -63,6 +63,9 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables =
   datnew$dod <- dat[, dob] + dat[, age] + cmc.adjust 
   datnew$obsStop <- dat[, date.interview] + cmc.adjust
   datnew$obsStop[dat[, alive] == "no"] <- datnew$dod[dat[, alive] == "no"]
+  if(sum(is.na(datnew$obsStop)) > 0){
+    stop("Age at death contains NA in the input data for children that were dead at the time of interview. Please check the 'age' and 'alive' variables in the input data.")
+  }
   datnew$died <- (dat[, alive] == "no")
   
   datnew$obsStop[datnew$obsStart == datnew$obsStop] <- datnew$obsStop[datnew$obsStart == datnew$obsStop] + 0.01
@@ -97,6 +100,10 @@ getBirths <- function(filepath = NULL, data = NULL, surveyyear = NA, variables =
   test <- test[test$year>=year.cut[1], ]
   test <- test[test$year<year.cut[length(year.cut)], ]
   if(!is.na(surveyyear)) test <- test[test$year<= surveyyear, ]
+
+  if(max(test$year) < min(year.cut) || min(test$year) > max(year.cut) ){
+    stop("Observations not in the specified period. Please check 'year.cut' argument and input data's CMC codes are corrected specified.")
+  }
   
   # remove observations if last period has no more than min.last.period years.
   # e.g., if last period 15-19, min.last.period = 3
