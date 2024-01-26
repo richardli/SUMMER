@@ -73,7 +73,11 @@ newadm2@data = cbind(newadm2@data, NAME_2OLD = newadm2@data$NAME_2)
 newadm2@data$NAME_2OLD = newadm2@data$NAME_2
 newadm2@data$NAME_2 = admin2.IDs
 newadm2$NAME_2 = admin2.IDs
-temp <- terra::aggregate(newadm2, by="NAME_2")
+temp <- terra::aggregate(as(newadm2, "SpatVector"), by="NAME_2")
+
+library(sf)
+temp <- sf::st_as_sf(temp)
+temp <- sf::as_Spatial(temp)
 
 tempData = newadm2@data[-unknown8I,]
 tempData = tempData[order(tempData$NAME_2),]

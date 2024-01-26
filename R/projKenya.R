@@ -47,10 +47,12 @@ projKenya = function(lon, lat=NULL, inverse=FALSE) {
     # from lon/lat coords to easting/northing
     if(!PROJ6) {
       lonLatCoords = sp::SpatialPoints(cbind(lon, lat), proj4string=sp::CRS("+proj=longlat"))
+      coordsEN = sp::spTransform(lonLatCoords, sp::CRS("+init=epsg:21097 +units=m"))
     } else {
       lonLatCoords = sp::SpatialPoints(cbind(lon, lat), proj4string=sp::CRS(SRS_string="EPSG:4326"))
+      coordsEN = sp::spTransform(lonLatCoords, sp::CRS(SRS_string="EPSG:21097"))
     }
-    coordsEN = sp::spTransform(lonLatCoords, sp::CRS("+init=epsg:21097 +units=m"))
+    
     
     out = attr(coordsEN, "coords")
     colnames(out) = c("east", "north")
@@ -65,10 +67,12 @@ projKenya = function(lon, lat=NULL, inverse=FALSE) {
     east = lon*1000
     north = lat*1000
     
-    coordsEN = sp::SpatialPoints(cbind(east, north), proj4string=sp::CRS("+init=epsg:21097 +units=m"))
+    
     if(!PROJ6) {
+      coordsEN = sp::SpatialPoints(cbind(east, north), proj4string=sp::CRS("+init=epsg:21097 +units=m"))
       lonLatCoords = sp::spTransform(coordsEN, sp::CRS("+proj=longlat"))
     } else {
+      coordsEN = sp::SpatialPoints(cbind(east, north), proj4string=sp::CRS(SRS_string="EPSG:21097"))
       lonLatCoords = sp::spTransform(coordsEN, sp::CRS(SRS_string="EPSG:4326"))
     }
     
