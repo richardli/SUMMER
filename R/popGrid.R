@@ -150,7 +150,6 @@
 #' newadm2$NAME_2 = admin2.IDs
 #' temp <- terra::aggregate(as(newadm2, "SpatVector"), by="NAME_2")
 #' 
-#' library(sf)
 #' temp <- sf::st_as_sf(temp)
 #' temp <- sf::as_Spatial(temp)
 #' 
