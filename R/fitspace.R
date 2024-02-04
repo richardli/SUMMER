@@ -99,7 +99,7 @@
 #' fit2 <- smoothSurvey(data=NULL, direct.est = direct, 
 #'                     Amat=DemoMap2$Amat, regionVar="region",
 #'                     responseVar="HT.est", direct.est.var = "HT.var", 
-#'                     responseType = "binary")
+#'                     responseType = "gaussian")
 #' # Check it is the same as fit0
 #' plot(fit2$smooth$mean, fit0$smooth$mean)
 #' 
@@ -312,6 +312,9 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         stop("Unit-level nested error model with covariates is not implemented with stratification components yet.")
     } 
 
+    ##---------------------------------------------------------------------##
+    ## Unit level model: data processing
+    ##---------------------------------------------------------------------##
     if(is.unit.level){
         
         if(responseType == "binary"){
@@ -395,6 +398,11 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
             stratalist <- NULL
         }
 
+    ##---------------------------------------------------------------------##
+    ## End of Unit level model data processing
+    ## 
+    ## Area level model with direct estimate as input    
+    ##---------------------------------------------------------------------##
     }else if(!is.null(direct.est)){
         msg <- "Area-level model using direct estimates as input"
         message("Using direct estimates as input instead of survey data.")
@@ -415,6 +423,12 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
             stop("Need to specify column for the variance of direct estimates")
         }
         data$var0 <- direct.est[, direct.est.var]
+
+    ##---------------------------------------------------------------------##
+    ## End of Area level model with direct estimate as input 
+    ## 
+    ## Area level model with raw survey data input   
+    ##---------------------------------------------------------------------##
     }else{
         msg <- "Area-level model using survey data as input"
         if(!is.data.frame(data)){
@@ -443,6 +457,10 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
             data$strata0 <- data[, strataVar]
         }
     }
+
+    ##---------------------------------------------------------------------##
+    ## Check time variable and region names
+    ##---------------------------------------------------------------------##    
     if(!is.null(timeVar)) data$time0 <- data[, timeVar]     
 
 
@@ -455,6 +473,13 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
     if(sum(rownames(Amat) != colnames(Amat)) > 0){
         stop("Row and column names of Amat needs to be the same.")
     }
+
+    ##---------------------------------------------------------------------##
+    ## End of main data input process
+    ## 
+    ## Process covariate information
+    ##---------------------------------------------------------------------##    
+
     if(!is.null(X)){
         if(regionVar %in% colnames(X)){
             region.col <- which(colnames(X) == regionVar)
@@ -470,32 +495,42 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
     }
     
  
-    # if(is.null(FUN)){
+    ##---------------------------------------------------------------------##
+    ## End of covariate checking
+    ## 
+    ## Set up INLA 
+    ##---------------------------------------------------------------------##    
+
     if(responseType == "binary"){
         FUN <- expit
     }else if(responseType == "gaussian"){
         FUN <- function(x){x}
     }
-    # }
-    if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
-    stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
-  }
-  # If INLA is installed, then attach the Namespace (so that all the relevant functions are available)
-  if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {
-    if (!is.element("INLA", (.packages()))) {
-      attachNamespace("INLA")
+    if(!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+         stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
     }
-  }
-  
-
+    # If INLA is installed, then attach the Namespace (so that all the relevant functions are available)
+    if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+        if (!is.element("INLA", (.packages()))) {
+          attachNamespace("INLA")
+        }
+    }
     hyperpc1 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)))
     hyperpc2 <- list(prec = list(prior = "pc.prec", param = c(pc.u , pc.alpha)),  phi = list(prior = 'pc', param = c(pc.u.phi , pc.alpha.phi)))
-
     if(sum(!data$region0 %in% colnames(Amat)) > 0){
        stop("Exist regions in data but not in the Amat.")
     }
 
+
+
+    ##---------------------------------------------------------------------##
+    ## Start INLA input processing
+    ##---------------------------------------------------------------------##
+
     if(!is.unit.level){
+        ##---------------------------------------------------------------------##
+        ## Case 1: survey data, individual level
+        ##---------------------------------------------------------------------##
         if(svy && is.null(direct.est)){
             design <- survey::svydesign(
                             ids = stats::formula(clusterVar),
@@ -524,6 +559,9 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
                 stop("responseType argument only supports binary or gaussian at the time.")
             }
             n <- y <- NA
+        ##---------------------------------------------------------------------##
+        ## Case 2: unweighted data, individual level
+        ##---------------------------------------------------------------------##
         }else if(is.null(direct.est)){
             if(!is.null(timeVar)){
                 mean <- stats::aggregate(response0 ~ region0+time0, data = data, FUN = function(x){c(mean(x), length(x), sum(x))}, drop = FALSE)    
@@ -552,6 +590,9 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
             }
             n <- mean$n
             y <- mean$y
+        ##---------------------------------------------------------------------##
+        ## Case 3: survey data, area level direct estimates
+        ##---------------------------------------------------------------------##      
         }else{
             p.i <- data$response0
             var.i <- data$var0
@@ -580,6 +621,9 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
                           HT.logit.prec = ht.prec,  
                           n = n, 
                           y = y)   
+    ##---------------------------------------------------------------------##
+    ## Case 4: unit level data (counts by unit)
+    ##---------------------------------------------------------------------##      
     }else{
         dat <- counts
         dat$y <- dat$response0
@@ -587,13 +631,17 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         if(!is.null(timeVar)) time.i <- as.numeric(as.character(dat$time0))
     }
 
+    ##---------------------------------------------------------------------##
+    ## End of INLA input preparation
+    ##
+    ## Check time variable and region names
+    ##---------------------------------------------------------------------##    
     if(!is.null(timeVar)){
         dat$time <- time.i
         dat$time.struct <- dat$time.unstruct <- time.int <- dat$time - min(dat$time) + 1
     }   
     # make it consistent with map
     regnames <- as.character(name.i)
-    # dat <- dat[match(rownames(Amat), regnames), ]
     dat$region <- as.character(name.i)
     dat$region.unstruct <- dat$region.struct <- dat$region.int <-  match(dat$region, rownames(Amat))
     if(!is.unit.level) dat$HT.logit.est[is.infinite(abs(dat$HT.logit.est))] <- NA  
@@ -604,15 +652,18 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         dat <- dat[order(dat[, "region.struct"]), ]
     }
     
+    ##---------------------------------------------------------------------##
+    ## End of time variable and region names checking
+    ##
+    ## Specify INLA formula
+    ##---------------------------------------------------------------------##    
     # binary non-survey area-level model
     if(!svy && responseType == "binary" && !is.unit.level){
         formulatext <- "y ~ 1"
-
     # binary and continuous survey area-level model  
     # and continuous non-survey area-level model  
     }else if(!is.unit.level){
         formulatext <- "HT.logit.est ~ 1"
-
     # unit-level model    
     }else if(length(unique(data$strata0)) == 1){
         formulatext <- "y ~ 1"
@@ -620,7 +671,9 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         formulatext <- "y ~ strata0 - 1"        
     }
 
-    # area-level covariates only
+    ##
+    ## Specifying covariates (area-level) in the formula
+    ##
     fixed <- NULL
     if(!is.null(X) && is.null(X.unit)){
         X <- data.frame(X)        
@@ -633,7 +686,9 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         dat <- merge(dat, X, by = "region", all = TRUE)
         formulatext <- paste(formulatext, " + ", paste(fixed, collapse = " + "))
 
-    # unit-level covariates  
+    ##
+    ## Specifying covariates (unit-level) in the formula
+    ##
     }else if(is.nested && !is.null(X.unit)){
         formulatext <- paste(formulatext, " + ", paste(X.unit, collapse = " + "))
 
@@ -692,6 +747,12 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         formula <- as.formula(paste(formulatext, formula, sep = "+"))
     }   
 
+    ##---------------------------------------------------------------------##
+    ## End of INLA formula
+    ##
+    ## Specify INLA call
+    ##---------------------------------------------------------------------##   
+
     if(smooth){
     if(is.unit.level && responseType == "binary"){
         fit <- INLA::inla(formula, family="betabinomial", Ntrials=dat$total, control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
@@ -711,6 +772,12 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         fit <- NULL
     }
     
+    ##---------------------------------------------------------------------##
+    ## End of INLA model fits
+    ##
+    ## Preparing data frame to hold the estimates
+    ##---------------------------------------------------------------------##   
+
     n <- max(dat$region.struct) 
     temp <- NA
     if(!is.unit.level){
@@ -727,11 +794,25 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         proj <- cbind(proj, data.frame(mean=NA, var=NA, median=NA, lower=NA, upper=NA, logit.mean=NA, logit.var=NA, logit.median=NA, logit.lower=NA, logit.upper=NA)) 
     }
   
+    ##---------------------------------------------------------------------##
+    ## Start computing posterior marginals for the estimates
+    ##---------------------------------------------------------------------##   
 
     if(smooth){
     for(i in 1:dim(proj)[1]){
+
+        ##---------------------------------------------------------------------##
+        ## Estimates: Area level model
+        ##            use the top filled NA rows of input directly
+        ##---------------------------------------------------------------------##   
+
         if(!is.unit.level){
             tmp <- matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[i]]))
+
+        ##---------------------------------------------------------------------##
+        ## Estimates: Unit level model
+        ##               
+        ##---------------------------------------------------------------------##   
         }else{
             if(is.nested && !is.null(X.unit)){
                 which <- which(dat[out.index, ]$region == proj$region[i] & dat[out.index, ]$strata0 == proj$strata[i])[1]
@@ -745,6 +826,11 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
             if(is.na(which)) next
             tmp <- matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[which]]))
         }
+        
+        ##---------------------------------------------------------------------##
+        ## Estimates: Apply transformations
+        ##---------------------------------------------------------------------##   
+    
         if(!svy && responseType == "binary"){
             tmp2 <- tmp
             proj[i, "logit.mean"] <- mean(tmp2)
@@ -777,12 +863,24 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
       
     }
 
+    ##---------------------------------------------------------------------##
+    ## End of posterior marginals for the estimates
+    ##  
+    ## Start of posterior draws: preparing empty data frame
+    ##---------------------------------------------------------------------##   
+
+
     if("strata" %in% colnames(proj)){
         draws.out <- proj[, c("region", "time", "strata")]
     }else{
         draws.out <- proj[, c("region", "time")]        
     }
     for(j in 1:nsim) draws.out[, paste0("sample:", j)] <- NA
+    
+   ##---------------------------------------------------------------------##
+   ## Saving posterior draws 
+   ##---------------------------------------------------------------------##   
+
     sampAll <- NULL
     if(save.draws){
         sampAll <- INLA::inla.posterior.sample(n = nsim, result = fit, intern = TRUE)
@@ -795,6 +893,12 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
             }
         }
     }
+
+
+   ##---------------------------------------------------------------------##
+   ## Aggregation with posterior draws for the unit level model
+   ##  From stratified results to overall
+   ##---------------------------------------------------------------------##   
 
    # Aggregation with posterior samples
    if(is.unit.level && !is.null(weight.strata) && length(unique(data$strata0)) > 1){
@@ -850,6 +954,11 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
     }else{
         proj.agg <- NULL
     }
+
+
+   ##---------------------------------------------------------------------##
+   ## Preparing output data frame
+   ##---------------------------------------------------------------------##   
 
    if(!is.unit.level){
        # organize output nicer 
