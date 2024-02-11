@@ -13,6 +13,7 @@
 #' }
 #' @param geo Deprecated argument from early versions.
 #' @param Amat Adjacency matrix for the regions. If set to NULL, the IID spatial effect will be used.
+#' @param region.list a vector of region names. Only used when IID model is used and the adjacency matrix not specified. This allows the output to include regions with no sample in the data. When the spatial adjacency matrix is specified, the column names of the adjacency matrix will be used to determine region.list. If set to NULL, all regions in the data are used.
 #' @param X Areal covariates data frame. One of the column name needs to match the \code{regionVar} specified in the function call, in order to be linked to the data input. Currently only supporting time-invariant region-level covariates.
 #' @param X.unit Column names of unit-level covariates. When \code{X.unit} is specified, a nested error model will be fitted with unit-level IID noise, and area-level predictions are produced by plugging in the covariate specified in the \code{X} argument. When \code{X} is not specified, the empirical mean of each covariate will be used. This is only implemented for continuous response with the Gaussian likelihood model and unit-level model. 
 #' @param responseType Type of the response variable, currently supports 'binary' (default with logit link function) or 'gaussian'. 
@@ -120,6 +121,25 @@
 #'        responseVar="tobacco.use", strataVar="strata", 
 #'        weightVar="weights", regionVar="region", 
 #'        clusterVar = "~clustid+id", CI = 0.95)
+#' 
+#' # Example with missing regions in the raw input
+#' DemoData2.sub <- subset(DemoData2, region != "central")
+#' fit.without.central <- smoothSurvey(data=DemoData2.sub,  
+#'                          Amat=NULL, responseType="binary", 
+#'                          responseVar="tobacco.use", strataVar="strata", 
+#'                          weightVar="weights", regionVar="region", 
+#'                          clusterVar = "~clustid+id", CI = 0.95)
+#' fit.without.central$HT
+#' fit.without.central$smooth
+#' 
+#' fit.without.central <- smoothSurvey(data=DemoData2.sub,  
+#'                          Amat=NULL, region.list = unique(DemoData2$region),
+#'                          responseType="binary", 
+#'                          responseVar="tobacco.use", strataVar="strata", 
+#'                          weightVar="weights", regionVar="region", 
+#'                          clusterVar = "~clustid+id", CI = 0.95)
+#' fit.with.central$HT
+#' fit.with.central$smooth
 #' 
 #' # Using the formula argument, further customizations can be added to the 
 #' #  model fitted. For example, we can fit the Fay-Harriot model with 
@@ -265,7 +285,7 @@
 #' @export
 
 
-smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], include_time_unstruct = FALSE, type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, save.draws = FALSE, smooth = TRUE, ...){
+smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = NULL, X.unit = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], include_time_unstruct = FALSE, type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, save.draws = FALSE, smooth = TRUE, ...){
 
     svy <- TRUE
     if(is.null(responseVar)){
@@ -336,7 +356,14 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         data$response0 <- data[, responseVar]
         data$region0 <- as.character(data[, regionVar])
         if(is.null(Amat)){
-            regions <- unique(data$region0)
+            if(!is.null(region.list)){
+                regions <- unique(region.list)
+                if(sum(!data$region0 %in% regions) > 0){
+                    stop("'region.list' is specified but there are regions in the data not in the 'region.list'.")
+                }
+            }else{
+                regions <- unique(data$region0)
+            }
             Amat <- matrix(0, length(regions), length(regions))
             colnames(Amat) <- rownames(Amat) <- regions
             is.iid.space <- TRUE
@@ -409,7 +436,14 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         data <- direct.est
         data$region0 <- as.character(direct.est[, regionVar])
         if(is.null(Amat)){
-            regions <- unique(data$region0)
+            if(!is.null(region.list)){
+                regions <- unique(region.list)
+                if(sum(!data$region0 %in% regions) > 0){
+                    stop("'region.list' is specified but there are regions in the data not in the 'region.list'.")
+                }
+            }else{
+                regions <- unique(data$region0)
+            }
             Amat <- matrix(0, length(regions), length(regions))
             colnames(Amat) <- rownames(Amat) <- regions
             is.iid.space <- TRUE
@@ -445,7 +479,14 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, X = NULL, X.unit = NULL,
         data$response0 <- data[, responseVar]
         data$region0 <- as.character(data[, regionVar])
         if(is.null(Amat)){
-            regions <- unique(data$region0)
+            if(!is.null(region.list)){
+                regions <- unique(region.list)
+                if(sum(!data$region0 %in% regions) > 0){
+                    stop("'region.list' is specified but there are regions in the data not in the 'region.list'.")
+                }
+            }else{
+                regions <- unique(data$region0)
+            }
             Amat <- matrix(0, length(regions), length(regions))
             colnames(Amat) <- rownames(Amat) <- regions
             is.iid.space <- TRUE
