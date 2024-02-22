@@ -157,7 +157,7 @@ smoothUnit <- function(formula,
   ftxt <- paste("resp ~ 1")
   if (length(all.vars(cov.frm)) > 0) {
     ftxt <- 
-      paste(ftxt, paste(all.vars(cov.frm), collapse = " + "), sep = " + ")
+      paste(ftxt, as.character(cov.frm)[-1], sep = " + ")
   }
   
   if (is.null(adj.mat)) {
@@ -177,7 +177,6 @@ smoothUnit <- function(formula,
     model.method <- "bym2.model"
     ftxt <- paste0(ftxt, " + f(domain.struct, model = 'bym2', graph=adj.mat, hyper = hyperpc.bym.int)")
   }
-
   # fit model
   mod.frm <- as.formula(ftxt)
   fit <- INLA::inla(mod.frm, family = family, data = mod.dat,
@@ -192,7 +191,7 @@ smoothUnit <- function(formula,
 
   # identify indices of fixed effects and random effects
   fe.idx <- grep(colnames(mm.pop)[1], rownames(samp.all[[1]]$latent))
-  fe.idx <- fe.idx:(fe.idx + length(all.vars(cov.frm)))
+  fe.idx <- fe.idx:(fe.idx + ncol(mm.pop) - 1)
   re.idx <- grep("domain.struct", x = rownames(samp.all[[1]]$latent))
   
   # aggregate sample predictions
