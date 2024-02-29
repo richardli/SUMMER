@@ -1,82 +1,17 @@
-# SUMMER
+# SUMMER <img src="man/figures/SUMMER.png" align="right" width="120" />
+
 [![](https://github.com/richardli/SUMMER/workflows/R-CMD-check_INLA_stable/badge.svg)](https://github.com/richardli/SUMMER/actions) [![](https://github.com/richardli/SUMMER/workflows/R-CMD-check_INLA_testing/badge.svg)](https://github.com/richardli/SUMMER/actions) 
 [![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/SUMMER)](https://cran.r-project.org/package=SUMMER) [![](https://cranlogs.r-pkg.org/badges/SUMMER)](https://cran.r-project.org/package=SUMMER) [![](https://cranlogs.r-pkg.org/badges/grand-total/SUMMER?color=orange)](https://cran.r-project.org/package=SUMMER)
 
 SAE Unit/area Models and Methods for Estimation in R
 
+### Overview
 
-## Next major update (version 1.4.0)
-+ New major functions for  population and prevalence simulation based on population frame and population density information, along with methods for aggregating pixel level prevalences and populations to the areal level. 
-
-+ New major functions.
-    * ``simSPDE``: Simulates from the SPDE spatial model.
-    * ``simPopSPDE``: Simulates population in a country based on SPDE spatial model and population frame information.
-    * ``simPopPixel``: Simulates population in a country based on custom spatial model and population frame information.
-+ New minor functions.
-    * ``aggPixelPreds`` and ``areaPopToArea``: Functions for aggregating populations and prevalences to the areal level.
-    * Functions for setting pixellated grid and population density grid.
-    * Functions for adjusting population density grid based on population frame information.
-    * Functions for projections to use with Kenya maps and for getting Admin areas given spatial locations.
-+ New internal functions for helping with population simulation.
-+ New datasets
-    * ``kenyaMaps``: Kenya administrative area map shapefiles, and a triangular mesh for the SPDE model for Kenya.
-    * ``kenyaPopulationData``: General and neonatal population frames for Kenya, and general and neonatal population density information for Kenya.
-    * ``popMatKenya`` and ``popMatKenyaNeonatal``: General and neonatal population density grids at 5km resolution.
+**SUMMER** is an R package providing an extensive collection of space-time smoothing and small area estimation methods for prevalence estimation using complex survey data, with a special focus on Demographic Health Surveys (DHS) data, and the estimation of child mortality using full birth history data. The package also provides a collection of plotting functions to visualize the estimates in space and time.
 
 
-## Major update (version 1.3.0)
-+ New SAE functions and vignette.
 
-## Major update (version 1.2.0)
-+ Major expansion for `smoothSurvey` to implement popular SAE methods. Syntax change to the function. 
-+ Allows `smoothDirect` and `smoothCluster` to fit space-only models.
-+ S3 class output.
-
-## Major update (version 1.1.0)
-+ Major expansion for `smoothSurvey` to implement popular SAE methods. Syntax change to the function. 
-+ Allows `smoothDirect` and `smoothCluster` to fit space-only models.
-+ `smoothSurvey`, `smoothDirect`, and `smoothCluster` now returns S3 classed objects.
- 
-
-## Major update (version 1.1.0)
-+ Major expansion for `smoothSurvey` to implement popular SAE methods. Syntax change to the function. 
-+ Allows `smoothDirect` and `smoothCluster` to fit space-only models.
-+ `smoothSurvey`, `smoothDirect`, and `smoothCluster` now returns S3 classed objects.
-
-## Major update (version 1.0.0)
-Version 1.0.0 contains many major updates from the previous versions:
-+ Major updates to functions.
-    + ``fitGeneric`` is now ``smoothSurvey``
-    + ``fitINLA`` is now ``smoothDirect``
-    + ``fitINLA2`` is now ``smoothCluster``
-    + More extensions in both smoothed direct and cluster level models.
-    + Major changes to how temporal models are specified with `time.model` and `st.time.model`.
-    + More interpretable parameterization of slope and random slopes.
-    + More visualization options.
-    + Note: Previous function name and argument syntax remain to work as before, but may not receive high priority in maintenance in the future.  
-+ Many minor improvements in functions.
-    + Better model summary message.
-    + Removed unnecessary function arguments, e.g., ``geo`` in various functions.
-    + Removed the requirement to repeated specifying ``Amat``, ``year_label`` and ``year_range``. Now they are only required in the model fitting stage.
-+ New vignettes. 
-
-## Major update (version 0.3.0)
-Version 0.3.0 contains some major updates from the previous versions. Some of the substantial changes to existing functions are listed here. For a complete log of changes, see the [News](https://github.com/richardli/SUMMER/blob/master/NEWS.md) section.
-
-+ Function name changes
-    * ``countrySummary`` is now ``getDirect``
-    * ``cuontrySummary_mult`` is now ``getDirectList``
-    * ``fitspace`` is now ``fitGeneric``
-    * ``projINLA`` is now ``getSmooth``
-+ New functions
-    * ``getDiag``: produce diagnostic plots for the fitted model.
-    * ``getAdjusted``: produce adjusted estimates for a fitted model.
-    * ``getAmat``: automatic extract spatial adjacency matrix from the polygon file.
-    * ``hatchPlot``: plot variables on a map with hatching indicating the width of the credible interval.
-+New methods
-    * ``fitINLA2``: implements new smoothing methods based on binomial models at cluster level. 
-
-## Citation
+### Citation
 
 To cite the SUMMER package in publications use
 ```
@@ -109,7 +44,7 @@ To cite specific version of the SUMMER package use
 ```
 
 
-## Installation - CRAN
+### Installation - CRAN
 
 The package is now available on CRAN. The easiest way to download is to install directly using the code below.
 
@@ -128,7 +63,7 @@ devtools::install_github("richardli/SUMMER")
  
 Examples of most of the main functions are described in the several vignettes listed on [https://cran.r-project.org/package=SUMMER](https://cran.r-project.org/package=SUMMER).
 
-## Bug Reports / Change Requests
+### Bug Reports / Change Requests
 If you encounter a bug or would like make a change request, please file it as an issue [here](https://github.com/richardli/SUMMER/issues).
 
 

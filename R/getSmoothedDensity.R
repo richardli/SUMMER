@@ -13,6 +13,7 @@
 #' @param per1000 logical indicator to multiply results by 1000.
 #' @param order order of regions when by.year is set to TRUE. Negative values indicate regions are ordered from high to low posterior medians from top to bottom. Positive values indicate from low to high. 0 indicate alphabetic orders.
 #' @param direction Direction of the color scheme. It can be either 1 (smaller values are darker) or -1 (higher values are darker). Default is set to 1.
+#' @param linewidth width of the ridgeline.
 #' @param results output from \code{\link{ridgePlot}} returned object with \code{save.density = TRUE}. This argument can be specified to avoid calculating densities again when only the visualization changes.
 #' @param save.density Logical indicator of whether the densities will be returned with the ggplot object. If set to TRUE, the output will be a list consisting of (1) a data frame of computed densities and (2) a ggplot object of the plot. 
 #' @param ... additional configurations passed to inla.posterior.sample.
@@ -73,7 +74,7 @@
 #' 
 
 #' @export
-ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strata_plot = NULL, by.year = TRUE, ncol = 4, scale = 2, per1000 = FALSE, order = 0, direction = 1, results = NULL, save.density = FALSE, ...){
+ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strata_plot = NULL, by.year = TRUE, ncol = 4, scale = 2, per1000 = FALSE, order = 0, direction = 1, results = NULL, save.density = FALSE, linewidth = 0.5 ...){
 
       years <-  y <- `..x..` <- region <- NA
 
@@ -256,7 +257,7 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strat
          results.plot$years <- factor(results.plot$years, levels = rev(timelabel.yearly))
          g <- ggplot2::ggplot(subset(results.plot, years %in% year_plot), ggplot2::aes(x = x, y = years, height = y, fill = ..x..)) 
       }
-      if(is.density) g <- g + ggridges::geom_density_ridges_gradient(stat="identity", alpha = 0.5, size = 0.3) 
+      if(is.density) g <- g + ggridges::geom_density_ridges_gradient(stat="identity", alpha = 0.5, linewidth = linewidth) 
 
       # plot draws
       if(by.year && !is.density){
@@ -265,7 +266,7 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strat
         results.plot$years <- factor(results.plot$years, levels = rev(timelabel.yearly))
         g <- ggplot2::ggplot(subset(results.plot, years %in% year_plot), ggplot2::aes(x = x, y = years)) 
       }
-      if(!is.density) g <- g + ggridges::geom_density_ridges_gradient(ggplot2::aes(fill = ..x..), scale = scale, size = 0.3, alpha = 0.5)
+      if(!is.density) g <- g + ggridges::geom_density_ridges_gradient(ggplot2::aes(fill = ..x..), scale = scale, alpha = 0.5, linewidth = linewidth)
 
       g <- g + ggplot2::scale_fill_viridis_c(option = "D", direction = direction) + ggplot2::theme_bw()  + ggplot2::ylab("") + ggplot2::theme(legend.position = 'none') + ggplot2::xlab("")
       if(by.year){

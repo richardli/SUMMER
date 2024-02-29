@@ -5,4 +5,90 @@ navbar:
   structure:
     left:  [intro, reference, articles, tutorials, news]
     right: [search, github]
-    
+  components:
+    articles:   
+      text: Articles
+      menu:
+        - text: Generic small area estimation
+          href: articles/web_only/small-area-estimation.html 
+        - text: Estimating Subnational U5MR using Simulated Data
+          href: articles/web_only/u5mr-vignette.html             
+        - text: Estimating Subnational U5MR using DHS Data
+          href: articles/web_only/u5mr-dhs-vignette.html
+pkgdown:
+  as_is: true
+reference:
+- title: "Child mortality estimation"
+  contents:
+  - getBirths
+  - getDirect
+  - getDirectList
+  - smoothDirect
+  - smoothCluster
+  - getSmoothed
+  - getAdjusted
+  - getDiag
+  - aggregateSurvey
+  - Benchmark
+  - print.SUMMERmodel
+  - summary.SUMMERmodel
+  - print.SUMMERprojlist
+  - summary.SUMMERprojlist
+- title: "General SAE models"
+  contents:
+  - mapPoints
+  - getAmat
+  - getCounts
+  - ChangeRegion
+  - smoothSurvey
+  - smoothArea
+  - smoothUnit
+  - print.SUMMERmodel.svy
+  - summary.SUMMERmodel.svy
+- title: "Visualization"
+  contents:
+  - mapPlot
+  - ridgePlot
+  - hatchPlot
+  - plot.SUMMERproj
+  - tcpPlot
+  - compareEstimates
+  - mapEstimates
+- title: "Pixel-level population simulation"
+  contents:
+  - getAreaName
+  - aggPop
+  - simPop
+  - aggPixelPreds
+  - poppRegionFromPopMat
+  - simSPDE
+  - simPopInternal
+  - makePopIntegrationTab
+  - calibrateByRegion
+  - setThresholdsByRegion
+  - projKenya
+- title: "Dataset"
+  contents:
+  - BRFSS
+  - starts_with("Demo")
+  - KingCounty
+  - MalawiData
+  - MalawiMap
+  - KenData
+  - kenyaPopulationData
+- title: "Other functions"
+  contents:
+  - expit
+  - logit
+  - rw.new
+  - rw.new.pc  
+  - st.new
+  - st.new.pc
+  - iid.new
+  - iid.new.pc
+  - logitNormMean
+  - simhyper
+  - rst
+  - SUMMER-package
+
+
