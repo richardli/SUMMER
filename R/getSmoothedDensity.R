@@ -74,7 +74,7 @@
 #' 
 
 #' @export
-ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strata_plot = NULL, by.year = TRUE, ncol = 4, scale = 2, per1000 = FALSE, order = 0, direction = 1, results = NULL, save.density = FALSE, linewidth = 0.5 ...){
+ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strata_plot = NULL, by.year = TRUE, ncol = 4, scale = 2, per1000 = FALSE, order = 0, direction = 1, results = NULL, save.density = FALSE, linewidth = 0.5, ...){
 
       years <-  y <- `..x..` <- region <- NA
 
