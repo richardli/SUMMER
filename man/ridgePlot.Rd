@@ -17,6 +17,7 @@ ridgePlot(
   per1000 = FALSE,
   order = 0,
   direction = 1,
+  linewidth = 0.5,
   results = NULL,
   save.density = FALSE,
   ...
@@ -34,6 +35,7 @@ getSmoothedDensity(
   per1000 = FALSE,
   order = 0,
   direction = 1,
+  linewidth = 0.5,
   results = NULL,
   save.density = FALSE,
   ...
@@ -61,6 +63,8 @@ getSmoothedDensity(
 \item{order}{order of regions when by.year is set to TRUE. Negative values indicate regions are ordered from high to low posterior medians from top to bottom. Positive values indicate from low to high. 0 indicate alphabetic orders.}
 
 \item{direction}{Direction of the color scheme. It can be either 1 (smaller values are darker) or -1 (higher values are darker). Default is set to 1.}
+
+\item{linewidth}{width of the ridgeline.}
 
 \item{results}{output from \code{\link{ridgePlot}} returned object with \code{save.density = TRUE}. This argument can be specified to avoid calculating densities again when only the visualization changes.}
 

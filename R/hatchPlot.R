@@ -61,7 +61,10 @@
 #' @export 
 
 hatchPlot <- function(data, variables, values = NULL, labels = NULL, geo, by.data, by.geo,  is.long = FALSE, lower, upper, lim = NULL, lim.CI = NULL, breaks.CI = NULL, ncol = 4, hatch = NULL, border = NULL, size = 1, legend.label = NULL,  per1000 = FALSE, direction = 1, ...){
-
+    is.sf <- "sf" %in% class(geo)
+    if(is.sf){
+       geo =  as(geo, 'Spatial')
+    }
 
    if (is.null(labels) & !is.long) {
         labels <- variables
