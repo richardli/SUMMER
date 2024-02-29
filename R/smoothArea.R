@@ -403,7 +403,7 @@ plot.svysae <- function(x, return_list = F, plot.factor = NULL, ...) {
     split(combined_est, combined_est$plot),
     function(x) {
       ggplot2::ggplot(x, ggplot2::aes(x = domain, y = mean, color = method)) +
-        ggplot2::geom_point(position = position_dodge(width = 0.5)) + 
+        ggplot2::geom_point(position = ggplot2::position_dodge(width = 0.5)) + 
         ggplot2::geom_linerange(ggplot2::aes(x = domain, ymin = lower, ymax = upper), 
                        position = ggplot2::position_dodge(width = 0.5)) + 
         ggplot2::scale_color_discrete(name = "Method") + 
