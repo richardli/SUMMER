@@ -94,18 +94,7 @@ The map files for this DHS can be freely downloaded from [https://spatialdata.dh
 mapfilename <- "data/shps/sdr_subnational_boundaries.shp"
 sf_use_s2(FALSE)
 geo <- read_sf(mapfilename)
-```
-
-```
-## Error: Cannot open "data/shps/sdr_subnational_boundaries.shp"; The file doesn't seem to exist.
-```
-
-```r
 Amat <- getAmat(geo, geo$REGNAME)
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'geo' not found
 ```
 
 
@@ -294,18 +283,7 @@ The syntax to fit subnational smoothing model is similar. Similar to the nationa
 ```r
 fit3 <- smoothDirect(data = direct, Amat = Amat, year_label = years, year_range = c(1985,
     2019), time.model = "rw2", type.st = 4, m = 1)
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'Amat' not found
-```
-
-```r
 out3 <- getSmoothed(fit3)
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'fit3' not found
 ```
 
 Similarly we can also estimate the Random Walk 2 random effects on the yearly scale. 
@@ -315,37 +293,10 @@ Similarly we can also estimate the Random Walk 2 random effects on the yearly sc
 ```r
 fit4 <- smoothDirect(data = direct, Amat = Amat, year_label = years, year_range = c(1985,
     2019), time.model = "rw2", type.st = 4, m = 5)
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'Amat' not found
-```
-
-```r
 out4 <- getSmoothed(fit4)
-```
 
-```
-## Error in eval(expr, envir, enclos): object 'fit4' not found
-```
-
-```r
 g1 <- plot(out3) + ggtitle("Subnational period model") + ylim(c(0, 0.3))
-```
-
-```
-## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'plot': object 'out3' not found
-```
-
-```r
 g2 <- plot(out4) + ggtitle("Subnational yearly model") + ylim(c(0, 0.3))
-```
-
-```
-## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'plot': object 'out4' not found
-```
-
-```r
 g1 + g2
 ```
 
@@ -360,9 +311,7 @@ plot(out4, data.add = direct, option.add = list(point = "mean", by = "survey")) 
     facet_wrap(~region, scales = "free")
 ```
 
-```
-## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'plot': object 'out4' not found
-```
+<img src="figure/unnamed-chunk-21-1.png" width="90%" />
  
 We can show the estimates over time on maps. We revert the color scale so that higher mortality are represented by darker colors. 
 
@@ -373,9 +322,7 @@ mapPlot(data = subset(out4, is.yearly == FALSE), geo = geo, variables = "years",
     direction = -1, legend.label = "U5MR", per1000 = TRUE)
 ```
 
-```
-## Error in eval(expr, envir, enclos): object 'geo' not found
-```
+<img src="figure/unnamed-chunk-22-1.png" width="90%" />
 
 In order to also illustrate uncertainties of the estimates when presented on maps, we can use hatching to indicate the width of the 94% posterior credible intervals.
 
@@ -386,9 +333,7 @@ hatchPlot(data = subset(out4, is.yearly == FALSE), geo = geo, variables = "years
     is.long = TRUE, direction = -1, legend.label = "U5MR", per1000 = TRUE, ncol = 4)
 ```
 
-```
-## Error in eval(expr, envir, enclos): object 'geo' not found
-```
+<img src="figure/unnamed-chunk-23-1.png" width="90%" />
 
 
 
@@ -413,18 +358,7 @@ for (model in c("rw1", "rw2")) {
         index <- index + 1
     }
 }
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'Amat' not found
-```
-
-```r
 plot(est.list, plot.CI = TRUE) + facet_grid(st.model ~ st.u)
-```
-
-```
-## Error in plot.window(...): need finite 'xlim' values
 ```
 
 <img src="figure/unnamed-chunk-24-1.png" width="90%" />
