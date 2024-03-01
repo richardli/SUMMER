@@ -20,6 +20,7 @@
 #' 
 #' @return ridge plot of the density, and  if \code{save.density = TRUE}, also a data frame of the calculated densities 
 #' @seealso \code{\link{plot.SUMMERproj}}
+#' @importFrom methods as
 #' @author Zehang Richard Li
 #' @examples
 #' \dontrun{
