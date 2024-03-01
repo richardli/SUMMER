@@ -6,7 +6,7 @@ vignettes/summer-vignette.Rmd
 vignettes/u5mr-vignette2.Rmd
 vignettes/u5mr-vignette.Rmd
 vignettes/web_only/*
-
+vignettes/articles/*
 
 ^\.github$
 ^_pkgdown\.yml$

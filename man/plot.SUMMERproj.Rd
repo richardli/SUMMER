@@ -56,14 +56,6 @@
 \description{
 Plot projection output.
 }
-\details{
-Examples of some arguments:
-\itemize{
- \item{\code{year_label}}{string of year labels, e.g., \code{c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")} or \code{c(1985:2019)}} 
- \item{\code{proj_year}}{the year projection starts, e.g., \code{2015}}
- \item{\code{year_med}}{ median of year intervals, e.g., \code{c(1987, 1992, 1997, 2002, 2007, 2012, 2017)}}
-}
-}
 \examples{
 \dontrun{
 years <- levels(DemoData[[1]]$time)
