@@ -2,7 +2,7 @@ pandoc: 3.1.11
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles: {}
-last_built: 2024-03-01T00:37Z
+last_built: 2024-03-01T00:53Z
 urls:
   reference: https://richardli.github.io/SUMMER/reference
   article: https://richardli.github.io/SUMMER/articles
