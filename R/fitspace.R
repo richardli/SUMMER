@@ -87,7 +87,8 @@
 #' head(fit0.draws$draws.est[, 1:10]) 
 #' 
 #' # Example with region-level covariates
-#'  Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
+#'  Xmat <- aggregate(age~region, data = DemoData2, 
+#' 						FUN = function(x) mean(x))
 #'  fit1 <- smoothSurvey(data=DemoData2,  
 #'   Amat=DemoMap2$Amat, responseType="binary", 
 #'   X = Xmat,
@@ -372,7 +373,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
             stop("Exist regions in the data frame but not in Amat.")
         }
         data$region0 <- factor(data$region0, levels = colnames(Amat))
-        data$strata0 <- data[, strataVar.within]
+        data$strata0 <- factor(data[, strataVar.within])
         if(!is.null(clusterVar)) data$cluster0 <- data[, clusterVar]
 
         # check column names of covariates

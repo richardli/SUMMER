@@ -197,7 +197,8 @@ clusterVar = "~clustid+id", CI = 0.95, save.draws = TRUE)
 head(fit0.draws$draws.est[, 1:10]) 
 
 # Example with region-level covariates
- Xmat <- aggregate(age~region, data = DemoData2, FUN = mean)
+ Xmat <- aggregate(age~region, data = DemoData2, 
+						FUN = function(x) mean(x))
  fit1 <- smoothSurvey(data=DemoData2,  
   Amat=DemoMap2$Amat, responseType="binary", 
   X = Xmat,

@@ -84,8 +84,8 @@ summary.SUMMERmodel <- function(object,...){
 	hyperpar <- summary(object$fit)$hyperpar
 	print(hyperpar)
 
-	neffp <- summary(object$fit)$neffp
-	print(neffp)
+	# neffp <- summary(object$fit)$neffp
+	# print(neffp)
 	mlik <- summary(object$fit)$mlik
 	print(mlik)
 }
@@ -311,8 +311,8 @@ summary.SUMMERmodel.svy <- function(object,...){
 	hyperpar <- summary(object$fit)$hyperpar
 	print(hyperpar)
 
-	neffp <- summary(object$fit)$neffp
-	print(neffp)
+	# neffp <- summary(object$fit)$neffp
+	# print(neffp)
 	mlik <- summary(object$fit)$mlik
 	print(mlik)
 }

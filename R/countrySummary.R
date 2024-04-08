@@ -88,6 +88,8 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
     
     if (is.null(births$strata)) {
         stop("Strata not defined.")
+    }else{
+        births$strata <- factor(births$strata)
     }
     if (is.null(clusterVar)){
         stop("Cluster not defined")
