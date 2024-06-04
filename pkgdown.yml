@@ -1,11 +1,11 @@
 pandoc: 3.1.11
-pkgdown: 2.0.7
+pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
   small-area-estimation: web_only/small-area-estimation.html
   u5mr-dhs-vignette: web_only/u5mr-dhs-vignette.html
   u5mr-vignette: web_only/u5mr-vignette.html
-last_built: 2024-04-08T04:53Z
+last_built: 2024-06-04T04:04Z
 urls:
   reference: https://richardli.github.io/SUMMER/reference
   article: https://richardli.github.io/SUMMER/articles
