@@ -7,7 +7,7 @@
 compareEstimates(x, posterior.sample = NULL)
 }
 \arguments{
-\item{x}{svysae object. Plots are created for all models in this object.}
+\item{x}{an object in the S3 class of svysae, fhModel, or clusterModel. Plots are created for all models in this object.}
 
 \item{posterior.sample}{Matrix of posteriors samples of area level quantities with one row for each area and one column for each sample. This argument may be specified to only provide a heatmap for the desired samples.}
 }

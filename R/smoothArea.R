@@ -424,7 +424,7 @@ plot.svysae <- function(x, return_list = F, plot.factor = NULL, ...) {
 #' Plot heatmap comparing pairwise posterior exceedence probabilities for svysae object
 #' 
 #'
-#' @param x svysae object. Plots are created for all models in this object.
+#' @param x  an object in the S3 class of svysae, fhModel, or clusterModel. Plots are created for all models in this object.
 #' @param posterior.sample Matrix of posteriors samples of area level quantities with one row for each area and one column for each sample. This argument may be specified to only provide a heatmap for the desired samples.
 #'
 #' @return ggplot containing heat map of pairwise comparisons
@@ -456,11 +456,22 @@ compareEstimates <- function(x,
   
   
   x_att <- attributes(x)
+
   if (is.null(posterior.sample)) {
-    sample_list <- x[paste0(x_att$inla.fitted, ".sample")]
-  } else {
-    sample_list <- list(posterior.sample)
-  }
+      # USING SURVEYPREV CLASSES
+      if(x_att$class %in% c("fhModel", "clusterModel")){
+          if ("admin2_post" %in% x_att$names){
+              sample_list=list(t(x$admin2_post))
+          }else{
+              sample_list=list(t(x$admin1_post))}
+      # USING SUMMER OBJECTS
+      }else{
+          sample_list <- x[paste0(x_att$inla.fitted, ".sample")]}
+   # USING SAMPLES       
+   }else{
+      sample_list <- list(posterior.sample)
+   }
+
   for (i in seq_along(sample_list)) {
     current_samples <- sample_list[[i]]
     domain_medians <- apply(current_samples, 1, median)
