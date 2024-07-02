@@ -426,6 +426,7 @@ plot.svysae <- function(x, return_list = F, plot.factor = NULL, ...) {
 #'
 #' @param x  an object in the S3 class of svysae, fhModel, or clusterModel. Plots are created for all models in this object.
 #' @param posterior.sample Matrix of posteriors samples of area level quantities with one row for each area and one column for each sample. This argument may be specified to only provide a heatmap for the desired samples.
+#' @param title Optional parameter changing the title of the plot
 #'
 #' @return ggplot containing heat map of pairwise comparisons
 #' 
@@ -452,7 +453,8 @@ plot.svysae <- function(x, return_list = F, plot.factor = NULL, ...) {
 #' compareEstimates(cts.res)
 #' }
 compareEstimates <- function(x,
-                             posterior.sample = NULL) {
+                             posterior.sample = NULL,
+                             title = NULL) {
   
   
   x_att <- attributes(x)
@@ -499,7 +501,7 @@ compareEstimates <- function(x,
       Domain1 = x_att$domain.names[median_order], 
       Domain2 = "Median", 
       Prob = NA,
-      est = domain_medians
+      est = domain_medians[median_order]
       
     )
     extra_cols <- c("", "Median", "Interval")
@@ -536,9 +538,13 @@ compareEstimates <- function(x,
       ggplot2::scale_fill_viridis_c(name = "Probability of Domain 1 > Domain 2",
                                     na.value = "white") + 
       ggplot2::scale_color_manual(values = c("white", "black"),  guide = "none") +
-      ggplot2::labs(title = x_att$inla.fitted[i],
-                    x = "Domain 2",
+      ggplot2::labs(x = "Domain 2",
                     y = "Domain 1")
+    if (!is.null(title)) {
+      g_heat <- g_heat + ggplot2::labs(title = title)
+    } else if (is.null(posterior.sample)) {
+      g_heat <-  g_heat + ggplot2::labs(title = x_att$inla.fitted[i])
+    }
     suppressWarnings(print(g_heat))
   }
 }
