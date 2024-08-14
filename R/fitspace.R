@@ -496,7 +496,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
         data$region0 <- factor(data$region0, levels = colnames(Amat))   
         if(svy){
             data$weights0 <- data[, weightVar]
-            data$strata0 <- data[, strataVar]
+            data$strata0 <- factor(data[, strataVar])
         }
     }
 
