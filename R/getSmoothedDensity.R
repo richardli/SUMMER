@@ -77,7 +77,51 @@
 #' @export
 ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strata_plot = NULL, by.year = TRUE, ncol = 4, scale = 2, per1000 = FALSE, order = 0, direction = 1, linewidth = 0.5, results = NULL, save.density = FALSE, ...){
 
-      years <-  y <- `..x..` <- region <- NA
+      years <-  y <- `..x..` <- region <- value <- region.name <- admin2.name.short <- NA
+
+      # FOR SURVEYPREV INPUT
+
+      if(class(x) %in% c("fhModel", "clusterModel")){
+           x_att <- attributes(x)
+        # USING SURVEYPREV CLASSES
+        if(x_att$class %in% c("fhModel", "clusterModel")){
+          if ("admin2_post" %in% x_att$names){
+              samples = x$admin2_post
+          }else{
+              samples = x$admin1_post
+          }
+        }
+        # samples is now a nsamp * nregion matrix
+        samples.long <- data.frame(region.name = rep(x_att$domain.names, each = nrow(samples)), 
+                       value = as.numeric(samples))
+        if("res.admin2" %in% names(x)){
+          upper <- x$res.admin2[, c("admin2.name.full", "admin1.name")]
+          upper$admin2.name.short <- NA
+            for(i in 1:dim(upper)[1]){
+              k <- nchar(as.character(upper$admin1.name[i]))
+              upper$admin2.name.short[i] <- substr(upper$admin2.name.full[i], 
+                                 start = k+2, 
+                                 stop = nchar(upper$admin2.name.full[i]))
+            }
+          colnames(upper) <- c("region.name", "group.name", "admin2.name.short")
+          samples.long <- dplyr::left_join(samples.long, upper)
+        }
+
+        n.levels <- dim(samples)[2]
+        ridge.max <- max(samples.long$value)*1.03
+        if(ridge.max>0.95){ridge.max=1}
+        ridge.min <- min(samples.long$value)*0.97
+        if(ridge.min<0.05){ridge.min=0}
+
+        g <- ggplot2::ggplot(samples.long) +
+            aes(x = value, y = region.name) + 
+            ggridges::geom_density_ridges_gradient(aes(fill = ggplot2::after_stat(x))) +
+            ggplot2::scale_fill_viridis_c(lim = c(ridge.min,ridge.max), direction = direction) + ggplot2::theme(legend.position = "none") + xlab("") + ylab("")
+        if("group.name" %in% colnames(samples.long)){
+          g <- g + aes(y = admin2.name.short) + ggplot2::facet_wrap(~group.name, scale = "free_y")
+        }
+        return(g)
+       }
 
     
       if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
