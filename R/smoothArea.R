@@ -427,6 +427,7 @@ plot.svysae <- function(x, return_list = F, plot.factor = NULL, ...) {
 #' @param x  an object in the S3 class of svysae, fhModel, or clusterModel. Plots are created for all models in this object.
 #' @param posterior.sample Matrix of posteriors samples of area level quantities with one row for each area and one column for each sample. This argument may be specified to only provide a heatmap for the desired samples.
 #' @param title Optional parameter changing the title of the plot
+#' @param return.plot Logical indicator for whether the ggplot object is returned
 #'
 #' @return ggplot containing heat map of pairwise comparisons
 #' 
@@ -454,7 +455,8 @@ plot.svysae <- function(x, return_list = F, plot.factor = NULL, ...) {
 #' }
 compareEstimates <- function(x,
                              posterior.sample = NULL,
-                             title = NULL) {
+                             title = NULL, 
+                             return.plot = FALSE) {
   
   
   x_att <- attributes(x)
@@ -545,6 +547,7 @@ compareEstimates <- function(x,
     } else if (is.null(posterior.sample)) {
       g_heat <-  g_heat + ggplot2::labs(title = x_att$inla.fitted[i])
     }
+    if(return.plot) return(g_heat)
     suppressWarnings(print(g_heat))
   }
 }
