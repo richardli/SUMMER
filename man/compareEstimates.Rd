@@ -4,12 +4,16 @@
 \alias{compareEstimates}
 \title{Plot heatmap comparing pairwise posterior exceedence probabilities for svysae object}
 \usage{
-compareEstimates(x, posterior.sample = NULL)
+compareEstimates(x, posterior.sample = NULL, title = NULL, return.plot = FALSE)
 }
 \arguments{
 \item{x}{an object in the S3 class of svysae, fhModel, or clusterModel. Plots are created for all models in this object.}
 
 \item{posterior.sample}{Matrix of posteriors samples of area level quantities with one row for each area and one column for each sample. This argument may be specified to only provide a heatmap for the desired samples.}
+
+\item{title}{Optional parameter changing the title of the plot}
+
+\item{return.plot}{Logical indicator for whether the ggplot object is returned}
 }
 \value{
 ggplot containing heat map of pairwise comparisons
