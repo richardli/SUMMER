@@ -126,6 +126,26 @@ ridgePlot(results = density, year_plot = c(1990:2019),
 ncol = 4, by.year=FALSE, per1000 = TRUE)
 
 
+# Example using surveyPrev package output
+
+library(surveyPrev)
+dhsData <- getDHSdata(country = "Rwanda", indicator = "nmr", year = 2019)
+data <- getDHSindicator(dhsData, indicator = "nmr")
+geo <- getDHSgeo(country = "Rwanda", year = 2019)
+poly.adm1 <- geodata::gadm(country="RWA", level=1, path=tempdir())
+poly.adm1 <- sf::st_as_sf(poly.adm1)
+poly.adm2 <- geodata::gadm(country="RWA", level=2, path=tempdir())
+poly.adm2 <- sf::st_as_sf(poly.adm2)
+cluster.info <- clusterInfo(geo = geo, 
+              poly.adm1 = poly.adm1, 
+              poly.adm2 = poly.adm2,
+                            by.adm1 = "NAME_1", 
+                            by.adm2 = "NAME_2")
+
+fit1 <- directEST(data = data, cluster.info = cluster.info,  admin = 1)
+fit2 <- directEST(data = data, cluster.info = cluster.info,  admin = 2) 
+ridgePlot(fit1, direction = -1)
+ridgePlot(fit2, direction = -1)
 
 }
 
