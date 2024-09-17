@@ -81,19 +81,37 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strat
 
       # FOR SURVEYPREV INPUT
 
-      if(class(x) %in% c("fhModel", "clusterModel")){
+      if(class(x) %in% c("fhModel", "clusterModel", "directEST")){
            x_att <- attributes(x)
-        # USING SURVEYPREV CLASSES
+           domain.names <- x_att$domain.names
+        # USING SURVEYPREV CLASSES: smoothed model
         if(x_att$class %in% c("fhModel", "clusterModel")){
           if ("admin2_post" %in% x_att$names){
               samples = x$admin2_post
           }else{
               samples = x$admin1_post
           }
+        # USING SURVEYPREV CLASSES: direct est
+        }else{
+          if("res.admin1" %in% names(x)){
+            domain.names <- x$res.admin1$admin1.name
+            samples <- matrix(NA, nsim, length(domain.names))
+            for(i in 1:dim(x$res.admin1)[1]){
+              samples[, i] <- expit(rnorm(nsim, mean = x$res.admin1$direct.logit.est[i], 
+                                          sd = (x$res.admin1$direct.logit.prec[i])^(-1/2)))
+            }
+          }else{
+            domain.names <- x$res.admin2$admin2.name.full
+            samples <- matrix(NA, nsim, length(domain.names))
+            for(i in 1:dim(x$res.admin2)[1]){
+              samples[, i] <- expit(rnorm(nsim, mean = x$res.admin2$direct.logit.est[i], 
+                                          sd = (x$res.admin2$direct.logit.prec[i])^(-1/2)))
+            }
+          }
         }
         # samples is now a nsamp * nregion matrix
-        samples.long <- data.frame(region.name = rep(x_att$domain.names, each = nrow(samples)), 
-                       value = as.numeric(samples))
+        samples.long <- data.frame(region.name = rep(domain.names, each = nrow(samples)), 
+                                   value = as.numeric(samples))
         if("res.admin2" %in% names(x)){
           upper <- x$res.admin2[, c("admin2.name.full", "admin1.name")]
           upper$admin2.name.short <- NA
