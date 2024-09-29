@@ -174,9 +174,9 @@ mapPlot <- function(data = NULL, variables, values = NULL, labels = NULL, geo, b
     # # sf version      
     # }else{
        if(!is.null(cut)){
-            g <- g + ggplot2::geom_sf(ggplot2::aes(group = group, fill = cut(value, cut)), color = border, size = size) + ggplot2::coord_sf()
+            g <- g + ggplot2::geom_sf(ggplot2::aes(group = group, fill = cut(value, cut)), color = border, linewidth = size) + ggplot2::coord_sf()
         }else{
-            g <- g + ggplot2::geom_sf(ggplot2::aes(group = group, fill = value), color = border, size = size)  + ggplot2::coord_sf()
+            g <- g + ggplot2::geom_sf(ggplot2::aes(group = group, fill = value), color = border, linewidth = size)  + ggplot2::coord_sf()
         }   
     # }
 
