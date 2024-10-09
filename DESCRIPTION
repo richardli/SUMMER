@@ -21,7 +21,29 @@ URL: https://github.com/richardli/SUMMER,
 BugReports: https://github.com/richardli/SUMMER/issues
 Depends: R (>= 3.5)
 License: GPL (>= 2)
-Imports: survey, stats, spdep, survival, ggplot2, scales, utils, Matrix, reshape2, viridis, sp, sf, shadowtext, ggridges, methods, data.table, RColorBrewer, grDevices, fields, terra, haven
+Imports: 
+    survey,
+    stats,
+    spdep,
+    survival,
+    ggplot2,
+    scales,
+    utils,
+    Matrix,
+    reshape2,
+    viridis,
+    sp,
+    sf,
+    shadowtext,
+    ggridges,
+    methods,
+    data.table,
+    RColorBrewer,
+    grDevices,
+    fields,
+    terra,
+    haven,
+    lifecycle
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
@@ -30,3 +52,4 @@ Suggests: INLA, knitr, rmarkdown, readstata13, patchwork, rdhs, R.rsp, sae, dply
 VignetteBuilder: R.rsp, knitr
 NeedsCompilation: no
 Config/build/clean-inst-doc: FALSE
+Roxygen: list(markdown = TRUE)
