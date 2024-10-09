@@ -8,8 +8,7 @@
 #' @param mesh SPDE mesh
 #' @param effRange effective spatial range
 #' @param margVar marginal variance of the spatial process
-#' @param inla.seed seed input to inla.qsample. 0L sets seed intelligently, 
-#' > 0 sets a specific seed, < 0 keeps existing RNG
+#' @param inla.seed seed input to inla.qsample. 0L sets seed intelligently, positive value sets a specific seed, negative value keeps existing RNG
 #' 
 #' @author John Paige
 #' 

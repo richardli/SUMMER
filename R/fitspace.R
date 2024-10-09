@@ -1,4 +1,4 @@
-#' Fit space-time smoothing models for a generic outcome from complex surveys.
+#' Fit space-time smoothing models for a binary outcome from complex surveys.
 #'
 #' This function calculates the direct estimates by region and fit a simple spatial smoothing model to the direct estimates adjusting for survey design.
 #' Normal or binary variables are currently supported. For binary variables, the logit transformation is performed on the direct estimates of probabilities, and a Gaussian additive model is fitted on the logit scale using INLA.
@@ -8,15 +8,16 @@
 #' @param data The input data frame. The input data  with column of the response variable (\code{responseVar}), region ID (\code{regionVar}), stratification within region (\code{strataVar}), and cluster ID (\code{clusterVar}).
 #' \itemize{ 
 #' \item For area-level model, the data frame consist of survey observations and corresponding survey weights (\code{weightVar}). 
-#' \item For unit-level model and \code{is.agg = FALSE}, the data frame should consist of aggregated counts by clusters (for binary responses), or any cluster-level response (for continuous response). For binary response (\code{responseType = 'binary'}), the beta-binomial model will be fitted for cluster-level counts. For continuous response (\code{responseType = 'gaussian'}), a Gaussian smoothing model will be fitted on the cluster-level response. 
-#' \item For unit-level model and \code{is.agg = TRUE}, the data frame should be the same as in the area-level model. For binary response (\code{responseType = 'binary'}), the beta-binomial model will be fitted for cluster-level counts aggregated internally. For continuous response (\code{responseType = 'gaussian'}), the nested error model will be fitted on unit-level response.
+#' \item For unit-level model and \code{is.agg = FALSE}, the data frame should consist of aggregated counts by clusters (for binary responses), or any cluster-level response (for continuous response). For binary response (\code{response.type = 'binary'}), the beta-binomial model will be fitted for cluster-level counts. For continuous response (\code{response.type = 'gaussian'}), a Gaussian smoothing model will be fitted on the cluster-level response. 
+#' \item For unit-level model and \code{is.agg = TRUE}, the data frame should be the same as in the area-level model. For binary response (\code{response.type = 'binary'}), the beta-binomial model will be fitted for cluster-level counts aggregated internally. For continuous response (\code{response.type = 'gaussian'}), the nested error model will be fitted on unit-level response.
 #' }
 #' @param geo Deprecated argument from early versions.
 #' @param Amat Adjacency matrix for the regions. If set to NULL, the IID spatial effect will be used.
 #' @param region.list a vector of region names. Only used when IID model is used and the adjacency matrix not specified. This allows the output to include regions with no sample in the data. When the spatial adjacency matrix is specified, the column names of the adjacency matrix will be used to determine region.list. If set to NULL, all regions in the data are used.
 #' @param X Areal covariates data frame. One of the column name needs to match the \code{regionVar} specified in the function call, in order to be linked to the data input. Currently only supporting time-invariant region-level covariates.
 #' @param X.unit Column names of unit-level covariates. When \code{X.unit} is specified, a nested error model will be fitted with unit-level IID noise, and area-level predictions are produced by plugging in the covariate specified in the \code{X} argument. When \code{X} is not specified, the empirical mean of each covariate will be used. This is only implemented for continuous response with the Gaussian likelihood model and unit-level model. 
-#' @param responseType Type of the response variable, currently supports 'binary' (default with logit link function) or 'gaussian'. 
+#' @param responseType `r lifecycle::badge("deprecated")` The argument has been renamed into \code{response.type}.
+#' @param response.type Type of the response variable, currently supports 'binary' (default with logit link function) or 'gaussian'. 
 #' @param responseVar the response variable
 #' @param strataVar the strata variable used in the area-level model. 
 #' @param weightVar the weights variable
@@ -30,7 +31,8 @@
 #' @param formula a string of user-specified random effects model to be used in the INLA call
 #' @param timeVar The variable indicating time period. If set to NULL then the temporal model and space-time interaction model are ignored.
 #' @param time.model the model for temporal trends and interactions. It can be either "rw1" or "rw2".
-#' @param include_time_unstruct  Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates from cluster-level model. The argument only applies to the unit-level models. Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included. 
+#' @param include_time_unstruct  `r lifecycle::badge("deprecated")` The argument has been renamed into \code{include.time.unstruct}.
+#' @param include.time.unstruct  Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates from cluster-level model. The argument only applies to the unit-level models. Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included. 
 #' @param type.st can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.
 #' @param direct.est data frame of direct estimates, with column names of response and region specified by \code{responseVar}, \code{regionVar}, and \code{timeVar}.  When \code{direct.est} is specified, it overwrites the \code{data} input. 
 #' @param direct.est.var the column name corresponding to the variance of direct estimates.
@@ -50,9 +52,10 @@
 #' \item{fit}{a fitted INLA object}
 #' \item{CI}{input argument}
 #' \item{Amat}{input argument}
-#' \item{responseType}{input argument}
+#' \item{response.type}{input argument}
 #' \item{formula}{INLA formula}
 #' @seealso \code{\link{getDirectList}}, \code{\link{smoothDirect}}
+#' @importFrom lifecycle deprecated
 #' @importFrom stats median quantile sd var aggregate as.formula
 #' @author Zehang Richard Li 
 #' @examples
@@ -63,8 +66,8 @@
 #' 
 #' data(DemoData2)
 #' data(DemoMap2)
-#' fit0 <- smoothSurvey(data=DemoData2,  
-#' Amat=DemoMap2$Amat, responseType="binary", 
+#' fit0 <- fitGeneric(data=DemoData2,  
+#' Amat=DemoMap2$Amat, response.type="binary", 
 #' responseVar="tobacco.use", strataVar="strata", 
 #' weightVar="weights", regionVar="region", 
 #' clusterVar = "~clustid+id", CI = 0.95)
@@ -72,14 +75,14 @@
 #' 
 #' # if only direct estimates without smoothing is of interest
 #' fit0.dir <- smoothSurvey(data=DemoData2,  
-#' Amat=DemoMap2$Amat, responseType="binary", 
+#' Amat=DemoMap2$Amat, response.type="binary", 
 #' responseVar="tobacco.use", strataVar="strata", 
 #' weightVar="weights", regionVar="region", 
 #' clusterVar = "~clustid+id", CI = 0.95, smooth = FALSE)
 #' 
 #' # posterior draws can be returned with save.draws = TRUE
 #' fit0.draws <- smoothSurvey(data=DemoData2,  
-#' Amat=DemoMap2$Amat, responseType="binary", 
+#' Amat=DemoMap2$Amat, response.type="binary", 
 #' responseVar="tobacco.use", strataVar="strata", 
 #' weightVar="weights", regionVar="region", 
 #' clusterVar = "~clustid+id", CI = 0.95, save.draws = TRUE)
@@ -90,7 +93,7 @@
 #'  Xmat <- aggregate(age~region, data = DemoData2, 
 #' 						FUN = function(x) mean(x))
 #'  fit1 <- smoothSurvey(data=DemoData2,  
-#'   Amat=DemoMap2$Amat, responseType="binary", 
+#'   Amat=DemoMap2$Amat, response.type="binary", 
 #'   X = Xmat,
 #'   responseVar="tobacco.use", strataVar="strata", 
 #'   weightVar="weights", regionVar="region", 
@@ -101,7 +104,7 @@
 #' fit2 <- smoothSurvey(data=NULL, direct.est = direct, 
 #'                     Amat=DemoMap2$Amat, regionVar="region",
 #'                     responseVar="HT.est", direct.est.var = "HT.var", 
-#'                     responseType = "gaussian")
+#'                     response.type = "gaussian")
 #' # Check it is the same as fit0
 #' plot(fit2$smooth$mean, fit0$smooth$mean)
 #' 
@@ -113,12 +116,12 @@
 #' fit3 <- smoothSurvey(data=NULL, direct.est = direct.logit, 
 #'                Amat=DemoMap2$Amat, regionVar="region",
 #'                responseVar="HT.logit.est", direct.est.var = "HT.logit.var",
-#'                responseType = "gaussian")
+#'                response.type = "gaussian")
 #' # Check it is the same as fit0
 #' plot(fit3$smooth$mean, fit0$smooth$logit.mean)
 #' 
 #' # Example with non-spatial smoothing using IID random effects
-#' fit4 <- smoothSurvey(data=DemoData2, responseType="binary", 
+#' fit4 <- smoothSurvey(data=DemoData2, response.type="binary", 
 #'        responseVar="tobacco.use", strataVar="strata", 
 #'        weightVar="weights", regionVar="region", 
 #'        clusterVar = "~clustid+id", CI = 0.95)
@@ -126,7 +129,7 @@
 #' # Example with missing regions in the raw input
 #' DemoData2.sub <- subset(DemoData2, region != "central")
 #' fit.without.central <- smoothSurvey(data=DemoData2.sub,  
-#'                          Amat=NULL, responseType="binary", 
+#'                          Amat=NULL, response.type="binary", 
 #'                          responseVar="tobacco.use", strataVar="strata", 
 #'                          weightVar="weights", regionVar="region", 
 #'                          clusterVar = "~clustid+id", CI = 0.95)
@@ -135,7 +138,7 @@
 #' 
 #' fit.without.central <- smoothSurvey(data=DemoData2.sub,  
 #'                          Amat=NULL, region.list = unique(DemoData2$region),
-#'                          responseType="binary", 
+#'                          response.type="binary", 
 #'                          responseVar="tobacco.use", strataVar="strata", 
 #'                          weightVar="weights", regionVar="region", 
 #'                          clusterVar = "~clustid+id", CI = 0.95)
@@ -148,7 +151,7 @@
 #' #  The "region.struct" and "hyperpc1" are picked to match internal object 
 #' #  names. Other object names can be inspected from the source of smoothSurvey.
 #' fit5 <- smoothSurvey(data=DemoData2,  
-#'        Amat=DemoMap2$Amat, responseType="binary", 
+#'        Amat=DemoMap2$Amat, response.type="binary", 
 #'        formula = "f(region.struct, model = 'iid', hyper = hyperpc1)",
 #'        pc.u = 1, pc.alpha = 0.01,
 #'        responseVar="tobacco.use", strataVar="strata", 
@@ -169,7 +172,7 @@
 #' 
 #' # Beta-binomial likelihood is used in this model
 #' fit6 <- smoothSurvey(data=data, 
-#'   Amat=DemoMap2$Amat, responseType="binary", 
+#'   Amat=DemoMap2$Amat, response.type="binary", 
 #'   X = Xmat, is.unit.level = TRUE,
 #'   responseVar="tobacco.use", strataVar.within = "urbanicity", 
 #'   regionVar="region", clusterVar = "clustid", CI = 0.95)
@@ -185,7 +188,7 @@
 #' head(data.agg)
 #' 
 #' fit7 <- smoothSurvey(data=data.agg, 
-#'   Amat=DemoMap2$Amat, responseType="binary", 
+#'   Amat=DemoMap2$Amat, response.type="binary", 
 #'   X = Xmat, is.unit.level = TRUE, is.agg = TRUE,
 #'   responseVar = "tobacco.use", strataVar.within = "urbanicity", 
 #'   totalVar = "total", regionVar="region", clusterVar = "clustid", CI = 0.95)
@@ -201,7 +204,7 @@
 #' #  the continuous direct estimates are smoothed instead of 
 #' #  their logit-transformed versions for binary response.
 #' fit8 <- smoothSurvey(data=DemoData2, Amat=DemoMap2$Amat, 
-#'        responseType="gaussian", responseVar="age", strataVar="strata", 
+#'        response.type="gaussian", responseVar="age", strataVar="strata", 
 #'        weightVar="weights", regionVar="region", 
 #'        pc.u.phi = 0.5, pc.alpha.phi = 0.5,
 #'        clusterVar = "~clustid+id", CI = 0.95)
@@ -218,7 +221,7 @@
 #' #   they are ignored here. Only the input unit is considered.
 #' #   So here we do not need to specify clusterVar any more. 
 #' fit9 <- smoothSurvey(data= data, 
-#'   Amat=DemoMap2$Amat, responseType="gaussian", 
+#'   Amat=DemoMap2$Amat, response.type="gaussian", 
 #'   is.unit.level = TRUE, responseVar="age", strataVar.within = NULL,
 #'   regionVar="region", clusterVar = NULL, CI = 0.95)
 #' 
@@ -227,7 +230,7 @@
 #'                       data = data, FUN = median)
 #' 
 #' fit10 <- smoothSurvey(data= data.median, 
-#'   Amat=DemoMap2$Amat, responseType="gaussian", 
+#'   Amat=DemoMap2$Amat, response.type="gaussian", 
 #'   is.unit.level = TRUE, responseVar="age", strataVar.within = NULL,
 #'   regionVar="region", clusterVar = "clustid", CI = 0.95)
 #' 
@@ -235,7 +238,7 @@
 #' # To further incorporate within-area stratification
 #' 
 #' fit11 <- smoothSurvey(data = data, 
-#'   Amat = DemoMap2$Amat, responseType = "gaussian", 
+#'   Amat = DemoMap2$Amat, response.type = "gaussian", 
 #'   is.unit.level = TRUE, responseVar="age", strataVar.within = "urbanicity",
 #'   regionVar = "region", clusterVar = NULL, CI = 0.95)  
 #' 
@@ -246,7 +249,7 @@
 #'                             urban = 0.3, 
 #'                             rural = 0.7)
 #' fit12 <- smoothSurvey(data=data, 
-#'   Amat=DemoMap2$Amat, responseType="gaussian", 
+#'   Amat=DemoMap2$Amat, response.type="gaussian", 
 #'   is.unit.level = TRUE, responseVar="age", strataVar.within = "urbanicity",
 #'   regionVar="region", clusterVar = NULL, CI = 0.95,
 #'   weight.strata = prop)  
@@ -278,7 +281,7 @@
 #' samp <- sim[sample(1:4000, 20), ]
 #' fit.sim <- smoothSurvey(data=samp , 
 #'                   X.unit = c("X1", "X2"),
-#'                   X = Xmean, Amat=NULL, responseType="gaussian", 
+#'                   X = Xmean, Amat=NULL, response.type="gaussian", 
 #'                   is.unit.level = TRUE, responseVar="Y", regionVar = "region",  
 #'                   pc.u = 1, pc.alpha = 0.01, CI = 0.95) 
 #' 
@@ -286,25 +289,37 @@
 #' @export
 
 
-smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = NULL, X.unit = NULL, responseType = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], include_time_unstruct = FALSE, type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, save.draws = FALSE, smooth = TRUE, ...){
+smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = NULL, X.unit = NULL, responseType = deprecated(), response.type = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], include_time_unstruct = deprecated(), include.time.unstruct = FALSE, type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, save.draws = FALSE, smooth = TRUE, ...){
+
+	if (lifecycle::is_present(include_time_unstruct)) {
+	    lifecycle::deprecate_soft(when = "2.0.0", what = "smoothSurvey(include_time_unstruct)", with = "smoothSurvey(include.time.unstruct)")
+	    include.time.unstruct <- include_time_unstruct
+	  }
+
+
+	if (lifecycle::is_present(responseType)) {
+	    lifecycle::deprecate_soft("2.0.0", "smoothSurvey(responseType)", "smoothSurvey(response.type)")
+	    response.type <- responseType
+	  }  
+
 
     svy <- TRUE
     if(is.null(responseVar)){
         stop("Response variable not specified")
     }
-    if(is.null(responseType)){
-        stop("responseType not specified")
+    if(is.null(response.type)){
+        stop("response.type not specified")
     }  
     if(is.null(Amat) && smooth){
         message("No spatial adjacency matrix is specified. IID area random effect is used.")
     }
     is.iid.space <- FALSE
-    responseType <- tolower(responseType)
+    response.type <- tolower(response.type)
     
     # there is no aggregated input for Gaussian models
-    if(responseType == "gaussian") is.agg <- FALSE
+    if(response.type == "gaussian") is.agg <- FALSE
 
-    if(responseType == "binary" && !is.null(X.unit)){
+    if(response.type == "binary" && !is.null(X.unit)){
         X.unit <- NULL
         warning("Unit-level covariates not implemented for binary response variable. Set X.unit = NULL.")
     }
@@ -319,7 +334,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
 
     # whether we are fitting nested error model
     # For future update, we can also include two-fold nested error model by adding PSU-level effect
-    if(responseType == "gaussian" && is.unit.level){
+    if(response.type == "gaussian" && is.unit.level){
         is.nested <- TRUE
         clusterVar <- NULL
     }else{
@@ -338,7 +353,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
     ##---------------------------------------------------------------------##
     if(is.unit.level){
         
-        if(responseType == "binary"){
+        if(response.type == "binary"){
             message("Fitting unit-level model.")
             msg <- "Unit-level model"
         }else{
@@ -400,7 +415,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
                 vars <- c(vars, "time0")
             }
             counts <- getCounts(data[, c(vars, "response0")], variables = 'response0', by = vars, drop=TRUE) 
-            # if(responseType == "gaussian"){
+            # if(response.type == "gaussian"){
             #     stop("Response variable is at SSU level. The function currently only supports PSU-level response.")
             #     counts[, "response0"] <- counts[, "response0"] / counts[, "total"]
             # }  
@@ -409,7 +424,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
             if(!is.null(timeVar)){
                 data$time0 <- data[, timeVar]
             }
-            if(is.null(totalVar) && responseType == "binary"){
+            if(is.null(totalVar) && response.type == "binary"){
                 stop("Which column correspond to cluster total is not specified")
             }
             data$total <- data[, totalVar]
@@ -543,9 +558,9 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
     ## Set up INLA 
     ##---------------------------------------------------------------------##    
 
-    if(responseType == "binary"){
+    if(response.type == "binary"){
         FUN <- expit
-    }else if(responseType == "gaussian"){
+    }else if(response.type == "gaussian"){
         FUN <- function(x){x}
     }
     if(!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
@@ -589,16 +604,16 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
             name.i <- mean$region0            
             p.i <- mean$response0
             var.i <- mean$se^2
-            if(responseType == "binary"){
+            if(response.type == "binary"){
                 ht <- log(p.i/(1-p.i))
                 ht.v <- var.i/(p.i^2*(1-p.i)^2)
                 ht.prec <- 1/ht.v
-            }else if(responseType == "gaussian"){
+            }else if(response.type == "gaussian"){
                 ht <- p.i
                 ht.v <- var.i
                 ht.prec <- 1/ht.v
             }else{
-                stop("responseType argument only supports binary or gaussian at the time.")
+                stop("response.type argument only supports binary or gaussian at the time.")
             }
             n <- y <- NA
         ##---------------------------------------------------------------------##
@@ -619,16 +634,16 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
             colnames(mean) <- c("mean", "n", "y") 
             p.i <- mean$mean
             var.i <- p.i * (1-p.i)/mean$n
-            if(responseType == "binary"){
+            if(response.type == "binary"){
                 ht <- log(p.i/(1-p.i))
                 ht.v <- var.i/(p.i^2*(1-p.i)^2)
                 ht.prec <- 1/ht.v
-            }else if(responseType == "gaussian"){
+            }else if(response.type == "gaussian"){
                 ht <- p.i
                 ht.v <- var.i
                 ht.prec <- 1/ht.v
             }else{
-                stop("responseType argument only supports binary or gaussian at the time.")
+                stop("response.type argument only supports binary or gaussian at the time.")
             }
             n <- mean$n
             y <- mean$y
@@ -638,16 +653,16 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
         }else{
             p.i <- data$response0
             var.i <- data$var0
-            if(responseType == "binary"){
+            if(response.type == "binary"){
                 ht <- log(p.i/(1-p.i))
                 ht.v <- var.i/(p.i^2*(1-p.i)^2)
                 ht.prec <- 1/ht.v
-            }else if(responseType == "gaussian"){
+            }else if(response.type == "gaussian"){
                 ht <- p.i
                 ht.v <- var.i
                 ht.prec <- 1/ht.v
             }else{
-                stop("responseType argument only supports binary or gaussian at the time.")
+                stop("response.type argument only supports binary or gaussian at the time.")
             } 
             n <- NA
             y <- NA
@@ -700,7 +715,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
     ## Specify INLA formula
     ##---------------------------------------------------------------------##    
     # binary non-survey area-level model
-    if(!svy && responseType == "binary" && !is.unit.level){
+    if(!svy && response.type == "binary" && !is.unit.level){
         formulatext <- "y ~ 1"
     # binary and continuous survey area-level model  
     # and continuous non-survey area-level model  
@@ -796,16 +811,16 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
     ##---------------------------------------------------------------------##   
 
     if(smooth){
-    if(is.unit.level && responseType == "binary"){
+    if(is.unit.level && response.type == "binary"){
         fit <- INLA::inla(formula, family="betabinomial", Ntrials=dat$total, control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     
-    }else if(is.unit.level && responseType == "gaussian"){
+    }else if(is.unit.level && response.type == "gaussian"){
         fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2))  
 
-    }else if(!svy && responseType == "binary"){
+    }else if(!svy && response.type == "binary"){
          fit <- INLA::inla(formula, family="binomial", Ntrials=n, control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE, link=1),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     
-    }else if(!svy && responseType == "gaussian"){
+    }else if(!svy && response.type == "gaussian"){
         fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     }else{
          fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.logit.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
@@ -873,7 +888,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
         ## Estimates: Apply transformations
         ##---------------------------------------------------------------------##   
     
-        if(!svy && responseType == "binary"){
+        if(!svy && response.type == "binary"){
             tmp2 <- tmp
             proj[i, "logit.mean"] <- mean(tmp2)
             proj[i, "logit.var"] <- var(tmp2)
@@ -894,7 +909,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
             proj[i, "upper"] <- quantile(tmp2, 1-(1-CI)/2)
             proj[i, "median"] <- median(tmp2)
 
-            if(responseType == "binary"){
+            if(response.type == "binary"){
                 proj[i, "logit.mean"] <-mean(tmp)
                 proj[i, "logit.var"] <- var(tmp)
                 proj[i, "logit.lower"] <- quantile(tmp, (1-CI)/2)
@@ -929,7 +944,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
         for(i in 1:dim(draws.out)[1]){
             for(j in 1:nsim){
                 draws.out[i, paste0("sample:", j)]  <- sampAll[[j]]$latent[i, 1]
-                if(!include_time_unstruct && !is.null(timeVar)){
+                if(!include.time.unstruct && !is.null(timeVar)){
                     draws.out[i, paste0("sample:", j)]  <- draws.out[i, paste0("sample:", j)] - sampAll[[j]]$latent[paste0("time.unstruct:", draws.out$time[i, 1])]
                 }
             }
@@ -959,7 +974,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
         for(j in 1:length(sampAll)){
             r <- sampAll[[j]]$latent[paste0("region.struct:", match(proj.agg$region[i], colnames(Amat))), ]
             if(!is.null(timeVar)) r <- r + sampAll[[j]]$latent[paste0("time.struct:", proj.agg$time[i]), ]
-            if(!is.null(timeVar) && include_time_unstruct) r <- r + sampAll[[j]]$latent[paste0("time.unstruct:", proj.agg$time[i]), ]
+            if(!is.null(timeVar) && include.time.unstruct) r <- r + sampAll[[j]]$latent[paste0("time.unstruct:", proj.agg$time[i]), ]
 
             # only handling region-level covariates  
             if(!is.null(X)){
@@ -970,9 +985,9 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
             } 
             for(s in stratalist){
                 intercept = sampAll[[j]]$latent[paste0("strata0", s, ":1"), ]
-                if(responseType == "binary"){
+                if(response.type == "binary"){
                     draws[j] <- draws[j] + expit(r + intercept) * weight.strata[which, s]
-                }else if(responseType == "gaussian"){
+                }else if(response.type == "gaussian"){
                     draws[j] <- draws[j] + (r + intercept) * weight.strata[which, s]
                 }
             } 
@@ -982,7 +997,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
         proj.agg[i, "lower"] <- quantile(draws, (1 - CI)/2)
         proj.agg[i, "upper"] <- quantile(draws, 1 - (1 - CI)/2)
         proj.agg[i, "median"] <- median(draws)
-        if(responseType == "binary"){
+        if(response.type == "binary"){
             proj.agg[i, "logit.mean"] <- mean(logit(draws))
             proj.agg[i, "logit.var"] <- var(logit(draws))
             proj.agg[i, "logit.lower"] <- quantile(logit(draws), (1-CI)/2)
@@ -1015,7 +1030,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
        if(sum(!is.na(HT$n)) == 0) HT <- HT[, colnames(HT) != "n"]
        if(sum(!is.na(HT$y)) == 0) HT <- HT[, colnames(HT) != "y"]
        if(sum(!is.na(proj$time)) == 0) proj <- proj[, colnames(proj) != "time"]
-       if(responseType == "gaussian"){
+       if(response.type == "gaussian"){
             HT <- HT[, !colnames(HT) %in% c("HT.logit.est", "HT.logit.var", "HT.logit.prec")]
             proj <- proj[, !colnames(HT) %in% c("logit.mean", "logit.var", "logit.median", "logit.lower", "logit.upper")]
        }    
@@ -1029,7 +1044,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
                fit = fit, 
                CI = CI,
                Amat = Amat,
-               responseType = responseType,
+               response.type = response.type,
                formula = formula, 
                msg = msg)
    if(save.draws){
@@ -1042,6 +1057,17 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
 }
 
 
+
+#' Fit space-time smoothing models for a binary outcome from complex surveys.
+#' 
+#' 
+#' @description 
+#' `r lifecycle::badge("deprecated")`
+#' 
+#' `fitGeneric()` was renamed to `smoothSurvey()` to create a more
+#' consistent API.
+#' @keywords internal
 #' @export
-#' @rdname smoothSurvey
-fitGeneric <-  smoothSurvey
+fitGeneric <- function(...) {
+  lifecycle::deprecate_stop("2.0.0", "fitGeneric()", "smoothSurvey()")
+}

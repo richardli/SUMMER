@@ -1,7 +1,7 @@
 #' Simulate hyperpriors from an GMRF
 #' 
 #'
-#' @param R Desired prior odds ratio. Default to 2, i.e., a 95\% prior interval for the residual odds ratios lies in the interval (R, 1/R).
+#' @param R Desired prior odds ratio. Default to 2, i.e., a 95% prior interval for the residual odds ratios lies in the interval (R, 1/R).
 #' @param nsamp Sample to simulate for scaling factor
 #' @param nsamp.check Sample to simulate for checking range
 #' @param Amat Adjacency matrix of the areas in the data.

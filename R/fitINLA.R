@@ -992,6 +992,19 @@ if(is.main.ar){
 }
 
 
+#' Smoothed direct estimates for mortality rates 
+#' 
+#' 
+#' @description 
+#' `r lifecycle::badge("deprecated")`
+#' 
+#' `fitINLA()` was renamed to `smoothDirect()` to create a more
+#' consistent API.
+#' @keywords internal
 #' @export
-#' @rdname smoothDirect
-fitINLA <- smoothDirect
+fitINLA <- function(...) {
+  lifecycle::deprecate_stop("2.0.0", "fitINLA()", "smoothDirect()")
+}
+
+
+

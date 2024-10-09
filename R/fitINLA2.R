@@ -1293,6 +1293,16 @@ if(family == "betabinomialna"){
   }
 }
 
+#' Cluster-level space-time smoothing models for mortality rates 
+#' 
+#' 
+#' @description 
+#' `r lifecycle::badge("deprecated")`
+#' 
+#' `fitINLA2()` was renamed to `smoothCluster()` to create a more
+#' consistent API.
+#' @keywords internal
 #' @export
-#' @rdname smoothCluster
-fitINLA2 <- smoothCluster
+fitINLA2 <- function(...) {
+  lifecycle::deprecate_stop("2.0.0", "fitINLA2()", "smoothCluster()")
+}
