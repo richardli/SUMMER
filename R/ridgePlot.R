@@ -5,8 +5,10 @@
 #' @param x output from \code{\link{smoothDirect}} for the smoothed direct estimates, or \code{\link{smoothCluster}} for the cluster-level estimates.
 #' @param nsim number of posterior draws to take. Only used for cluster-level models when \code{draws} is NULL. Otherwise the posterior draws in \code{draws} will be used instead without resampling.
 #' @param draws Output of \code{\link{getSmoothed}} with \code{save.draws} set to TRUE. This argument allows the previously sampled draws (by setting \code{save.draws} to be TRUE) be used in new aggregation tasks. This argument is only used for cluster-level models.   
-#' @param year_plot A vector indicate which years to plot
-#' @param strata_plot Name of the strata to plot. If not specified, the overall is plotted.
+#' @param year.plot A vector indicate which years to plot
+#' @param year_plot deprecated 
+#' @param strata.plot Name of the strata to plot. If not specified, the overall is plotted.
+#' @param strata_plot deprecated
 #' @param by.year logical indicator for whether the output uses years as facets. 
 #' @param ncol number of columns in the output figure.
 #' @param scale numerical value controlling the height of the density plots.
@@ -96,8 +98,17 @@
 #' 
 
 #' @export
-ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strata_plot = NULL, by.year = TRUE, ncol = 4, scale = 2, per1000 = FALSE, order = 0, direction = 1, linewidth = 0.5, results = NULL, save.density = FALSE, ...){
+ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year.plot = NULL, year_plot = deprecated(), strata.plot = NULL, strata_plot = deprecated(), by.year = TRUE, ncol = 4, scale = 2, per1000 = FALSE, order = 0, direction = 1, linewidth = 0.5, results = NULL, save.density = FALSE, ...){
 
+
+      if (lifecycle::is_present(year_plot)) {
+          lifecycle::deprecate_warn("2.0.0", "ridgePlot(year_plot)", "ridgePlot(year.plot)")
+          year.plot <- year_plot
+      }
+      if (lifecycle::is_present(strata_plot)) {
+          lifecycle::deprecate_warn("2.0.0", "ridgePlot(strata_plot)", "ridgePlot(strata.plot)")
+          strata.plot <- strata_plot
+      }
       years <-  y <- `..x..` <- region <- value <- region.name <- admin2.name.short <- NA
 
       # FOR SURVEYPREV INPUT
@@ -368,9 +379,3 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strat
   }
 
 }
-
-
-
-#' @export
-#' @rdname ridgePlot
-getSmoothedDensity <- ridgePlot
