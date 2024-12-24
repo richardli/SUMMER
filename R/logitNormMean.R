@@ -18,9 +18,9 @@
 #' @details If \eqn{\mbox{logit}(Y) \sim N(\mu, \sigma^2)}{logit(Y) ~ N(mu, sigma^2)}, 
 #' This function calculates \eqn{E[Y]}{E[Y]} via either numerical integration or by 
 #' assuming that Y follows a logistic distribution. Under this approximation, setting 
-#' \eqn{k = 16 \sqrt(3) / (15 \pi)}{k = 16 * sqrt(3) / (15 * pi)}, we approximate 
+#' \eqn{k = 16 \sqrt{3} / (15 \pi)}{k = 16 * sqrt(3) / (15 * pi)}, we approximate 
 #' the expectation as:
-#' \deqn{E[Y] = expit(\mu / \sqrt(1 + k^2 \sigma^2))}{E[Y] = expit(mu / sqrt(1 + k^2 * sigma^2))}.
+#' \deqn{E[Y] = expit(\mu / \sqrt{1 + k^2 \sigma^2})}{E[Y] = expit(mu / sqrt(1 + k^2 * sigma^2)}
 #' The above logistic approximation speeds up the computation, but also sacrifices 
 #' some accuracy.
 #' 

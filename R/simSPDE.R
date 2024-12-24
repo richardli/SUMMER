@@ -3,6 +3,9 @@
 #' Generates nCoords x nsim matrix of simulated 
 #' values of the SPDE spatial process
 #'
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' @param coords 2 column matrix of spatial coordinates at which to simulate the spatial process
 #' @param nsim number of draws from the SPDE model
 #' @param mesh SPDE mesh

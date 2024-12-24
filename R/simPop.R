@@ -6,6 +6,9 @@
 #' enumeration area level (represented as points), and aggregate to the pixel and 
 #' administrative areal level.
 #' 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' @param nsim Number of simulations
 #' @param easpa data.frame of enumeration area, households, and target population per area stratified by urban/rural with variables:
 #' \describe{
@@ -457,6 +460,9 @@ simPopSPDE = function(nsim=1, easpa, popMat, targetPopMat, poppsub, spdeMesh,
 #' Takes simulated populations and aggregates 
 #' them to the specified areal level. Also calculates the aggregated risk and prevalence.
 #' 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' @param pixelLevelPop pixel level population information that we want aggregate. In the same format as output from \code{\link{simPopCustom}}
 #' @param eaSamples nIntegrationPoint x nsim matrix of the number of enumeration areas per pixel sampled in the input pixel level population
 #' @param areas character vector of length nIntegrationPoints of area names over which we 
@@ -887,6 +893,9 @@ areaPopToArea = function(areaLevelPop, areasFrom, areasTo,
   list(aggregationResults=aggregationResults, aggregationMatrices=aggregationMatrices)
 }
 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' @describeIn simPop
 #' Simulate populations and population prevalences given census frame and population density 
 #' information. Uses custom spatial logit risk function and can include iid cluster 
@@ -1162,6 +1171,9 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
 #' Functions for calculating valuable quantities and for drawing from important 
 #' distributions for population simulation.
 #' 
+#' `r lifecycle::badge("experimental")`
+#' 
+#' 
 #' @param easpa Census frame. See \code{\link{simPopCustom}} for details
 #' @param popMat data.frame of pixellated grid of population densities. See \code{\link{simPopCustom}} for details
 #' @param i Index
@@ -1319,6 +1331,9 @@ rStratifiedMultnomial = function(n, popMat, easpa, stratifyByUrban=TRUE) {
   eaSamples
 }
 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' @describeIn simPopInternal Gives nIntegrationPoints x n matrix of draws from the stratified multinomial with values 
 # corresponding to the number of EAs in each pixel
 rStratifiedMultnomialBySubarea = function(n, popMat, easpa, stratifyByUrban=TRUE, poppsub=NULL, 
@@ -1424,6 +1439,9 @@ rStratifiedMultnomialBySubarea = function(n, popMat, easpa, stratifyByUrban=TRUE
   eaSamples
 }
 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' @describeIn simPopInternal 
 rMyMultinomial = function(n, i, stratifyByUrban=TRUE, urban=TRUE, popMat=NULL, easpa=NULL, min1PerSubarea=FALSE, 
                           method=c("mult1", "mult", "indepMH"), minSample=1) {
@@ -1459,6 +1477,9 @@ rMyMultinomial = function(n, i, stratifyByUrban=TRUE, urban=TRUE, popMat=NULL, e
   }
 }
 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' @describeIn simPopInternal 
 rMyMultinomialSubarea = function(n, i, easpsub, stratifyByUrban=TRUE, urban=TRUE, popMat=NULL) {
   
@@ -1490,6 +1511,9 @@ rMyMultinomialSubarea = function(n, i, easpsub, stratifyByUrban=TRUE, urban=TRUE
   out
 }
 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' @describeIn simPopInternal Random (truncated) multinomial draws conditional on the number of each type being at least one
 rmultinom1 = function(n=1, size, prob, maxSize=8000*8000, method=c("mult1", "mult", "indepMH"), verbose=FALSE, minSample=100, 
                       maxExpectedSizeBeforeSwitch=1000*1e7, init=NULL, burnIn=floor(n/4), filterEvery=10, zeroProbZeroSamples=TRUE, 
@@ -1693,6 +1717,9 @@ rmultinom1 = function(n=1, size, prob, maxSize=8000*8000, method=c("mult1", "mul
   samples
 }
 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' @describeIn simPopInternal Take multilevel multinomial draws first from joint distribution of 
 #' number of households per EA given the total per stratum, and then from the joint 
 #' distribution of the total target population per household given 
@@ -1820,6 +1847,9 @@ sampleNMultilevelMultinomial = function(nDraws = ncol(pixelIndexMat), pixelIndex
   }
 }
 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' @describeIn simPopInternal Same as sampleNMultilevelMultinomial, except the number of EAs per pixel is fixed
 sampleNMultilevelMultinomialFixed = function(clustersPerPixel, nDraws=ncol(pixelIndices), pixelIndices=NULL, 
                                              urbanVals=NULL, areaVals=NULL, easpa, popMat, stratifyByUrban=TRUE, 

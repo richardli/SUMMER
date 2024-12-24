@@ -1,6 +1,7 @@
 #' Benchmark posterior draws to national estimates
 #' 
 #' `r lifecycle::badge("experimental")`
+#' 
 #' @param fitted output from \code{\link{getSmoothed}} to be benchmarked. 
 #' @param national a data frame of national level estimates that is benchmarked against, with at least two columns indicating national estimates (probability scale) and the associated standard error. If benchmarking over multiple time period, a third column indicating time period is needed.  
 #' @param estVar column name in \code{national} that indicates national estimates.

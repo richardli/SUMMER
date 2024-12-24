@@ -1,5 +1,8 @@
 #' Map projection for Kenya
 #' 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' Projection specifically chosen for Kenya. Project from lat/lon to northing/easting 
 #' in kilometers.  Uses epsg=21097 with km units. May not work on all systems due to 
 #' differences in the behavior between different PROJ and GDAL versions.

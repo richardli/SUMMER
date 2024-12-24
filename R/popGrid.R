@@ -1,5 +1,8 @@
 #' Generating pixellated populations, and population frames
 #' 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' Functions for generating pixellated population information and 
 #' population frames at the `area` and `subarea` levels.  
 #' The `area` and `subarea` levels can be thought of as big 
@@ -229,7 +232,7 @@
 #'   areaNameVar = "NAME_1", subareaNameVar="NAME_2"))
 #' 
 #' ## Adjust popMat to be target (neonatal) rather than general population density. First
-#' ## creat the target population frame
+#' ## create the target population frame
 #' ## (these numbers are based on IPUMS microcensus data)
 #' mothersPerHouseholdUrb = 0.3497151
 #' childrenPerMotherUrb = 1.295917
@@ -814,6 +817,9 @@ makePopIntegrationTab = function(kmRes=5, pop, domainMapDat, eastLim, northLim, 
   newPop
 }
 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' @describeIn makePopIntegrationTab Generate table of estimates of population
 #'   totals per subarea x urban/rural combination based on population density
 #'   raster at `kmres` resolution "grid", including custom integration points
@@ -842,6 +848,9 @@ getPoppsub = function(kmRes=1, pop, domainMapDat, eastLim, northLim, mapProjecti
   out$poppsub
 }
 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' @describeIn makePopIntegrationTab Adjust population densities in grid based on a population frame.
 #' @export
 adjustPopMat = function(popMat, poppaTarget=NULL, adjustBy=c("area", "subarea"), stratifyByUrban=TRUE) {
@@ -934,6 +943,9 @@ adjustPopMat = function(popMat, poppaTarget=NULL, adjustBy=c("area", "subarea"),
 #' regional totals. Technically, the totals can be at any level smaller  
 #' than the region level specified.
 #' 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' @param pointTotals Vector of point level totals that will be calibrated/normalized
 #' @param pointRegions Vector of regions associated with each point
 #' @param regions Vector of region names
@@ -991,6 +1003,9 @@ calibrateByRegion = function(pointTotals, pointRegions, regions, regionTotals) {
 }
 
 #' Generate a population frame of a similar format to poppa argument of \code{\link{simPopCustom}} with a custom set of regions
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' 
 #' @param popMat Pixellated grid data frame with variables `area` and `pop`. Assumed to be stratified by urban/rural
 #' @param regions character vector of length nPixels giving a custom set of regions for which to generate 
@@ -1128,6 +1143,9 @@ poppRegionFromPopMat = function(popMat, regions) {
   poppr
 }
 
+#' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' Set thresholds of population density for urbanicity classifications 
 #' within each region of the given type 
 #' 

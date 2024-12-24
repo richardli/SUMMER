@@ -1,5 +1,7 @@
 #' Determines which administrative areas contain the given points
 #' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' For any points not in an area, they are assigned the nearest area using 
 #' fields::fields.rdist.near or fields::rdist depending on the number of points 
 #' and the maximum memory in bytes with a warning.
