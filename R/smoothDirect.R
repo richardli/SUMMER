@@ -999,7 +999,7 @@ if(is.main.ar){
     
 
     fit <- INLA::inla(mod, family = "gaussian", control.compute = control.compute, data = exdat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE ))), scale = exdat$logit.prec, lincomb = lincombs.fit, control.inla = control.inla, control.fixed = control.fixed, verbose = verbose)
-    out <- list(model = mod, fit = fit, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, lincombs.info = lincombs.info, control.fixed = control.fixed, is.yearly = is.yearly, type.st = type.st, year.range = year.range, year.label = year.label, Amat = Amat, has.Amat = TRUE, is.temporal = is.temporal, msg = msg)
+    out <- list(model = mod, fit = fit, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, lincombs.info = lincombs.info, control.fixed = control.fixed, is.yearly = is.yearly, type.st = type.st, year.range = year.range, year_range = year.range, year.label = year.label, year_label = year.label, Amat = Amat, has.Amat = TRUE, is.temporal = is.temporal, msg = msg)
     class(out) <- "SUMMERmodel"
     return(out)
   } 
