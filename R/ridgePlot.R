@@ -6,9 +6,9 @@
 #' @param nsim number of posterior draws to take. Only used for cluster-level models when \code{draws} is NULL. Otherwise the posterior draws in \code{draws} will be used instead without resampling.
 #' @param draws Output of \code{\link{getSmoothed}} with \code{save.draws} set to TRUE. This argument allows the previously sampled draws (by setting \code{save.draws} to be TRUE) be used in new aggregation tasks. This argument is only used for cluster-level models.   
 #' @param year.plot A vector indicate which years to plot
-#' @param year_plot deprecated and replaced by year.plot
+#' @param year_plot `r lifecycle::badge("deprecated")` replaced by year.plot
 #' @param strata.plot Name of the strata to plot. If not specified, the overall is plotted.
-#' @param strata_plot deprecated and replaced by strata.plot
+#' @param strata_plot `r lifecycle::badge("deprecated")` replaced by strata.plot
 #' @param by.year logical indicator for whether the output uses years as facets. 
 #' @param ncol number of columns in the output figure.
 #' @param scale numerical value controlling the height of the density plots.
@@ -102,11 +102,11 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year.plot = NULL, year_
 
 
       if (lifecycle::is_present(year_plot)) {
-          lifecycle::deprecate_warn("2.0.0", "ridgePlot(year_plot)", "ridgePlot(year.plot)")
+          lifecycle::deprecate_soft("2.0.0", "ridgePlot(year_plot)", "ridgePlot(year.plot)")
           year.plot <- year_plot
       }
       if (lifecycle::is_present(strata_plot)) {
-          lifecycle::deprecate_warn("2.0.0", "ridgePlot(strata_plot)", "ridgePlot(strata.plot)")
+          lifecycle::deprecate_soft("2.0.0", "ridgePlot(strata_plot)", "ridgePlot(strata.plot)")
           strata.plot <- strata_plot
       }
       years <-  y <- `..x..` <- region <- value <- region.name <- admin2.name.short <- NA

@@ -27,7 +27,7 @@
 #' @param bias.adj.by vector of the column names specifying how to merge the bias adjustment to the count data. For example, if bias adjustment factor is provided in bias.adj for each region and time, then bias.adj.by should be `c("region", "time")`.
 #' @param formula INLA formula.  See vignette for example of using customized formula.
 #' @param year.label string vector of year names
-#' @param year_label deprecated and replaced by year.label
+#' @param year_label `r lifecycle::badge("deprecated")` replaced by year.label
 #' @param type.st type for space-time interaction
 #' @param survey.effect logical indicator whether to include a survey fixed effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this effect term will be set to 0.
 #' @param strata.time.effect logical indicator whether to include strata specific temporal trends.  
@@ -151,7 +151,7 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
   #            if user turned if explicitly, then leave it along
 
   if (lifecycle::is_present(year_label)) {
-      lifecycle::deprecate_warn("2.0.0", "plot.SUMMERproj(year_label)", "plot.SUMMERproj(year.label)")
+      lifecycle::deprecate_soft("2.0.0", "smoothCluster(year_label)", "smoothCluster(year.label)")
       year.label <- year_label
   }
 

@@ -1,7 +1,7 @@
 #' Extract posterior summaries of random effects
 #' 
 #' @param fitted output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}
-#' @param inla_mod deprecated and replaced by \code{fitted}.
+#' @param inla_mod `r lifecycle::badge("deprecated")` replaced by \code{fitted}.
 #' @param field which random effects to plot. It can be one of the following: space, time, and spacetime.
 #' @param CI Desired level of credible intervals
 #' @param draws Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.  
@@ -45,7 +45,7 @@ getDiag <- function(fitted, inla_mod = deprecated(), field = c("space", "time", 
 
 
   if (lifecycle::is_present(inla_mod)) {
-      lifecycle::deprecate_warn("2.0.0", "plot.SUMMERproj(inla_mod)", "plot.SUMMERproj(fitted)")
+      lifecycle::deprecate_soft("2.0.0", "getDiag(inla_mod)", "getDiag(fitted)")
       fitted <- inla_mod
   }
   

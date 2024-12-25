@@ -1,12 +1,12 @@
 #' Plot projection output.
 #' @param x output from \code{\link{getSmoothed}}
 #' @param year.label labels for the periods
-#' @param year_label deprecated and replaced by year.label
+#' @param year_label `r lifecycle::badge("deprecated")` replaced by year.label
 #' @param year.med labels for the middle years in each period, only used when both yearly and period estimates are plotted. In that case, \code{year.med} specifies where each period estimates are aligned.
-#' @param year_med deprecated and replaced by year.med
+#' @param year_med `r lifecycle::badge("deprecated")` replaced by year.med
 #' @param is.subnational logical indicator of whether the data contains subnational estimates
 #' @param year.proj the first year where projections are made, i.e., where no data are available. 
-#' @param proj_year deprecated and replaced by year.proj
+#' @param proj_year `r lifecycle::badge("deprecated")` replaced by year.proj
 #' @param data.add data frame for the Comparisons data points to add to the graph. This can be, for example, the raw direct estimates. This data frame is merged to the projections by column 'region' and 'years'. Except for these two columns, this dataset should not have Comparisons columns with names overlapping the getSmoothed output.
 #' @param option.add list of options specifying the variable names for the points to plot, lower and upper bounds, and the grouping variable. This is intended to be used to add Comparisons estimates on the same plot as the smoothed estimates. See examples for details.  
 #' @param color.add the color of the Comparisons data points to plot.
@@ -62,15 +62,15 @@ plot.SUMMERproj  <- function(x, year.label = c("85-89", "90-94", "95-99", "00-04
 
 
   if (lifecycle::is_present(year_label)) {
-      lifecycle::deprecate_warn("2.0.0", "plot.SUMMERproj(year_label)", "plot.SUMMERproj(year.label)")
+      lifecycle::deprecate_soft("2.0.0", "plot.SUMMERproj(year_label)", "plot.SUMMERproj(year.label)")
       year.label <- year_label
   }
   if (lifecycle::is_present(year_med)) {
-      lifecycle::deprecate_warn("2.0.0", "plot.SUMMERproj(year_med)", "plot.SUMMERproj(year.med)")
+      lifecycle::deprecate_soft("2.0.0", "plot.SUMMERproj(year_med)", "plot.SUMMERproj(year.med)")
       year.med <- year_med
   }
   if (lifecycle::is_present(proj_year)) {
-      lifecycle::deprecate_warn("2.0.0", "plot.SUMMERproj(proj_year)", "plot.SUMMERproj(year.proj)")
+      lifecycle::deprecate_soft("2.0.0", "plot.SUMMERproj(proj_year)", "plot.SUMMERproj(year.proj)")
       year.proj <- proj_year
   }
 

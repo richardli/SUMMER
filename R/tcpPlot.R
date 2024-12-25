@@ -6,7 +6,7 @@
 #' @param geo SpatialPolygonsDataFrame object for the map
 #' @param by.geo variable name specifying region names in geo
 #' @param year.plot vector of year string vector to be plotted.
-#' @param year_plot deprecated and replaced by year.plot
+#' @param year_plot `r lifecycle::badge("deprecated")` replaced by year.plot
 #' @param ncol number of columns in the output figure.
 #' @param per1000 logical indicator to multiply results by 1000.
 #' @param thresholds a vector of thresholds (on the mortality scale) defining the discrete color scale of the maps. 
@@ -63,7 +63,7 @@ tcpPlot <- function(draws, geo, by.geo = NULL, year.plot = NULL, year_plot = dep
 
 
   if (lifecycle::is_present(year_plot)) {
-      lifecycle::deprecate_warn("2.0.0", "plot.SUMMERproj(year_plot)", "plot.SUMMERproj(year.plot)")
+      lifecycle::deprecate_soft("2.0.0", "tcpPlot(year_plot)", "tcpPlot(year.plot)")
       year.plot <- year_plot
   }
   
