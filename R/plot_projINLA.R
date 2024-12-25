@@ -42,14 +42,14 @@
 #' #  national model
 #' years.all <- c(years, "15-19")
 #' fit1 <- smoothDirect(data = data, geo = NULL, Amat = NULL, 
-#'   year.label = years.all, year_range = c(1985, 2019), 
+#'   year.label = years.all, year.range = c(1985, 2019), 
 #'   rw = 2, is.yearly=FALSE, m = 5)
 #' out1 <- getSmoothed(fit1)
 #' plot(out1, is.subnational=FALSE)
 #' 
 #' #  subnational model
 #' fit2 <- smoothDirect(data = data, geo = geo, Amat = mat, 
-#'   year.label = years.all, year_range = c(1985, 2019), 
+#'   year.label = years.all, year.range = c(1985, 2019), 
 #'   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
 #' out2 <- getSmoothed(fit2)
 #' plot(out2, is.yearly=TRUE, is.subnational=TRUE)

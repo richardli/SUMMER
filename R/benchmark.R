@@ -198,7 +198,7 @@
 #' #  subnational model
 #' years.all <- c(years, "15-19")
 #' fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat,
-#'                  year.label = years.all, year_range = c(1985, 2019),
+#'                  year.label = years.all, year.range = c(1985, 2019),
 #'                  time.model = "rw2", m = 5, type.st = 4)
 #' out2a <- getSmoothed(fit2, joint = TRUE, nsim = 1e5, save.draws = TRUE)
 #' 
