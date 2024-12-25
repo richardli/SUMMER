@@ -44,7 +44,7 @@
 #' #  national model
 #' years.all <- c(years, "15-19")
 #' fit1 <- smoothDirect(data = data, geo = NULL, Amat = NULL, 
-#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   year.label = years.all, year.range = c(1985, 2019), 
 #'   rw = 2, m = 5)
 #' ## Plot marginal posterior densities over time
 #' ridgePlot(fit1, year.plot = years.all, 
@@ -52,7 +52,7 @@
 #' 
 #' #  subnational model
 #' fit2 <- smoothDirect(data = data, geo = DemoMap$geo, Amat = DemoMap$Amat, 
-#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   year.label = years.all, year.range = c(1985, 2019), 
 #'   rw = 2, m = 5, type.st = 1)
 #' 
 ##' # Plot marginal posterior densities over time (regions are ordered alphabetically)
@@ -254,9 +254,9 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year.plot = NULL, year_
             if(draws.plot[[i]]$years %in% tmp) next
             tmp <- c(tmp, draws.plot[[i]]$years)
           }
-          year_label <- tmp 
+          year.label <- tmp 
         
-          timelabel.yearly <- year_label
+          timelabel.yearly <- year.label
           results <- NULL
 
           for(i in 1:length(timelabel.yearly)){
@@ -295,11 +295,11 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year.plot = NULL, year_
         }else{
           is.density <- TRUE
           is.yearly = x$is.yearly
-          year_label <- x$year_label
+          year.label <- x$year.label
           if(is.yearly){
-            timelabel.yearly <- c(x$year_range[1] : x$year_range[2], year_label)
+            timelabel.yearly <- c(x$year.range[1] : x$year.range[2], year.label)
           }else{
-            timelabel.yearly <- year_label
+            timelabel.yearly <- year.label
           }
 
           names <- expand.grid(area = region_nums, time = timelabel.yearly)
@@ -316,7 +316,7 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year.plot = NULL, year_
                 results <- rbind(results, tmp)
             }
           }
-          results$is.yearly <- !(results$years %in% year_label)
+          results$is.yearly <- !(results$years %in% year.label)
           results$years.num <- suppressWarnings(as.numeric(as.character(results$years)))  
           if(region_names[1] != "All"){
             results$region <- region_names[results$region]
@@ -343,7 +343,7 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year.plot = NULL, year_
       results.plot <- results
       if(per1000) results.plot$x <- 1000 * results.plot$x
       if(is.null(year_plot)){
-        year.plot <- year_label 
+        year.plot <- year.label 
       }
       # plot calculated density
       if(by.year && is.density){

@@ -48,7 +48,7 @@
 #'       strata.time.effect =  TRUE, 
 #'       survey.effect = TRUE,
 #'       family = "betabinomial",
-#'       year_label = c(periods, "15-19"))
+#'       year.label = c(periods, "15-19"))
 #' est <- getSmoothed(fit, nsim = 1000, save.draws=TRUE)
 #' 
 #' tcp <- tcpPlot(est, DemoMap$geo, by.geo = "REGNAME", interval = 3, year_plot = periods) 
