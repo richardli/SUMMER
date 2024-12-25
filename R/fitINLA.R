@@ -8,7 +8,9 @@
 #' @param time.model Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale. 
 #' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. For ar1 interaction model, region-specific random slopes are currently not implemented.
 #' @param year.label string vector of year names
+#' @param year_label deprecated and replaced by year.label
 #' @param year.range Entire range of the years (inclusive) defined in year.label.
+#' @param year_range deprecated and replaced by year.range
 #' @param is.yearly Logical indicator for fitting yearly or period model.
 #' @param m Number of years in each period.
 #' @param type.st type for space-time interaction
@@ -78,7 +80,7 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
       year.label <- year_label
   }
   if (lifecycle::is_present(year_range)) {
-      lifecycle::deprecate_warn("2.0.0", "plot.SUMMERproj(year.range)", "plot.SUMMERproj(year_range)")
+      lifecycle::deprecate_warn("2.0.0", "plot.SUMMERproj(year_range)", "plot.SUMMERproj(year.range)")
       year.range <- year_range
   }
 
