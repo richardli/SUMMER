@@ -1,9 +1,12 @@
 #' Plot projection output.
 #' @param x output from \code{\link{getSmoothed}}
-#' @param year_label labels for the periods
-#' @param year_med labels for the middle years in each period, only used when both yearly and period estimates are plotted. In that case, \code{year_med} specifies where each period estimates are aligned.
+#' @param year.label labels for the periods
+#' @param year_label deprecated and replaced by year.label
+#' @param year.med labels for the middle years in each period, only used when both yearly and period estimates are plotted. In that case, \code{year.med} specifies where each period estimates are aligned.
+#' @param year_med deprecated and replaced by year.med
 #' @param is.subnational logical indicator of whether the data contains subnational estimates
-#' @param proj_year the first year where projections are made, i.e., where no data are available. 
+#' @param proj.year the first year where projections are made, i.e., where no data are available. 
+#' @param proj_year deprecated and replaced by proj.year
 #' @param data.add data frame for the Comparisons data points to add to the graph. This can be, for example, the raw direct estimates. This data frame is merged to the projections by column 'region' and 'years'. Except for these two columns, this dataset should not have Comparisons columns with names overlapping the getSmoothed output.
 #' @param option.add list of options specifying the variable names for the points to plot, lower and upper bounds, and the grouping variable. This is intended to be used to add Comparisons estimates on the same plot as the smoothed estimates. See examples for details.  
 #' @param color.add the color of the Comparisons data points to plot.
@@ -39,14 +42,14 @@
 #' #  national model
 #' years.all <- c(years, "15-19")
 #' fit1 <- smoothDirect(data = data, geo = NULL, Amat = NULL, 
-#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   year.label = years.all, year_range = c(1985, 2019), 
 #'   rw = 2, is.yearly=FALSE, m = 5)
 #' out1 <- getSmoothed(fit1)
 #' plot(out1, is.subnational=FALSE)
 #' 
 #' #  subnational model
 #' fit2 <- smoothDirect(data = data, geo = geo, Amat = mat, 
-#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   year.label = years.all, year_range = c(1985, 2019), 
 #'   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
 #' out2 <- getSmoothed(fit2)
 #' plot(out2, is.yearly=TRUE, is.subnational=TRUE)
@@ -55,10 +58,25 @@
 #' }
 #' 
 #' @export
-plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), year_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), is.subnational = TRUE, proj_year = 2015, data.add = NULL, option.add = list(point = NULL, lower = NULL, upper = NULL, by = NULL), color.add = "black", label.add = NULL, dodge.width = 1, plot.CI = NULL, per1000 = FALSE,  color.CI = NULL, alpha.CI = 0.5, ...){
+plot.SUMMERproj  <- function(x, year.label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), year_label = deprecated(), year.med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), year_med = deprecated(), is.subnational = TRUE, proj.year = 2015, proj_year = deprecated(), data.add = NULL, option.add = list(point = NULL, lower = NULL, upper = NULL, by = NULL), color.add = "black", label.add = NULL, dodge.width = 1, plot.CI = NULL, per1000 = FALSE,  color.CI = NULL, alpha.CI = 0.5, ...){
 
-  if(is.null(proj_year)) {
-    proj_year = 0
+
+  if (lifecycle::is_present(year_label)) {
+      lifecycle::deprecate_warn("2.0.0", "plot.SUMMERproj(year_label)", "plot.SUMMERproj(year.label)")
+      year.label <- year_label
+  }
+  if (lifecycle::is_present(year_label)) {
+      lifecycle::deprecate_warn("2.0.0", "plot.SUMMERproj(year_med)", "plot.SUMMERproj(year.med)")
+      year.med <- year_med
+  }
+  if (lifecycle::is_present(proj_year)) {
+      lifecycle::deprecate_warn("2.0.0", "plot.SUMMERproj(proj_year)", "plot.SUMMERproj(proj.year)")
+      proj.year <- proj_year
+  }
+
+
+  if(is.null(proj.year)) {
+    proj.year = 0
   }
   if(is.null(plot.CI)){
     plot.CI <- !is.subnational
@@ -105,10 +123,10 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
   period.1yr <- diff(sort(unique(x$years.num[x$is.yearly == FALSE])))[1] == 1
   if(sum(is.na(x$years.num)) == length(x$years.num)) period.1yr = FALSE
 
-  is.periods <- x$years %in% year_label
-  x$years.num[is.periods] <- year_med[match(x$years[is.periods], year_label)]
+  is.periods <- x$years %in% year.label
+  x$years.num[is.periods] <- year.med[match(x$years[is.periods], year.label)]
   x$project <- "No"
-  x$project[x$years.num >= proj_year] <- "Yes"
+  x$project[x$years.num >= proj.year] <- "Yes"
   # fix for global variable issue
   years.num <- NULL; region <- NULL; median <- NULL; lower <- NULL; upper <- NULL; project <- NULL; Comparisons <- NULL; add_x <- NULL; add_lower <- NULL; add_upper <- NULL
   if(per1000){
@@ -163,7 +181,7 @@ plot.SUMMERproj  <- function(x, year_label = c("85-89", "90-94", "95-99", "00-04
     }
     g <- g + theme_bw() + xlab("Year") + ylab("")
     if(!period.1yr){
-      g <- g + scale_x_continuous(breaks=year_med, labels=year_label)
+      g <- g + scale_x_continuous(breaks=year.med, labels=year.label)
     }else{
       g <- g + scale_x_continuous(breaks=scales::pretty_breaks())
     }

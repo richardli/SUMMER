@@ -38,7 +38,7 @@
 #' periods <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")
 #' fit.bb  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat, 
 #' 				family = "betabinomial",
-#' 				year_label = periods, 
+#' 				year.label = periods, 
 #' 				survey.effect = TRUE)
 #' est.bb <- getSmoothed(fit.bb, nsim = 1e4, CI = 0.95, save.draws=TRUE)
 #' 
@@ -135,7 +135,7 @@
 #' #  specified for fixed effects when fitting the model
 #' fit.bb.new  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat, 
 #' 				family = "betabinomial",
-#' 				year_label = periods, 
+#' 				year.label = periods, 
 #' 				survey.effect = TRUE, 
 #' 				control.fixed = list(
 #' 					mean=list(`age.intercept0:1`=-4, 
@@ -198,7 +198,7 @@
 #' #  subnational model
 #' years.all <- c(years, "15-19")
 #' fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat,
-#'                  year_label = years.all, year_range = c(1985, 2019),
+#'                  year.label = years.all, year_range = c(1985, 2019),
 #'                  time.model = "rw2", m = 5, type.st = 4)
 #' out2a <- getSmoothed(fit2, joint = TRUE, nsim = 1e5, save.draws = TRUE)
 #' 
