@@ -96,7 +96,7 @@ summary.SUMMERmodel <- function(object,...){
 #' This function is the print method for class \code{SUMMERmodel}.
 #' 
 #' 
-#' @param x output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}
+#' @param object output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}
 #' @param ... not used
 #' @method print SUMMERmodel
 #' @author Zehang Li 
@@ -150,11 +150,11 @@ summary.SUMMERmodel <- function(object,...){
 #' }
 #' @export 
 
-print.SUMMERmodel <- function(x,...){
+print.SUMMERmodel <- function(object,...){
 	cat("----------------------------------")
-	cat(x$msg)  
+	cat(object$msg)  
 	cat("----------------------------------\n INLA ")
-	print(x$fit)
+	print(object$fit)
 }
 
 
@@ -210,7 +210,7 @@ summary.SUMMERprojlist <- function(object, ...){
 #' This function is the print method for class \code{SUMMERprojlist}.
 #' 
 #' 
-#' @param x output from \code{\link{getSmoothed}}
+#' @param object output from \code{\link{getSmoothed}}
 #' @param ... not used
 #' @method print SUMMERprojlist
 #' @author Zehang Li 
@@ -248,23 +248,23 @@ summary.SUMMERprojlist <- function(object, ...){
 #' }
 #' @export 
 
-print.SUMMERprojlist <- function(x, ...){
+print.SUMMERprojlist <- function(object, ...){
 	cat("---------------------------------------------\n")
-	if(!is.null(x$benchmarked) && x$benchmarked){
+	if(!is.null(object$benchmarked) && object$benchmarked){
 		cat("The estimates have been benchmarked.\n")
 	}
 	cat("Stratified estimates stored in ...$stratified\n")
-	if(is.null(x$final)){
+	if(is.null(object$final)){
 		cat("Aggregated estimates stored in ...$overall\n")
 	}else{
 		cat("Aggregated estimates by sampling frame stored in ...$overall\n")
 		cat("Final estimates aggregated over sampling frames stored in ...$final\n")
 	}
 	cat("---------------------------------------------\n")
-	cat(paste0("Estimates computed for ", max(x$overall$time), " time period(s) and ", max(x$overall$area), " area(s)"))
-	cat(x$msg)  
+	cat(paste0("Estimates computed for ", max(object$overall$time), " time period(s) and ", max(object$overall$area), " area(s)"))
+	cat(object$msg)  
 	cat("\n")
-	cat(paste0(x$nsim, " posterior draws taken.\n"))
+	cat(paste0(object$nsim, " posterior draws taken.\n"))
 }
 
 
@@ -323,7 +323,7 @@ summary.SUMMERmodel.svy <- function(object,...){
 #' This function is the print method for class \code{SUMMERmodel.svy}.
 #' 
 #' 
-#' @param x output from \code{\link{smoothSurvey}}.
+#' @param object output from \code{\link{smoothSurvey}}.
 #' @param ... not used
 #' @method print SUMMERmodel.svy
 #' @author Zehang Li 
@@ -343,27 +343,27 @@ summary.SUMMERmodel.svy <- function(object,...){
 #' }
 #' @export 
 
-print.SUMMERmodel.svy <- function(x,...){
+print.SUMMERmodel.svy <- function(object,...){
 	cat("----------------------------------\n")
-	cat(x$msg)  
+	cat(object$msg)  
 	cat("\n\n$formula\n")
-	print(paste(as.character(x$formula)[c(2,1,3)], collapse = " "))
-	if(!is.null(x$HT)){
+	print(paste(as.character(object$formula)[c(2,1,3)], collapse = " "))
+	if(!is.null(object$HT)){
 		cat("----------------------------------\n")
 		cat("$HT\n")
-		print(head(x$HT))
+		print(head(object$HT))
 		cat("...\n")
 	}
-	if(!is.null(x$smooth)){
+	if(!is.null(object$smooth)){
 		cat("----------------------------------\n")
 		cat("$smooth\n")
-		print(head(x$smooth))
+		print(head(object$smooth))
 		cat("...\n")
 	}
-	if(!is.null(x$smooth.overall)){
+	if(!is.null(object$smooth.overall)){
 		cat("----------------------------------\n")
 		cat("$smooth\n")
-		print(head(x$smooth.overall))
+		print(head(object$smooth.overall))
 		cat("...\n")
 	}
 
