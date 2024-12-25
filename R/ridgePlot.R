@@ -342,7 +342,7 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year.plot = NULL, year_
 
       results.plot <- results
       if(per1000) results.plot$x <- 1000 * results.plot$x
-      if(is.null(year_plot)){
+      if(is.null(year.plot)){
         year.plot <- year.label 
       }
       # plot calculated density
