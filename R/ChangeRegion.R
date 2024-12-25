@@ -22,6 +22,7 @@
 #' test <- changeRegion(testdata, Bmat, "region")
 #' print(test)
 #' @export
+#' 
 changeRegion <- function(data, Bmat, regionVar = "region") {
     final_names <- colnames(Bmat)
     current_names <- rownames(Bmat)
@@ -57,20 +58,4 @@ changeRegion <- function(data, Bmat, regionVar = "region") {
     cat(paste(nchange, "names changed, in total", ncount, "rows in data changed\n"))
     data[, regionVar] = current_region
     return(data)
-}
-
-
-#' Map region names to a common set.
-#' 
-#' @param ... arguments for \code{changeRegion}
-#' @description 
-#' `r lifecycle::badge("deprecated")`
-#' 
-#' `ChangeRegion()` was renamed to `changeRegion()` to create a more
-#' consistent API.
-#' @keywords internal
-#' @export
-ChangeRegion <- function(...) {
-  lifecycle::deprecate_warn("1.0.0", "ChangeRegion()", "changeRegion()")
-  changeRegion(...)
 }
