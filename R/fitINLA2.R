@@ -26,7 +26,8 @@
 #' @param bias.adj the ratio of unadjusted mortality rates or age-group-specific hazards to the true rates or hazards. It needs to be a data frame that can be merged to thee outcome, i.e., with the same column names for time periods (for national adjustment), or time periods and region (for subnational adjustment). The column specifying the adjustment ratio should be named "ratio".
 #' @param bias.adj.by vector of the column names specifying how to merge the bias adjustment to the count data. For example, if bias adjustment factor is provided in bias.adj for each region and time, then bias.adj.by should be `c("region", "time")`.
 #' @param formula INLA formula.  See vignette for example of using customized formula.
-#' @param year_label string vector of year names
+#' @param year.label string vector of year names
+#' @param year_label deprecated and replaced by year.label
 #' @param type.st type for space-time interaction
 #' @param survey.effect logical indicator whether to include a survey fixed effect. If this is set to TRUE, there needs to be a column named 'survey' in the input data frame. In prediction, this effect term will be set to 0.
 #' @param strata.time.effect logical indicator whether to include strata specific temporal trends.  
@@ -87,7 +88,7 @@
 #'      strata.time.effect =  TRUE, 
 #'      survey.effect = TRUE,
 #'      family = "betabinomial",
-#'      year_label = c(periods, "15-19"))
+#'      year.label = c(periods, "15-19"))
 #' summary(fit)
 #' est <- getSmoothed(fit, nsim = 1000)
 #' plot(est$stratified, plot.CI=TRUE) + ggplot2::facet_wrap(~strata) 
@@ -108,7 +109,7 @@
 #'      strata.time.effect =  TRUE, 
 #'      survey.effect = TRUE,
 #'      family = "betabinomial",
-#'      year_label = c(periods))
+#'      year.label = c(periods))
 #' est <- getSmoothed(fit.covariate, nsim = 1000)
 #' 
 #' # fit cluster-level model for one time point only
@@ -141,13 +142,18 @@
 #' 
 #' 
 
-smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.time.group = c(1,2,3,3,3,3), age.strata.fixed.group = c(1,2,3,4,5,6), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year_label, type.st = 4, survey.effect = FALSE, linear.trend = TRUE, common.trend = FALSE, strata.time.effect = FALSE, hyper = "pc", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), control.fixed = list(), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, age.rw.group = NULL, ...){
+smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.time.group = c(1,2,3,3,3,3), age.strata.fixed.group = c(1,2,3,4,5,6), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year.label, year_label = deprecated(), type.st = 4, survey.effect = FALSE, linear.trend = TRUE, common.trend = FALSE, strata.time.effect = FALSE, hyper = "pc", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), control.fixed = list(), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, age.rw.group = NULL, ...){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
 
   # add check: if user input options and forgot config, set it to TRUE
   #            if user turned if explicitly, then leave it along
+
+  if (lifecycle::is_present(year_label)) {
+      lifecycle::deprecate_warn("2.0.0", "plot.SUMMERproj(year_label)", "plot.SUMMERproj(year.label)")
+      year.label <- year_label
+  }
 
   msg <- NULL
 
@@ -229,7 +235,7 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
     }else{
       is.temporal <- FALSE
       strata.time.effect <- FALSE
-      year_label <- NULL
+      year.label <- NULL
     }
 
     st.time.model <- tolower(st.time.model)
@@ -289,11 +295,11 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
     message("----------------------------------",
             "\nCluster-level model",
             "\n  Main temporal model:        ", time.model, 
-            "\n  Number of time periods:     ", length(year_label), 
+            "\n  Number of time periods:     ", length(year.label), 
             appendLF = FALSE)
     msg <- paste0(msg, "\nCluster-level model",
                        "\n  Main temporal model:        ", time.model, 
-                       "\n  Number of time periods:     ", length(year_label))
+                       "\n  Number of time periods:     ", length(year.label))
     if(linear.trend && !common.trend){
         if("strata" %in% colnames(data) == FALSE || sum(!is.na(data$strata)) == 0){
           message("\n  Additional linear trends:   age-specific", appendLF = FALSE)
@@ -626,9 +632,9 @@ if(strata.time.effect){
     
     #### get the list of region and numeric index in one data frame    
     n <- 0
-    N <- length(year_label)
+    N <- length(year.label)
     if(N > 0){
-      years <- data.frame(year = year_label, year_number = seq(1, N))   
+      years <- data.frame(year = year.label, year_number = seq(1, N))   
       # -- creating IDs for the temporal REs -- #
       dat$time.unstruct <- dat$time.struct <- dat$time.int <- years[match(dat$years, years[, 1]), 2]
       if(sum(is.na(dat$time.unstruct)) > 0){
@@ -703,7 +709,7 @@ if(strata.time.effect){
       }
       # check if prediction year exist in covariates
       if("years" %in% by){
-        for(tt in unique(year_label)){
+        for(tt in unique(year.label)){
           which <- which(X$years == tt)
           if(length(which) == 0){
             stop(paste("Missing years in the covariate matrix:", tt))
@@ -1201,7 +1207,7 @@ if(strata.time.effect){
       if(!is.spatial) Xnew$region.struct <- 0
     } 
     if("region" %in% by) X$region.struct <- match(X$region, colnames(Amat))
-    if("years" %in% by) X$time.unstruct <- match(X$years, year_label)
+    if("years" %in% by) X$time.unstruct <- match(X$years, year.label)
     Xnew <- merge(Xnew, X, all.x = TRUE)
     if("region" %in% by && "years" %in% by){
       exdat <- merge(exdat, Xnew[, c(covariate.names, "time.unstruct", "region.struct")], by = c("time.unstruct", "region.struct"), all.x = TRUE)
@@ -1286,7 +1292,7 @@ if(family == "betabinomialna"){
 
  priors <- list(pc.u = pc.u, pc.alpha = pc.alpha, pc.u.phi = pc.u.phi, pc.alpha.phi = pc.alpha.phi, pc.u.cor = pc.u.cor, pc.alpha.cor = pc.alpha.cor,  pc.st.u = pc.st.u, pc.st.alpha = pc.st.alpha, pc.st.slope.u = pc.st.slope.u, pc.st.slope.prec.u = pc.st.slope.prec.u, pc.st.slope.alpha = pc.st.slope.alpha, overdisp.mean = overdisp.mean, overdisp.prec = overdisp.prec)
 
- out <- list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, is.yearly = FALSE, type.st = type.st, year_label = year_label, age.groups = age.groups, age.groups.new = age.groups.new, age.n = age.n, age.rw.group = age.rw.group, age.strata.fixed.group = age.strata.fixed.group, strata.base = strata.base, rw = rw, ar = ar, strata.time.effect = strata.time.effect,  priors = priors, year_range = NA, Amat = Amat, has.Amat = TRUE, is.temporal = is.temporal, covariate.names = covariate.names, slope.fixed.output = slope.fixed.output, control.fixed = control.fixed, msg = msg)
+ out <- list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, is.yearly = FALSE, type.st = type.st, year.label = year.label, age.groups = age.groups, age.groups.new = age.groups.new, age.n = age.n, age.rw.group = age.rw.group, age.strata.fixed.group = age.strata.fixed.group, strata.base = strata.base, rw = rw, ar = ar, strata.time.effect = strata.time.effect,  priors = priors, year_range = NA, Amat = Amat, has.Amat = TRUE, is.temporal = is.temporal, covariate.names = covariate.names, slope.fixed.output = slope.fixed.output, control.fixed = control.fixed, msg = msg)
  class(out) <- "SUMMERmodel"
  return(out)
     
