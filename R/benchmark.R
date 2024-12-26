@@ -12,6 +12,7 @@
 #' 
 #' @return Benchmarked object in S3 class SUMMERproj or SUMMERprojlist in the same format as the input object \code{fitted}.
 #' @author Taylor Okonek, Zehang Richard Li 
+#' @references Okonek, Taylor, and Jon Wakefield. "A computationally efficient approach to fully Bayesian benchmarking." Journal of Official Statistics 40, no. 2 (2024): 283-316.
 #' @importFrom stats runif
 #' @importFrom stats dnorm
 #' @importFrom stats rbinom
