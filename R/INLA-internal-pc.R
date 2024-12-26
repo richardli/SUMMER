@@ -47,8 +47,8 @@ rw.new.pc = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "l
     }
     
     Q = function() {
-      QQ = rbind(cbind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
-                       -tau * t(my.cache$A)),
+      QQ = rbind(cbind(p$kappa * my.cache$R + tau * Matrix::t(my.cache$A) %*% my.cache$A,
+                       -tau * Matrix::t(my.cache$A)),
                  cbind(-tau * my.cache$A, tau * my.cache$D))
       return(QQ)
     }
@@ -130,8 +130,8 @@ rw.new.pc = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "l
     }
     
     Q = function() {
-      QQ = rbind(cbind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
-                       -tau * t(my.cache$A)),
+      QQ = rbind(cbind(p$kappa * my.cache$R + tau * Matrix::t(my.cache$A) %*% my.cache$A,
+                       -tau * Matrix::t(my.cache$A)),
                  cbind(-tau * my.cache$A, tau * my.cache$D))
       return(QQ)
     }
@@ -246,8 +246,8 @@ rw.new.pc = function(cmd = c("graph", "Q", "mu", "initial", "log.norm.const", "l
   }
   
   Q = function() {
-    QQ = rbind(cbind(p$kappa * my.cache$R + tau * t(my.cache$A) %*% my.cache$A,
-                       -tau * t(my.cache$A)),
+    QQ = rbind(cbind(p$kappa * my.cache$R + tau * Matrix::t(my.cache$A) %*% my.cache$A,
+                       -tau * Matrix::t(my.cache$A)),
                  cbind(-tau * my.cache$A, tau * my.cache$D))
     return(QQ)
   }
