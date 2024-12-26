@@ -348,10 +348,10 @@ print.SUMMERmodel.svy <- function(x,...){
 	cat(x$msg)  
 	cat("\n\n$formula\n")
 	print(paste(as.character(x$formula)[c(2,1,3)], collapse = " "))
-	if(!is.null(x$HT)){
+	if(!is.null(x$direct)){
 		cat("----------------------------------\n")
-		cat("$HT\n")
-		print(head(x$HT))
+		cat("$direct\n")
+		print(head(x$direct))
 		cat("...\n")
 	}
 	if(!is.null(x$smooth)){

@@ -66,7 +66,7 @@
 #' 
 #' data(DemoData2)
 #' data(DemoMap2)
-#' fit0 <- fitGeneric(data=DemoData2,  
+#' fit0 <- smoothSurvey(data=DemoData2,  
 #' Amat=DemoMap2$Amat, response.type="binary", 
 #' responseVar="tobacco.use", strataVar="strata", 
 #' weightVar="weights", regionVar="region", 
@@ -100,11 +100,11 @@
 #'   clusterVar = "~clustid+id", CI = 0.95)
 #' 
 #' # Example with using only direct estimates as input instead of the full data
-#' direct <- fit0$HT[, c("region", "HT.est", "HT.var")]
+#' direct <- fit0$direct[, c("region", "direct.est", "direct.var")]
 #' fit2 <- smoothSurvey(data=NULL, direct.est = direct, 
 #'                     Amat=DemoMap2$Amat, regionVar="region",
-#'                     responseVar="HT.est", direct.est.var = "HT.var", 
-#'                     response.type = "gaussian")
+#'                     responseVar="direct.est", direct.est.var = "direct.var", 
+#'                     response.type = "binary")
 #' # Check it is the same as fit0
 #' plot(fit2$smooth$mean, fit0$smooth$mean)
 #' 
@@ -112,10 +112,10 @@
 #' #   and after transformation into a Gaussian smoothing model
 #' # Notice: the output are on the same scale as the input 
 #' #   and in this case, the logit estimates.    
-#' direct.logit <- fit0$HT[, c("region", "HT.logit.est", "HT.logit.var")]
+#' direct.logit <- fit0$direct[, c("region", "direct.logit.est", "direct.logit.var")]
 #' fit3 <- smoothSurvey(data=NULL, direct.est = direct.logit, 
 #'                Amat=DemoMap2$Amat, regionVar="region",
-#'                responseVar="HT.logit.est", direct.est.var = "HT.logit.var",
+#'                responseVar="direct.logit.est", direct.est.var = "direct.logit.var",
 #'                response.type = "gaussian")
 #' # Check it is the same as fit0
 #' plot(fit3$smooth$mean, fit0$smooth$logit.mean)
@@ -133,16 +133,16 @@
 #'                          responseVar="tobacco.use", strataVar="strata", 
 #'                          weightVar="weights", regionVar="region", 
 #'                          clusterVar = "~clustid+id", CI = 0.95)
-#' fit.without.central$HT
+#' fit.without.central$direct
 #' fit.without.central$smooth
 #' 
-#' fit.without.central <- smoothSurvey(data=DemoData2.sub,  
+#' fit.with.central <- smoothSurvey(data=DemoData2.sub,  
 #'                          Amat=NULL, region.list = unique(DemoData2$region),
 #'                          response.type="binary", 
 #'                          responseVar="tobacco.use", strataVar="strata", 
 #'                          weightVar="weights", regionVar="region", 
 #'                          clusterVar = "~clustid+id", CI = 0.95)
-#' fit.with.central$HT
+#' fit.with.central$direct
 #' fit.with.central$smooth
 #' 
 #' # Using the formula argument, further customizations can be added to the 
@@ -1038,7 +1038,15 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
         HT <- NULL
    }
 
-   out <- list(HT = HT,
+   # Better output naming, gradually removing HT in output names
+   if(!is.null(HT)){
+   		direct <- HT 
+   		colnames(direct) <- gsub("HT", "direct", colnames(HT))
+   }else{
+	   	direct <- NULL
+   }
+
+   out <- list(direct = direct,
                smooth = proj, 
                smooth.overall = proj.agg, 
                fit = fit, 
@@ -1046,7 +1054,8 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
                Amat = Amat,
                response.type = response.type,
                formula = formula, 
-               msg = msg)
+               msg = msg, 
+               HT = HT)
    if(save.draws){
     out$draws <- sampAll
     out$draws.est <- draws.out
