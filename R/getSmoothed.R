@@ -132,15 +132,15 @@ getSmoothed <- function(fitted, inla_mod = deprecated(), nsim = 1000, weight.str
 
 
   if (lifecycle::is_present(inla_mod)) {
-      lifecycle::deprecate_soft("2.0.0", "getSmoothed(inla_mod)", "getSmoothed(fitted)")
+      lifecycle::deprecate_warn("2.0.0", "getSmoothed(inla_mod)", "getSmoothed(fitted)")
       fitted <- inla_mod
   }
   if (lifecycle::is_present(include_time_unstruct)) {
-      lifecycle::deprecate_soft("2.0.0", "getSmoothed(include_time_unstruct)", "getSmoothed(include.time.unstruct)")
+      lifecycle::deprecate_warn("2.0.0", "getSmoothed(include_time_unstruct)", "getSmoothed(include.time.unstruct)")
       include.time.unstruct <- include_time_unstruct
   }
   if (lifecycle::is_present(include_subnational)) {
-      lifecycle::deprecate_soft("2.0.0", "getSmoothed(include_subnational)", "getSmoothed(include.subnational)")
+      lifecycle::deprecate_warn("2.0.0", "getSmoothed(include_subnational)", "getSmoothed(include.subnational)")
       include.subnational <- include_subnational
   }
 
