@@ -280,7 +280,7 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
       }
     }
   }
-  if(time.model == "rw2"){
+  if(is.temporal && time.model == "rw2"){
     linear.trend = FALSE
     common.trend = FALSE
   }
