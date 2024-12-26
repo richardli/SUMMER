@@ -11,7 +11,7 @@
 #' @references Kenya National Bureau of Statistics, Ministry of Health/Kenya, National AIDS Control Council/Kenya, Kenya Medical Research Institute, and National Council For Population And Development/Kenya, 2015. Kenya Demographic and Health Survey 2014. Rockville, Maryland, USA. URL: http://dhsprogram.com/pubs/pdf/FR308/FR308.pdf.
 #' @references Stevens, F.R., Gaughan, A.E., Linard, C., Tatem, A.J., 2015. Disaggregat- ing census data for population mapping using random forests with remotely-sensed and ancillary data. PloS One 10, e0107042.
 #' @references Tatem, A.J., 2017. WorldPop, open data for spatial demography. Scientific Data 4.
-#' @source <http://dhsprogram.com/pubs/pdf/FR308/FR308.pdf>
+#' @source <https://dhsprogram.com/pubs/pdf/FR308/FR308.pdf>
 #' @docType data
 #' @name kenyaPopulationData
 #' @usage data(kenyaPopulationData)

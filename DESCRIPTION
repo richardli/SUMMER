@@ -48,8 +48,23 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
 Additional_repositories: https://inla.r-inla-download.org/R/testing/
-Suggests: INLA, knitr, rmarkdown, readstata13, patchwork, rdhs, R.rsp, sae, dplyr, tidyr, raster
+Suggests: 
+    INLA,
+    knitr,
+    rmarkdown,
+    readstata13,
+    patchwork,
+    rdhs,
+    R.rsp,
+    sae,
+    dplyr,
+    tidyr,
+    raster,
+    fmesher,
+    testthat (>= 3.0.0)
 VignetteBuilder: R.rsp, knitr
 NeedsCompilation: no
 Config/build/clean-inst-doc: FALSE
 Roxygen: list(markdown = TRUE)
+Config/testthat/edition: 3
+Config/testthat/parallel: TRUE

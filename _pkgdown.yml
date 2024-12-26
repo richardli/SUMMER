@@ -43,10 +43,6 @@ reference:
   - summary.SUMMERprojlist
 - title: General SAE models
   contents:
-  - mapPoints
-  - getAmat
-  - getCounts
-  - ChangeRegion
   - smoothSurvey
   - smoothArea
   - smoothUnit
@@ -61,6 +57,15 @@ reference:
   - tcpPlot
   - compareEstimates
   - mapEstimates
+- title: Utility functions
+  contents:
+  - mapPoints
+  - getAmat
+  - getCounts
+  - changeRegion
+  - expit
+  - logit
+  - rst
 - title: Pixel-level population simulation
   contents:
   - getAreaName
@@ -83,10 +88,8 @@ reference:
   - MalawiMap
   - KenData
   - kenyaPopulationData
-- title: Other functions
+- title: Internal functions
   contents:
-  - expit
-  - logit
   - rw.new
   - rw.new.pc
   - st.new
@@ -95,6 +98,5 @@ reference:
   - iid.new.pc
   - logitNormMean
   - simhyper
-  - rst
   - SUMMER-package
 
