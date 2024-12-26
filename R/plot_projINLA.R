@@ -147,10 +147,10 @@ plot.SUMMERproj  <- function(x, year.label = c("85-89", "90-94", "95-99", "00-04
   if(!is.temporal){
     g <- ggplot(data = x)
     g <- g + geom_point(data = subset(x, !is.na(Comparisons)), aes(x = region, y = add_x, shape = Comparisons), color = color.add)
-    if(!is.null(option.add$lower)) g <- g + geom_errorbar(data = subset(x, !is.na(Comparisons)),  aes(x = region, ymin = add_lower, ymax = add_upper), size = 0.5, width = .03, alpha = 0.35, color = color.add)
+    if(!is.null(option.add$lower)) g <- g + geom_errorbar(data = subset(x, !is.na(Comparisons)),  aes(x = region, ymin = add_lower, ymax = add_upper), linewidth = 0.5, width = .03, alpha = 0.35, color = color.add)
     g <- g + geom_point(aes(x = region, y = median)) + xlab("Region") + ylab("")
     if(plot.CI){
-            g <- g + geom_errorbar(aes(ymin = lower, ymax = upper), size = .5, width = .05, alpha = alpha.CI)
+            g <- g + geom_errorbar(aes(ymin = lower, ymax = upper), linewidth = .5, width = .05, alpha = alpha.CI)
     } 
 
   }else{
@@ -166,18 +166,18 @@ plot.SUMMERproj  <- function(x, year.label = c("85-89", "90-94", "95-99", "00-04
   if(!is.null(data.add)){
     my.dodgeadd <- position_dodge2(width = 0.15*dodge.width, padding = 0.1)
     g <- g + geom_point(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, aes(x = years.num+0.5*dodge.width, y = add_x, shape = Comparisons), color = color.add)
-    if(!is.null(option.add$lower)) g <- g + geom_errorbar(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, aes(x = years.num+0.5*dodge.width, ymin = add_lower, ymax = add_upper), size = 0.5, width = .03, alpha = 0.35, color = color.add)
+    if(!is.null(option.add$lower)) g <- g + geom_errorbar(data = subset(x, !is.na(Comparisons)), position = my.dodgeadd, aes(x = years.num+0.5*dodge.width, ymin = add_lower, ymax = add_upper), linewidth = 0.5, width = .03, alpha = 0.35, color = color.add)
   }
   # period model
   if(!is.yearly){
     g <- g + geom_point(aes(y = median), position = my.dodge)
     g <- g + geom_line(aes(y = median), position = my.dodge)
     if(plot.CI & !is.null(color.CI)){
-        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), size = .7, width = .05, position = my.dodge, color = color.CI, alpha = alpha.CI)
+        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), linewidth = .7, width = .05, position = my.dodge, color = color.CI, alpha = alpha.CI)
     }else if(plot.CI &length(unique(x$region))==1){
-       g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), size = .7, width = .05, position = my.dodge, color = "black", alpha = alpha.CI)
+       g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), linewidth = .7, width = .05, position = my.dodge, color = "black", alpha = alpha.CI)
     }else if(plot.CI & is.null(color.CI)){
-        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project, color=region), size = .7, width = .05, position = my.dodge, alpha = alpha.CI)
+        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project, color=region), linewidth = .7, width = .05, position = my.dodge, alpha = alpha.CI)
     }
     g <- g + theme_bw() + xlab("Year") + ylab("")
     if(!period.1yr){
@@ -193,8 +193,8 @@ plot.SUMMERproj  <- function(x, year.label = c("85-89", "90-94", "95-99", "00-04
     
     g <- g + geom_point(aes(y = median), shape = 17, size = 2.5, position = my.dodge, data=subset(x, is.periods==TRUE), color = 2)
     if(plot.CI){
-        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), size = .5, width = .05, position = my.dodge, data=subset(x, is.periods==FALSE), alpha = alpha.CI, color = "black")
-        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), color = "red")
+        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), linewidth = .5, width = .05, position = my.dodge, data=subset(x, is.periods==FALSE), alpha = alpha.CI, color = "black")
+        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), linewidth = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), color = "red")
     } 
     g <- g + theme_bw() + xlab("Year") + ylab("") + scale_x_continuous(breaks=scales::pretty_breaks())
 
@@ -205,9 +205,9 @@ plot.SUMMERproj  <- function(x, year.label = c("85-89", "90-94", "95-99", "00-04
     # if(plot.CI) g <- g + geom_errorbar(aes(linetype=project), size = .5, width = .05, alpha = alpha.CI, position = my.dodge, color = color.CI)
     g <- g + geom_point(aes(y = median), shape = 17, size = 2.5, position = my.dodge, data=subset(x, is.periods==TRUE), alpha = 0.7)
     if(plot.CI && !is.null(color.CI)){
-        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), color = color.CI, alpha = alpha.CI)
+        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project), linewidth = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), color = color.CI, alpha = alpha.CI)
     }else if(plot.CI){
-        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project, color=region), size = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), alpha = alpha.CI)
+        g <- g + geom_errorbar(aes(ymin = lower, ymax = upper, linetype=project, color=region), linewidth = .7, width = .05, position = my.dodge, data=subset(x, is.periods==TRUE), alpha = alpha.CI)
     }
     g <- g + theme_bw() + xlab("Year") + ylab("") + scale_x_continuous(breaks=scales::pretty_breaks())
   }
