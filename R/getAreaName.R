@@ -13,7 +13,7 @@
 #' @param delta Argument passed to fields::fields.rdist.near in fields package
 #' @param mean.neighbor Argument passed to fields::fields.rdist.near in fields 
 #' package
-#' @param maxBytes Maximum allowed memory in bytes (default is 3Gb). Determines 
+#' @param max.bytes Maximum allowed memory in bytes (default is 3Gb). Determines 
 #' whether to call fields::fields.rdist.near which saves memory but requires 
 #' delta and mean.neighbor inputs to be specified for fields::fields.rdist.near
 #' 
@@ -51,7 +51,7 @@
 #' @importFrom fields in.poly
 #' @export
 getAreaName = function(pts, shapefile, areaNameVar="NAME_1", 
-                       delta=.05, mean.neighbor=50, maxBytes=3*2^30) {
+                       delta=.05, mean.neighbor=50, max.bytes=3*2^30) {
   # require(fields)
   
   if(nrow(pts) == 1) {
@@ -91,7 +91,7 @@ getAreaName = function(pts, shapefile, areaNameVar="NAME_1",
     problemPointsI = which(!insideAny)
     
     bytesUsed = length(problemPointsI) * nrow(pts)
-    if(bytesUsed > maxBytes) {
+    if(bytesUsed > max.bytes) {
       # get nearby points (points within delta lon/lat units), remove self matches
       nearbyPoints = fields::fields.rdist.near(matrix(pts[problemPointsI,], ncol=2), pts, 
                                                delta=delta, mean.neighbor=mean.neighbor)
@@ -112,7 +112,7 @@ getAreaName = function(pts, shapefile, areaNameVar="NAME_1",
     nearbyAreas = lapply(nearbyI, function(x) {areaNameVec[x]})
     nearbyLengths = sapply(nearbyI, function(x) {length(x)})
     
-    if(bytesUsed > maxBytes) {
+    if(bytesUsed > max.bytes) {
       nearbyDistances = c()
       startI = 1
       for(i in 1:length(nearbyI)) {

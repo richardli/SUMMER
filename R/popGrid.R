@@ -158,7 +158,7 @@
 #' 
 #' tempData = newadm2@data[-unknown8I,]
 #' tempData = tempData[order(tempData$NAME_2),]
-#' newadm2 <- SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
+#' newadm2 <- sp::SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
 #' adm2 = newadm2
 #' 
 #' # download 2014 Kenya population density TIF file
@@ -212,14 +212,18 @@
 #' require(fields)
 #' # NOTE: the following function will typically take ~15-20 minutes. Can speed up 
 #' #       by setting km.res to be higher, but we recommend fine resolution for 
-#' #       this step, since it only needs to be done once. Instead of running this, 
+#' #       this step, since it only needs to be done once. Instead of running 
+#' #       the code in the following if(FALSE) section, 
 #' #       you can simply run data(kenyaPopulationData)
-#' system.time(poppsubKenya <- getPoppsub(
-#'   km.res=1, pop=pop, domain.map.dat=adm0,
-#'   east.lim=east.lim, north.lim=north.lim, map.projection=projKenya,
-#'   poppa = poppaKenya, areapa=areapaKenya, areapsub=areapsubKenya, 
-#'   area.map.dat=adm1, subarea.map.dat=adm2, 
-#'   areaNameVar = "NAME_1", subareaNameVar="NAME_2"))
+#' if(FALSE){
+#'   system.time(poppsubKenya <- getPoppsub(
+#'     km.res=1, pop=pop, domain.map.dat=adm0,
+#'     east.lim=east.lim, north.lim=north.lim, map.projection=projKenya,
+#'     poppa = poppaKenya, areapa=areapaKenya, areapsub=areapsubKenya, 
+#'     area.map.dat=adm1, subarea.map.dat=adm2, 
+#'     areaNameVar = "NAME_1", subareaNameVar="NAME_2"))
+#' }
+#' data(kenyaPopulationData)
 #' 
 #' # Now generate a general population integration table at 5km resolution, 
 #' # based on subarea (Admin-2) x urban/rural population totals. This takes 
@@ -1035,6 +1039,7 @@ calibrateByRegion = function(point.totals, point.regions, regions, region.totals
 #' # load it in
 #' out = load(mapsFilename)
 #' out
+#' kenyaMesh <- fmesher::fm_as_fm(kenyaMesh)
 #' adm1@data$NAME_1 = as.character(adm1@data$NAME_1)
 #' adm1@data$NAME_1[adm1@data$NAME_1 == "Trans Nzoia"] = "Trans-Nzoia"
 #' adm1@data$NAME_1[adm1@data$NAME_1 == "Elgeyo-Marakwet"] = "Elgeyo Marakwet"
@@ -1092,16 +1097,16 @@ calibrateByRegion = function(point.totals, point.regions, regions, region.totals
 #' north.lim = c(-555.1739, 608.7130)
 #' 
 #' require(fields)
-#' 
+#' #' 
 #' # Now generate a general population integration table at 5km resolution, 
 #' # based on subarea (Admin-2) x urban/rural population totals. This takes 
 #' # ~1 minute
-#' system.time(pop.matKenya <- makePopIntegrationTab(
+#' pop.matKenya <- makePopIntegrationTab(
 #'   km.res=5, pop=pop, domain.map.dat=adm0,
 #'   east.lim=east.lim, north.lim=north.lim, map.projection=projKenya,
 #'   poppa = poppaKenya, poppsub=poppsubKenya, 
 #'   area.map.dat = adm1, subarea.map.dat = adm2,
-#'   areaNameVar = "NAME_1", subareaNameVar="NAME_2"))
+#'   areaNameVar = "NAME_1", subareaNameVar="NAME_2")
 #'   
 #' out = poppRegionFromPopMat(pop.matKenya, pop.matKenya$area)
 #' out
@@ -1178,6 +1183,7 @@ poppRegionFromPopMat = function(pop.mat, regions) {
 #' # load it in
 #' out = load(mapsFilename)
 #' out
+#' kenyaMesh <- fmesher::fm_as_fm(kenyaMesh)
 #' adm1@data$NAME_1 = as.character(adm1@data$NAME_1)
 #' adm1@data$NAME_1[adm1@data$NAME_1 == "Trans Nzoia"] = "Trans-Nzoia"
 #' adm1@data$NAME_1[adm1@data$NAME_1 == "Elgeyo-Marakwet"] = "Elgeyo Marakwet"
@@ -1216,7 +1222,7 @@ poppRegionFromPopMat = function(pop.mat, regions) {
 #' 
 #' tempData = newadm2@data[-unknown8I,]
 #' tempData = tempData[order(tempData$NAME_2),]
-#' newadm2 <- SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
+#' newadm2 <- sp::SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
 #' adm2 = newadm2
 #' 
 #' # download 2014 Kenya population density TIF file
@@ -1236,15 +1242,17 @@ poppRegionFromPopMat = function(pop.mat, regions) {
 #' 
 #' require(fields)
 #' 
+#' data(kenyaPopulationData)
+#' 
 #' # Now generate a general population integration table at 5km resolution, 
 #' # based on subarea (Admin-2) x urban/rural population totals. This takes 
 #' # ~1 minute
-#' system.time(pop.matKenya <- makePopIntegrationTab(
+#' pop.matKenya <- makePopIntegrationTab(
 #'   km.res=5, pop=pop, domain.map.dat=adm0,
 #'   east.lim=east.lim, north.lim=north.lim, map.projection=projKenya,
 #'   poppa = poppaKenya, poppsub=poppsubKenya, 
 #'   area.map.dat = adm1, subarea.map.dat = adm2,
-#'   areaNameVar = "NAME_1", subareaNameVar="NAME_2"))
+#'   areaNameVar = "NAME_1", subareaNameVar="NAME_2")
 #' 
 #' out = setThresholdsByRegion(pop.matKenya, poppaKenya)
 #' out
