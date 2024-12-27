@@ -13,12 +13,13 @@
 #' \item Y: total number of deaths in this age group, stratum, cluster, and period
 #' }
 #' @param X Covariate matrix. It must contain either a column with name "region", or a column with name "years", or both. The covariates must not have missing values for all regions (if varying in space) and all time periods (if varying in time). The rest of the columns are treated as covariates in the mean model.
-#' @param age.groups a character vector of age groups in increasing order.
+#' @param age.group a character vector of age groups in increasing order.
+#' @param age.groups  `r lifecycle::badge("deprecated")` replaced by \code{age.group}
 #' @param age.n number of months in each age groups in the same order.
-#' @param age.time.group vector indicating grouping of the ages groups in the temporal model. For example, if each age group is assigned a different temporal component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate temporal trend to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1. This argument replaces the previous \code{age.rw.group} argument. 
-#' @param age.strata.fixed.group vector indicating grouping of the ages groups for different strata in the intercept. The default is c(1:length(age.groups)), which correspond to each age group within each stratum receives a separate intercept. If several age groups are specified to be the same value in this vector, the stratum specific deviation from the baseline is assumed to be the same for these age groups. For example, if \code{age.strata.fixed.group = c(1, 2, 3, 3, 3, 3)}, then the intercept part of the linear predictor consists of 6 overall age-specific intercepts and 3 set of strata effects (where a base stratum is chosen internally), for age groups 1, 2, and the rest respectively. Notice that this argument does not control the linear temporal trends (which is also parameterized as fixed effect, but determined by the \code{age.rw.group} argument). The vector should contain values starting from 1.
+#' @param age.time.group vector indicating grouping of the ages groups in the temporal model. For example, if each age group is assigned a different temporal component, then set age.rw.group to c(1:length(age.group)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.group)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate temporal trend to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1. This argument replaces the previous \code{age.rw.group} argument. 
+#' @param age.strata.fixed.group vector indicating grouping of the ages groups for different strata in the intercept. The default is c(1:length(age.group)), which correspond to each age group within each stratum receives a separate intercept. If several age groups are specified to be the same value in this vector, the stratum specific deviation from the baseline is assumed to be the same for these age groups. For example, if \code{age.strata.fixed.group = c(1, 2, 3, 3, 3, 3)}, then the intercept part of the linear predictor consists of 6 overall age-specific intercepts and 3 set of strata effects (where a base stratum is chosen internally), for age groups 1, 2, and the rest respectively. Notice that this argument does not control the linear temporal trends (which is also parameterized as fixed effect, but determined by the \code{age.rw.group} argument). The vector should contain values starting from 1.
 #' 
-#' More specific examples: (1) if each age group is assigned a different intercept, then set age.strata.fixed.group to c(1:length(age.groups)) (2) if all age groups share the same intercept, then set age.strata.fixed.group to a rep(1, length(age.groups)). The default for 6 age groups is the former. (3) If each temporal trend is associated with its own intercept, set it to be the same as \code{age.rw.group}. 
+#' More specific examples: (1) if each age group is assigned a different intercept, then set age.strata.fixed.group to c(1:length(age.group)) (2) if all age groups share the same intercept, then set age.strata.fixed.group to a rep(1, length(age.group)). The default for 6 age groups is the former. (3) If each temporal trend is associated with its own intercept, set it to be the same as \code{age.rw.group}. 
 #' @param family family of the model. This can be either binomial (with logistic normal prior), betabiniomial.
 #' @param time.model Model for the main temporal trend, can be rw1, rw2, ar1, or NULL (for spatial-only smoothing). Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale. 
 #' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. Default to be the same as time.model unless specified otherwise. The default does not include region-specific random slopes. They can be added to the interaction term by specifying \code{pc.st.slope.u} and \code{pc.st.slope.alpha}.  
@@ -142,7 +143,7 @@
 #' 
 #' 
 
-smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")[1], age.groups = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.n = c(1,11,12,12,12,12), age.time.group = c(1,2,3,3,3,3), age.strata.fixed.group = c(1,2,3,4,5,6), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year.label, year_label = deprecated(), type.st = 4, survey.effect = FALSE, linear.trend = TRUE, common.trend = FALSE, strata.time.effect = FALSE, hyper = "pc", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), control.fixed = list(), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, age.rw.group = NULL, ...){
+smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")[1], age.group = c("0", "1-11", "12-23", "24-35", "36-47", "48-59"), age.groups = deprecated(), age.n = c(1,11,12,12,12,12), age.time.group = c(1,2,3,3,3,3), age.strata.fixed.group = c(1,2,3,4,5,6), time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, Amat, bias.adj = NULL, bias.adj.by = NULL, formula = NULL, year.label, year_label = deprecated(), type.st = 4, survey.effect = FALSE, linear.trend = TRUE, common.trend = FALSE, strata.time.effect = FALSE, hyper = "pc", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9,  pc.st.u = NA, pc.st.alpha = NA, pc.st.slope.u = NA, pc.st.slope.alpha = NA, overdisp.mean = 0, overdisp.prec = 0.4, options = list(config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), control.fixed = list(), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, st.rw = NULL, age.rw.group = NULL, ...){
 
   # if(family == "betabinomialna") stop("family = betabinomialna is still experimental.")
   # check region names in Amat is consistent
@@ -153,6 +154,10 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
   if (lifecycle::is_present(year_label)) {
       lifecycle::deprecate_soft("2.0.0", "smoothCluster(year_label)", "smoothCluster(year.label)")
       year.label <- year_label
+  }
+  if (lifecycle::is_present(age.groups)) {
+      lifecycle::deprecate_soft("2.0.0", "smoothCluster(age.groups)", "smoothCluster(age.group)")
+      age.group <- age.groups
   }
 
   msg <- NULL
@@ -165,8 +170,8 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
     message("Argument geo is deprecated in the smoothCluster function. Only Amat is needed.")
   }
 
-  if(sum(!unique(data$age) %in% age.groups) > 0){
-    stop("The data consist of more age groups than specified by the 'age.groups' argument. Please check your data and subset your data properly.")
+  if(sum(!unique(data$age) %in% age.group) > 0){
+    stop("The data consist of more age groups than specified by the 'age.group' argument. Please check your data and subset your data properly.")
   }
   if(!is.null(age.rw.group)){
     age.time.group <- age.rw.group
@@ -174,7 +179,7 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
   }else{
     age.rw.group <- age.time.group
   }
-  check.age <- c(length(age.groups), length(age.n), length(age.time.group), length(age.strata.fixed.group))
+  check.age <- c(length(age.group), length(age.n), length(age.time.group), length(age.strata.fixed.group))
   if(length(unique(check.age)) > 1){
     stop("The arguments 'age.group', 'age.n', 'age.time.group', and 'age.strata.fixed.group' are of different lengths. Please check the specification of these arguments.")
   }
@@ -364,7 +369,7 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
   }   
 
 
-  if(is.null(age.groups)){
+  if(is.null(age.group)){
     age.n <- 1
     age.rw.group <- 1
   }
@@ -503,7 +508,7 @@ smoothCluster <- function(data, X = NULL, family = c("betabinomial", "binomial")
   stratalevels <- unique(data$strata)
 
 
-age.groups.vec <- age.groups
+age.group.vec <- age.group
 data$age.intercept <- data$age
 data$age.orig <- data$age
 
@@ -523,17 +528,17 @@ if(strata.time.effect){
     }
     age.rw.group <- tmp
 
-    if(is.null(age.groups)){
-      age.groups <- stratalevels
+    if(is.null(age.group)){
+      age.group <- stratalevels
       data$age <- data$strata
       data$age.intercept <- data$strata
     }else{
-      age.groups <- expand.grid(age.groups.vec, stratalevels)
+      age.group <- expand.grid(age.group.vec, stratalevels)
       # avoid extra ":" at the end
-      if(sum(age.groups[,2] != "") > 0){
-        age.groups <- paste(age.groups[,1], age.groups[,2], sep = ":")
+      if(sum(age.group[,2] != "") > 0){
+        age.group <- paste(age.group[,1], age.group[,2], sep = ":")
       }else{
-        age.groups <- age.groups[,1]
+        age.group <- age.group[,1]
       }
       if(sum(data$age != "") > 0){
         data$age <- paste(data$age, data$strata, sep = ":")
@@ -545,14 +550,14 @@ if(strata.time.effect){
   # make new age.intercept variable
   is.age.diff <- FALSE
   age.diff.levels <- NULL
-  if(!is.null(age.groups)){
+  if(!is.null(age.group)){
       # reformat age variable to correspond to intercepts
-      age.groups.new <- NULL
+      age.group.new <- NULL
       for(k in 1:max(age.strata.fixed.group)){
-          age.groups.new <- c(age.groups.new, paste0(age.groups.vec[which(age.strata.fixed.group == k)], collapse = ", "))
+          age.group.new <- c(age.group.new, paste0(age.group.vec[which(age.strata.fixed.group == k)], collapse = ", "))
       }
-      # make the list the same length as the original age.groups
-      age.groups.new <- age.groups.new[age.strata.fixed.group]
+      # make the list the same length as the original age.group
+      age.group.new <- age.group.new[age.strata.fixed.group]
 
       # age-stratum effect modeled as difference from baseline?
       is.age.diff <- ifelse(length(unique(age.strata.fixed.group)) == length(age.strata.fixed.group), 0, 1)
@@ -560,7 +565,7 @@ if(strata.time.effect){
         # new age.intercept variable as just original age
         data$age.intercept <- data$age.orig
         # add new age.diff variable as the difference 
-        data$age.diff <- age.groups.new[match(data$age.orig, age.groups.vec)]
+        data$age.diff <- age.group.new[match(data$age.orig, age.group.vec)]
         # avoid extra ":" at the end
         if(sum(data$strata != "") > 0){
           data$age.diff <- paste(data$age.diff, data$strata, sep = ":") 
@@ -574,18 +579,18 @@ if(strata.time.effect){
         age.diff.levels <- c("base", age.diff.levels[age.diff.levels != "base"])
       }else{          
         # new age.intercept variable as age * strata
-        data$age.intercept <- age.groups.new[match(data$age.orig, age.groups.vec)]
+        data$age.intercept <- age.group.new[match(data$age.orig, age.group.vec)]
         # avoid additional ":" at the end
         if(sum(data$strata != "") > 0){
           data$age.intercept <- paste(data$age.intercept, data$strata, sep = ":") 
         }
         data$age.diff <- NA
 
-        age.groups.new <- expand.grid(age.groups.new, stratalevels)
-        if(sum(age.groups.new[,2] != "") > 0){
-          age.groups.new <- paste(age.groups.new[,1], age.groups.new[,2], sep = ":")
+        age.group.new <- expand.grid(age.group.new, stratalevels)
+        if(sum(age.group.new[,2] != "") > 0){
+          age.group.new <- paste(age.group.new[,1], age.group.new[,2], sep = ":")
         }else{
-          age.groups.new <- age.groups.new[,1]
+          age.group.new <- age.group.new[,1]
         }
       }
   }
@@ -753,7 +758,7 @@ if(strata.time.effect){
       for(aa in unique(age.rw.group)){
           tmp <- paste0("time.slope.group", aa)
           exdat[, tmp] <- exdat$time.slope
-          which.age <- age.groups[which(age.rw.group == aa)]
+          which.age <- age.group[which(age.rw.group == aa)]
           this.group <- exdat$age %in% which.age
           exdat[!this.group, tmp] <- NA
           slope.fixed.names <- c(slope.fixed.names, tmp)
@@ -1219,13 +1224,13 @@ if(strata.time.effect){
    }
 
   if(has.strata) exdat$strata <- factor(exdat$strata, levels = stratalevels)
-  if(!is.null(age.groups)){
-      exdat$age <- factor(exdat$age, levels = age.groups)
+  if(!is.null(age.group)){
+      exdat$age <- factor(exdat$age, levels = age.group)
       if(is.age.diff){
-        exdat$age.intercept <- factor(exdat$age.intercept, levels = unique(age.groups.vec))
+        exdat$age.intercept <- factor(exdat$age.intercept, levels = unique(age.group.vec))
         exdat$age.diff <- factor(exdat$age.diff, levels = age.diff.levels)
       }else{
-          exdat$age.intercept <- factor(exdat$age.intercept, levels = unique(age.groups.new))
+          exdat$age.intercept <- factor(exdat$age.intercept, levels = unique(age.group.new))
       }   
       
   }else{
@@ -1233,11 +1238,11 @@ if(strata.time.effect){
      if(is.age.diff)  formula <- update(formula, ~. - age.diff)  
   }
   # if only one level, use the default intercept instead of age
-  if(length(age.groups) == 1){
+  if(length(age.group) == 1){
     formula <- update(formula, ~. - age.intercept + 1)   
     if(is.age.diff)  formula <- update(formula, ~. - age.diff)  
   }
-  exdat$age.idx <- match(exdat$age, age.groups)
+  exdat$age.idx <- match(exdat$age, age.group)
   exdat$age.rep.idx <- age.rw.group[exdat$age.idx]
 
 
@@ -1292,7 +1297,7 @@ if(family == "betabinomialna"){
 
  priors <- list(pc.u = pc.u, pc.alpha = pc.alpha, pc.u.phi = pc.u.phi, pc.alpha.phi = pc.alpha.phi, pc.u.cor = pc.u.cor, pc.alpha.cor = pc.alpha.cor,  pc.st.u = pc.st.u, pc.st.alpha = pc.st.alpha, pc.st.slope.u = pc.st.slope.u, pc.st.slope.prec.u = pc.st.slope.prec.u, pc.st.slope.alpha = pc.st.slope.alpha, overdisp.mean = overdisp.mean, overdisp.prec = overdisp.prec)
 
- out <- list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, is.yearly = FALSE, type.st = type.st, year.label = year.label, year_label = year.label, age.groups = age.groups, age.groups.new = age.groups.new, age.n = age.n, age.rw.group = age.rw.group, age.strata.fixed.group = age.strata.fixed.group, strata.base = strata.base, rw = rw, ar = ar, strata.time.effect = strata.time.effect,  priors = priors, year_range = NA, year.range = NA, Amat = Amat, has.Amat = TRUE, is.temporal = is.temporal, covariate.names = covariate.names, slope.fixed.output = slope.fixed.output, control.fixed = control.fixed, msg = msg)
+ out <- list(model = formula, fit = fit, family= family, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, is.yearly = FALSE, type.st = type.st, year.label = year.label, year_label = year.label, age.groups = age.group, age.groups.new = age.group.new, age.n = age.n, age.rw.group = age.rw.group, age.strata.fixed.group = age.strata.fixed.group, strata.base = strata.base, rw = rw, ar = ar, strata.time.effect = strata.time.effect,  priors = priors, year_range = NA, year.range = NA, Amat = Amat, has.Amat = TRUE, is.temporal = is.temporal, covariate.names = covariate.names, slope.fixed.output = slope.fixed.output, control.fixed = control.fixed, msg = msg)
  class(out) <- "SUMMERmodel"
  return(out)
     
