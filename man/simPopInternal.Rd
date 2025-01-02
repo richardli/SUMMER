@@ -13,182 +13,190 @@
 \alias{sampleNMultilevelMultinomialFixed}
 \title{Internal functions for population simulation}
 \usage{
-getExpectedNperEA(easpa, popMat, level = c("grid", "EA"), pixelIndexMat = NULL)
+getExpectedNperEA(
+  easpa,
+  pop.mat,
+  level = c("grid", "EA"),
+  pixel.index.mat = NULL
+)
 
 getSortIndices(
   i,
   urban = TRUE,
-  popMat,
-  stratifyByUrban = TRUE,
-  validationPixelI = NULL
+  pop.mat,
+  stratify.by.urban = TRUE,
+  validation.pixel.I = NULL
 )
 
-rStratifiedMultnomial(n, popMat, easpa, stratifyByUrban = TRUE)
+rStratifiedMultnomial(n, pop.mat, easpa, stratify.by.urban = TRUE)
 
 rStratifiedMultnomialBySubarea(
   n,
-  popMat,
+  pop.mat,
   easpa,
-  stratifyByUrban = TRUE,
+  stratify.by.urban = TRUE,
   poppsub = NULL,
-  min1PerSubarea = TRUE,
-  minSample = 1
+  min1.per.subarea = TRUE,
+  min.sample = 1
 )
 
 rMyMultinomial(
   n,
   i,
-  stratifyByUrban = TRUE,
+  stratify.by.urban = TRUE,
   urban = TRUE,
-  popMat = NULL,
+  pop.mat = NULL,
   easpa = NULL,
-  min1PerSubarea = FALSE,
+  min1.per.subarea = FALSE,
   method = c("mult1", "mult", "indepMH"),
-  minSample = 1
+  min.sample = 1
 )
 
 rMyMultinomialSubarea(
   n,
   i,
   easpsub,
-  stratifyByUrban = TRUE,
+  stratify.by.urban = TRUE,
   urban = TRUE,
-  popMat = NULL
+  pop.mat = NULL
 )
 
 rmultinom1(
   n = 1,
   size,
   prob,
-  maxSize = 8000 * 8000,
+  max.size = 8000 * 8000,
   method = c("mult1", "mult", "indepMH"),
   verbose = FALSE,
-  minSample = 100,
-  maxExpectedSizeBeforeSwitch = 1000 * 1e+07,
+  min.sample = 100,
+  max.expected.size.before.switch = 1000 * 1e+07,
   init = NULL,
-  burnIn = floor(n/4),
-  filterEvery = 10,
-  zeroProbZeroSamples = TRUE,
-  allowSizeLessThanK = FALSE
+  burnin = floor(n/4),
+  filter.every = 10,
+  zero.prob.zero.samples = TRUE,
+  allow.size.less.than.K = FALSE
 )
 
 sampleNMultilevelMultinomial(
-  nDraws = ncol(pixelIndexMat),
-  pixelIndexMat = NULL,
-  urbanMat = NULL,
-  areaMat = NULL,
-  easpaList,
-  popMat,
-  stratifyByUrban = TRUE,
+  ndraws = ncol(pixel.index.mat),
+  pixel.index.mat = NULL,
+  urban.mat = NULL,
+  area.mat = NULL,
+  easpa.list,
+  pop.mat,
+  stratify.by.urban = TRUE,
   verbose = TRUE,
-  returnEAinfo = FALSE,
-  minHHPerEA = 25,
-  fixHHPerEA = NULL,
-  fixPopPerHH = NULL
+  return.EA.info = FALSE,
+  min.HH.per.EA = 25,
+  fix.HH.per.EA = NULL,
+  fix.pop.per.HH = NULL
 )
 
 sampleNMultilevelMultinomialFixed(
-  clustersPerPixel,
-  nDraws = ncol(pixelIndices),
-  pixelIndices = NULL,
+  clusters.per.pixel,
+  ndraws = ncol(pixel.indices),
+  pixel.indices = NULL,
   urbanVals = NULL,
   areaVals = NULL,
   easpa,
-  popMat,
-  stratifyByUrban = TRUE,
+  pop.mat,
+  stratify.by.urban = TRUE,
   verbose = TRUE
 )
 }
 \arguments{
 \item{easpa}{Census frame. See \code{\link{simPopCustom}} for details}
 
-\item{popMat}{data.frame of pixellated grid of population densities. See \code{\link{simPopCustom}} for details}
+\item{pop.mat}{data.frame of pixellated grid of population densities. See \code{\link{simPopCustom}} for details}
 
 \item{level}{Whether to calculate results at the integration grid or EA level}
 
-\item{pixelIndexMat}{Matrix of pixel indices associated with each EA and draw. Not 
+\item{pixel.index.mat}{Matrix of pixel indices associated with each EA and draw. Not
 required by getExpectedNperEA unless level == "EA"}
 
 \item{i}{Index}
 
 \item{urban}{If TRUE, calculate only for urban part of the area. If FALSE, for only rural part}
 
-\item{stratifyByUrban}{whether or not to stratify calculations by urban/rural classification}
+\item{stratify.by.urban}{whether or not to stratify calculations by urban/rural classification}
 
-\item{validationPixelI}{CURRENTLY FOR TESTING PURPOSES ONLY a set of indices of pixels for which we want to simulate populations (used for pixel level validation)}
+\item{validation.pixel.I}{CURRENTLY FOR TESTING PURPOSES ONLY a set of indices of pixels for which we want to simulate populations (used for pixel level validation)}
 
 \item{n}{Number of samples}
 
 \item{poppsub}{Population per subarea. See \code{\link{simPopCustom}} for details}
 
-\item{min1PerSubarea}{Whether or not to ensure there is at least 1 EA per subarea. See \code{\link{simPopCustom}} for details}
+\item{min1.per.subarea}{Whether or not to ensure there is at least 1 EA per subarea. See \code{\link{simPopCustom}} for details}
 
-\item{minSample}{The minimum number of samples per `chunk` of samples for truncated multinomial sampling. Defaults to 1}
+\item{min.sample}{The minimum number of samples per \code{chunk} of samples for truncated multinomial sampling. Defaults to 1}
 
-\item{method}{If min1PerSubarea is TRUE, the sampling method for the truncated multinomial to use with rmulitnom1. rmultinom1 automatically 
-        switches between them depending on the number of expected samples. The methods are:
+\item{method}{If min1.per.subarea is TRUE, the sampling method for the truncated multinomial to use with rmulitnom1. rmultinom1 automatically
+switches between them depending on the number of expected samples. The methods are:
 \describe{
-  \item{mult1}{rejection sampling from multinomial plus 1 in each category}
-  \item{mult}{rejection sampling from multinomial if any category has zero count}
-  \item{indepMH}{independent Metropolis-Hastings using multinomial plus 1 distribution as proposal}
+\item{mult1}{rejection sampling from multinomial plus 1 in each category}
+\item{mult}{rejection sampling from multinomial if any category has zero count}
+\item{indepMH}{independent Metropolis-Hastings using multinomial plus 1 distribution as proposal}
 }}
 
-\item{easpsub}{This could either be total EAs per subarea, or subarea crossed with urban or 
-rural if stratifyByUrban is TRUE}
+\item{easpsub}{This could either be total EAs per subarea, or subarea crossed with urban or
+rural if stratify.by.urban is TRUE}
 
 \item{size}{Multinomial size parameter. See \code{\link[stats]{rmultinom}}}
 
 \item{prob}{Multinomial probability vector parameter. See \code{\link[stats]{rmultinom}}}
 
-\item{maxSize}{The maximum number of elements in a matrix drawn from the proposal distribution per sample chunk.}
+\item{max.size}{The maximum number of elements in a matrix drawn from the proposal distribution per sample chunk.}
 
 \item{verbose}{Whether to print progress as the function proceeds}
 
-\item{maxExpectedSizeBeforeSwitch}{Max expected number of samples / k, the number of categories, before switching method}
+\item{max.expected.size.before.switch}{Max expected number of samples / k, the number of categories, before switching method}
 
-\item{init}{Initial sample if method is `indepMH`}
+\item{init}{Initial sample if method is \code{indepMH}}
 
-\item{burnIn}{Number of initial samples before samples are collected if method is `indepMH`}
+\item{burnin}{Number of initial samples before samples are collected if method is \code{indepMH}}
 
-\item{filterEvery}{Store only every filterEvery samples if method is i`indepMH`}
+\item{filter.every}{Store only every filter.every samples if method is i\code{indepMH}}
 
-\item{zeroProbZeroSamples}{If TRUE, set samples for parts of prob vector that are zero to zero. Otherwise they are set to one.}
+\item{zero.prob.zero.samples}{If TRUE, set samples for parts of prob vector that are zero to zero. Otherwise they are set to one.}
 
-\item{allowSizeLessThanK}{If TRUE, then if size < the number of categories (k), returns matrix where each 
+\item{allow.size.less.than.K}{If TRUE, then if size < the number of categories (k), returns matrix where each
 column is vector of size ones and k - size zeros. If FALSE, throws an error if size < k}
 
-\item{nDraws}{Number of draws}
+\item{ndraws}{Number of draws}
 
-\item{urbanMat}{Matrix of urbanicities associated with each EA and draw}
+\item{urban.mat}{Matrix of urbanicities associated with each EA and draw}
 
-\item{areaMat}{Matrix of areas associated with each EA and draw}
+\item{area.mat}{Matrix of areas associated with each EA and draw}
 
-\item{easpaList}{A list of length n with each element being of the format of easpa 
-giving the number of households and EAs 
-per stratum. It is assumed that the number of EAs per stratum is 
-the same in each list element. If easpaList is a data frame, 
+\item{easpa.list}{A list of length n with each element being of the format of easpa
+giving the number of households and EAs
+per stratum. It is assumed that the number of EAs per stratum is
+the same in each list element. If easpa.list is a data frame,
 number of households per stratum is assumed constant}
 
-\item{returnEAinfo}{Whether a data frame at the EA level is desired}
+\item{return.EA.info}{Whether a data frame at the EA level is desired}
 
-\item{minHHPerEA}{The minimum number of households per EA (defaults to 25, since 
+\item{min.HH.per.EA}{The minimum number of households per EA (defaults to 25, since
 that is the number of households sampled per DHS cluster)}
 
-\item{fixHHPerEA}{If not NULL, the fixed number of households per EA}
+\item{fix.HH.per.EA}{If not NULL, the fixed number of households per EA}
 
-\item{fixPopPerHH}{If not NULL, the fixed target population per household}
+\item{fix.pop.per.HH}{If not NULL, the fixed target population per household}
 
-\item{clustersPerPixel}{CURRENTLY FOR TESTING PURPOSES ONLY a vector of length nIntegrationPoints specifying the number of clusters per pixel if they are fixed}
+\item{clusters.per.pixel}{CURRENTLY FOR TESTING PURPOSES ONLY a vector of length nIntegrationPoints specifying the number of clusters per pixel if they are fixed}
 
-\item{pixelIndices}{A nEA x n matrix of pixel indices associated with each EA per simulation/draw}
+\item{pixel.indices}{A nEA x n matrix of pixel indices associated with each EA per simulation/draw}
 
 \item{urbanVals}{A nEA x n matrix of urbanicities associated with each EA per simulation/draw}
 
 \item{areaVals}{A nEA x n matrix of area names associated with each EA per simulation/draw}
 }
 \description{
-Functions for calculating valuable quantities and for drawing from important 
+Functions for calculating valuable quantities and for drawing from important
 distributions for population simulation.
+}
+\details{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 }
 \section{Functions}{
 \itemize{
@@ -196,7 +204,7 @@ distributions for population simulation.
 
 \item \code{getSortIndices()}: For recombining separate multinomials into the draws over all grid points
 
-\item \code{rStratifiedMultnomial()}: Gives nIntegrationPoints x n matrix of draws from the stratified multinomial with values 
+\item \code{rStratifiedMultnomial()}: Gives nIntegrationPoints x n matrix of draws from the stratified multinomial with values
 corresponding to the value of |C^g| for each pixel, g (the number of EAs/pixel)
 
 \item \code{rStratifiedMultnomialBySubarea()}: Gives nIntegrationPoints x n matrix of draws from the stratified multinomial with values
@@ -207,9 +215,9 @@ corresponding to the value of |C^g| for each pixel, g (the number of EAs/pixel)
 
 \item \code{rmultinom1()}: Random (truncated) multinomial draws conditional on the number of each type being at least one
 
-\item \code{sampleNMultilevelMultinomial()}: Take multilevel multinomial draws first from joint distribution of 
-number of households per EA given the total per stratum, and then from the joint 
-distribution of the total target population per household given 
+\item \code{sampleNMultilevelMultinomial()}: Take multilevel multinomial draws first from joint distribution of
+number of households per EA given the total per stratum, and then from the joint
+distribution of the total target population per household given
 the total per stratum
 
 \item \code{sampleNMultilevelMultinomialFixed()}: Same as sampleNMultilevelMultinomial, except the number of EAs per pixel is fixed

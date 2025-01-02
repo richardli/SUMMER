@@ -14,7 +14,7 @@ A data.frame of 7 variables.
 data(DemoData2)
 }
 \description{
-A small fake dataset with 8 regions and two response variables: age and tobacco.use. This  does not represent 
+A small fake dataset with 8 regions and two response variables: age and tobacco.use. This  does not represent
 any real country's data and are based on a subset of the model dataset
 provided by DHS.
 }

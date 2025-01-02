@@ -17,8 +17,11 @@ projKenya(lon, lat = NULL, inverse = FALSE)
 A 2 column matrix of easting/northing coordinates in km if inverse == FALSE. Otherwise, a 2 column matrix of longitude/latitude coordinates.
 }
 \description{
-Projection specifically chosen for Kenya. Project from lat/lon to northing/easting 
-in kilometers.  Uses epsg=21097 with km units. May not work on all systems due to 
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+}
+\details{
+Projection specifically chosen for Kenya. Project from lat/lon to northing/easting
+in kilometers.  Uses epsg=21097 with km units. May not work on all systems due to
 differences in the behavior between different PROJ and GDAL versions.
 }
 \examples{

@@ -25,15 +25,15 @@ Benchmark(
 
 \item{timeVar}{column name in \code{national} that indicates time periods.}
 
-\item{weight.region}{a data frame with a column `region` specifying subnational regions, a column `proportion` that specifies the proportion of population in each region. When multiple time periods exist, a third column `years` is required and the population proportions are the population proportions of each region in the corresponding time period.}
+\item{weight.region}{a data frame with a column \code{region} specifying subnational regions, a column \code{proportion} that specifies the proportion of population in each region. When multiple time periods exist, a third column \code{years} is required and the population proportions are the population proportions of each region in the corresponding time period.}
 
-\item{method}{a string denoting the algorithm to use for benchmarking. Options include `MH` for Metropolis-Hastings, and `Rejection` for rejection sampler. Defaults to `Rejection`.}
+\item{method}{a string denoting the algorithm to use for benchmarking. Options include \code{MH} for Metropolis-Hastings, and \code{Rejection} for rejection sampler. Defaults to \code{Rejection}.}
 }
 \value{
 Benchmarked object in S3 class SUMMERproj or SUMMERprojlist in the same format as the input object \code{fitted}.
 }
 \description{
-Benchmark posterior draws to national estimates
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 }
 \examples{
 \dontrun{
@@ -58,7 +58,7 @@ counts.all <- rbind(counts.all, counts)
 periods <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")
 fit.bb  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat, 
 				family = "betabinomial",
-				year_label = periods, 
+				year.label = periods, 
 				survey.effect = TRUE)
 est.bb <- getSmoothed(fit.bb, nsim = 1e4, CI = 0.95, save.draws=TRUE)
 
@@ -155,7 +155,7 @@ abline(c(0, 1))
 #  specified for fixed effects when fitting the model
 fit.bb.new  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat, 
 				family = "betabinomial",
-				year_label = periods, 
+				year.label = periods, 
 				survey.effect = TRUE, 
 				control.fixed = list(
 					mean=list(`age.intercept0:1`=-4, 
@@ -218,7 +218,7 @@ data <- aggregateSurvey(data_multi)
 #  subnational model
 years.all <- c(years, "15-19")
 fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat,
-                 year_label = years.all, year_range = c(1985, 2019),
+                 year.label = years.all, year.range = c(1985, 2019),
                  time.model = "rw2", m = 5, type.st = 4)
 out2a <- getSmoothed(fit2, joint = TRUE, nsim = 1e5, save.draws = TRUE)
 
@@ -290,6 +290,9 @@ legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, 10)
 
 
  }
+}
+\references{
+Okonek, Taylor, and Jon Wakefield. "A computationally efficient approach to fully Bayesian benchmarking." Journal of Official Statistics 40, no. 2 (2024): 283-316.
 }
 \author{
 Taylor Okonek, Zehang Richard Li

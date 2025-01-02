@@ -9,9 +9,9 @@
 \alias{poppsubKenya}
 \title{Kenya 2009 Census Frame and Related Datasets}
 \format{
-A number of data.frames with information about the 2009 Kenya Population and Housing Census and the population in Kenya at the time of the 2014 Demographic Health Survey. Some of the 
-data.frames have been adjusted to contain information about neonatals born from 2010-2014 rather than general population in 2014. 
-The dataset names are: easpaKenya, easpaKenyaNeonatal, 
+A number of data.frames with information about the 2009 Kenya Population and Housing Census and the population in Kenya at the time of the 2014 Demographic Health Survey. Some of the
+data.frames have been adjusted to contain information about neonatals born from 2010-2014 rather than general population in 2014.
+The dataset names are: easpaKenya, easpaKenyaNeonatal,
 poppaKenya, and poppsubKenya.
 
 An object of class \code{data.frame} with 47 rows and 12 columns.
@@ -21,7 +21,7 @@ An object of class \code{data.frame} with 47 rows and 6 columns.
 An object of class \code{data.frame} with 300 rows and 7 columns.
 }
 \source{
-<http://dhsprogram.com/pubs/pdf/FR308/FR308.pdf>
+\url{https://dhsprogram.com/pubs/pdf/FR308/FR308.pdf}
 }
 \usage{
 data(kenyaPopulationData)
@@ -33,8 +33,8 @@ poppaKenya
 poppsubKenya
 }
 \description{
-Datasets related to the 2009 census frame for Kenya based on the 2009 Kenya Population and Housing 
-Census. General population totals are estimated for 2014. Based on 2014 population density 
+Datasets related to the 2009 census frame for Kenya based on the 2009 Kenya Population and Housing
+Census. General population totals are estimated for 2014. Based on 2014 population density
 estimates interpolated with exponential growth rate between 2010 and 2015 from WorldPop data.
 }
 \references{

@@ -43,7 +43,7 @@ This function is the print method for class \code{SUMMERprojlist}.
     strata.time.effect =  TRUE, 
     survey.effect = TRUE,
     family = "betabinomial",
-    year_label = c(periods, "15-19"))
+    year.label = c(periods, "15-19"))
  summary(fit)
  est <- getSmoothed(fit, nsim = 1000)
 }

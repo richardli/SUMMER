@@ -4,34 +4,37 @@
 \alias{calibrateByRegion}
 \title{Calibrate the point level totals so their sum matches the regional totals}
 \usage{
-calibrateByRegion(pointTotals, pointRegions, regions, regionTotals)
+calibrateByRegion(point.totals, point.regions, regions, region.totals)
 }
 \arguments{
-\item{pointTotals}{Vector of point level totals that will be calibrated/normalized}
+\item{point.totals}{Vector of point level totals that will be calibrated/normalized}
 
-\item{pointRegions}{Vector of regions associated with each point}
+\item{point.regions}{Vector of regions associated with each point}
 
 \item{regions}{Vector of region names}
 
-\item{regionTotals}{Vector of desired region level totals associated with `regions`}
+\item{region.totals}{Vector of desired region level totals associated with \code{regions}}
 }
 \value{
-A vector of same length as pointTotals and pointRegions containing 
+A vector of same length as point.totals and point.regions containing
 the calibrated/normalized point totals that sum to the correct regional totals
 
 Vector of updated point level totals, calibrated to match region totals
 }
 \description{
-Calibrate/normalize the point level totals so their sum matches the 
-regional totals. Technically, the totals can be at any level smaller  
+Calibrate/normalize the point level totals so their sum matches the
+regional totals. Technically, the totals can be at any level smaller
 than the region level specified.
 }
+\details{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+}
 \examples{
-pointTotals = c(1, 1, 1, 2)
-pointRegions = c("a", "a", "b", "b")
-regionTotals = c(10, 20)
+point.totals = c(1, 1, 1, 2)
+point.regions = c("a", "a", "b", "b")
+region.totals = c(10, 20)
 regions = c("a", "b")
-calibrateByRegion(pointTotals, pointRegions, regions, regionTotals)
+calibrateByRegion(point.totals, point.regions, regions, region.totals)
 
 }
 \author{

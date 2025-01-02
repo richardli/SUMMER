@@ -30,7 +30,7 @@ This function is the print method for class \code{SUMMERmodel}.
   
   years.all <- c(years, "15-19")
   fit <- smoothDirect(data = data, Amat = NULL, 
-  year_label = years.all, year_range = c(1985, 2019), 
+  year.label = years.all, year.range = c(1985, 2019), 
   time.model = 'rw2', is.yearly=FALSE, m = 5)
   fit
 
@@ -56,7 +56,7 @@ This function is the print method for class \code{SUMMERmodel}.
      strata.time.effect =  TRUE, 
      survey.effect = TRUE,
      family = "betabinomial",
-     year_label = c(periods, "15-19"))
+     year.label = c(periods, "15-19"))
   fit
 }
 }

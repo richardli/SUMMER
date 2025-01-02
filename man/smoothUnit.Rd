@@ -57,7 +57,7 @@ smoothUnit(
 A svysae object
 }
 \description{
-Generates small area estimates by smoothing direct estimates using a basic 
+Generates small area estimates by smoothing direct estimates using a basic
 unit level model
 }
 \examples{

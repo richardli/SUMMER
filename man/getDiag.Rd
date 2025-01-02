@@ -5,7 +5,8 @@
 \title{Extract posterior summaries of random effects}
 \usage{
 getDiag(
-  inla_mod,
+  fitted,
+  inla_mod = deprecated(),
   field = c("space", "time", "spacetime")[1],
   CI = 0.95,
   draws = NULL,
@@ -14,7 +15,9 @@ getDiag(
 )
 }
 \arguments{
-\item{inla_mod}{output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}}
+\item{fitted}{output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}}
+
+\item{inla_mod}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} replaced by \code{fitted}.}
 
 \item{field}{which random effects to plot. It can be one of the following: space, time, and spacetime.}
 
@@ -24,7 +27,7 @@ getDiag(
 
 \item{nsim}{number of simulations, only applicable for the cluster-level model space-time interaction terms when random slopes are included.}
 
-\item{...}{Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.}
+\item{...}{Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year.label, and year.range can still be specified manually.}
 }
 \value{
 List of diagnostic plots
@@ -53,7 +56,7 @@ Extract posterior summaries of random effects
   #  national model
   years.all <- c(years, "15-19")
   fit1 <- smoothDirect(data = data, geo = DemoMap$geo, Amat = DemoMap$Amat, 
-    year_label = years.all, year_range = c(1985, 2019), 
+    year.label = years.all, year.range = c(1985, 2019), 
     rw = 2, is.yearly=FALSE, m = 5)
 random.time <- getDiag(fit1, field = "time")
   random.space <- getDiag(fit1, field = "space")
