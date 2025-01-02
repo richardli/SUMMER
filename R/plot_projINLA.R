@@ -11,7 +11,7 @@
 #' @param option.add list of options specifying the variable names for the points to plot, lower and upper bounds, and the grouping variable. This is intended to be used to add Comparisons estimates on the same plot as the smoothed estimates. See examples for details.  
 #' @param color.add the color of the Comparisons data points to plot.
 #' @param label.add the label of the Comparisons data points in the legend.
-#' @param dodge.width the amount to add to data points at the same year to avoid overlap. Default to be 1.
+#' @param dodge.width the amount to add to data points at the same year to avoid overlap. Default to be 0.5.
 #' @param plot.CI logical indicator of whether to plot the error bars.
 #' @param per1000 logical indicator to plot mortality rates as rates per 1,000 live births. Note that the added comparison data should always be in the probability scale.
 #' @param color.CI the color of the error bars of the credible interval.
@@ -58,7 +58,7 @@
 #' }
 #' 
 #' @export
-plot.SUMMERproj  <- function(x, year.label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), year_label = deprecated(), year.med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), year_med = deprecated(), is.subnational = TRUE, year.proj = 2015, proj_year = deprecated(), data.add = NULL, option.add = list(point = NULL, lower = NULL, upper = NULL, by = NULL), color.add = "black", label.add = NULL, dodge.width = 1, plot.CI = NULL, per1000 = FALSE,  color.CI = NULL, alpha.CI = 0.5, ...){
+plot.SUMMERproj  <- function(x, year.label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"), year_label = deprecated(), year.med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017), year_med = deprecated(), is.subnational = TRUE, year.proj = 2015, proj_year = deprecated(), data.add = NULL, option.add = list(point = NULL, lower = NULL, upper = NULL, by = NULL), color.add = "black", label.add = NULL, dodge.width = 0.5, plot.CI = NULL, per1000 = FALSE,  color.CI = NULL, alpha.CI = 0.5, ...){
 
 
   if (lifecycle::is_present(year_label)) {
@@ -94,6 +94,30 @@ plot.SUMMERproj  <- function(x, year.label = c("85-89", "90-94", "95-99", "00-04
         if(option.add$point[ii] %in% colnames(x)){
          colnames(data.add)[which(colnames(data.add) == option.add$point[ii])] <- paste0(option.add$point[ii], ".addedtemp")
          option.add$point[ii] <- paste0(option.add$point[ii], ".addedtemp")
+        }
+      }
+   }
+   if(!is.null(option.add$lower)){
+      for(ii in length(option.add$lower)){
+        if(option.add$lower[ii] %in% colnames(x)){
+         colnames(data.add)[which(colnames(data.add) == option.add$lower[ii])] <- paste0(option.add$lower[ii], ".addedtemp")
+         option.add$lower[ii] <- paste0(option.add$lower[ii], ".addedtemp")
+        }
+      }
+   }
+   if(!is.null(option.add$upper)){
+      for(ii in length(option.add$upper)){
+        if(option.add$upper[ii] %in% colnames(x)){
+         colnames(data.add)[which(colnames(data.add) == option.add$upper[ii])] <- paste0(option.add$upper[ii], ".addedtemp")
+         option.add$upper[ii] <- paste0(option.add$upper[ii], ".addedtemp")
+        }
+      }
+   }
+   if(!is.null(option.add$by)){
+      for(ii in length(option.add$by)){
+        if(option.add$by[ii] %in% colnames(x)){
+         colnames(data.add)[which(colnames(data.add) == option.add$by[ii])] <- paste0(option.add$by[ii], ".addedtemp")
+         option.add$by[ii] <- paste0(option.add$by[ii], ".addedtemp")
         }
       }
    }
