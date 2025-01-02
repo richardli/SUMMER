@@ -566,7 +566,7 @@ makePopIntegrationTab = function(km.res=5, pop, domain.map.dat, east.lim, north.
       centroidsLonLat = matrix(centroidsLonLat[badSubareas,], ncol=2)
       
       # convert to east/north
-      centroidsEastNorth = projKenya(centroidsLonLat[,1], centroidsLonLat[,2])
+      centroidsEastNorth = map.projection(centroidsLonLat[,1], centroidsLonLat[,2])
       
       # only add centroid in stratum if bad subareas have any population in the stratum. 
       # If poppsub not included and resolution not high enough to have multiple points 
