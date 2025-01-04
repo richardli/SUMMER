@@ -45,13 +45,15 @@ test_that("smoothDirect works for national model", {
 
    data(DemoData)
    years <- levels(DemoData[[1]]$time)
+   years.all <- c(years, "15-19")
+
    # obtain direct estimates
    data_multi <- getDirectList(births = DemoData, years = years,
    regionVar = "region",  timeVar = "time", clusterVar = "~clustid+id",
    ageVar = "age", weightsVar = "weights", geo.recode = NULL)
    data <- aggregateSurvey(data_multi)
 
-      
+
    #  subnational model
    fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat, 
    year.label = years.all, year.range = c(1985, 2019), 
