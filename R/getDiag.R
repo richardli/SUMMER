@@ -53,19 +53,19 @@ getDiag <- function(fitted, inla_mod = deprecated(), field = c("space", "time", 
 	upper <- 1 - lower
 	if(!is.null(fitted$year.range)){
 		year.range <- fitted$year.range
-	}else{
-		warning("The fitted object was from an old version of SUMMER, please specify 'year.range' argument when calling getDiag()")
+	}else if(fitted$is.temporal){
+		warning("The fitted object may be from an old version of SUMMER, please specify 'year.range' argument when calling getDiag()")
 	}
 	if(!is.null(fitted$year.label)){
 		year.label <- fitted$year.label
-	}else{
-		warning("The fitted object was from an old version of SUMMER, please specify 'year.label' argument when calling getDiag()")
+	}else if(fitted$is.temporal){
+		warning("The fitted object may be from an old version of SUMMER, please specify 'year.label' argument when calling getDiag()")
 	}
 	if(!is.null(fitted$has.Amat)){
         Amat <- fitted$Amat
-      }else{
-        warning("The fitted object was from an old version of SUMMER, please specify 'Amat' argument when calling getDiag()")
-      }
+  }else if(fitted$is.temporal){
+    warning("The fitted object may be from an old version of SUMMER, please specify 'Amat' argument when calling getDiag()")
+  }
 	getquants <- function(mlist, lower, upper){
 		quants <- data.frame(matrix(NA, length(mlist), 3))
 		for(i in 1:length(mlist)){
