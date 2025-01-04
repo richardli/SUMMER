@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Zehang Richard Li" />
+
+<meta name="date" content="2025-01-03" />
+
+<title>Specifying cluster-level model in SUMMER for mortality estimation</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+}
+.hanging div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Specifying cluster-level model in SUMMER
+for mortality estimation</h1>
+<h4 class="author">Zehang Richard Li</h4>
+<h4 class="date">2025-01-03</h4>
+
+
+
+<p>In this vignette, we will describe different ways to specify the
+cluster-level model for U5MR estimation. We first load the package and
+an example dataset <code>DemoData</code>, which contains model survey
+data provided by DHS. Note that this data is simulated and does not
+represent any real country’s data.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(SUMMER)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">data</span>(DemoData)</span></code></pre></div>
+<p>For this simulated dataset, the strata variable is coded as region
+crossed by urban/rural status. For our analysis with urban/rural
+stratified model, we first construct a new strata variable that contains
+only the urban/rural status, i.e., the additional stratification within
+each region.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(DemoData)) {</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>    strata <span class="ot">&lt;-</span> DemoData[[i]]<span class="sc">$</span>strata</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>    DemoData[[i]]<span class="sc">$</span>strata[<span class="fu">grep</span>(<span class="st">&quot;urban&quot;</span>, strata)] <span class="ot">&lt;-</span> <span class="st">&quot;urban&quot;</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>    DemoData[[i]]<span class="sc">$</span>strata[<span class="fu">grep</span>(<span class="st">&quot;rural&quot;</span>, strata)] <span class="ot">&lt;-</span> <span class="st">&quot;rural&quot;</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>}</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>counts.all <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(DemoData)) {</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>    vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;clustid&quot;</span>, <span class="st">&quot;strata&quot;</span>, <span class="st">&quot;region&quot;</span>, <span class="st">&quot;time&quot;</span>, <span class="st">&quot;age&quot;</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>    counts <span class="ot">&lt;-</span> <span class="fu">getCounts</span>(DemoData[[i]][, <span class="fu">c</span>(vars, <span class="st">&quot;died&quot;</span>)], <span class="at">variables =</span> <span class="st">&quot;died&quot;</span>, <span class="at">by =</span> vars,</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>        <span class="at">drop =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>    counts <span class="ot">&lt;-</span> counts <span class="sc">%&gt;%</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>        <span class="fu">mutate</span>(<span class="at">cluster =</span> clustid, <span class="at">years =</span> time, <span class="at">Y =</span> died)</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>    counts<span class="sc">$</span>survey <span class="ot">&lt;-</span> <span class="fu">names</span>(DemoData)[i]</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>    counts.all <span class="ot">&lt;-</span> <span class="fu">rbind</span>(counts.all, counts)</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>}</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>periods <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;85-89&quot;</span>, <span class="st">&quot;90-94&quot;</span>, <span class="st">&quot;95-99&quot;</span>, <span class="st">&quot;00-04&quot;</span>, <span class="st">&quot;05-09&quot;</span>, <span class="st">&quot;10-14&quot;</span>)</span></code></pre></div>
+<p>The <code>DemoData</code> includes <span class="math inline">\(5\)</span> surveys. We index surveys by <span class="math inline">\(k = 1, ..., 5\)</span>. The sampling frame that
+was used for survey <span class="math inline">\(k\)</span>, will be
+denoted by <span class="math inline">\(r[k]\)</span>. For example, if
+the first <span class="math inline">\(3\)</span> surveys are based on
+the first sampling frame and the next <span class="math inline">\(2\)</span> surveys are based on the second
+sampling frame, then <span class="math inline">\(r = [1, 1, 1, 2,
+2]\)</span>. When only one survey is used, the <span class="math inline">\(k\)</span> index can be dropped in all formulas
+below.</p>
+<p>We assume a discrete hazards model described in <span class="citation">Mercer et al. (2015)</span>. We use discrete time
+survival analysis to estimate age-specific monthly probabilities of
+dying in user-defined age groups. We assume constant hazards within the
+age bands. The default choice uses the monthly age bands <span class="math display">\[[0, 1), [1, 12), [12, 24), [24, 36), [36, 48),
+[48, 60)\]</span> for U5MR and they can be easily specified by the user.
+The U5MR for area <span class="math inline">\(i\)</span> and time <span class="math inline">\(t\)</span> can be calculated as, <span class="math display">\[\begin{equation}
+\widehat{p}_{it}^{\texttt{HT}} = {}_{60}{\widehat{q}}^{it}_{0} = 1 -
+\prod_{a = 1}^6 \left( 1 -  {}_{n_a}{\widehat{q}}^{it}_{x_a}\right),
+\end{equation}\]</span> where <span class="math inline">\(x_a\)</span>
+and <span class="math inline">\(n_a\)</span> are the start and end of
+the <span class="math inline">\(a\)</span>-th age group, and <span class="math inline">\({}_{n_a}{q}^{it}_{x_a}\)</span> is the probability
+of death in age group <span class="math inline">\([x_a, x_a +
+n_a)\)</span> in area <span class="math inline">\(i\)</span> and time
+<span class="math inline">\(t\)</span>, with <span class="math inline">\({}_{n_a}{\widehat{q}}^{it}_{x_a}\)</span> the
+estimate of this quantity. This calculation follows the synthetic cohort
+life table approach in which mortality probabilities for each age
+segments based on real cohort mortality experience are combined.</p>
+<p>For cluster-level modeling, we consider a beta-binomial model for the
+probability (hazard) of death from month <span class="math inline">\(m\)</span> to <span class="math inline">\(m+1\)</span> in survey <span class="math inline">\(k\)</span> and at cluster <span class="math inline">\(c\)</span> in year <span class="math inline">\(t\)</span>. This model allows for overdispersion
+relative to the binomial model. Assuming constant hazards within age
+bands, we assume the number of deaths occurring within age band <span class="math inline">\(a[m]\)</span>, in cluster <span class="math inline">\(c\)</span>, time <span class="math inline">\(t\)</span>, and survey <span class="math inline">\(k\)</span> follow the beta-binomial distribution,
+<span class="math display">\[\begin{equation}\label{eq:BB1-age}
+Y_{a[m],k,c,t} ~|~  p_{a[m],k,c,t} \sim \mbox{BetaBinomial}\left(~
+n_{a[m],k,c,t}~,~ p_{m,k,c,t}~,d~
+\right),
+\end{equation}\]</span> where <span class="math inline">\(p_{m,k,c,t}\)</span> is the monthly hazard at
+<span class="math inline">\(m\)</span>-th month of age, in cluster <span class="math inline">\(c\)</span>, time <span class="math inline">\(t\)</span>, and survey <span class="math inline">\(k\)</span> and <span class="math inline">\(d\)</span> is the overdispersion parameter.</p>
+<p>In the likelihood model, <span class="math inline">\(n_{a[m],k,c,t}\)</span> is a known constant. The
+default prior for <span class="math inline">\(d\)</span> is <span class="math display">\[
+    \mbox{logit}(d) \sim N(0, \sqrt{1/0.4})
+\]</span> The mean and precision of the normal prior can be modified by
+specifying the <code>overdisp.mean</code> and <code>overdisp.prec</code>
+arguments.</p>
+<div id="specifying-the-latent-logistic-model" class="section level2">
+<h2>Specifying the latent logistic model</h2>
+<p>For simplicity of notation, we will consider within-region
+stratification by urban/rural status in this vignette. In SUMMER, more
+than two levels of stratification is automatically allowed when
+<code>strata</code> variable in the input data frame contains more
+unique values. Under the urban/rural stratification, the most general
+form of the latent logistic model we use is, <span class="math display">\[\begin{align}
+p_{m,k,c,t} =&amp; \mbox{expit}( \alpha_{m,c,k,t} +   \epsilon_t +
+b_k),\\ \nonumber
+\alpha_{m,k,c,t} =&amp;
+\beta_{a[m],r[k],t}I(s_c \in \mbox{ rural }) +
+\gamma_{a[m],r[k],t} I(s_c \in \mbox{ urban }) \\
+&amp;\;+
+S_{i[s_c]} + e_{i[s_c]}  +\delta_{i[s_c],t} + \mbox{BIAS}_{k,t}.
+\label{eq:pred}
+\end{align}\]</span></p>
+<p>We will break down the terms next.</p>
+<div id="sharing-information-across-age-groups" class="section level3">
+<h3>Sharing information across age groups</h3>
+<p>In the temporal model, we usually would like to share some
+information across different age groups. This requires specifying a
+reduced group of age bands for some component. We use <span class="math inline">\(a^{*}[m]\)</span> here to differentiate from the
+age bands used in the hazard likelihood. The default choice for U5MR in
+the package is <span class="math display">\[\begin{equation}
+a^{*}[m] = \left\{
+\begin{array}{ll}
+1 &amp; \mbox{if }m=0,\\
+2 &amp; \mbox{if }m=1,\dots,11, \\
+3 &amp; \mbox{if }m=12,\dots,59.
+\end{array}
+\right.
+\label{eq:astar}
+\end{equation}\]</span> The <span class="math inline">\(a[m]\)</span>
+are specified in <code>age.group</code> argument, and the size of each
+age group is specified in <code>age.n</code> argument. The reduced
+mapping <span class="math inline">\(a^{*}[m]\)</span> is specified in
+<code>age.time.group</code> argument.</p>
+</div>
+<div id="unstructured-temporal-effect" class="section level3">
+<h3>Unstructured temporal effect</h3>
+<p>The <span class="math inline">\(\epsilon_t\)</span> are unstructured
+temporal effects that allow for perturbations over time. It is a
+contextual choice whether they are used in predictions. By default, when
+applying <code>getSmoothed()</code> to a fitted cluster-level model,
+<span class="math inline">\(\epsilon_t\)</span> are not included in the
+predictions. They can be included by specifying
+<code>include.time.unstruct = TRUE</code>.</p>
+</div>
+<div id="survey-fixed-effect" class="section level3">
+<h3>Survey fixed effect</h3>
+<p>We include a survey fixed effect <span class="math inline">\(b_k\)</span> with the constraint <span class="math inline">\(\sum_{k} b_k \mathbf{1}_{r[k] = r} = 0\)</span>
+for each sampling frame <span class="math inline">\(r\)</span>, so that
+the main temporal trends are identifiable for each sampling frame. The
+<span class="math inline">\(b_k\)</span> terms are not included in the
+prediction, i.e., they are set to zero. If we ignore any survey-specific
+difference, we can remove the <span class="math inline">\(b_k\)</span>
+term by setting <code>survey.effect = FALSE</code>.</p>
+</div>
+<div id="temporal-main-effect" class="section level3">
+<h3>Temporal main effect</h3>
+<p>The temporal main effects are specified for urban and rural stratum
+seperately with <span class="math inline">\(\beta_{a^{*}[m],r[k],t}\)</span> and <span class="math inline">\(\gamma_{a^{*}[m],r[k],t}\)</span>. These effects
+are also specific to each sampling frame <span class="math inline">\(r\)</span>, as the definition of urban and rural
+usually change across different sampling frames.</p>
+<p>We do not share any information across frames currently in SUMMER,
+thus all terms specific to different sampling frames are modeled as
+independent a priori.</p>
+<p>The age-frame-stratum-specific temporal effects can be modelled by a
+first order random walk (RW1), second order frandom walk (RW2), or first
+order autoregressive process (AR1). In all cases, we apply a sum-to-zero
+constraint on the random walk or autoregressive process and include an
+explicit intercept for the full age groups <span class="math inline">\(a\)</span> (instead of <span class="math inline">\(a^{*}\)</span>. For example, <span class="math display">\[
+        \beta_{a, r, t} = \beta_{a, r, 0} + \beta^{*}_{a^{*}, r, t}
+\]</span> where <span class="math inline">\(\sum_t \beta^{*}_{a, r, t} =
+0\)</span>. For RW1 and AR1 model, we include an additional linear trend
+by default, so that <span class="math display">\[
+        \beta_{a, r, t} = \beta_{a, r, 0} + \tilde{\beta}_{a^{*}, r}t +
+\beta^{*}_{a^{*}, r, t}
+\]</span> We will discuss the modeling of the linear trend later. First,
+we start with the default RW2 model.</p>
+<div id="no-urbanrural-effect" class="section level4">
+<h4>No urban/rural effect</h4>
+<p>In the simplest case, we can let <span class="math inline">\(\beta_{a,r,t} = \gamma_{a, r, t}\)</span>. This
+can be achieved by setting <code>strata</code> variable of the input
+data frame to be all NA.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>counts.all.no.strat <span class="ot">&lt;-</span> counts.all</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>counts.all.no.strat<span class="sc">$</span>strata <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">smoothCluster</span>(<span class="at">data =</span> counts.all.no.strat, <span class="at">Amat =</span> DemoMap<span class="sc">$</span>Amat, <span class="at">family =</span> <span class="st">&quot;betabinomial&quot;</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>    <span class="at">year.label =</span> <span class="fu">c</span>(periods, <span class="st">&quot;15-19&quot;</span>), <span class="at">time.model =</span> <span class="st">&quot;rw2&quot;</span>, <span class="at">survey.effect =</span> <span class="cn">TRUE</span>, <span class="at">strata.time.effect =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="fu">rownames</span>(fit1<span class="sc">$</span>fit<span class="sc">$</span>summary.fixed)</span></code></pre></div>
+<pre><code>## [1] &quot;age.intercept0&quot;     &quot;age.intercept1-11&quot;  &quot;age.intercept12-23&quot;
+## [4] &quot;age.intercept24-35&quot; &quot;age.intercept36-47&quot; &quot;age.intercept48-59&quot;</code></pre>
+<p>We can see the fixed effects include only the six elements <span class="math inline">\(\beta_{1, r, 0}, ..., \beta_{6, r,
+0}\)</span>.</p>
+</div>
+<div id="time-invariant-urbanrural-effect" class="section level4">
+<h4>Time-invariant urban/rural effect</h4>
+<p>We can also specify the random effects <span class="math inline">\(\beta^{*}_{a^{*},r,t} = \gamma^{*}_{a^{*}, r, t} +
+\Delta\)</span>. This</p>
+<p>This can be specified by setting
+<code>strata.time.effect = FALSE</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">smoothCluster</span>(<span class="at">data =</span> counts.all, <span class="at">Amat =</span> DemoMap<span class="sc">$</span>Amat, <span class="at">family =</span> <span class="st">&quot;betabinomial&quot;</span>,</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>    <span class="at">year.label =</span> <span class="fu">c</span>(periods, <span class="st">&quot;15-19&quot;</span>), <span class="at">survey.effect =</span> <span class="cn">TRUE</span>, <span class="at">strata.time.effect =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">rownames</span>(fit2<span class="sc">$</span>fit<span class="sc">$</span>summary.fixed)</span></code></pre></div>
+<pre><code>## [1] &quot;age.intercept0&quot;     &quot;age.intercept1-11&quot;  &quot;age.intercept12-23&quot;
+## [4] &quot;age.intercept24-35&quot; &quot;age.intercept36-47&quot; &quot;age.intercept48-59&quot;</code></pre>
+<p>Now the fixed effects include the six elements <span class="math inline">\(\beta_{1, r, 0}, ..., \beta_{6, r, 0}\)</span> for
+the urban strata, six elements <span class="math inline">\(\gamma_{1, r,
+0}, ..., \gamma{6, r, 0}\)</span> for the rural strata and a constant
+urban/rural effect for the random effect difference.</p>
+</div>
+<div id="time-varying-urbanrural-effect" class="section level4">
+<h4>Time-varying urban/rural effect</h4>
+<p>A more flexible and usually reasonable model is to assume each
+stratum have indepent age-specific trends, i.e., <span class="math inline">\(\beta^{*}_{a^{*},r,t}\)</span> and <span class="math inline">\(\gamma^{*}_{a^{*}, r, t}\)</span> each follow its
+own trends.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>fit3 <span class="ot">&lt;-</span> <span class="fu">smoothCluster</span>(<span class="at">data =</span> counts.all, <span class="at">Amat =</span> DemoMap<span class="sc">$</span>Amat, <span class="at">family =</span> <span class="st">&quot;betabinomial&quot;</span>,</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>    <span class="at">year.label =</span> <span class="fu">c</span>(periods, <span class="st">&quot;15-19&quot;</span>), <span class="at">survey.effect =</span> <span class="cn">TRUE</span>, <span class="at">strata.time.effect =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="fu">rownames</span>(fit3<span class="sc">$</span>fit<span class="sc">$</span>summary.fixed)</span></code></pre></div>
+<pre><code>##  [1] &quot;age.intercept0:rural&quot;     &quot;age.intercept1-11:rural&quot; 
+##  [3] &quot;age.intercept12-23:rural&quot; &quot;age.intercept24-35:rural&quot;
+##  [5] &quot;age.intercept36-47:rural&quot; &quot;age.intercept48-59:rural&quot;
+##  [7] &quot;age.intercept0:urban&quot;     &quot;age.intercept1-11:urban&quot; 
+##  [9] &quot;age.intercept12-23:urban&quot; &quot;age.intercept24-35:urban&quot;
+## [11] &quot;age.intercept36-47:urban&quot; &quot;age.intercept48-59:urban&quot;</code></pre>
+<p>We can check now that there are in total <span class="math inline">\(42\)</span> structured temporal random effect
+terms, corresponding to <span class="math inline">\(3\)</span> urban
+time series and <span class="math inline">\(3\)</span> rural time
+series.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">nrow</span>(fit3<span class="sc">$</span>fit<span class="sc">$</span>summary.random<span class="sc">$</span>time.struct)</span></code></pre></div>
+<pre><code>## [1] 42</code></pre>
+</div>
+<div id="including-linear-trend" class="section level4">
+<h4>Including linear trend</h4>
+<p>As mentioned before, for RW1 and AR1 model, by default we include an
+additional linear trend by default, so that <span class="math display">\[
+        \beta_{a, r, t} = \beta_{a, r, 0} + \tilde{\beta}_{a^{*}, r}X_t
++ \beta^{*}_{a^{*}, r, t}
+\]</span> The linear trend is modelled as a fixed effect for a rescaled
+time index variable <span class="math inline">\(X_t = (t - T/2) / (T -
+1)\)</span>. That is, the coefficient <span class="math inline">\(\tilde{\beta}\)</span> should be interpreted as
+unit change on the logit scale comparing the last to the first time
+period.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>fit4 <span class="ot">&lt;-</span> <span class="fu">smoothCluster</span>(<span class="at">data =</span> counts.all, <span class="at">Amat =</span> DemoMap<span class="sc">$</span>Amat, <span class="at">family =</span> <span class="st">&quot;betabinomial&quot;</span>,</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>    <span class="at">year.label =</span> <span class="fu">c</span>(periods, <span class="st">&quot;15-19&quot;</span>), <span class="at">time.model =</span> <span class="st">&quot;ar1&quot;</span>, <span class="at">survey.effect =</span> <span class="cn">TRUE</span>, <span class="at">strata.time.effect =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="fu">rownames</span>(fit4<span class="sc">$</span>fit<span class="sc">$</span>summary.fixed)</span></code></pre></div>
+<pre><code>##  [1] &quot;time.slope.group1&quot;        &quot;time.slope.group2&quot;       
+##  [3] &quot;time.slope.group3&quot;        &quot;time.slope.group4&quot;       
+##  [5] &quot;time.slope.group5&quot;        &quot;time.slope.group6&quot;       
+##  [7] &quot;age.intercept0:rural&quot;     &quot;age.intercept1-11:rural&quot; 
+##  [9] &quot;age.intercept12-23:rural&quot; &quot;age.intercept24-35:rural&quot;
+## [11] &quot;age.intercept36-47:rural&quot; &quot;age.intercept48-59:rural&quot;
+## [13] &quot;age.intercept0:urban&quot;     &quot;age.intercept1-11:urban&quot; 
+## [15] &quot;age.intercept12-23:urban&quot; &quot;age.intercept24-35:urban&quot;
+## [17] &quot;age.intercept36-47:urban&quot; &quot;age.intercept48-59:urban&quot;</code></pre>
+<p>The <span class="math inline">\(6\)</span> additional linear trends
+are included in the fixed effect. To see which slope correspond to which
+age-stratum pairs, we can inspect the <code>slope.fixed.output</code>
+field in the returned object.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>fit4<span class="sc">$</span>slope.fixed.output</span></code></pre></div>
+<pre><code>## $time.slope.group1
+## [1] &quot;0:rural&quot;
+## 
+## $time.slope.group2
+## [1] &quot;1-11:rural&quot;
+## 
+## $time.slope.group3
+## [1] &quot;12-23:rural&quot; &quot;24-35:rural&quot; &quot;36-47:rural&quot; &quot;48-59:rural&quot;
+## 
+## $time.slope.group4
+## [1] &quot;0:urban&quot;
+## 
+## $time.slope.group5
+## [1] &quot;1-11:urban&quot;
+## 
+## $time.slope.group6
+## [1] &quot;12-23:urban&quot; &quot;24-35:urban&quot; &quot;36-47:urban&quot; &quot;48-59:urban&quot;</code></pre>
+<p>The linear trend term can also be set to <span class="math inline">\(0\)</span> by setting
+<code>linear.trend = FALSE</code></p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>fit5 <span class="ot">&lt;-</span> <span class="fu">smoothCluster</span>(<span class="at">data =</span> counts.all, <span class="at">Amat =</span> DemoMap<span class="sc">$</span>Amat, <span class="at">family =</span> <span class="st">&quot;betabinomial&quot;</span>,</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>    <span class="at">year.label =</span> <span class="fu">c</span>(periods, <span class="st">&quot;15-19&quot;</span>), <span class="at">time.model =</span> <span class="st">&quot;ar1&quot;</span>, <span class="at">survey.effect =</span> <span class="cn">TRUE</span>, <span class="at">strata.time.effect =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>    <span class="at">linear.trend =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="fu">rownames</span>(fit5<span class="sc">$</span>fit<span class="sc">$</span>summary.fixed)</span></code></pre></div>
+<pre><code>##  [1] &quot;age.intercept0:rural&quot;     &quot;age.intercept1-11:rural&quot; 
+##  [3] &quot;age.intercept12-23:rural&quot; &quot;age.intercept24-35:rural&quot;
+##  [5] &quot;age.intercept36-47:rural&quot; &quot;age.intercept48-59:rural&quot;
+##  [7] &quot;age.intercept0:urban&quot;     &quot;age.intercept1-11:urban&quot; 
+##  [9] &quot;age.intercept12-23:urban&quot; &quot;age.intercept24-35:urban&quot;
+## [11] &quot;age.intercept36-47:urban&quot; &quot;age.intercept48-59:urban&quot;</code></pre>
+</div>
+<div id="linear-trend" class="section level4">
+<h4>Linear trend</h4>
+<p>We can also enforce shared linear trends across all age groups,
+though this is usually too strong an assumption, i.e., <span class="math display">\[
+        \beta_{a, r, t} = \beta_{a, r, 0} + \tilde{\beta}_{r}t +
+\beta^{*}_{a^{*}, r, t}
+\]</span></p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>fit6 <span class="ot">&lt;-</span> <span class="fu">smoothCluster</span>(<span class="at">data =</span> counts.all, <span class="at">Amat =</span> DemoMap<span class="sc">$</span>Amat, <span class="at">family =</span> <span class="st">&quot;betabinomial&quot;</span>,</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>    <span class="at">year.label =</span> <span class="fu">c</span>(periods, <span class="st">&quot;15-19&quot;</span>), <span class="at">time.model =</span> <span class="st">&quot;ar1&quot;</span>, <span class="at">survey.effect =</span> <span class="cn">TRUE</span>, <span class="at">strata.time.effect =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>    <span class="at">linear.trend =</span> <span class="cn">TRUE</span>, <span class="at">common.trend =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a><span class="fu">rownames</span>(fit6<span class="sc">$</span>fit<span class="sc">$</span>summary.fixed)</span></code></pre></div>
+<pre><code>##  [1] &quot;time.slope&quot;               &quot;age.intercept0:rural&quot;    
+##  [3] &quot;age.intercept1-11:rural&quot;  &quot;age.intercept12-23:rural&quot;
+##  [5] &quot;age.intercept24-35:rural&quot; &quot;age.intercept36-47:rural&quot;
+##  [7] &quot;age.intercept48-59:rural&quot; &quot;age.intercept0:urban&quot;    
+##  [9] &quot;age.intercept1-11:urban&quot;  &quot;age.intercept12-23:urban&quot;
+## [11] &quot;age.intercept24-35:urban&quot; &quot;age.intercept36-47:urban&quot;
+## [13] &quot;age.intercept48-59:urban&quot;</code></pre>
+<p>The <span class="math inline">\(6\)</span> additional linear trends
+are included in the fixed effect. To see which slope correspond to which
+age-stratum pairs, we can inspect the <code>slope.fixed.output</code>
+field in the returned object.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>fit6<span class="sc">$</span>slope.fixed.output</span></code></pre></div>
+<pre><code>## $time.slope.group1
+## [1] &quot;0:rural&quot;
+## 
+## $time.slope.group2
+## [1] &quot;1-11:rural&quot;
+## 
+## $time.slope.group3
+## [1] &quot;12-23:rural&quot; &quot;24-35:rural&quot; &quot;36-47:rural&quot; &quot;48-59:rural&quot;
+## 
+## $time.slope.group4
+## [1] &quot;0:urban&quot;
+## 
+## $time.slope.group5
+## [1] &quot;1-11:urban&quot;
+## 
+## $time.slope.group6
+## [1] &quot;12-23:urban&quot; &quot;24-35:urban&quot; &quot;36-47:urban&quot; &quot;48-59:urban&quot;</code></pre>
+</div>
+<div id="spatial-effects" class="section level4">
+<h4>Spatial effects</h4>
+<p>The spatial effects are assumed to be shared across all age groups
+and strata. The <span class="math inline">\(S_{i[s_c]} +
+e_{i[s_c]}\)</span> terms correspond to the sum of a structured spatial
+effect and an unstructured effect for each area. It is parameterized
+with a BYM2 model described in <span class="citation">Riebler et al.
+(2016)</span>.</p>
+</div>
+<div id="space-time-interaction" class="section level4">
+<h4>Space-time interaction</h4>
+<p>The space-time interaction term <span class="math inline">\(\delta_{it}\)</span> are modelled with the type I
+to IV interactions of the chosen temporal model and the ICAR or
+independent model in space. The four types of models are described in
+<span class="citation">Knorr-Held (2000)</span> . The specification of
+type I to IV interactions is through the argument
+<code>type.st</code>.</p>
+<p>We can further include random slopes in the space-time interaction
+terms, i.e., <span class="math display">\[
+    \delta_{it} = \rho_i X_t + \delta^{*}_{it}
+\]</span> where <span class="math inline">\(\delta^{*}\)</span> is the
+usual type I to IV interactions and the time covariate <span class="math inline">\(X_t\)</span> is rescaled to be -0.5 to 0.5, so
+that the random slope can be interpreted as the total deviation from the
+main trend from the first year to the last year to be projected, on the
+logit scale.</p>
+<p>The random slopes are included when user specifies their hyperprior
+<code>pc.st.slope.alpha</code> and<code>pc.st.slope.u</code>. For
+example, the following model specifies a type IV interaction between AR1
+in time and ICAR in space, with region-specific random slope in time,
+with PC prior such that <span class="math display">\[
+Prob(|\rho_i| &gt; 2) = 0.1
+\]</span> The main temporal random effect is set to be a second order
+random walk.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a>fit6 <span class="ot">&lt;-</span> <span class="fu">smoothCluster</span>(<span class="at">data =</span> counts.all, <span class="at">Amat =</span> DemoMap<span class="sc">$</span>Amat, <span class="at">family =</span> <span class="st">&quot;betabinomial&quot;</span>,</span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>    <span class="at">year.label =</span> <span class="fu">c</span>(periods, <span class="st">&quot;15-19&quot;</span>), <span class="at">survey.effect =</span> <span class="cn">TRUE</span>, <span class="at">strata.time.effect =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>    <span class="at">linear.trend =</span> <span class="cn">FALSE</span>, <span class="at">time.model =</span> <span class="st">&quot;rw2&quot;</span>, <span class="at">st.time.model =</span> <span class="st">&quot;ar1&quot;</span>, <span class="at">pc.st.slope.u =</span> <span class="dv">2</span>,</span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a>    <span class="at">pc.st.slope.alpha =</span> <span class="fl">0.1</span>)</span></code></pre></div>
+<p>The random slopes can be extracted from</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>fit6<span class="sc">$</span>fit<span class="sc">$</span>summary.random<span class="sc">$</span>st.slope.id[, <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)]</span></code></pre></div>
+<pre><code>##   ID  mean   sd
+## 1  1  0.05 0.30
+## 2  2  0.11 0.30
+## 3  3  0.12 0.31
+## 4  4 -0.28 0.33</code></pre>
+</div>
+<div id="hyperpriors" class="section level4">
+<h4>Hyperpriors</h4>
+<p>By default, all hyperpriors are assumed to be PC priors. The
+hyperprior arguments start with <code>pc.xxx</code>.</p>
+</div>
+</div>
+<div id="references" class="section level3 unnumbered">
+<h3 class="unnumbered">References</h3>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-knorrheld_00" class="csl-entry">
+Knorr-Held, Leonhard. 2000. <span>“Bayesian Modelling of Inseparable
+Space-Time Variation in Disease Risk.”</span> <em>Statistics in
+Medicine</em> 19: 2555–67.
+</div>
+<div id="ref-mercer_etal_15" class="csl-entry">
+Mercer, Laina D, Jon Wakefield, Athena Pantazis, Angelina M Lutambi,
+Honorati Masanja, and Samuel Clark. 2015. <span>“Small Area Estimation
+of Childhood Mortality in the Absence of Vital Registration.”</span>
+<em>Annals of Applied Statistics</em> 9: 1889–1905.
+</div>
+<div id="ref-riebler_etal_16" class="csl-entry">
+Riebler, Andrea, Sigrunn H Sørbye, Daniel Simpson, and Håvard Rue. 2016.
+<span>“An Intuitive <span>B</span>ayesian Spatial Model for Disease
+Mapping That Accounts for Scaling.”</span> <em>Statistical Methods in
+Medical Research</em> 25: 1145–65.
+</div>
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
