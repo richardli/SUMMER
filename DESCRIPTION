@@ -50,6 +50,7 @@ RoxygenNote: 7.3.2
 Additional_repositories: https://inla.r-inla-download.org/R/testing/
 Suggests: 
     INLA,
+    sn,
     knitr,
     rmarkdown,
     readstata13,
