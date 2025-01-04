@@ -13,13 +13,13 @@ SAE Unit/area Models and Methods for Estimation in R
 ## Roadmap for functions
 
 
-Commonly used Wworkflow of the SUMMER package. Rounded blocks represent data types and rectangular blocks represent functions in the SUMMER package. Output estimates are highlighted in the boxes with red borders. 
-+ The dotted yellow arrows represent the workflow using `smoothSurvey` to estimate prevalence of a generic binary indicator using general survey data. 
+Commonly used workflow of the SUMMER package. Rounded blocks represent data types and rectangular blocks represent functions in the SUMMER package. Output estimates are highlighted in the boxes with red borders. 
+
+<img src="man/figures/Workflow.png" align="center" width="800" />
+
++ The dotted yellow arrows represent the workflow using `smoothSurvey()` to estimate the prevalence of a generic binary indicator. 
 + The black solid arrows represent the workflow using `smoothDirect()` to perform area-level smoothing of mortality rates. 
 + The blue solid arrows represent the workflow using `smoothCluster()` to perform cluster-level smoothing of mortality rates.
-
-<img src="man/figures/Workflow.png" align="center" width="600" />
-
 
 
 ### Citation
