@@ -12,12 +12,12 @@ SAE Unit/area Models and Methods for Estimation in R
 
 ## Where do I start?
 
-+ Interested in small area estimation models for binary indicators? Start with [Generic small area estimation]().
++ Interested in small area estimation models for binary indicators? Start with [Generic small area estimation](https://richardli.github.io/SUMMER/articles/web_only/small-area-estimation.html).
 + Interested in child mortality estimation?
-  +  For a reproducible example with simulated data, start with [Estimating Subnational U5MR using Simulated Data]().
-  +  For a reproducible example with DHS data (data access required), start with [Case Study: Estimating Subnational U5MR using DHS data]().
+  +  For a reproducible example with simulated data, start with [Estimating Subnational U5MR using Simulated Data](https://richardli.github.io/SUMMER/articles/web_only/u5mr-vignette.html).
+  +  For a reproducible example with DHS data (data access required), start with [Case Study: Estimating Subnational U5MR using DHS data](https://richardli.github.io/SUMMER/articles/web_only/u5mr-dhs-vignette.html).
   +  For more technical details of the statistical models, start with [Space-Time Smoothing of Demographic and Health Indicators using the R Package SUMMER](https://arxiv.org/abs/2007.05117).
-  +  For more tips on customizing the model structure, start with [Specifying cluster-level model in SUMMER for mortality estimation]().
+  +  For more tips on customizing the model structure, start with [Specifying cluster-level model in SUMMER for mortality estimation](https://richardli.github.io/SUMMER/articles/web_only/cluster-model-vignette.html).
 + Interested in full pipeline analyzing DHS data for more indicators? Start with [surveyPrev package](https://github.com/richardli/surveyPrev).
 
 
