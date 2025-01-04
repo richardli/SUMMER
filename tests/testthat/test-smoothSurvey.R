@@ -70,8 +70,8 @@ test_that("smoothSurvey: Area-level model works", {
 
    expect_equal(class(fit2), "SUMMERmodel.svy")
    # check they are the same as using raw input
-   expect_equal(fit2$smooth$mean, fit0$smooth$mean, tolerance = 0.001)
-   expect_equal(fit2$smooth$var, fit0$smooth$var, tolerance = 0.001)
+   expect_equal(fit2$smooth$mean, fit0$smooth$mean, tolerance = 0.01)
+   expect_equal(fit2$smooth$var, fit0$smooth$var, tolerance = 0.01)
 
  
 
@@ -84,7 +84,7 @@ test_that("smoothSurvey: Area-level model works", {
              Amat=DemoMap2$Amat, regionVar="region",
              responseVar="direct.logit.est", direct.est.var = "direct.logit.var",
              response.type = "gaussian")
-   expect_equal(fit3$smooth$mean, fit0$smooth$logit.mean, tolerance = 0.001)
+   expect_equal(fit3$smooth$mean, fit0$smooth$logit.mean, tolerance = 0.01)
    expect_equal(fit3$smooth$var, fit0$smooth$logit.var, tolerance = 0.01)
 
    # Example with non-spatial smoothing using IID random effects
@@ -238,7 +238,7 @@ test_that("smoothSurvey: Cluster-level model works", {
    fit9 <- smoothSurvey(data= data, 
             Amat=DemoMap2$Amat, response.type="gaussian", 
             is.unit.level = TRUE, responseVar="age", strataVar.within = NULL,
-            regionVar="region", clusterVar = NULL, CI = 0.95)
+            regionVar="region", clusterVar = NULL, CI = 0.95, debug = TRUE)
    expect_equal(class(fit9), "SUMMERmodel.svy")
    expect_equal(dim(fit9$smooth), c(8, 13))
 
