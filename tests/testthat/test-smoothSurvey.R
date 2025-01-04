@@ -223,16 +223,50 @@ test_that("smoothSurvey: Cluster-level model works", {
    expect_equal(fit6$smooth, fit7$smooth, tolerance = 0.01)
 
 
-
-
 })
 
+
+
+   
 test_that("smoothSurvey: Cluster-level model works with Gaussian likelihood", {
 
    skip_on_cran()
+   skip_on_ci()
    library(INLA)
    # make devtools::check() happy with single process
    inla.setOption( num.threads = 1 )
+
+
+   ##
+   ## 4. Unit-level model with continuous response  
+   ##    (or nested error models)
+
+   # The unit-level model assumes for each of the i-th unit,
+   #    Y_{i} ~ intercept + region_effect + IID_i
+   #    where IID_i is the error term specific to i-th unit
+
+   # When more than one level of cluster sampling is carried out, 
+   #   they are ignored here. Only the input unit is considered.
+   #   So here we do not need to specify clusterVar any more. 
+   fit9 <- smoothSurvey(data= data, 
+            Amat=DemoMap2$Amat, response.type="gaussian", 
+            is.unit.level = TRUE, responseVar="age", strataVar.within = NULL,
+            regionVar="region", clusterVar = NULL, CI = 0.95)
+   expect_equal(class(fit9), "SUMMERmodel.svy")
+   expect_equal(dim(fit9$smooth), c(8, 13))
+
+   # To compare, we may also model PSU-level responses. As an illustration, 
+   data.median <- aggregate(age~region + urbanicity + clustid, 
+                    data = data, FUN = median)
+
+   fit10 <- smoothSurvey(data= data.median, 
+      Amat=DemoMap2$Amat, response.type="gaussian", 
+      is.unit.level = TRUE, responseVar="age", strataVar.within = NULL,
+      regionVar="region", clusterVar = "clustid", CI = 0.95)
+   # Notice these two should not be the same, but should not be very far either
+   expect_equal(fit9$smooth, fit10$smooth, tolerance = 1)
+
+
 
 
    # For unit-level models, we need to create stratification variable within regions

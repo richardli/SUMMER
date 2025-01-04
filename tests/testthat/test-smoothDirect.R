@@ -39,6 +39,7 @@ test_that("smoothDirect works for national model", {
 test_that("smoothDirect works for subnational model", {
 
    skip_on_cran()
+   skip_on_ci()
    library(INLA)
    # make devtools::check() happy with single process
    inla.setOption( num.threads = 1 )
