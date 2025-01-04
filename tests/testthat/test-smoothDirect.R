@@ -2,7 +2,7 @@
 ## These tests cover all @examples of smoothDirect()
 ##
 
-test_that("smoothDirect works", {
+test_that("smoothDirect works for national model", {
 
    skip_on_cran()
    library(INLA)
@@ -33,7 +33,25 @@ test_that("smoothDirect works", {
    # check for smoothed output
    out1 <- getSmoothed(fit1)
    expect_equal(dim(out1)[1], 42)
-   
+
+})
+
+test_that("smoothDirect works for national model", {
+
+   skip_on_cran()
+   library(INLA)
+   # make devtools::check() happy with single process
+   inla.setOption( num.threads = 1 )
+
+   data(DemoData)
+   years <- levels(DemoData[[1]]$time)
+   # obtain direct estimates
+   data_multi <- getDirectList(births = DemoData, years = years,
+   regionVar = "region",  timeVar = "time", clusterVar = "~clustid+id",
+   ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+   data <- aggregateSurvey(data_multi)
+
+      
    #  subnational model
    fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat, 
    year.label = years.all, year.range = c(1985, 2019), 

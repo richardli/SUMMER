@@ -224,6 +224,21 @@ test_that("smoothSurvey: Cluster-level model works", {
 
 
 
+
+})
+
+test_that("smoothSurvey: Cluster-level model works with Gaussian likelihood", {
+
+   skip_on_cran()
+   library(INLA)
+   # make devtools::check() happy with single process
+   inla.setOption( num.threads = 1 )
+
+
+   # For unit-level models, we need to create stratification variable within regions
+   data <- DemoData2
+   data$urbanicity <- "rural"
+   data$urbanicity[grep("urban", data$strata)] <- "urban"
    ##
    ## 4. Unit-level model with continuous response  
    ##    (or nested error models)
@@ -238,7 +253,7 @@ test_that("smoothSurvey: Cluster-level model works", {
    fit9 <- smoothSurvey(data= data, 
             Amat=DemoMap2$Amat, response.type="gaussian", 
             is.unit.level = TRUE, responseVar="age", strataVar.within = NULL,
-            regionVar="region", clusterVar = NULL, CI = 0.95, debug = TRUE)
+            regionVar="region", clusterVar = NULL, CI = 0.95)
    expect_equal(class(fit9), "SUMMERmodel.svy")
    expect_equal(dim(fit9$smooth), c(8, 13))
 
