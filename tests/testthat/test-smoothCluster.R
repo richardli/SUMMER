@@ -8,6 +8,7 @@ test_that("getCounts and smoothCluster works without covariates", {
 
  library(dplyr)
  library(INLA)
+ library(sn)
  # make devtools::check() happy with single process
  inla.setOption( num.threads = 1 )
 
