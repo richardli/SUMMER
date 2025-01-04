@@ -237,6 +237,11 @@ test_that("smoothSurvey: Cluster-level model works with Gaussian likelihood", {
    inla.setOption( num.threads = 1 )
 
 
+  # For unit-level models, we need to create stratification variable within regions
+   data <- DemoData2
+   data$urbanicity <- "rural"
+   data$urbanicity[grep("urban", data$strata)] <- "urban"
+  
    ##
    ## 4. Unit-level model with continuous response  
    ##    (or nested error models)

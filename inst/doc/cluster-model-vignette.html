@@ -12,7 +12,7 @@
 
 <meta name="author" content="Zehang Richard Li" />
 
-<meta name="date" content="2025-01-03" />
+<meta name="date" content="2025-01-04" />
 
 <title>Specifying cluster-level model in SUMMER for mortality estimation</title>
 
@@ -363,7 +363,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">Specifying cluster-level model in SUMMER
 for mortality estimation</h1>
 <h4 class="author">Zehang Richard Li</h4>
-<h4 class="date">2025-01-03</h4>
+<h4 class="date">2025-01-04</h4>
 
 
 
@@ -476,16 +476,6 @@ age group is specified in <code>age.n</code> argument. The reduced
 mapping <span class="math inline">\(a^{*}[m]\)</span> is specified in
 <code>age.time.group</code> argument.</p>
 </div>
-<div id="unstructured-temporal-effect" class="section level3">
-<h3>Unstructured temporal effect</h3>
-<p>The <span class="math inline">\(\epsilon_t\)</span> are unstructured
-temporal effects that allow for perturbations over time. It is a
-contextual choice whether they are used in predictions. By default, when
-applying <code>getSmoothed()</code> to a fitted cluster-level model,
-<span class="math inline">\(\epsilon_t\)</span> are not included in the
-predictions. They can be included by specifying
-<code>include.time.unstruct = TRUE</code>.</p>
-</div>
 <div id="survey-fixed-effect" class="section level3">
 <h3>Survey fixed effect</h3>
 <p>We include a survey fixed effect <span class="math inline">\(b_k\)</span> with the constraint <span class="math inline">\(\sum_{k} b_k \mathbf{1}_{r[k] = r} = 0\)</span>
@@ -496,8 +486,18 @@ prediction, i.e., they are set to zero. If we ignore any survey-specific
 difference, we can remove the <span class="math inline">\(b_k\)</span>
 term by setting <code>survey.effect = FALSE</code>.</p>
 </div>
-<div id="temporal-main-effect" class="section level3">
-<h3>Temporal main effect</h3>
+<div id="unstructured-temporal-effect" class="section level3">
+<h3>Unstructured temporal effect</h3>
+<p>The <span class="math inline">\(\epsilon_t\)</span> are unstructured
+temporal effects that allow for perturbations over time. It is a
+contextual choice whether they are used in predictions. By default, when
+applying <code>getSmoothed()</code> to a fitted cluster-level model,
+<span class="math inline">\(\epsilon_t\)</span> are not included in the
+predictions. They can be included by specifying
+<code>include.time.unstruct = TRUE</code>.</p>
+</div>
+<div id="structured-temporal-effect" class="section level3">
+<h3>Structured temporal effect</h3>
 <p>The temporal main effects are specified for urban and rural stratum
 seperately with <span class="math inline">\(\beta_{a^{*}[m],r[k],t}\)</span> and <span class="math inline">\(\gamma_{a^{*}[m],r[k],t}\)</span>. These effects
 are also specific to each sampling frame <span class="math inline">\(r\)</span>, as the definition of urban and rural
@@ -570,8 +570,8 @@ series.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">nrow</span>(fit3<span class="sc">$</span>fit<span class="sc">$</span>summary.random<span class="sc">$</span>time.struct)</span></code></pre></div>
 <pre><code>## [1] 42</code></pre>
 </div>
-<div id="including-linear-trend" class="section level4">
-<h4>Including linear trend</h4>
+<div id="linear-trend" class="section level4">
+<h4>Linear trend</h4>
 <p>As mentioned before, for RW1 and AR1 model, by default we include an
 additional linear trend by default, so that <span class="math display">\[
         \beta_{a, r, t} = \beta_{a, r, 0} + \tilde{\beta}_{a^{*}, r}X_t
@@ -628,8 +628,8 @@ field in the returned object.</p>
 ##  [9] &quot;age.intercept12-23:urban&quot; &quot;age.intercept24-35:urban&quot;
 ## [11] &quot;age.intercept36-47:urban&quot; &quot;age.intercept48-59:urban&quot;</code></pre>
 </div>
-<div id="linear-trend" class="section level4">
-<h4>Linear trend</h4>
+<div id="shared-linear-trend" class="section level4">
+<h4>Shared Linear trend</h4>
 <p>We can also enforce shared linear trends across all age groups,
 though this is usually too strong an assumption, i.e., <span class="math display">\[
         \beta_{a, r, t} = \beta_{a, r, 0} + \tilde{\beta}_{r}t +
@@ -669,8 +669,9 @@ field in the returned object.</p>
 ## $time.slope.group6
 ## [1] &quot;12-23:urban&quot; &quot;24-35:urban&quot; &quot;36-47:urban&quot; &quot;48-59:urban&quot;</code></pre>
 </div>
-<div id="spatial-effects" class="section level4">
-<h4>Spatial effects</h4>
+</div>
+<div id="spatial-effects" class="section level3">
+<h3>Spatial effects</h3>
 <p>The spatial effects are assumed to be shared across all age groups
 and strata. The <span class="math inline">\(S_{i[s_c]} +
 e_{i[s_c]}\)</span> terms correspond to the sum of a structured spatial
@@ -678,8 +679,8 @@ effect and an unstructured effect for each area. It is parameterized
 with a BYM2 model described in <span class="citation">Riebler et al.
 (2016)</span>.</p>
 </div>
-<div id="space-time-interaction" class="section level4">
-<h4>Space-time interaction</h4>
+<div id="space-time-interaction-effects" class="section level3">
+<h3>Space-time interaction effects</h3>
 <p>The space-time interaction term <span class="math inline">\(\delta_{it}\)</span> are modelled with the type I
 to IV interactions of the chosen temporal model and the ICAR or
 independent model in space. The four types of models are described in
@@ -714,11 +715,11 @@ random walk.</p>
 ## 3  3  0.12 0.31
 ## 4  4 -0.28 0.33</code></pre>
 </div>
-<div id="hyperpriors" class="section level4">
-<h4>Hyperpriors</h4>
+<div id="hyperpriors" class="section level3">
+<h3>Hyperpriors</h3>
 <p>By default, all hyperpriors are assumed to be PC priors. The
-hyperprior arguments start with <code>pc.xxx</code>.</p>
-</div>
+hyperprior arguments start with <code>pc.</code>. Their definition can
+be easily found in the help file.</p>
 </div>
 <div id="references" class="section level3 unnumbered">
 <h3 class="unnumbered">References</h3>

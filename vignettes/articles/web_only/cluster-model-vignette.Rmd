@@ -1,7 +1,7 @@
 ---
 title: "Specifying cluster-level model in SUMMER for mortality estimation"
 author: Zehang Richard Li
-date: "2025-01-03"
+date: "2025-01-04"
 output: 
     html_vignette: default
 vignette: >
@@ -100,16 +100,17 @@ a^{*}[m] = \left\{
 \end{equation}
 The $a[m]$ are specified in `age.group` argument, and the size of each age group is specified in `age.n` argument. The reduced mapping $a^{*}[m]$ is specified in `age.time.group` argument.
 
-### Unstructured temporal effect
-The $\epsilon_t$ are unstructured temporal effects that allow for perturbations over time. It is a contextual choice whether they are used in predictions. By default, when applying `getSmoothed()` to a fitted cluster-level model, $\epsilon_t$ are not included in the predictions. They can be included by specifying `include.time.unstruct = TRUE`.
-
 
 ### Survey fixed effect
 
 We include a survey fixed effect $b_k$ with the constraint $\sum_{k} b_k \mathbf{1}_{r[k] = r} = 0$ for each sampling frame $r$, so that the main temporal trends are identifiable for each sampling frame. The $b_k$ terms are not included in the prediction, i.e., they are set to zero. If we ignore any survey-specific difference, we can remove the $b_k$ term by setting `survey.effect = FALSE`.  
 
 
-### Temporal main effect
+### Unstructured temporal effect
+The $\epsilon_t$ are unstructured temporal effects that allow for perturbations over time. It is a contextual choice whether they are used in predictions. By default, when applying `getSmoothed()` to a fitted cluster-level model, $\epsilon_t$ are not included in the predictions. They can be included by specifying `include.time.unstruct = TRUE`.
+
+
+### Structured temporal effect
 
 The temporal main effects are specified for urban and rural stratum seperately with $\beta_{a^{*}[m],r[k],t}$ and $\gamma_{a^{*}[m],r[k],t}$. These effects are also specific to each sampling frame $r$, as the definition of urban and rural usually change across different sampling frames. 
 
@@ -199,7 +200,7 @@ nrow(fit3$fit$summary.random$time.struct)
 ```
 
 
-#### Including linear trend 
+#### Linear trend 
 As mentioned before, for RW1 and AR1 model, by default we include an additional linear trend by default, so that 
 \[
 		\beta_{a, r, t} = \beta_{a, r, 0} + \tilde{\beta}_{a^{*}, r}X_t + \beta^{*}_{a^{*}, r, t}
@@ -271,7 +272,7 @@ rownames(fit5$fit$summary.fixed)
 ```
 
 
-#### Linear trend 
+#### Shared Linear trend 
 We can also enforce shared linear trends across all age groups, though this is usually too strong an assumption, i.e., 
 \[
 		\beta_{a, r, t} = \beta_{a, r, 0} + \tilde{\beta}_{r}t + \beta^{*}_{a^{*}, r, t}
@@ -323,11 +324,11 @@ fit6$slope.fixed.output
 ```
 
 
-#### Spatial effects
+### Spatial effects
 
 The spatial effects are assumed to be shared across all age groups and strata. The $S_{i[s_c]} + e_{i[s_c]}$ terms correspond to the sum of a structured spatial effect and an unstructured effect for each area. It is parameterized with a BYM2 model described in @riebler_etal_16. 
 
-#### Space-time interaction
+### Space-time interaction effects
 
 The space-time interaction term $\delta_{it}$ are modelled with the type I to IV interactions of the chosen temporal model and the ICAR or independent model in space. The four types of models are described in @knorrheld_00 . The specification of type I to IV interactions is through the argument `type.st`. 
 
@@ -360,15 +361,15 @@ fit6$fit$summary.random$st.slope.id[, c(1:3)]
 ```
 ##   ID   mean   sd
 ## 1  1  0.051 0.30
-## 2  2  0.115 0.31
-## 3  3  0.123 0.32
-## 4  4 -0.290 0.34
+## 2  2  0.113 0.30
+## 3  3  0.120 0.31
+## 4  4 -0.284 0.33
 ```
 
 
-#### Hyperpriors	
+### Hyperpriors	
 
-By default, all hyperpriors are assumed to be PC priors. The hyperprior arguments start with `pc.xxx`. 
+By default, all hyperpriors are assumed to be PC priors. The hyperprior arguments start with `pc.`. Their definition can be easily found in the help file. 
 
 
 ### References
