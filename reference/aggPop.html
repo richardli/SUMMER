@@ -9,7 +9,7 @@ them to the specified areal level. Also calculates the aggregated risk and preva
 
     <a class="navbar-brand me-2" href="../index.html">SUMMER</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,6 +23,7 @@ them to the specified areal level. Also calculates the aggregated risk and preva
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/web_only/small-area-estimation.html">Generic small area estimation</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-vignette.html">Estimating Subnational U5MR using Simulated Data</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-dhs-vignette.html">Estimating Subnational U5MR using DHS Data</a></li>
+    <li><a class="dropdown-item" href="../articles/web_only/cluster-model-vignette.html">Specifying cluster-level model for mortality estimation</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -49,22 +50,22 @@ them to the specified areal level. Also calculates the aggregated risk and preva
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">pixelPopToArea</span><span class="op">(</span></span>
-<span>  <span class="va">pixelLevelPop</span>,</span>
-<span>  <span class="va">eaSamples</span>,</span>
+<span>  <span class="va">pixel.level.pop</span>,</span>
+<span>  <span class="va">ea.samples</span>,</span>
 <span>  <span class="va">areas</span>,</span>
-<span>  stratifyByUrban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  targetPopMat <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  doFineScaleRisk <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">pixelLevelPop</span><span class="op">$</span><span class="va">fineScaleRisk</span><span class="op">$</span><span class="va">p</span><span class="op">)</span>,</span>
-<span>  doSmoothRisk <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">pixelLevelPop</span><span class="op">$</span><span class="va">smoothRisk</span><span class="op">$</span><span class="va">p</span><span class="op">)</span></span>
+<span>  stratify.by.urban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  target.pop.mat <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  do.fine.scale.risk <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">pixel.level.pop</span><span class="op">$</span><span class="va">fineScaleRisk</span><span class="op">$</span><span class="va">p</span><span class="op">)</span>,</span>
+<span>  do.smooth.risk <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">pixel.level.pop</span><span class="op">$</span><span class="va">smoothRisk</span><span class="op">$</span><span class="va">p</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">areaPopToArea</span><span class="op">(</span></span>
-<span>  <span class="va">areaLevelPop</span>,</span>
-<span>  <span class="va">areasFrom</span>,</span>
-<span>  <span class="va">areasTo</span>,</span>
-<span>  stratifyByUrban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  doFineScaleRisk <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">areaLevelPop</span><span class="op">$</span><span class="va">aggregationResults</span><span class="op">$</span><span class="va">pFineScaleRisk</span><span class="op">)</span>,</span>
-<span>  doSmoothRisk <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">areaLevelPop</span><span class="op">$</span><span class="va">aggregationResults</span><span class="op">$</span><span class="va">pSmoothRisk</span><span class="op">)</span></span>
+<span>  <span class="va">area.level.pop</span>,</span>
+<span>  <span class="va">areas.from</span>,</span>
+<span>  <span class="va">areas.to</span>,</span>
+<span>  stratify.by.urban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  do.fine.scale.risk <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">area.level.pop</span><span class="op">$</span><span class="va">aggregationResults</span><span class="op">$</span><span class="va">pFineScaleRisk</span><span class="op">)</span>,</span>
+<span>  do.smooth.risk <span class="op">=</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">area.level.pop</span><span class="op">$</span><span class="va">aggregationResults</span><span class="op">$</span><span class="va">pSmoothRisk</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -72,11 +73,11 @@ them to the specified areal level. Also calculates the aggregated risk and preva
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-pixellevelpop">pixelLevelPop<a class="anchor" aria-label="anchor" href="#arg-pixellevelpop"></a></dt>
+<dl><dt id="arg-pixel-level-pop">pixel.level.pop<a class="anchor" aria-label="anchor" href="#arg-pixel-level-pop"></a></dt>
 <dd><p>pixel level population information that we want aggregate. In the same format as output from <code><a href="simPop.html">simPopCustom</a></code></p></dd>
 
 
-<dt id="arg-easamples">eaSamples<a class="anchor" aria-label="anchor" href="#arg-easamples"></a></dt>
+<dt id="arg-ea-samples">ea.samples<a class="anchor" aria-label="anchor" href="#arg-ea-samples"></a></dt>
 <dd><p>nIntegrationPoint x nsim matrix of the number of enumeration areas per pixel sampled in the input pixel level population</p></dd>
 
 
@@ -85,35 +86,35 @@ them to the specified areal level. Also calculates the aggregated risk and preva
 want to aggregate. Can also be subareas</p></dd>
 
 
-<dt id="arg-stratifybyurban">stratifyByUrban<a class="anchor" aria-label="anchor" href="#arg-stratifybyurban"></a></dt>
+<dt id="arg-stratify-by-urban">stratify.by.urban<a class="anchor" aria-label="anchor" href="#arg-stratify-by-urban"></a></dt>
 <dd><p>whether or not to stratify simulations by urban/rural classification</p></dd>
 
 
-<dt id="arg-targetpopmat">targetPopMat<a class="anchor" aria-label="anchor" href="#arg-targetpopmat"></a></dt>
-<dd><p>pixellated grid data frame with variables `lon`, `lat`, `pop` (target population), `area`, `subareas` (if subareaLevel is TRUE), `urban` (if stratifyByUrban is TRUE), `east`, and `north`</p></dd>
+<dt id="arg-target-pop-mat">target.pop.mat<a class="anchor" aria-label="anchor" href="#arg-target-pop-mat"></a></dt>
+<dd><p>pixellated grid data frame with variables <code>lon</code>, <code>lat</code>, <code>pop</code> (target population), <code>area</code>, <code>subareas</code> (if subarea.level is TRUE), <code>urban</code> (if stratify.by.urban is TRUE), <code>east</code>, and <code>north</code></p></dd>
 
 
-<dt id="arg-dofinescalerisk">doFineScaleRisk<a class="anchor" aria-label="anchor" href="#arg-dofinescalerisk"></a></dt>
+<dt id="arg-do-fine-scale-risk">do.fine.scale.risk<a class="anchor" aria-label="anchor" href="#arg-do-fine-scale-risk"></a></dt>
 <dd><p>whether or not to calculate the fine scale risk in addition to the prevalence. See details</p></dd>
 
 
-<dt id="arg-dosmoothrisk">doSmoothRisk<a class="anchor" aria-label="anchor" href="#arg-dosmoothrisk"></a></dt>
+<dt id="arg-do-smooth-risk">do.smooth.risk<a class="anchor" aria-label="anchor" href="#arg-do-smooth-risk"></a></dt>
 <dd><p>Whether or not to calculate the smooth risk in addition to the prevalence. See details</p></dd>
 
 
-<dt id="arg-arealevelpop">areaLevelPop<a class="anchor" aria-label="anchor" href="#arg-arealevelpop"></a></dt>
+<dt id="arg-area-level-pop">area.level.pop<a class="anchor" aria-label="anchor" href="#arg-area-level-pop"></a></dt>
 <dd><p>output of <code><a href="simPop.html">simPopCustom</a></code> containing pixel level information
 about the population of interest</p></dd>
 
 
-<dt id="arg-areasfrom">areasFrom<a class="anchor" aria-label="anchor" href="#arg-areasfrom"></a></dt>
+<dt id="arg-areas-from">areas.from<a class="anchor" aria-label="anchor" href="#arg-areas-from"></a></dt>
 <dd><p>character vector of length equal to the number of areas from which
 we would like to aggregate containing the unique names of the areas.
 Can also be subareas, but these are smaller than the "to areas", and
 each "from area" must be entirely contained in a single "to area"</p></dd>
 
 
-<dt id="arg-areasto">areasTo<a class="anchor" aria-label="anchor" href="#arg-areasto"></a></dt>
+<dt id="arg-areas-to">areas.to<a class="anchor" aria-label="anchor" href="#arg-areas-to"></a></dt>
 <dd><p>character vector of length equal to the number of areas from which
 we would like to aggregate containing the names of the areas containing
 with each respective `from' area. Can also be a set of subareas,
@@ -122,7 +123,7 @@ but these are larger than the "from areas".</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list containing elements `fineScalePrevalence` and `fineScaleRisk`. Each
+    <p>A list containing elements <code>fineScalePrevalence</code> and <code>fineScaleRisk</code>. Each
 of these are in turn lists with aggregated prevalence and risk for the area of
 interest, containg the following elements, were paranethesis indicate the elements
 for the fineScaleRisk model rather than fineScalePrevalence:</p>
@@ -167,6 +168,10 @@ as aggregate of Z divided by aggregate of N</p></dd>
 
 </dl></div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="figures/lifecycle-experimental.svg" alt="[Experimental]"></a></p>
+    </div>
+    <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
 
 <ul><li><p><code>pixelPopToArea()</code>: Aggregate from pixel to areal level</p></li>
@@ -174,7 +179,7 @@ as aggregate of Z divided by aggregate of N</p></dd>
 </ul></div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>In Preparation</p>
+    <p>Paige, John, Geir-Arne Fuglstad, Andrea Riebler, and Jon Wakefield. "Spatial aggregation with respect to a population distribution: Impact on inference." Spatial Statistics 52 (2022): 100714.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -188,44 +193,155 @@ as aggregate of Z divided by aggregate of N</p></dd>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="co"># download Kenya GADM shapefiles from SUMMERdata github repository</span></span></span>
+<span class="r-in"><span><span class="va">githubURL</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"https://github.com/paigejo/SUMMERdata/blob/main/data/"</span>, </span></span>
+<span class="r-in"><span>                    <span class="st">"kenyaMaps.rda?raw=true"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">tempDirectory</span> <span class="op">=</span> <span class="st">"~/"</span></span></span>
+<span class="r-in"><span><span class="va">mapsFilename</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">tempDirectory</span>, <span class="st">"/kenyaMaps.rda"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">mapsFilename</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/download.file.html" class="external-link">download.file</a></span><span class="op">(</span><span class="va">githubURL</span>,<span class="va">mapsFilename</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># load it in</span></span></span>
+<span class="r-in"><span><span class="va">out</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/load.html" class="external-link">load</a></span><span class="op">(</span><span class="va">mapsFilename</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">out</span></span></span>
+<span class="r-in"><span><span class="va">kenyaMesh</span> <span class="op">&lt;-</span> <span class="fu">fmesher</span><span class="fu">::</span><span class="fu"><a href="https://inlabru-org.github.io/fmesher/reference/fm_as_fm.html" class="external-link">fm_as_fm</a></span><span class="op">(</span><span class="va">kenyaMesh</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">adm1</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">adm1</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">adm1</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span><span class="op">[</span><span class="va">adm1</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span> <span class="op">==</span> <span class="st">"Trans Nzoia"</span><span class="op">]</span> <span class="op">=</span> <span class="st">"Trans-Nzoia"</span></span></span>
+<span class="r-in"><span><span class="va">adm1</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span><span class="op">[</span><span class="va">adm1</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span> <span class="op">==</span> <span class="st">"Elgeyo-Marakwet"</span><span class="op">]</span> <span class="op">=</span> <span class="st">"Elgeyo Marakwet"</span></span></span>
+<span class="r-in"><span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span><span class="op">[</span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span> <span class="op">==</span> <span class="st">"Trans Nzoia"</span><span class="op">]</span> <span class="op">=</span> <span class="st">"Trans-Nzoia"</span></span></span>
+<span class="r-in"><span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span><span class="op">[</span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span> <span class="op">==</span> <span class="st">"Elgeyo-Marakwet"</span><span class="op">]</span> <span class="op">=</span> <span class="st">"Elgeyo Marakwet"</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># some Admin-2 areas have the same name</span></span></span>
+<span class="r-in"><span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2</span><span class="op">[</span><span class="op">(</span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span> <span class="op">==</span> <span class="st">"Bungoma"</span><span class="op">)</span> <span class="op">&amp;</span> </span></span>
+<span class="r-in"><span>                   <span class="op">(</span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2</span> <span class="op">==</span> <span class="st">"Lugari"</span><span class="op">)</span><span class="op">]</span> <span class="op">=</span> <span class="st">"Lugari, Bungoma"</span></span></span>
+<span class="r-in"><span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2</span><span class="op">[</span><span class="op">(</span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span> <span class="op">==</span> <span class="st">"Kakamega"</span><span class="op">)</span> <span class="op">&amp;</span> </span></span>
+<span class="r-in"><span>                   <span class="op">(</span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2</span> <span class="op">==</span> <span class="st">"Lugari"</span><span class="op">)</span><span class="op">]</span> <span class="op">=</span> <span class="st">"Lugari, Kakamega"</span></span></span>
+<span class="r-in"><span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2</span><span class="op">[</span><span class="op">(</span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span> <span class="op">==</span> <span class="st">"Meru"</span><span class="op">)</span> <span class="op">&amp;</span> </span></span>
+<span class="r-in"><span>                   <span class="op">(</span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2</span> <span class="op">==</span> <span class="st">"Igembe South"</span><span class="op">)</span><span class="op">]</span> <span class="op">=</span> <span class="st">"Igembe South, Meru"</span></span></span>
+<span class="r-in"><span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2</span><span class="op">[</span><span class="op">(</span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span> <span class="op">==</span> <span class="st">"Tharaka-Nithi"</span><span class="op">)</span> <span class="op">&amp;</span> </span></span>
+<span class="r-in"><span>                   <span class="op">(</span><span class="va">adm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2</span> <span class="op">==</span> <span class="st">"Igembe South"</span><span class="op">)</span><span class="op">]</span> <span class="op">=</span> <span class="st">"Igembe South, Tharaka-Nithi"</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># The spatial area of unknown 8 is so small, it causes problems unless its removed or </span></span></span>
+<span class="r-in"><span><span class="co"># unioned with another subarea. Union it with neighboring Kakeguria:</span></span></span>
+<span class="r-in"><span><span class="va">newadm2</span> <span class="op">=</span> <span class="va">adm2</span></span></span>
+<span class="r-in"><span><span class="va">unknown8I</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">newadm2</span><span class="op">$</span><span class="va">NAME_2</span> <span class="op">==</span> <span class="st">"unknown 8"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">newadm2</span><span class="op">$</span><span class="va">NAME_2</span><span class="op">[</span><span class="va">newadm2</span><span class="op">$</span><span class="va">NAME_2</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"unknown 8"</span>, <span class="st">"Kapenguria"</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> </span></span>
+<span class="r-in"><span>  <span class="st">"Kapenguria + unknown 8"</span></span></span>
+<span class="r-in"><span><span class="va">admin2.IDs</span> <span class="op">&lt;-</span> <span class="va">newadm2</span><span class="op">$</span><span class="va">NAME_2</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">newadm2</span><span class="op">@</span><span class="va">data</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">newadm2</span><span class="op">@</span><span class="va">data</span>, NAME_2OLD <span class="op">=</span> <span class="va">newadm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">newadm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2OLD</span> <span class="op">=</span> <span class="va">newadm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2</span></span></span>
+<span class="r-in"><span><span class="va">newadm2</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2</span> <span class="op">=</span> <span class="va">admin2.IDs</span></span></span>
+<span class="r-in"><span><span class="va">newadm2</span><span class="op">$</span><span class="va">NAME_2</span> <span class="op">=</span> <span class="va">admin2.IDs</span></span></span>
+<span class="r-in"><span><span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="va">newadm2</span>, <span class="st">"SpatVector"</span><span class="op">)</span>, by<span class="op">=</span><span class="st">"NAME_2"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">temp</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">temp</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/coerce-methods.html" class="external-link">as_Spatial</a></span><span class="op">(</span><span class="va">temp</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">tempData</span> <span class="op">=</span> <span class="va">newadm2</span><span class="op">@</span><span class="va">data</span><span class="op">[</span><span class="op">-</span><span class="va">unknown8I</span>,<span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">tempData</span> <span class="op">=</span> <span class="va">tempData</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">tempData</span><span class="op">$</span><span class="va">NAME_2</span><span class="op">)</span>,<span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">newadm2</span> <span class="op">&lt;-</span> <span class="fu">sp</span><span class="fu">::</span><span class="fu"><a href="https://edzer.github.io/sp/reference/SpatialPolygons.html" class="external-link">SpatialPolygonsDataFrame</a></span><span class="op">(</span><span class="va">temp</span>, <span class="va">tempData</span>, match.ID <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">adm2</span> <span class="op">=</span> <span class="va">newadm2</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># download 2014 Kenya population density TIF file</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">githubURL</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"https://github.com/paigejo/SUMMERdata/blob/main/data/"</span>, </span></span>
+<span class="r-in"><span>                    <span class="st">"Kenya2014Pop/worldpop_total_1y_2014_00_00.tif?raw=true"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">popTIFFilename</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">tempDirectory</span>, <span class="st">"/worldpop_total_1y_2014_00_00.tif"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw">if</span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">popTIFFilename</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/utils/download.file.html" class="external-link">download.file</a></span><span class="op">(</span><span class="va">githubURL</span>,<span class="va">popTIFFilename</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># load it in</span></span></span>
+<span class="r-in"><span><span class="va">pop</span> <span class="op">=</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">popTIFFilename</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">east.lim</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">110.6405</span>, <span class="fl">832.4544</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">north.lim</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">555.1739</span>, <span class="fl">608.7130</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## Construct poppsubKenya, a table of urban/rural general population totals </span></span></span>
+<span class="r-in"><span><span class="co">## in each subarea. Technically, this is not necessary since we can load in </span></span></span>
+<span class="r-in"><span><span class="co">## poppsubKenya via data(kenyaPopulationData). First, we will need to calculate </span></span></span>
+<span class="r-in"><span><span class="co">## the areas in km^2 of the areas and subareas</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># use Lambert equal area projection of areas (Admin-1) and subareas (Admin-2)</span></span></span>
+<span class="r-in"><span><span class="va">midLon</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">adm1</span><span class="op">@</span><span class="va">bbox</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">midLat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">adm1</span><span class="op">@</span><span class="va">bbox</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">p4s</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"+proj=laea +x_0=0 +y_0=0 +lon_0="</span>, <span class="va">midLon</span>, </span></span>
+<span class="r-in"><span>             <span class="st">" +lat_0="</span>, <span class="va">midLat</span>, <span class="st">" +units=km"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">adm1_sf</span> <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">adm1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">adm1proj_sf</span> <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="va">adm1_sf</span>, <span class="va">p4s</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">adm1proj</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="va">adm1proj_sf</span>, <span class="st">"Spatial"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">adm2_sf</span> <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">adm2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">adm2proj_sf</span> <span class="op">=</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="va">adm2_sf</span>, <span class="va">p4s</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">adm2proj</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="va">adm2proj_sf</span>, <span class="st">"Spatial"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># now calculate spatial area in km^2</span></span></span>
+<span class="r-in"><span><span class="va">admin1Areas</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html" class="external-link">st_area</a></span><span class="op">(</span><span class="va">adm1proj_sf</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">admin2Areas</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_measures.html" class="external-link">st_area</a></span><span class="op">(</span><span class="va">adm2proj_sf</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">areapaKenya</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>area<span class="op">=</span><span class="va">adm1proj</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span>, spatialArea<span class="op">=</span><span class="va">admin1Areas</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">areapsubKenya</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>area<span class="op">=</span><span class="va">adm2proj</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_1</span>, subarea<span class="op">=</span><span class="va">adm2proj</span><span class="op">@</span><span class="va">data</span><span class="op">$</span><span class="va">NAME_2</span>, </span></span>
+<span class="r-in"><span>                           spatialArea<span class="op">=</span><span class="va">admin2Areas</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Calculate general population totals at the subarea (Admin-2) x urban/rural </span></span></span>
+<span class="r-in"><span><span class="co"># level and using 1km resolution population grid. Assign urbanicity by </span></span></span>
+<span class="r-in"><span><span class="co"># thresholding population density based on estimated proportion population </span></span></span>
+<span class="r-in"><span><span class="co"># urban/rural, making sure total area (Admin-1) urban/rural populations in </span></span></span>
+<span class="r-in"><span><span class="co"># each area matches poppaKenya.</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">kenyaPopulationData</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">pop.matKenya</span> <span class="op">&lt;-</span> <span class="fu"><a href="makePopIntegrationTab.html">makePopIntegrationTab</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  km.res<span class="op">=</span><span class="fl">5</span>, pop<span class="op">=</span><span class="va">pop</span>, domain.map.dat<span class="op">=</span><span class="va">adm0</span>,</span></span>
+<span class="r-in"><span>  east.lim<span class="op">=</span><span class="va">east.lim</span>, north.lim<span class="op">=</span><span class="va">north.lim</span>, map.projection<span class="op">=</span><span class="va">projKenya</span>,</span></span>
+<span class="r-in"><span>  poppa <span class="op">=</span> <span class="va">poppaKenya</span>, poppsub<span class="op">=</span><span class="va">poppsubKenya</span>, </span></span>
+<span class="r-in"><span>  area.map.dat <span class="op">=</span> <span class="va">adm1</span>, subarea.map.dat <span class="op">=</span> <span class="va">adm2</span>,</span></span>
+<span class="r-in"><span>  areaNameVar <span class="op">=</span> <span class="st">"NAME_1"</span>, subareaNameVar<span class="op">=</span><span class="st">"NAME_2"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">##### Now we make a model for the risk. We will use an SPDE model with these </span></span></span>
 <span class="r-in"><span><span class="co">##### parameters for the linear predictor on the logist scale, which are chosen </span></span></span>
 <span class="r-in"><span><span class="co">##### to be of practical interest:</span></span></span>
 <span class="r-in"><span><span class="va">beta0</span><span class="op">=</span><span class="op">-</span><span class="fl">2.9</span> <span class="co"># intercept</span></span></span>
 <span class="r-in"><span><span class="va">gamma</span><span class="op">=</span><span class="op">-</span><span class="fl">1</span> <span class="co"># urban effect</span></span></span>
 <span class="r-in"><span><span class="va">rho</span><span class="op">=</span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">3</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span> <span class="co"># spatial variance</span></span></span>
-<span class="r-in"><span><span class="va">effRange</span> <span class="op">=</span> <span class="fl">400</span> <span class="co"># effective spatial range in km</span></span></span>
-<span class="r-in"><span><span class="va">sigmaEpsilon</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">2.5</span><span class="op">)</span> <span class="co"># cluster (nugget) effect standard deviation</span></span></span>
+<span class="r-in"><span><span class="va">eff.range</span> <span class="op">=</span> <span class="fl">400</span> <span class="co"># effective spatial range in km</span></span></span>
+<span class="r-in"><span><span class="va">sigma.epsilon</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fl">2.5</span><span class="op">)</span> <span class="co"># cluster (nugget) effect standard deviation</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># simulate the population! Note that this produces multiple dense </span></span></span>
 <span class="r-in"><span><span class="co"># nEA x nsim and nIntegrationPoint x nsim matrices. In the future </span></span></span>
 <span class="r-in"><span><span class="co"># sparse matrices will and chunk by chunk computations may be incorporated.</span></span></span>
 <span class="r-in"><span><span class="va">simPop</span> <span class="op">=</span> <span class="fu"><a href="simPop.html">simPopSPDE</a></span><span class="op">(</span>nsim<span class="op">=</span><span class="fl">1</span>, easpa<span class="op">=</span><span class="va">easpaKenyaNeonatal</span>, </span></span>
-<span class="r-in"><span>                    popMat<span class="op">=</span><span class="va">popMatKenya</span>, targetPopMat<span class="op">=</span><span class="va">popMatKenyaNeonatal</span>, </span></span>
-<span class="r-in"><span>                    poppsub<span class="op">=</span><span class="va">poppsubKenya</span>, spdeMesh<span class="op">=</span><span class="va">kenyaMesh</span>, </span></span>
-<span class="r-in"><span>                    margVar<span class="op">=</span><span class="va">rho</span>, sigmaEpsilonSq<span class="op">=</span><span class="va">sigmaEpsilon</span><span class="op">^</span><span class="fl">2</span>, </span></span>
-<span class="r-in"><span>                    gamma<span class="op">=</span><span class="va">gamma</span>, effRange<span class="op">=</span><span class="va">effRange</span>, beta0<span class="op">=</span><span class="va">beta0</span>, </span></span>
-<span class="r-in"><span>                    seed<span class="op">=</span><span class="fl">123</span>, inla.seed<span class="op">=</span><span class="fl">12</span>, nHHSampled<span class="op">=</span><span class="fl">25</span>, </span></span>
-<span class="r-in"><span>                    stratifyByUrban<span class="op">=</span><span class="cn">TRUE</span>, subareaLevel<span class="op">=</span><span class="cn">TRUE</span>, </span></span>
-<span class="r-in"><span>                    doFineScaleRisk<span class="op">=</span><span class="cn">TRUE</span>, </span></span>
-<span class="r-in"><span>                    min1PerSubarea<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                    pop.mat<span class="op">=</span><span class="va">pop.matKenya</span>, target.pop.mat<span class="op">=</span><span class="va">pop.matKenya</span>, </span></span>
+<span class="r-in"><span>                    poppsub<span class="op">=</span><span class="va">poppsubKenya</span>, spde.mesh<span class="op">=</span><span class="va">kenyaMesh</span>, </span></span>
+<span class="r-in"><span>                    marg.var<span class="op">=</span><span class="va">rho</span>, sigma.epsilon<span class="op">=</span><span class="va">sigma.epsilon</span>, </span></span>
+<span class="r-in"><span>                    gamma<span class="op">=</span><span class="va">gamma</span>, eff.range<span class="op">=</span><span class="va">eff.range</span>, beta0<span class="op">=</span><span class="va">beta0</span>, </span></span>
+<span class="r-in"><span>                    seed<span class="op">=</span><span class="fl">123</span>, inla.seed<span class="op">=</span><span class="fl">12</span>, n.HH.sampled<span class="op">=</span><span class="fl">25</span>, </span></span>
+<span class="r-in"><span>                    stratify.by.urban<span class="op">=</span><span class="cn">TRUE</span>, subarea.level<span class="op">=</span><span class="cn">TRUE</span>, </span></span>
+<span class="r-in"><span>                    do.fine.scale.risk<span class="op">=</span><span class="cn">TRUE</span>, </span></span>
+<span class="r-in"><span>                    min1.per.subarea<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">pixelPop</span> <span class="op">=</span> <span class="va">simPop</span><span class="op">$</span><span class="va">pixelPop</span></span></span>
-<span class="r-in"><span><span class="va">subareaPop</span> <span class="op">=</span> <span class="fu">pixelPopToArea</span><span class="op">(</span>pixelLevelPop<span class="op">=</span><span class="va">pixelPop</span>, eaSamples<span class="op">=</span><span class="va">pixelPop</span><span class="op">$</span><span class="va">eaSamples</span>, </span></span>
-<span class="r-in"><span>  areas<span class="op">=</span><span class="va">popMatKenya</span><span class="op">$</span><span class="va">subarea</span>, stratifyByUrban<span class="op">=</span><span class="cn">TRUE</span>, </span></span>
-<span class="r-in"><span>  targetPopMat<span class="op">=</span><span class="va">popMatKenyaNeonatal</span>, doFineScaleRisk<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">subareaPop</span> <span class="op">=</span> <span class="fu">pixelPopToArea</span><span class="op">(</span>pixel.level.pop<span class="op">=</span><span class="va">pixelPop</span>, ea.samples<span class="op">=</span><span class="va">pixelPop</span><span class="op">$</span><span class="va">ea.samples</span>, </span></span>
+<span class="r-in"><span>  areas<span class="op">=</span><span class="va">pop.matKenya</span><span class="op">$</span><span class="va">subarea</span>, stratify.by.urban<span class="op">=</span><span class="cn">TRUE</span>, </span></span>
+<span class="r-in"><span>  target.pop.mat<span class="op">=</span><span class="va">pop.matKenya</span>, do.fine.scale.risk<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># get areas associated with each subarea for aggregation</span></span></span>
-<span class="r-in"><span><span class="va">tempAreasFrom</span> <span class="op">=</span> <span class="va">popMatKenya</span><span class="op">$</span><span class="va">subarea</span></span></span>
-<span class="r-in"><span><span class="va">tempAreasTo</span> <span class="op">=</span> <span class="va">popMatKenya</span><span class="op">$</span><span class="va">area</span></span></span>
-<span class="r-in"><span><span class="va">areasFrom</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">tempAreasFrom</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">areasToI</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">areasFrom</span>, <span class="va">tempAreasFrom</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">areasTo</span> <span class="op">=</span> <span class="va">tempAreasTo</span><span class="op">[</span><span class="va">areasToI</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">tempAreasFrom</span> <span class="op">=</span> <span class="va">pop.matKenya</span><span class="op">$</span><span class="va">subarea</span></span></span>
+<span class="r-in"><span><span class="va">tempAreasTo</span> <span class="op">=</span> <span class="va">pop.matKenya</span><span class="op">$</span><span class="va">area</span></span></span>
+<span class="r-in"><span><span class="va">areas.from</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">tempAreasFrom</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">areas.toI</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">areas.from</span>, <span class="va">tempAreasFrom</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">areas.to</span> <span class="op">=</span> <span class="va">tempAreasTo</span><span class="op">[</span><span class="va">areas.toI</span><span class="op">]</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># do the aggregation from subareas to areas</span></span></span>
-<span class="r-in"><span><span class="va">outAreaLevel</span> <span class="op">=</span> <span class="fu">areaPopToArea</span><span class="op">(</span>areaLevelPop<span class="op">=</span><span class="va">subareaPop</span>, </span></span>
-<span class="r-in"><span>  areasFrom<span class="op">=</span><span class="va">areasFrom</span>, areasTo<span class="op">=</span><span class="va">areasTo</span>, </span></span>
-<span class="r-in"><span>  stratifyByUrban<span class="op">=</span><span class="cn">TRUE</span>, doFineScaleRisk<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">outAreaLevel</span> <span class="op">=</span> <span class="fu">areaPopToArea</span><span class="op">(</span>area.level.pop<span class="op">=</span><span class="va">subareaPop</span>, </span></span>
+<span class="r-in"><span>  areas.from<span class="op">=</span><span class="va">areas.from</span>, areas.to<span class="op">=</span><span class="va">areas.to</span>, </span></span>
+<span class="r-in"><span>  stratify.by.urban<span class="op">=</span><span class="cn">TRUE</span>, do.fine.scale.risk<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

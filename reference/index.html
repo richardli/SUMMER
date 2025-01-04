@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">SUMMER</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,6 +21,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/web_only/small-area-estimation.html">Generic small area estimation</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-vignette.html">Estimating Subnational U5MR using Simulated Data</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-dhs-vignette.html">Estimating Subnational U5MR using DHS Data</a></li>
+    <li><a class="dropdown-item" href="../articles/web_only/cluster-model-vignette.html">Specifying cluster-level model for mortality estimation</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -68,13 +69,13 @@
         <dd>Obtain the Horvitz-Thompson direct estimates and standard errors using delta method for multiple surveys.</dd>
       </dl><dl><dt>
 
-          <code><a href="smoothDirect.html">smoothDirect()</a></code> <code><a href="smoothDirect.html">fitINLA()</a></code>
+          <code><a href="smoothDirect.html">smoothDirect()</a></code>
 
         </dt>
         <dd>Smoothed direct estimates for mortality rates</dd>
       </dl><dl><dt>
 
-          <code><a href="smoothCluster.html">smoothCluster()</a></code> <code><a href="smoothCluster.html">fitINLA2()</a></code>
+          <code><a href="smoothCluster.html">smoothCluster()</a></code>
 
         </dt>
         <dd>Cluster-level space-time smoothing models for mortality rates</dd>
@@ -105,7 +106,7 @@
       </dl><dl><dt>
 
           <code><a href="Benchmark.html">Benchmark()</a></code>
-
+          <span class="badge lifecycle lifecycle-experimental">experimental</span>
         </dt>
         <dd>Benchmark posterior draws to national estimates</dd>
       </dl><dl><dt>
@@ -145,34 +146,10 @@
 
       <dl><dt>
 
-          <code><a href="mapPoints.html">mapPoints()</a></code>
+          <code><a href="smoothSurvey.html">smoothSurvey()</a></code>
 
         </dt>
-        <dd>Map GPS points to polygon regions</dd>
-      </dl><dl><dt>
-
-          <code><a href="getAmat.html">getAmat()</a></code>
-
-        </dt>
-        <dd>Extract adjacency matrix from the map</dd>
-      </dl><dl><dt>
-
-          <code><a href="getCounts.html">getCounts()</a></code>
-
-        </dt>
-        <dd>Aggregate person-month data into counts and totals by groups.</dd>
-      </dl><dl><dt>
-
-          <code><a href="ChangeRegion.html">ChangeRegion()</a></code>
-
-        </dt>
-        <dd>Map region names to a common set.</dd>
-      </dl><dl><dt>
-
-          <code><a href="smoothSurvey.html">smoothSurvey()</a></code> <code><a href="smoothSurvey.html">fitGeneric()</a></code>
-
-        </dt>
-        <dd>Fit space-time smoothing models for a generic outcome from complex surveys.</dd>
+        <dd>Fit space-time smoothing models for a binary outcome from complex surveys.</dd>
       </dl><dl><dt>
 
           <code><a href="smoothArea.html">smoothArea()</a></code>
@@ -216,7 +193,7 @@
         <dd>Plot region-level variables on a map</dd>
       </dl><dl><dt>
 
-          <code><a href="ridgePlot.html">ridgePlot()</a></code> <code><a href="ridgePlot.html">getSmoothedDensity()</a></code>
+          <code><a href="ridgePlot.html">ridgePlot()</a></code>
 
         </dt>
         <dd>Calculate and plot posterior densities of the projected estimates</dd>
@@ -251,6 +228,59 @@
         </dt>
         <dd>Mapping estimates for svysae object</dd>
       </dl></div><div class="section level2">
+      <h2 id="utility-functions">Utility functions<a class="anchor" aria-label="anchor" href="#utility-functions"></a></h2>
+
+
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="mapPoints.html">mapPoints()</a></code>
+
+        </dt>
+        <dd>Map GPS points to polygon regions</dd>
+      </dl><dl><dt>
+
+          <code><a href="getAmat.html">getAmat()</a></code>
+
+        </dt>
+        <dd>Extract adjacency matrix from the map</dd>
+      </dl><dl><dt>
+
+          <code><a href="getCounts.html">getCounts()</a></code>
+
+        </dt>
+        <dd>Aggregate person-month data into counts and totals by groups.</dd>
+      </dl><dl><dt>
+
+          <code><a href="ChangeRegion.html">changeRegion()</a></code>
+
+        </dt>
+        <dd>Map region names to a common set.</dd>
+      </dl><dl><dt>
+
+          <code><a href="expit.html">expit()</a></code>
+
+        </dt>
+        <dd>Expit transformation</dd>
+      </dl><dl><dt>
+
+          <code><a href="logit.html">logit()</a></code>
+
+        </dt>
+        <dd>Logit transformation</dd>
+      </dl><dl><dt>
+
+          <code><a href="rst.html">rst()</a></code>
+
+        </dt>
+        <dd>Simulate spatial and temporal random effects</dd>
+      </dl></div><div class="section level2">
       <h2 id="pixel-level-population-simulation">Pixel-level population simulation<a class="anchor" aria-label="anchor" href="#pixel-level-population-simulation"></a></h2>
 
 
@@ -264,7 +294,7 @@
       <dl><dt>
 
           <code><a href="getAreaName.html">getAreaName()</a></code>
-
+          <span class="badge lifecycle lifecycle-experimental">experimental</span>
         </dt>
         <dd>Determines which administrative areas contain the given points</dd>
       </dl><dl><dt>
@@ -288,7 +318,7 @@
       </dl><dl><dt>
 
           <code><a href="poppRegionFromPopMat.html">poppRegionFromPopMat()</a></code>
-
+          <span class="badge lifecycle lifecycle-experimental">experimental</span>
         </dt>
         <dd>Generate a population frame of a similar format to poppa argument of <code>simPopCustom</code> with a custom set of regions</dd>
       </dl><dl><dt>
@@ -306,7 +336,7 @@
       </dl><dl><dt>
 
           <code><a href="makePopIntegrationTab.html">makePopIntegrationTab()</a></code> <code><a href="makePopIntegrationTab.html">getPoppsub()</a></code> <code><a href="makePopIntegrationTab.html">adjustPopMat()</a></code>
-
+          <span class="badge lifecycle lifecycle-experimental">experimental</span>
         </dt>
         <dd>Generating pixellated populations, and population frames</dd>
       </dl><dl><dt>
@@ -320,11 +350,11 @@
           <code><a href="setThresholdsByRegion.html">setThresholdsByRegion()</a></code>
 
         </dt>
-        <dd>Set thresholds of population density for urbanicity classifications within each region of the given type</dd>
+        <dd><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="figures/lifecycle-experimental.svg" alt="[Experimental]"></a></dd>
       </dl><dl><dt>
 
           <code><a href="projKenya.html">projKenya()</a></code>
-
+          <span class="badge lifecycle lifecycle-experimental">experimental</span>
         </dt>
         <dd>Map projection for Kenya</dd>
       </dl></div><div class="section level2">
@@ -399,7 +429,7 @@
         </dt>
         <dd>Kenya 2009 Census Frame and Related Datasets</dd>
       </dl></div><div class="section level2">
-      <h2 id="other-functions">Other functions<a class="anchor" aria-label="anchor" href="#other-functions"></a></h2>
+      <h2 id="internal-functions">Internal functions<a class="anchor" aria-label="anchor" href="#internal-functions"></a></h2>
 
 
 
@@ -410,18 +440,6 @@
 
 
       <dl><dt>
-
-          <code><a href="expit.html">expit()</a></code>
-
-        </dt>
-        <dd>Expit transformation</dd>
-      </dl><dl><dt>
-
-          <code><a href="logit.html">logit()</a></code>
-
-        </dt>
-        <dd>Logit transformation</dd>
-      </dl><dl><dt>
 
           <code><a href="rw.new.html">rw.new()</a></code>
 
@@ -471,16 +489,10 @@
         <dd>Simulate hyperpriors from an GMRF</dd>
       </dl><dl><dt>
 
-          <code><a href="rst.html">rst()</a></code>
-
-        </dt>
-        <dd>Simulate spatial and temporal random effects</dd>
-      </dl><dl><dt>
-
           <code><a href="SUMMER-package.html">SUMMER-package</a></code> <code><a href="SUMMER-package.html">SUMMER</a></code>
 
         </dt>
-        <dd>SUMMER package documentation.</dd>
+        <dd>SUMMER: Small-Area-Estimation Unit/Area Models and Methods for Estimation in R</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

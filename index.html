@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">SUMMER</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,7 @@
 <li><a class="dropdown-item" href="articles/web_only/small-area-estimation.html">Generic small area estimation</a></li>
     <li><a class="dropdown-item" href="articles/web_only/u5mr-vignette.html">Estimating Subnational U5MR using Simulated Data</a></li>
     <li><a class="dropdown-item" href="articles/web_only/u5mr-dhs-vignette.html">Estimating Subnational U5MR using DHS Data</a></li>
+    <li><a class="dropdown-item" href="articles/web_only/cluster-model-vignette.html">Specifying cluster-level model for mortality estimation</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -59,14 +60,41 @@
 </h1></div>
 <p><a href="https://github.com/richardli/SUMMER/actions" class="external-link"><img src="https://github.com/richardli/SUMMER/actions/workflows/R-CMD-check-inla-stable.yaml/badge.svg"></a> <a href="https://github.com/richardli/SUMMER/actions" class="external-link"><img src="https://github.com/richardli/SUMMER/actions/workflows/R-CMD-check-inla-testing.yaml/badge.svg"></a> <a href="https://cran.r-project.org/package=SUMMER" class="external-link"><img src="https://www.r-pkg.org/badges/version/SUMMER" alt="CRAN_Status_Badge"></a> <a href="https://cran.r-project.org/package=SUMMER" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/SUMMER"></a> <a href="https://cran.r-project.org/package=SUMMER" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/grand-total/SUMMER?color=orange"></a></p>
 <p>SAE Unit/area Models and Methods for Estimation in R</p>
-<div class="section level3">
-<h3 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
-</h3>
+<div class="section level2">
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h2>
 <p><strong>SUMMER</strong> is an R package providing an extensive collection of space-time smoothing and small area estimation methods for prevalence estimation using complex survey data, with a special focus on Demographic Health Surveys (DHS) data, and the estimation of child mortality using full birth history data. The package also provides a collection of plotting functions to visualize the estimates in space and time.</p>
 </div>
-<div class="section level3">
-<h3 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
-</h3>
+<div class="section level2">
+<h2 id="where-do-i-start">Where do I start?<a class="anchor" aria-label="anchor" href="#where-do-i-start"></a>
+</h2>
+<ul>
+<li>Interested in small area estimation models for binary indicators? Start with <a href="">Generic small area estimation</a>.</li>
+<li>Interested in child mortality estimation?
+<ul>
+<li>For a reproducible example with simulated data, start with <a href="">Estimating Subnational U5MR using Simulated Data</a>.</li>
+<li>For a reproducible example with DHS data (data access required), start with <a href="">Case Study: Estimating Subnational U5MR using DHS data</a>.</li>
+<li>For more technical details of the statistical models, start with <a href="https://arxiv.org/abs/2007.05117" class="external-link">Space-Time Smoothing of Demographic and Health Indicators using the R Package SUMMER</a>.</li>
+<li>For more tips on customizing the model structure, start with <a href="">Specifying cluster-level model in SUMMER for mortality estimation</a>.</li>
+</ul>
+</li>
+<li>Interested in full pipeline analyzing DHS data for more indicators? Start with <a href="https://github.com/richardli/surveyPrev" class="external-link">surveyPrev package</a>.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="roadmap-of-summer-workflow">Roadmap of SUMMER workflow<a class="anchor" aria-label="anchor" href="#roadmap-of-summer-workflow"></a>
+</h2>
+<p>The diagram below illustrates three commonly used workflows of the SUMMER package. Rounded blocks represent data types and rectangular blocks represent functions in the SUMMER package. Output estimates are highlighted in the boxes with red borders.</p>
+<p><img src="reference/figures/Workflow.png" align="center" width="800"></p>
+<ul>
+<li>The dotted yellow arrows represent the workflow using <code><a href="reference/smoothSurvey.html">smoothSurvey()</a></code> to estimate the prevalence of a generic binary indicator.</li>
+<li>The black solid arrows represent the workflow using <code><a href="reference/smoothDirect.html">smoothDirect()</a></code> to perform area-level smoothing of mortality rates.</li>
+<li>The blue solid arrows represent the workflow using <code><a href="reference/smoothCluster.html">smoothCluster()</a></code> to perform cluster-level smoothing of mortality rates.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
+</h2>
 <p>To cite the SUMMER package in publications use</p>
 <pre><code>  @Manual{li2020space,
     title = {Space-Time Smoothing of Demographic and Health Indicators using the R Package SUMMER},
@@ -74,7 +102,16 @@
     year = {2020},
     journal = {arXiv preprint}
   }</code></pre>
-<p>To cite specific version of the SUMMER package use + v1.0.0</p>
+<p>To cite specific version of the SUMMER package use + v2.0.0</p>
+<pre><code>  @Manual{summer2025,
+    title = {SUMMER: Spatio-Temporal Under-Five Mortality Methods for Estimation},
+    author = {Zehang R Li and Bryan D Martin and Yuan Hsiao and Jessica Godwin and John Paige and Peter Gao and Jon Wakefield and Samuel J Clark and Geir-Arne Fuglstad and Andrea Riebler},
+    year = {2025},
+    note = {R package version 2.0.0},
+  }</code></pre>
+<ul>
+<li>v1.0.0</li>
+</ul>
 <pre><code>  @Manual{summer2020,
     title = {SUMMER: Spatio-Temporal Under-Five Mortality Methods for Estimation},
     author = {Zehang R Li and Bryan D Martin and Yuan Hsiao and Jessica Godwin and Jon Wakefield and Samuel J Clark and Geir-Arne Fuglstad and Andrea Riebler},
@@ -90,19 +127,19 @@
     year = {2019},
     note = {R package version 0.3.0},
   }</code></pre>
-</div>
 <div class="section level3">
 <h3 id="installation---cran">Installation - CRAN<a class="anchor" aria-label="anchor" href="#installation---cran"></a>
 </h3>
 <p>The package is now available on CRAN. The easiest way to download is to install directly using the code below.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"SUMMER"</span><span class="op">)</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="installation---development-version">Installation - Development Version<a class="anchor" aria-label="anchor" href="#installation---development-version"></a>
 </h2>
 <p>To download the development version of the SUMMER package, use the code below.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"richardli/SUMMER"</span><span class="op">)</span></span></code></pre></div>
 <p>Examples of most of the main functions are described in the several vignettes listed on <a href="https://cran.r-project.org/package=SUMMER" class="external-link">https://cran.r-project.org/package=SUMMER</a>.</p>

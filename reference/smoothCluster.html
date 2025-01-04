@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">SUMMER</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,6 +21,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/web_only/small-area-estimation.html">Generic small area estimation</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-vignette.html">Estimating Subnational U5MR using Simulated Data</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-dhs-vignette.html">Estimating Subnational U5MR using DHS Data</a></li>
+    <li><a class="dropdown-item" href="../articles/web_only/cluster-model-vignette.html">Specifying cluster-level model for mortality estimation</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -35,7 +36,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Cluster-level space-time smoothing models for mortality rates</h1>
-      <small class="dont-index">Source: <a href="https://github.com/richardli/SUMMER/blob/master/R/fitINLA2.R" class="external-link"><code>R/fitINLA2.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/richardli/SUMMER/blob/master/R/smoothCluster.R" class="external-link"><code>R/smoothCluster.R</code></a></small>
       <div class="d-none name"><code>smoothCluster.Rd</code></div>
     </div>
 
@@ -49,7 +50,8 @@
 <span>  <span class="va">data</span>,</span>
 <span>  X <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"betabinomial"</span>, <span class="st">"binomial"</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>  age.groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0"</span>, <span class="st">"1-11"</span>, <span class="st">"12-23"</span>, <span class="st">"24-35"</span>, <span class="st">"36-47"</span>, <span class="st">"48-59"</span><span class="op">)</span>,</span>
+<span>  age.group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0"</span>, <span class="st">"1-11"</span>, <span class="st">"12-23"</span>, <span class="st">"24-35"</span>, <span class="st">"36-47"</span>, <span class="st">"48-59"</span><span class="op">)</span>,</span>
+<span>  age.groups <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  age.n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">11</span>, <span class="fl">12</span>, <span class="fl">12</span>, <span class="fl">12</span>, <span class="fl">12</span><span class="op">)</span>,</span>
 <span>  age.time.group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span>,</span>
 <span>  age.strata.fixed.group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">4</span>, <span class="fl">5</span>, <span class="fl">6</span><span class="op">)</span>,</span>
@@ -59,52 +61,8 @@
 <span>  bias.adj <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  bias.adj.by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  formula <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">year_label</span>,</span>
-<span>  type.st <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  survey.effect <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  linear.trend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  common.trend <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  strata.time.effect <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  hyper <span class="op">=</span> <span class="st">"pc"</span>,</span>
-<span>  pc.u <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  pc.alpha <span class="op">=</span> <span class="fl">0.01</span>,</span>
-<span>  pc.u.phi <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>  pc.alpha.phi <span class="op">=</span> <span class="fl">2</span><span class="op">/</span><span class="fl">3</span>,</span>
-<span>  pc.u.cor <span class="op">=</span> <span class="fl">0.7</span>,</span>
-<span>  pc.alpha.cor <span class="op">=</span> <span class="fl">0.9</span>,</span>
-<span>  pc.st.u <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  pc.st.alpha <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  pc.st.slope.u <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  pc.st.slope.alpha <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  overdisp.mean <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  overdisp.prec <span class="op">=</span> <span class="fl">0.4</span>,</span>
-<span>  options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>config <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>  control.inla <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>strategy <span class="op">=</span> <span class="st">"adaptive"</span>, int.strategy <span class="op">=</span> <span class="st">"auto"</span><span class="op">)</span>,</span>
-<span>  control.fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  geo <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  rw <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  ar <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  st.rw <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  age.rw.group <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">fitINLA2</span><span class="op">(</span></span>
-<span>  <span class="va">data</span>,</span>
-<span>  X <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"betabinomial"</span>, <span class="st">"binomial"</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>  age.groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0"</span>, <span class="st">"1-11"</span>, <span class="st">"12-23"</span>, <span class="st">"24-35"</span>, <span class="st">"36-47"</span>, <span class="st">"48-59"</span><span class="op">)</span>,</span>
-<span>  age.n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">11</span>, <span class="fl">12</span>, <span class="fl">12</span>, <span class="fl">12</span>, <span class="fl">12</span><span class="op">)</span>,</span>
-<span>  age.time.group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span>,</span>
-<span>  age.strata.fixed.group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">4</span>, <span class="fl">5</span>, <span class="fl">6</span><span class="op">)</span>,</span>
-<span>  time.model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rw1"</span>, <span class="st">"rw2"</span>, <span class="st">"ar1"</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>,</span>
-<span>  st.time.model <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">Amat</span>,</span>
-<span>  bias.adj <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bias.adj.by <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  formula <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">year_label</span>,</span>
+<span>  <span class="va">year.label</span>,</span>
+<span>  year_label <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  type.st <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  survey.effect <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  linear.trend <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -159,8 +117,12 @@
 <dd><p>family of the model. This can be either binomial (with logistic normal prior), betabiniomial.</p></dd>
 
 
-<dt id="arg-age-groups">age.groups<a class="anchor" aria-label="anchor" href="#arg-age-groups"></a></dt>
+<dt id="arg-age-group">age.group<a class="anchor" aria-label="anchor" href="#arg-age-group"></a></dt>
 <dd><p>a character vector of age groups in increasing order.</p></dd>
+
+
+<dt id="arg-age-groups">age.groups<a class="anchor" aria-label="anchor" href="#arg-age-groups"></a></dt>
+<dd><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> replaced by <code>age.group</code></p></dd>
 
 
 <dt id="arg-age-n">age.n<a class="anchor" aria-label="anchor" href="#arg-age-n"></a></dt>
@@ -168,12 +130,12 @@
 
 
 <dt id="arg-age-time-group">age.time.group<a class="anchor" aria-label="anchor" href="#arg-age-time-group"></a></dt>
-<dd><p>vector indicating grouping of the ages groups in the temporal model. For example, if each age group is assigned a different temporal component, then set age.rw.group to c(1:length(age.groups)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.groups)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate temporal trend to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1. This argument replaces the previous <code>age.rw.group</code> argument.</p></dd>
+<dd><p>vector indicating grouping of the ages groups in the temporal model. For example, if each age group is assigned a different temporal component, then set age.rw.group to c(1:length(age.group)); if all age groups share the same random walk component, then set age.rw.group to a rep(1, length(age.group)). The default for 6 age groups is c(1,2,3,3,3,3), which assigns a separate temporal trend to the first two groups and a common random walk for the rest of the age groups. The vector should contain values starting from 1. This argument replaces the previous <code>age.rw.group</code> argument.</p></dd>
 
 
 <dt id="arg-age-strata-fixed-group">age.strata.fixed.group<a class="anchor" aria-label="anchor" href="#arg-age-strata-fixed-group"></a></dt>
-<dd><p>vector indicating grouping of the ages groups for different strata in the intercept. The default is c(1:length(age.groups)), which correspond to each age group within each stratum receives a separate intercept. If several age groups are specified to be the same value in this vector, the stratum specific deviation from the baseline is assumed to be the same for these age groups. For example, if <code>age.strata.fixed.group = c(1, 2, 3, 3, 3, 3)</code>, then the intercept part of the linear predictor consists of 6 overall age-specific intercepts and 3 set of strata effects (where a base stratum is chosen internally), for age groups 1, 2, and the rest respectively. Notice that this argument does not control the linear temporal trends (which is also parameterized as fixed effect, but determined by the <code>age.rw.group</code> argument). The vector should contain values starting from 1.</p>
-<p>More specific examples: (1) if each age group is assigned a different intercept, then set age.strata.fixed.group to c(1:length(age.groups)) (2) if all age groups share the same intercept, then set age.strata.fixed.group to a rep(1, length(age.groups)). The default for 6 age groups is the former. (3) If each temporal trend is associated with its own intercept, set it to be the same as <code>age.rw.group</code>.</p></dd>
+<dd><p>vector indicating grouping of the ages groups for different strata in the intercept. The default is c(1:length(age.group)), which correspond to each age group within each stratum receives a separate intercept. If several age groups are specified to be the same value in this vector, the stratum specific deviation from the baseline is assumed to be the same for these age groups. For example, if <code>age.strata.fixed.group = c(1, 2, 3, 3, 3, 3)</code>, then the intercept part of the linear predictor consists of 6 overall age-specific intercepts and 3 set of strata effects (where a base stratum is chosen internally), for age groups 1, 2, and the rest respectively. Notice that this argument does not control the linear temporal trends (which is also parameterized as fixed effect, but determined by the <code>age.rw.group</code> argument). The vector should contain values starting from 1.</p>
+<p>More specific examples: (1) if each age group is assigned a different intercept, then set age.strata.fixed.group to c(1:length(age.group)) (2) if all age groups share the same intercept, then set age.strata.fixed.group to a rep(1, length(age.group)). The default for 6 age groups is the former. (3) If each temporal trend is associated with its own intercept, set it to be the same as <code>age.rw.group</code>.</p></dd>
 
 
 <dt id="arg-time-model">time.model<a class="anchor" aria-label="anchor" href="#arg-time-model"></a></dt>
@@ -193,15 +155,19 @@
 
 
 <dt id="arg-bias-adj-by">bias.adj.by<a class="anchor" aria-label="anchor" href="#arg-bias-adj-by"></a></dt>
-<dd><p>vector of the column names specifying how to merge the bias adjustment to the count data. For example, if bias adjustment factor is provided in bias.adj for each region and time, then bias.adj.by should be `c("region", "time")`.</p></dd>
+<dd><p>vector of the column names specifying how to merge the bias adjustment to the count data. For example, if bias adjustment factor is provided in bias.adj for each region and time, then bias.adj.by should be <code>c("region", "time")</code>.</p></dd>
 
 
 <dt id="arg-formula">formula<a class="anchor" aria-label="anchor" href="#arg-formula"></a></dt>
 <dd><p>INLA formula.  See vignette for example of using customized formula.</p></dd>
 
 
-<dt id="arg-year-label">year_label<a class="anchor" aria-label="anchor" href="#arg-year-label"></a></dt>
+<dt id="arg-year-label">year.label<a class="anchor" aria-label="anchor" href="#arg-year-label"></a></dt>
 <dd><p>string vector of year names</p></dd>
+
+
+<dt id="arg-year-label">year_label<a class="anchor" aria-label="anchor" href="#arg-year-label"></a></dt>
+<dd><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> replaced by year.label</p></dd>
 
 
 <dt id="arg-type-st">type.st<a class="anchor" aria-label="anchor" href="#arg-type-st"></a></dt>
@@ -356,7 +322,7 @@
 <span class="r-in"><span>     strata.time.effect <span class="op">=</span>  <span class="cn">TRUE</span>, </span></span>
 <span class="r-in"><span>     survey.effect <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>     family <span class="op">=</span> <span class="st">"betabinomial"</span>,</span></span>
-<span class="r-in"><span>     year_label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">periods</span>, <span class="st">"15-19"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>     year.label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">periods</span>, <span class="st">"15-19"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="getSmoothed.html">getSmoothed</a></span><span class="op">(</span><span class="va">fit</span>, nsim <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">est</span><span class="op">$</span><span class="va">stratified</span>, plot.CI<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">strata</span><span class="op">)</span> </span></span>
@@ -377,7 +343,7 @@
 <span class="r-in"><span>     strata.time.effect <span class="op">=</span>  <span class="cn">TRUE</span>, </span></span>
 <span class="r-in"><span>     survey.effect <span class="op">=</span> <span class="cn">TRUE</span>,</span></span>
 <span class="r-in"><span>     family <span class="op">=</span> <span class="st">"betabinomial"</span>,</span></span>
-<span class="r-in"><span>     year_label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">periods</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>     year.label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">periods</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="getSmoothed.html">getSmoothed</a></span><span class="op">(</span><span class="va">fit.covariate</span>, nsim <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># fit cluster-level model for one time point only</span></span></span>

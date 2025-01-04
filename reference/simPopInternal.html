@@ -9,7 +9,7 @@ distributions for population simulation."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">SUMMER</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,6 +23,7 @@ distributions for population simulation."></head><body>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/web_only/small-area-estimation.html">Generic small area estimation</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-vignette.html">Estimating Subnational U5MR using Simulated Data</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-dhs-vignette.html">Estimating Subnational U5MR using DHS Data</a></li>
+    <li><a class="dropdown-item" href="../articles/web_only/cluster-model-vignette.html">Specifying cluster-level model for mortality estimation</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -48,89 +49,94 @@ distributions for population simulation.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">getExpectedNperEA</span><span class="op">(</span><span class="va">easpa</span>, <span class="va">popMat</span>, level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"grid"</span>, <span class="st">"EA"</span><span class="op">)</span>, pixelIndexMat <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">getExpectedNperEA</span><span class="op">(</span></span>
+<span>  <span class="va">easpa</span>,</span>
+<span>  <span class="va">pop.mat</span>,</span>
+<span>  level <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"grid"</span>, <span class="st">"EA"</span><span class="op">)</span>,</span>
+<span>  pixel.index.mat <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">getSortIndices</span><span class="op">(</span></span>
 <span>  <span class="va">i</span>,</span>
 <span>  urban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  <span class="va">popMat</span>,</span>
-<span>  stratifyByUrban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  validationPixelI <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  <span class="va">pop.mat</span>,</span>
+<span>  stratify.by.urban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  validation.pixel.I <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">rStratifiedMultnomial</span><span class="op">(</span><span class="va">n</span>, <span class="va">popMat</span>, <span class="va">easpa</span>, stratifyByUrban <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu">rStratifiedMultnomial</span><span class="op">(</span><span class="va">n</span>, <span class="va">pop.mat</span>, <span class="va">easpa</span>, stratify.by.urban <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">rStratifiedMultnomialBySubarea</span><span class="op">(</span></span>
 <span>  <span class="va">n</span>,</span>
-<span>  <span class="va">popMat</span>,</span>
+<span>  <span class="va">pop.mat</span>,</span>
 <span>  <span class="va">easpa</span>,</span>
-<span>  stratifyByUrban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  stratify.by.urban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  poppsub <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  min1PerSubarea <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  minSample <span class="op">=</span> <span class="fl">1</span></span>
+<span>  min1.per.subarea <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  min.sample <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">rMyMultinomial</span><span class="op">(</span></span>
 <span>  <span class="va">n</span>,</span>
 <span>  <span class="va">i</span>,</span>
-<span>  stratifyByUrban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  stratify.by.urban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  urban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  popMat <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  pop.mat <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  easpa <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  min1PerSubarea <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  min1.per.subarea <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mult1"</span>, <span class="st">"mult"</span>, <span class="st">"indepMH"</span><span class="op">)</span>,</span>
-<span>  minSample <span class="op">=</span> <span class="fl">1</span></span>
+<span>  min.sample <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">rMyMultinomialSubarea</span><span class="op">(</span></span>
 <span>  <span class="va">n</span>,</span>
 <span>  <span class="va">i</span>,</span>
 <span>  <span class="va">easpsub</span>,</span>
-<span>  stratifyByUrban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  stratify.by.urban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  urban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  popMat <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  pop.mat <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">rmultinom1</span><span class="op">(</span></span>
 <span>  n <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  <span class="va">size</span>,</span>
 <span>  <span class="va">prob</span>,</span>
-<span>  maxSize <span class="op">=</span> <span class="fl">8000</span> <span class="op">*</span> <span class="fl">8000</span>,</span>
+<span>  max.size <span class="op">=</span> <span class="fl">8000</span> <span class="op">*</span> <span class="fl">8000</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mult1"</span>, <span class="st">"mult"</span>, <span class="st">"indepMH"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  minSample <span class="op">=</span> <span class="fl">100</span>,</span>
-<span>  maxExpectedSizeBeforeSwitch <span class="op">=</span> <span class="fl">1000</span> <span class="op">*</span> <span class="fl">1e+07</span>,</span>
+<span>  min.sample <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  max.expected.size.before.switch <span class="op">=</span> <span class="fl">1000</span> <span class="op">*</span> <span class="fl">1e+07</span>,</span>
 <span>  init <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  burnIn <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">n</span><span class="op">/</span><span class="fl">4</span><span class="op">)</span>,</span>
-<span>  filterEvery <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  zeroProbZeroSamples <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  allowSizeLessThanK <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  burnin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">n</span><span class="op">/</span><span class="fl">4</span><span class="op">)</span>,</span>
+<span>  filter.every <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  zero.prob.zero.samples <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  allow.size.less.than.K <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">sampleNMultilevelMultinomial</span><span class="op">(</span></span>
-<span>  nDraws <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">pixelIndexMat</span><span class="op">)</span>,</span>
-<span>  pixelIndexMat <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  urbanMat <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  areaMat <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">easpaList</span>,</span>
-<span>  <span class="va">popMat</span>,</span>
-<span>  stratifyByUrban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  ndraws <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">pixel.index.mat</span><span class="op">)</span>,</span>
+<span>  pixel.index.mat <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  urban.mat <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  area.mat <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">easpa.list</span>,</span>
+<span>  <span class="va">pop.mat</span>,</span>
+<span>  stratify.by.urban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  returnEAinfo <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  minHHPerEA <span class="op">=</span> <span class="fl">25</span>,</span>
-<span>  fixHHPerEA <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  fixPopPerHH <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  return.EA.info <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  min.HH.per.EA <span class="op">=</span> <span class="fl">25</span>,</span>
+<span>  fix.HH.per.EA <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  fix.pop.per.HH <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">sampleNMultilevelMultinomialFixed</span><span class="op">(</span></span>
-<span>  <span class="va">clustersPerPixel</span>,</span>
-<span>  nDraws <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">pixelIndices</span><span class="op">)</span>,</span>
-<span>  pixelIndices <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">clusters.per.pixel</span>,</span>
+<span>  ndraws <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">pixel.indices</span><span class="op">)</span>,</span>
+<span>  pixel.indices <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  urbanVals <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  areaVals <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">easpa</span>,</span>
-<span>  <span class="va">popMat</span>,</span>
-<span>  stratifyByUrban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  <span class="va">pop.mat</span>,</span>
+<span>  stratify.by.urban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -143,7 +149,7 @@ distributions for population simulation.</p>
 <dd><p>Census frame. See <code><a href="simPop.html">simPopCustom</a></code> for details</p></dd>
 
 
-<dt id="arg-popmat">popMat<a class="anchor" aria-label="anchor" href="#arg-popmat"></a></dt>
+<dt id="arg-pop-mat">pop.mat<a class="anchor" aria-label="anchor" href="#arg-pop-mat"></a></dt>
 <dd><p>data.frame of pixellated grid of population densities. See <code><a href="simPop.html">simPopCustom</a></code> for details</p></dd>
 
 
@@ -151,7 +157,7 @@ distributions for population simulation.</p>
 <dd><p>Whether to calculate results at the integration grid or EA level</p></dd>
 
 
-<dt id="arg-pixelindexmat">pixelIndexMat<a class="anchor" aria-label="anchor" href="#arg-pixelindexmat"></a></dt>
+<dt id="arg-pixel-index-mat">pixel.index.mat<a class="anchor" aria-label="anchor" href="#arg-pixel-index-mat"></a></dt>
 <dd><p>Matrix of pixel indices associated with each EA and draw. Not
 required by getExpectedNperEA unless level == "EA"</p></dd>
 
@@ -164,11 +170,11 @@ required by getExpectedNperEA unless level == "EA"</p></dd>
 <dd><p>If TRUE, calculate only for urban part of the area. If FALSE, for only rural part</p></dd>
 
 
-<dt id="arg-stratifybyurban">stratifyByUrban<a class="anchor" aria-label="anchor" href="#arg-stratifybyurban"></a></dt>
+<dt id="arg-stratify-by-urban">stratify.by.urban<a class="anchor" aria-label="anchor" href="#arg-stratify-by-urban"></a></dt>
 <dd><p>whether or not to stratify calculations by urban/rural classification</p></dd>
 
 
-<dt id="arg-validationpixeli">validationPixelI<a class="anchor" aria-label="anchor" href="#arg-validationpixeli"></a></dt>
+<dt id="arg-validation-pixel-i">validation.pixel.I<a class="anchor" aria-label="anchor" href="#arg-validation-pixel-i"></a></dt>
 <dd><p>CURRENTLY FOR TESTING PURPOSES ONLY a set of indices of pixels for which we want to simulate populations (used for pixel level validation)</p></dd>
 
 
@@ -180,23 +186,23 @@ required by getExpectedNperEA unless level == "EA"</p></dd>
 <dd><p>Population per subarea. See <code><a href="simPop.html">simPopCustom</a></code> for details</p></dd>
 
 
-<dt id="arg-min-persubarea">min1PerSubarea<a class="anchor" aria-label="anchor" href="#arg-min-persubarea"></a></dt>
+<dt id="arg-min-per-subarea">min1.per.subarea<a class="anchor" aria-label="anchor" href="#arg-min-per-subarea"></a></dt>
 <dd><p>Whether or not to ensure there is at least 1 EA per subarea. See <code><a href="simPop.html">simPopCustom</a></code> for details</p></dd>
 
 
-<dt id="arg-minsample">minSample<a class="anchor" aria-label="anchor" href="#arg-minsample"></a></dt>
-<dd><p>The minimum number of samples per `chunk` of samples for truncated multinomial sampling. Defaults to 1</p></dd>
+<dt id="arg-min-sample">min.sample<a class="anchor" aria-label="anchor" href="#arg-min-sample"></a></dt>
+<dd><p>The minimum number of samples per <code>chunk</code> of samples for truncated multinomial sampling. Defaults to 1</p></dd>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
-<dd><p>If min1PerSubarea is TRUE, the sampling method for the truncated multinomial to use with rmulitnom1. rmultinom1 automatically
-        switches between them depending on the number of expected samples. The methods are:</p><dl><dt>mult1</dt>
+<dd><p>If min1.per.subarea is TRUE, the sampling method for the truncated multinomial to use with rmulitnom1. rmultinom1 automatically
+switches between them depending on the number of expected samples. The methods are:</p><dl><dt>mult1</dt>
 <dd><p>rejection sampling from multinomial plus 1 in each category</p></dd>
 
-  <dt>mult</dt>
+<dt>mult</dt>
 <dd><p>rejection sampling from multinomial if any category has zero count</p></dd>
 
-  <dt>indepMH</dt>
+<dt>indepMH</dt>
 <dd><p>independent Metropolis-Hastings using multinomial plus 1 distribution as proposal</p></dd>
 
 
@@ -205,7 +211,7 @@ required by getExpectedNperEA unless level == "EA"</p></dd>
 
 <dt id="arg-easpsub">easpsub<a class="anchor" aria-label="anchor" href="#arg-easpsub"></a></dt>
 <dd><p>This could either be total EAs per subarea, or subarea crossed with urban or
-rural if stratifyByUrban is TRUE</p></dd>
+rural if stratify.by.urban is TRUE</p></dd>
 
 
 <dt id="arg-size">size<a class="anchor" aria-label="anchor" href="#arg-size"></a></dt>
@@ -216,7 +222,7 @@ rural if stratifyByUrban is TRUE</p></dd>
 <dd><p>Multinomial probability vector parameter. See <code><a href="https://rdrr.io/r/stats/Multinom.html" class="external-link">rmultinom</a></code></p></dd>
 
 
-<dt id="arg-maxsize">maxSize<a class="anchor" aria-label="anchor" href="#arg-maxsize"></a></dt>
+<dt id="arg-max-size">max.size<a class="anchor" aria-label="anchor" href="#arg-max-size"></a></dt>
 <dd><p>The maximum number of elements in a matrix drawn from the proposal distribution per sample chunk.</p></dd>
 
 
@@ -224,73 +230,73 @@ rural if stratifyByUrban is TRUE</p></dd>
 <dd><p>Whether to print progress as the function proceeds</p></dd>
 
 
-<dt id="arg-maxexpectedsizebeforeswitch">maxExpectedSizeBeforeSwitch<a class="anchor" aria-label="anchor" href="#arg-maxexpectedsizebeforeswitch"></a></dt>
+<dt id="arg-max-expected-size-before-switch">max.expected.size.before.switch<a class="anchor" aria-label="anchor" href="#arg-max-expected-size-before-switch"></a></dt>
 <dd><p>Max expected number of samples / k, the number of categories, before switching method</p></dd>
 
 
 <dt id="arg-init">init<a class="anchor" aria-label="anchor" href="#arg-init"></a></dt>
-<dd><p>Initial sample if method is `indepMH`</p></dd>
+<dd><p>Initial sample if method is <code>indepMH</code></p></dd>
 
 
-<dt id="arg-burnin">burnIn<a class="anchor" aria-label="anchor" href="#arg-burnin"></a></dt>
-<dd><p>Number of initial samples before samples are collected if method is `indepMH`</p></dd>
+<dt id="arg-burnin">burnin<a class="anchor" aria-label="anchor" href="#arg-burnin"></a></dt>
+<dd><p>Number of initial samples before samples are collected if method is <code>indepMH</code></p></dd>
 
 
-<dt id="arg-filterevery">filterEvery<a class="anchor" aria-label="anchor" href="#arg-filterevery"></a></dt>
-<dd><p>Store only every filterEvery samples if method is i`indepMH`</p></dd>
+<dt id="arg-filter-every">filter.every<a class="anchor" aria-label="anchor" href="#arg-filter-every"></a></dt>
+<dd><p>Store only every filter.every samples if method is i<code>indepMH</code></p></dd>
 
 
-<dt id="arg-zeroprobzerosamples">zeroProbZeroSamples<a class="anchor" aria-label="anchor" href="#arg-zeroprobzerosamples"></a></dt>
+<dt id="arg-zero-prob-zero-samples">zero.prob.zero.samples<a class="anchor" aria-label="anchor" href="#arg-zero-prob-zero-samples"></a></dt>
 <dd><p>If TRUE, set samples for parts of prob vector that are zero to zero. Otherwise they are set to one.</p></dd>
 
 
-<dt id="arg-allowsizelessthank">allowSizeLessThanK<a class="anchor" aria-label="anchor" href="#arg-allowsizelessthank"></a></dt>
+<dt id="arg-allow-size-less-than-k">allow.size.less.than.K<a class="anchor" aria-label="anchor" href="#arg-allow-size-less-than-k"></a></dt>
 <dd><p>If TRUE, then if size &lt; the number of categories (k), returns matrix where each
 column is vector of size ones and k - size zeros. If FALSE, throws an error if size &lt; k</p></dd>
 
 
-<dt id="arg-ndraws">nDraws<a class="anchor" aria-label="anchor" href="#arg-ndraws"></a></dt>
+<dt id="arg-ndraws">ndraws<a class="anchor" aria-label="anchor" href="#arg-ndraws"></a></dt>
 <dd><p>Number of draws</p></dd>
 
 
-<dt id="arg-urbanmat">urbanMat<a class="anchor" aria-label="anchor" href="#arg-urbanmat"></a></dt>
+<dt id="arg-urban-mat">urban.mat<a class="anchor" aria-label="anchor" href="#arg-urban-mat"></a></dt>
 <dd><p>Matrix of urbanicities associated with each EA and draw</p></dd>
 
 
-<dt id="arg-areamat">areaMat<a class="anchor" aria-label="anchor" href="#arg-areamat"></a></dt>
+<dt id="arg-area-mat">area.mat<a class="anchor" aria-label="anchor" href="#arg-area-mat"></a></dt>
 <dd><p>Matrix of areas associated with each EA and draw</p></dd>
 
 
-<dt id="arg-easpalist">easpaList<a class="anchor" aria-label="anchor" href="#arg-easpalist"></a></dt>
+<dt id="arg-easpa-list">easpa.list<a class="anchor" aria-label="anchor" href="#arg-easpa-list"></a></dt>
 <dd><p>A list of length n with each element being of the format of easpa
 giving the number of households and EAs
 per stratum. It is assumed that the number of EAs per stratum is
-the same in each list element. If easpaList is a data frame,
+the same in each list element. If easpa.list is a data frame,
 number of households per stratum is assumed constant</p></dd>
 
 
-<dt id="arg-returneainfo">returnEAinfo<a class="anchor" aria-label="anchor" href="#arg-returneainfo"></a></dt>
+<dt id="arg-return-ea-info">return.EA.info<a class="anchor" aria-label="anchor" href="#arg-return-ea-info"></a></dt>
 <dd><p>Whether a data frame at the EA level is desired</p></dd>
 
 
-<dt id="arg-minhhperea">minHHPerEA<a class="anchor" aria-label="anchor" href="#arg-minhhperea"></a></dt>
+<dt id="arg-min-hh-per-ea">min.HH.per.EA<a class="anchor" aria-label="anchor" href="#arg-min-hh-per-ea"></a></dt>
 <dd><p>The minimum number of households per EA (defaults to 25, since
 that is the number of households sampled per DHS cluster)</p></dd>
 
 
-<dt id="arg-fixhhperea">fixHHPerEA<a class="anchor" aria-label="anchor" href="#arg-fixhhperea"></a></dt>
+<dt id="arg-fix-hh-per-ea">fix.HH.per.EA<a class="anchor" aria-label="anchor" href="#arg-fix-hh-per-ea"></a></dt>
 <dd><p>If not NULL, the fixed number of households per EA</p></dd>
 
 
-<dt id="arg-fixpopperhh">fixPopPerHH<a class="anchor" aria-label="anchor" href="#arg-fixpopperhh"></a></dt>
+<dt id="arg-fix-pop-per-hh">fix.pop.per.HH<a class="anchor" aria-label="anchor" href="#arg-fix-pop-per-hh"></a></dt>
 <dd><p>If not NULL, the fixed target population per household</p></dd>
 
 
-<dt id="arg-clustersperpixel">clustersPerPixel<a class="anchor" aria-label="anchor" href="#arg-clustersperpixel"></a></dt>
+<dt id="arg-clusters-per-pixel">clusters.per.pixel<a class="anchor" aria-label="anchor" href="#arg-clusters-per-pixel"></a></dt>
 <dd><p>CURRENTLY FOR TESTING PURPOSES ONLY a vector of length nIntegrationPoints specifying the number of clusters per pixel if they are fixed</p></dd>
 
 
-<dt id="arg-pixelindices">pixelIndices<a class="anchor" aria-label="anchor" href="#arg-pixelindices"></a></dt>
+<dt id="arg-pixel-indices">pixel.indices<a class="anchor" aria-label="anchor" href="#arg-pixel-indices"></a></dt>
 <dd><p>A nEA x n matrix of pixel indices associated with each EA per simulation/draw</p></dd>
 
 
@@ -302,6 +308,10 @@ that is the number of households sampled per DHS cluster)</p></dd>
 <dd><p>A nEA x n matrix of area names associated with each EA per simulation/draw</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="figures/lifecycle-experimental.svg" alt="[Experimental]"></a></p>
+    </div>
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
 

@@ -1,6 +1,7 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://richardli.github.io/SUMMER/404.html</loc></url>
 <url><loc>https://richardli.github.io/SUMMER/articles/index.html</loc></url>
+<url><loc>https://richardli.github.io/SUMMER/articles/web_only/cluster-model-vignette.html</loc></url>
 <url><loc>https://richardli.github.io/SUMMER/articles/web_only/small-area-estimation.html</loc></url>
 <url><loc>https://richardli.github.io/SUMMER/articles/web_only/u5mr-dhs-vignette.html</loc></url>
 <url><loc>https://richardli.github.io/SUMMER/articles/web_only/u5mr-vignette.html</loc></url>
@@ -25,6 +26,9 @@
 <url><loc>https://richardli.github.io/SUMMER/reference/calibrateByRegion.html</loc></url>
 <url><loc>https://richardli.github.io/SUMMER/reference/compareEstimates.html</loc></url>
 <url><loc>https://richardli.github.io/SUMMER/reference/expit.html</loc></url>
+<url><loc>https://richardli.github.io/SUMMER/reference/fitGeneric.html</loc></url>
+<url><loc>https://richardli.github.io/SUMMER/reference/fitINLA.html</loc></url>
+<url><loc>https://richardli.github.io/SUMMER/reference/fitINLA2.html</loc></url>
 <url><loc>https://richardli.github.io/SUMMER/reference/getAdjusted.html</loc></url>
 <url><loc>https://richardli.github.io/SUMMER/reference/getAmat.html</loc></url>
 <url><loc>https://richardli.github.io/SUMMER/reference/getAreaName.html</loc></url>

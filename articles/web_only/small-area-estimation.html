@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../../index.html">SUMMER</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,7 @@
 <li><a class="dropdown-item" href="../../articles/web_only/small-area-estimation.html">Generic small area estimation</a></li>
     <li><a class="dropdown-item" href="../../articles/web_only/u5mr-vignette.html">Estimating Subnational U5MR using Simulated Data</a></li>
     <li><a class="dropdown-item" href="../../articles/web_only/u5mr-dhs-vignette.html">Estimating Subnational U5MR using DHS Data</a></li>
+    <li><a class="dropdown-item" href="../../articles/web_only/cluster-model-vignette.html">Specifying cluster-level model for mortality estimation</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../../news/index.html">Changelog</a></li>
@@ -62,7 +63,7 @@
                         <h4 data-toc-skip class="author">Peter Gao and
 Jon Wakefield</h4>
             
-            <h4 data-toc-skip class="date">2024-02-29</h4>
+            <h4 data-toc-skip class="date">2025-01-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/richardli/SUMMER/blob/master/vignettes/articles/web_only/small-area-estimation.Rmd" class="external-link"><code>vignettes/articles/web_only/small-area-estimation.Rmd</code></a></small>
       <div class="d-none name"><code>small-area-estimation.Rmd</code></div>
@@ -320,12 +321,12 @@ and obtain the following smoothed estimates.</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">summer.FH.table</span><span class="op">)</span></span>
 <span><span class="co">##     Domain     Median         SE</span></span>
-<span><span class="co">## 1    Alava 0.23449184 0.03704801</span></span>
-<span><span class="co">## 2 Albacete 0.15383656 0.02760217</span></span>
-<span><span class="co">## 3 Alicante 0.20385758 0.02104621</span></span>
-<span><span class="co">## 4  Almeria 0.24485689 0.03331238</span></span>
-<span><span class="co">## 5    Avila 0.07516739 0.02379961</span></span>
-<span><span class="co">## 6  Badajoz 0.20959769 0.02128758</span></span></code></pre></div>
+<span><span class="co">## 1    Alava 0.23442357 0.04263200</span></span>
+<span><span class="co">## 2 Albacete 0.15176438 0.02634074</span></span>
+<span><span class="co">## 3 Alicante 0.20456059 0.01990948</span></span>
+<span><span class="co">## 4  Almeria 0.24298231 0.03275375</span></span>
+<span><span class="co">## 5    Avila 0.07570625 0.02445050</span></span>
+<span><span class="co">## 6  Badajoz 0.20733347 0.02237689</span></span></code></pre></div>
 <p>The fitted parameters from <code>sae</code> (obtained via
 likelihood-based methods) and estimated parameter posterior distribution
 from <code>SUMMER</code> (obtained from Bayesian methods, implemented
@@ -450,63 +451,39 @@ rather than a simultaneous autoregressive model as in the SFH model
 implemented in <code>sae</code>.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># create area_name as SUMMER requires rownames of adj.mat to match area variable</span></span>
-<span><span class="va">grapes</span><span class="op">$</span><span class="va">area_name</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">'area_'</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">grapes</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in eval(expr, envir, enclos): object 'grapes' not found</span></span></code></pre>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">adj.mat.grapes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">grapesprox</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'as.matrix': object 'grapesprox' not found</span></span></code></pre>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">adj.mat.grapes</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">adj.mat.grapes</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">grapes</span><span class="op">$</span><span class="va">area_name</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in eval(expr, envir, enclos): object 'grapes' not found</span></span></code></pre>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">X_grapes</span> <span class="op">&lt;-</span> <span class="va">grapes</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'area_name'</span>, <span class="st">'area'</span>, <span class="st">'workdays'</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in eval(expr, envir, enclos): object 'grapes' not found</span></span></code></pre>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># format direct estimates for SUMMER</span></span>
-<span><span class="va">grapes.dir</span> <span class="op">&lt;-</span> <span class="va">grapes</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">1</span>, <span class="fl">4</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in eval(expr, envir, enclos): object 'grapes' not found</span></span></code></pre>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># scale direct estimates for use with INLA</span></span>
-<span><span class="va">grapes.dir</span><span class="op">$</span><span class="va">grapehect</span> <span class="op">&lt;-</span> <span class="va">grapes.dir</span><span class="op">$</span><span class="va">grapehect</span> <span class="op">/</span> <span class="fl">10</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in eval(expr, envir, enclos): object 'grapes.dir' not found</span></span></code></pre>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">grapes.dir</span><span class="op">$</span><span class="va">var</span> <span class="op">&lt;-</span> <span class="va">grapes.dir</span><span class="op">$</span><span class="va">var</span><span class="op">/</span> <span class="fl">100</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in eval(expr, envir, enclos): object 'grapes.dir' not found</span></span></code></pre>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">summer.FH.grapes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/smoothArea.html">smoothArea</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">grapehect</span><span class="op">~</span><span class="va">area</span> <span class="op">+</span> <span class="va">workdays</span>, </span>
+<span><span class="va">grapes</span><span class="op">$</span><span class="va">area_name</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">'area_'</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">grapes</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">adj.mat.grapes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">grapesprox</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">adj.mat.grapes</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">adj.mat.grapes</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="va">grapes</span><span class="op">$</span><span class="va">area_name</span></span>
+<span><span class="va">X_grapes</span> <span class="op">&lt;-</span> <span class="va">grapes</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'area_name'</span>, <span class="st">'area'</span>, <span class="st">'workdays'</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># format direct estimates for SUMMER</span></span>
+<span><span class="va">grapes.dir</span> <span class="op">&lt;-</span> <span class="va">grapes</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">1</span>, <span class="fl">4</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co"># scale direct estimates for use with INLA</span></span>
+<span><span class="va">grapes.dir</span><span class="op">$</span><span class="va">grapehect</span> <span class="op">&lt;-</span> <span class="va">grapes.dir</span><span class="op">$</span><span class="va">grapehect</span> <span class="op">/</span> <span class="fl">10</span></span>
+<span><span class="va">grapes.dir</span><span class="op">$</span><span class="va">var</span> <span class="op">&lt;-</span> <span class="va">grapes.dir</span><span class="op">$</span><span class="va">var</span><span class="op">/</span> <span class="fl">100</span></span>
+<span><span class="va">summer.FH.grapes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/smoothArea.html">smoothArea</a></span><span class="op">(</span>formula <span class="op">=</span> <span class="va">grapehect</span><span class="op">~</span><span class="va">area</span> <span class="op">+</span> <span class="va">workdays</span>, </span>
 <span>                               direct.est <span class="op">=</span> <span class="va">grapes.dir</span>, X.domain <span class="op">=</span> <span class="va">X_grapes</span>,</span>
-<span>                               domain <span class="op">=</span> <span class="op">~</span><span class="va">area_name</span>, adj.mat <span class="op">=</span> <span class="va">adj.mat.grapes</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in eval(expr, envir, enclos): object 'grapes.dir' not found</span></span></code></pre>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">plot_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">summer.FH.grapes</span>, return_list <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'plot': object 'summer.FH.grapes' not found</span></span></code></pre>
+<span>                               domain <span class="op">=</span> <span class="op">~</span><span class="va">area_name</span>, adj.mat <span class="op">=</span> <span class="va">adj.mat.grapes</span><span class="op">)</span></span>
+<span><span class="va">plot_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">summer.FH.grapes</span>, return_list <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
 <p>Despite the differing models, we again observe good agreement with
 the estimates, though less so with the estimates of uncertainty.</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">summer.bym2.est</span> <span class="op">&lt;-</span> </span>
-<span>  <span class="va">summer.FH.grapes</span><span class="op">$</span><span class="va">bym2.model.est</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">adj.mat.grapes</span><span class="op">)</span>, <span class="va">summer.FH.grapes</span><span class="op">$</span><span class="va">bym2.model.est</span><span class="op">$</span><span class="va">domain</span><span class="op">)</span>,<span class="op">]</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in eval(expr, envir, enclos): object 'summer.FH.grapes' not found</span></span></code></pre>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">summer.FH.grapes</span><span class="op">$</span><span class="va">bym2.model.est</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">adj.mat.grapes</span><span class="op">)</span>, <span class="va">summer.FH.grapes</span><span class="op">$</span><span class="va">bym2.model.est</span><span class="op">$</span><span class="va">domain</span><span class="op">)</span>,<span class="op">]</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">eblup.SFH</span>,</span>
 <span>     <span class="va">summer.bym2.est</span><span class="op">$</span><span class="va">median</span> <span class="op">*</span> <span class="fl">10</span>,  </span>
 <span>     xlab <span class="op">=</span> <span class="st">"sae package"</span>,</span>
 <span>     ylab <span class="op">=</span> <span class="st">"SUMMER package"</span>,</span>
-<span>     main <span class="op">=</span> <span class="st">"Small area estimates"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in h(simpleError(msg, call)): error in evaluating the argument 'y' in selecting a method for function 'plot': object 'summer.bym2.est' not found</span></span></code></pre>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, col <span class="op">=</span> <span class="st">'red'</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in int_abline(a = a, b = b, h = h, v = v, untf = untf, ...): plot.new has not been called yet</span></span></code></pre>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">mse</span>,</span>
+<span>     main <span class="op">=</span> <span class="st">"Small area estimates"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, col <span class="op">=</span> <span class="st">'red'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">mse</span>,</span>
 <span>     <span class="va">summer.bym2.est</span><span class="op">$</span><span class="va">var</span> <span class="op">*</span> <span class="fl">100</span>,  </span>
 <span>     xlab <span class="op">=</span> <span class="st">"sae package mse"</span>,</span>
 <span>     ylab <span class="op">=</span> <span class="st">"SUMMER package model variance"</span>,</span>
-<span>     main <span class="op">=</span> <span class="st">"Estimates of mse/variance"</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in h(simpleError(msg, call)): error in evaluating the argument 'y' in selecting a method for function 'plot': object 'summer.bym2.est' not found</span></span></code></pre>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, col <span class="op">=</span> <span class="st">'red'</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Error in int_abline(a = a, b = b, h = h, v = v, untf = untf, ...): plot.new has not been called yet</span></span></code></pre>
+<span>     main <span class="op">=</span> <span class="st">"Estimates of mse/variance"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, col <span class="op">=</span> <span class="st">'red'</span><span class="op">)</span></span></code></pre></div>
+<p><img src="figure%2Fgrape.comp-1.png" width="100%"></p>
 </div>
 <div class="section level4">
 <h4 id="brfss-data">BRFSS Data<a class="anchor" aria-label="anchor" href="#brfss-data"></a>
@@ -514,7 +491,7 @@ the estimates, though less so with the estimates of uncertainty.</p>
 <p>Below, we provide an example comparing spatial models from
 <code>sae</code> and <code>SUMMER</code> using data from the Behavioral
 Risk Factor Surveillance System (BRFSS).</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">BRFSS</span><span class="op">)</span></span>
@@ -544,6 +521,10 @@ Risk Factor Surveillance System (BRFSS).</p>
 <span><span class="co">## 5       0     0       NA  98102       0    1    4      1</span></span>
 <span><span class="co">## 6       0     0       NA  98106       0    3    4      1</span></span>
 <span><span class="va">mat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/getAmat.html">getAmat</a></span><span class="op">(</span><span class="va">KingCounty</span>, <span class="va">KingCounty</span><span class="op">$</span><span class="va">HRA2010v2_</span><span class="op">)</span></span>
+<span><span class="co">## Warning in spdep::poly2nb(geo, queen = F, row.names = names): some observations have no neighbours;</span></span>
+<span><span class="co">## if this seems unexpected, try increasing the snap argument.</span></span>
+<span><span class="co">## Warning in spdep::poly2nb(geo, queen = F, row.names = names): neighbour object has 2 sub-graphs;</span></span>
+<span><span class="co">## if this sub-graph count seems unexpected, try increasing the snap argument.</span></span>
 <span><span class="va">design</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survey/man/svydesign.html" class="external-link">svydesign</a></span><span class="op">(</span>ids <span class="op">=</span> <span class="op">~</span><span class="fl">1</span>, weights <span class="op">=</span> <span class="op">~</span><span class="va">rwt_llcp</span>,</span>
 <span>                    strata <span class="op">=</span> <span class="op">~</span><span class="va">strata</span>, data <span class="op">=</span> <span class="va">BRFSS</span><span class="op">)</span></span>
 <span><span class="va">direct</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/survey/man/svyby.html" class="external-link">svyby</a></span><span class="op">(</span><span class="op">~</span><span class="va">diab2</span>, <span class="op">~</span><span class="va">hracode</span>, <span class="va">design</span>, <span class="va">svymean</span><span class="op">)</span></span></code></pre></div>
@@ -552,7 +533,7 @@ Risk Factor Surveillance System (BRFSS).</p>
 </h5>
 <p>Below, we use <code>sae</code> to smooth the logit-transformed direct
 estimates.</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">direct</span><span class="op">$</span><span class="va">var</span> <span class="op">&lt;-</span> <span class="va">direct</span><span class="op">$</span><span class="va">se</span> <span class="op">^</span> <span class="fl">2</span></span>
 <span><span class="va">direct</span><span class="op">$</span><span class="va">logit.diab2</span> <span class="op">&lt;-</span> <span class="fu">SUMMER</span><span class="fu">::</span><span class="fu"><a href="../../reference/logit.html">logit</a></span><span class="op">(</span><span class="va">direct</span><span class="op">$</span><span class="va">diab2</span><span class="op">)</span></span>
 <span><span class="va">direct</span><span class="op">$</span><span class="va">logit.var</span> <span class="op">&lt;-</span> <span class="va">direct</span><span class="op">$</span><span class="va">var</span> <span class="op">/</span> <span class="op">(</span><span class="va">direct</span><span class="op">$</span><span class="va">diab2</span> <span class="op">^</span> <span class="fl">2</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">direct</span><span class="op">$</span><span class="va">diab2</span><span class="op">)</span> <span class="op">^</span> <span class="fl">2</span><span class="op">)</span></span>
@@ -573,7 +554,7 @@ to
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>u</mi><mo>=</mo><mn>0.1</mn><mo>,</mo><mi>α</mi><mo>=</mo><mn>0.01</mn></mrow><annotation encoding="application/x-tex">u=0.1,\alpha=0.01</annotation></semantics></math>,
 we assign more prior mass on smaller variance of the random effects,
 inducing more smoothing.</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">summer.brfss</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/smoothArea.html">smoothArea</a></span><span class="op">(</span><span class="va">diab2</span><span class="op">~</span><span class="fl">1</span>, domain<span class="op">=</span> <span class="op">~</span><span class="va">hracode</span>,</span>
 <span>                           design <span class="op">=</span> <span class="va">design</span>,</span>
 <span>                           transform <span class="op">=</span> <span class="st">"logit"</span>,</span>
@@ -586,7 +567,7 @@ inducing more smoothing.</p>
 <p>Finally, we use <code><a href="../../reference/mapPlot.html">SUMMER::mapPlot</a></code> to compare median
 estimates and uncertainty estimates obtained via <code>sae</code> and
 <code>SUMMER</code>.</p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">toplot</span> <span class="op">&lt;-</span>  <span class="va">summer.brfss</span><span class="op">$</span><span class="va">bym2.model.est</span></span>
 <span><span class="va">toplot</span><span class="op">$</span><span class="va">logit.var</span> <span class="op">&lt;-</span> <span class="va">toplot</span><span class="op">$</span><span class="va">var</span> <span class="op">/</span> </span>
 <span>  <span class="op">(</span><span class="va">summer.brfss</span><span class="op">$</span><span class="va">bym2.model.est</span><span class="op">$</span><span class="va">median</span> <span class="op">^</span> <span class="fl">2</span> <span class="op">*</span> </span>
@@ -606,12 +587,12 @@ estimates and uncertainty estimates obtained via <code>sae</code> and
 <span>        labels <span class="op">=</span> <span class="va">names</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, by.data <span class="op">=</span> <span class="st">"domain"</span>,</span>
 <span>        by.geo <span class="op">=</span> <span class="st">"HRA2010v2_"</span>, size <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> </span></code></pre></div>
 <p><img src="figure%2Fbrfss.comp-1.png" width="100%"></p>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../../reference/mapPlot.html">mapPlot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">toplot</span>, geo <span class="op">=</span> <span class="va">KingCounty</span>,</span>
 <span>        variables<span class="op">=</span><span class="va">variables</span><span class="op">[</span><span class="fl">4</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>, labels <span class="op">=</span> <span class="va">names</span><span class="op">[</span><span class="fl">4</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>,</span>
 <span>        by.data <span class="op">=</span> <span class="st">"domain"</span>, by.geo <span class="op">=</span> <span class="st">"HRA2010v2_"</span>, size <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>  </span></code></pre></div>
 <p><img src="figure%2Fbrfss.comp-2.png" width="100%"></p>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">range1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">direct</span><span class="op">$</span><span class="va">diab2</span>,<span class="va">toplot</span><span class="op">$</span><span class="va">median.alt</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">direct</span><span class="op">$</span><span class="va">diab2</span>,<span class="va">toplot</span><span class="op">$</span><span class="va">median</span>,  </span>
@@ -702,7 +683,7 @@ beans (satellite imagery) pixels.</li>
 <code>MeanSoyBeansPixPerSeg</code> provide the known county means of the
 auxiliary variables.</p>
 <p>We load the sample data:</p>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"cornsoybean"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">cornsoybean</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##   County CornHec SoyBeansHec CornPix SoyBeansPix</span></span>
@@ -713,7 +694,7 @@ auxiliary variables.</p>
 <span><span class="co">## 5      4  116.43       63.82     367         178</span></span>
 <span><span class="co">## 6      5  162.08       43.50     361         137</span></span></code></pre>
 <p>Next, we load the population auxiliary information:</p>
-<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"cornsoybeanmeans"</span><span class="op">)</span></span>
 <span><span class="va">Xmean</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">cornsoybeanmeans</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CountyIndex"</span>,</span>
@@ -727,7 +708,7 @@ auxiliary variables.</p>
 <span><span class="co">## 4           4            290.74                220.22</span></span>
 <span><span class="co">## 5           5            318.21                188.06</span></span>
 <span><span class="co">## 6           6            257.17                247.13</span></span></code></pre>
-<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">Popn</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">cornsoybeanmeans</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CountyIndex"</span>,</span>
 <span>                                  <span class="st">"PopnSegments"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
@@ -742,7 +723,7 @@ auxiliary variables.</p>
 <p>The <code><a href="https://rdrr.io/pkg/sae/man/pbmseBHF.html" class="external-link">sae::pbmseBHF</a></code> function obtains EBLUPs under the
 nested error model and then uses a parametric bootstrap approach to
 estimate MSEs.</p>
-<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cornsoybean</span> <span class="op">&lt;-</span> <span class="va">cornsoybean</span><span class="op">[</span><span class="op">-</span><span class="fl">33</span>, <span class="op">]</span> <span class="co"># remove outlier</span></span>
 <span><span class="va">sae.bhf</span> <span class="op">&lt;-</span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/sae/man/pbmseBHF.html" class="external-link">pbmseBHF</a></span><span class="op">(</span><span class="va">CornHec</span> <span class="op">~</span> <span class="va">CornPix</span> <span class="op">+</span> <span class="va">SoyBeansPix</span>,</span>
@@ -764,7 +745,7 @@ complexity prior such that
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>u</mi></msub><annotation encoding="application/x-tex">\sigma_u</annotation></semantics></math>
 is the standard deviation of the area-specific random effects).</p>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cornsoybean</span><span class="op">$</span><span class="va">id</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">cornsoybean</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
 <span><span class="va">Xsummer</span> <span class="op">&lt;-</span> <span class="va">Xmean</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">Xsummer</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"County"</span>, <span class="st">"CornPix"</span>, <span class="st">"SoyBeansPix"</span><span class="op">)</span></span>
@@ -780,7 +761,7 @@ is the standard deviation of the area-specific random effects).</p>
 <span><span class="co">## "gaussian", : No spatial information provided, using iid domain effects</span></span></code></pre></div>
 <p>Below, we plot comparisons of the <code>sae</code> and
 <code>SUMMER</code> results.</p>
-<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">range1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">sae.bhf</span><span class="op">$</span><span class="va">est</span><span class="op">$</span><span class="va">eblup</span><span class="op">$</span><span class="va">eblup</span>,<span class="va">summer.bhf.unit</span><span class="op">$</span><span class="va">median</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">sae.bhf</span><span class="op">$</span><span class="va">est</span><span class="op">$</span><span class="va">eblup</span><span class="op">$</span><span class="va">eblup</span>,<span class="va">summer.bhf.unit</span><span class="op">$</span><span class="va">iid.model.est</span><span class="op">$</span><span class="va">median</span>,  </span>

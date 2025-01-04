@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">SUMMER</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,6 +21,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/web_only/small-area-estimation.html">Generic small area estimation</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-vignette.html">Estimating Subnational U5MR using Simulated Data</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-dhs-vignette.html">Estimating Subnational U5MR using DHS Data</a></li>
+    <li><a class="dropdown-item" href="../articles/web_only/cluster-model-vignette.html">Specifying cluster-level model for mortality estimation</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -35,7 +36,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Calculate and plot posterior densities of the projected estimates</h1>
-      <small class="dont-index">Source: <a href="https://github.com/richardli/SUMMER/blob/master/R/getSmoothedDensity.R" class="external-link"><code>R/getSmoothedDensity.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/richardli/SUMMER/blob/master/R/ridgePlot.R" class="external-link"><code>R/ridgePlot.R</code></a></small>
       <div class="d-none name"><code>ridgePlot.Rd</code></div>
     </div>
 
@@ -49,26 +50,10 @@
 <span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  nsim <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  draws <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  year_plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  strata_plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  by.year <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  ncol <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  scale <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  per1000 <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  order <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  direction <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  linewidth <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>  results <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  save.density <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">getSmoothedDensity</span><span class="op">(</span></span>
-<span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  nsim <span class="op">=</span> <span class="fl">1000</span>,</span>
-<span>  draws <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  year_plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  strata_plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  year.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  year_plot <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  strata.plot <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  strata_plot <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  by.year <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  ncol <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  scale <span class="op">=</span> <span class="fl">2</span>,</span>
@@ -98,12 +83,20 @@
 <dd><p>Output of <code><a href="getSmoothed.html">getSmoothed</a></code> with <code>save.draws</code> set to TRUE. This argument allows the previously sampled draws (by setting <code>save.draws</code> to be TRUE) be used in new aggregation tasks. This argument is only used for cluster-level models.</p></dd>
 
 
-<dt id="arg-year-plot">year_plot<a class="anchor" aria-label="anchor" href="#arg-year-plot"></a></dt>
+<dt id="arg-year-plot">year.plot<a class="anchor" aria-label="anchor" href="#arg-year-plot"></a></dt>
 <dd><p>A vector indicate which years to plot</p></dd>
 
 
-<dt id="arg-strata-plot">strata_plot<a class="anchor" aria-label="anchor" href="#arg-strata-plot"></a></dt>
+<dt id="arg-year-plot">year_plot<a class="anchor" aria-label="anchor" href="#arg-year-plot"></a></dt>
+<dd><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> replaced by year.plot</p></dd>
+
+
+<dt id="arg-strata-plot">strata.plot<a class="anchor" aria-label="anchor" href="#arg-strata-plot"></a></dt>
 <dd><p>Name of the strata to plot. If not specified, the overall is plotted.</p></dd>
+
+
+<dt id="arg-strata-plot">strata_plot<a class="anchor" aria-label="anchor" href="#arg-strata-plot"></a></dt>
+<dd><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> replaced by strata.plot</p></dd>
 
 
 <dt id="arg-by-year">by.year<a class="anchor" aria-label="anchor" href="#arg-by-year"></a></dt>
@@ -179,32 +172,32 @@
 <span class="r-in"><span><span class="co">#  national model</span></span></span>
 <span class="r-in"><span><span class="va">years.all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">years</span>, <span class="st">"15-19"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fit1</span> <span class="op">&lt;-</span> <span class="fu"><a href="smoothDirect.html">smoothDirect</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, geo <span class="op">=</span> <span class="cn">NULL</span>, Amat <span class="op">=</span> <span class="cn">NULL</span>, </span></span>
-<span class="r-in"><span>  year_label <span class="op">=</span> <span class="va">years.all</span>, year_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>, <span class="fl">2019</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>  year.label <span class="op">=</span> <span class="va">years.all</span>, year.range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>, <span class="fl">2019</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>  rw <span class="op">=</span> <span class="fl">2</span>, m <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co">## Plot marginal posterior densities over time</span></span></span>
-<span class="r-in"><span><span class="fu">ridgePlot</span><span class="op">(</span><span class="va">fit1</span>, year_plot <span class="op">=</span> <span class="va">years.all</span>, </span></span>
+<span class="r-in"><span><span class="fu">ridgePlot</span><span class="op">(</span><span class="va">fit1</span>, year.plot <span class="op">=</span> <span class="va">years.all</span>, </span></span>
 <span class="r-in"><span>          ncol <span class="op">=</span> <span class="fl">4</span>, by.year <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">#  subnational model</span></span></span>
 <span class="r-in"><span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="smoothDirect.html">smoothDirect</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, geo <span class="op">=</span> <span class="va">DemoMap</span><span class="op">$</span><span class="va">geo</span>, Amat <span class="op">=</span> <span class="va">DemoMap</span><span class="op">$</span><span class="va">Amat</span>, </span></span>
-<span class="r-in"><span>  year_label <span class="op">=</span> <span class="va">years.all</span>, year_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>, <span class="fl">2019</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>  year.label <span class="op">=</span> <span class="va">years.all</span>, year.range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>, <span class="fl">2019</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>  rw <span class="op">=</span> <span class="fl">2</span>, m <span class="op">=</span> <span class="fl">5</span>, type.st <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Plot marginal posterior densities over time (regions are ordered alphabetically)</span></span></span>
-<span class="r-in"><span><span class="fu">ridgePlot</span><span class="op">(</span><span class="va">fit2</span>, year_plot <span class="op">=</span> <span class="va">years.all</span>, ncol <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">ridgePlot</span><span class="op">(</span><span class="va">fit2</span>, year.plot <span class="op">=</span> <span class="va">years.all</span>, ncol <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Re-order the regions and save the density to avoid re-compute later</span></span></span>
-<span class="r-in"><span><span class="va">density</span> <span class="op">&lt;-</span> <span class="fu">ridgePlot</span><span class="op">(</span><span class="va">fit2</span>, year_plot <span class="op">=</span> <span class="va">years.all</span>,</span></span>
+<span class="r-in"><span><span class="va">density</span> <span class="op">&lt;-</span> <span class="fu">ridgePlot</span><span class="op">(</span><span class="va">fit2</span>, year.plot <span class="op">=</span> <span class="va">years.all</span>,</span></span>
 <span class="r-in"><span> ncol <span class="op">=</span> <span class="fl">4</span>, per1000 <span class="op">=</span> <span class="cn">TRUE</span>, order <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, save.density <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">density</span><span class="op">$</span><span class="va">g</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Show each region (instead of each year) in a panel </span></span></span>
 <span class="r-in"><span><span class="co">## Instead of recalculate the posteriors, we can use previously calculated densities as input </span></span></span>
-<span class="r-in"><span><span class="fu">ridgePlot</span><span class="op">(</span>results <span class="op">=</span> <span class="va">density</span>, year_plot <span class="op">=</span> <span class="va">years.all</span>, </span></span>
+<span class="r-in"><span><span class="fu">ridgePlot</span><span class="op">(</span>results <span class="op">=</span> <span class="va">density</span>, year.plot <span class="op">=</span> <span class="va">years.all</span>, </span></span>
 <span class="r-in"><span>ncol <span class="op">=</span> <span class="fl">4</span>, by.year<span class="op">=</span><span class="cn">FALSE</span>, per1000 <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Show more years</span></span></span>
-<span class="r-in"><span><span class="fu">ridgePlot</span><span class="op">(</span>results <span class="op">=</span> <span class="va">density</span>, year_plot <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1990</span><span class="op">:</span><span class="fl">2019</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span><span class="fu">ridgePlot</span><span class="op">(</span>results <span class="op">=</span> <span class="va">density</span>, year.plot <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1990</span><span class="op">:</span><span class="fl">2019</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>ncol <span class="op">=</span> <span class="fl">4</span>, by.year<span class="op">=</span><span class="cn">FALSE</span>, per1000 <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../../index.html">SUMMER</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,7 @@
 <li><a class="dropdown-item" href="../../articles/web_only/small-area-estimation.html">Generic small area estimation</a></li>
     <li><a class="dropdown-item" href="../../articles/web_only/u5mr-vignette.html">Estimating Subnational U5MR using Simulated Data</a></li>
     <li><a class="dropdown-item" href="../../articles/web_only/u5mr-dhs-vignette.html">Estimating Subnational U5MR using DHS Data</a></li>
+    <li><a class="dropdown-item" href="../../articles/web_only/cluster-model-vignette.html">Specifying cluster-level model for mortality estimation</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../../news/index.html">Changelog</a></li>
@@ -62,7 +63,7 @@
                         <h4 data-toc-skip class="author">Zehang Richard
 Li</h4>
             
-            <h4 data-toc-skip class="date">2024-02-29</h4>
+            <h4 data-toc-skip class="date">2025-01-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/richardli/SUMMER/blob/master/vignettes/articles/web_only/u5mr-vignette.Rmd" class="external-link"><code>vignettes/articles/web_only/u5mr-vignette.Rmd</code></a></small>
       <div class="d-none name"><code>u5mr-vignette.Rmd</code></div>
@@ -217,14 +218,18 @@ case where the random walk model is specified at a higher
 resolution.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">years.all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">years</span>, <span class="st">"15-19"</span><span class="op">)</span></span>
-<span><span class="va">fit1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/smoothDirect.html">smoothDirect</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, Amat <span class="op">=</span> <span class="cn">NULL</span>, year_label <span class="op">=</span> <span class="va">years.all</span>, year_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>,</span>
+<span><span class="va">fit1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/smoothDirect.html">smoothDirect</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, Amat <span class="op">=</span> <span class="cn">NULL</span>, year.label <span class="op">=</span> <span class="va">years.all</span>, year.range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>,</span>
 <span>    <span class="fl">2019</span><span class="op">)</span>, time.model <span class="op">=</span> <span class="st">"rw2"</span>, m <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## ----------------------------------</span></span>
 <span><span class="co">## Smoothed Direct Model</span></span>
 <span><span class="co">##   Main temporal model:        rw2</span></span>
 <span><span class="co">##   Number of time periods:     35</span></span>
 <span><span class="co">##   Temporal resolution:        period model (m = 1)</span></span>
-<span><span class="co">## ----------------------------------</span></span></code></pre>
+<span><span class="co">## ----------------------------------</span></span>
+<span><span class="co">## This is INLA_24.12.11 built 2024-12-11 20:07:43 UTC.</span></span>
+<span><span class="co">##  - See www.r-inla.org/contact-us for how to get help.</span></span>
+<span><span class="co">##  - List available models/likelihoods/etc with inla.list.models()</span></span>
+<span><span class="co">##  - Use inla.doc(&lt;NAME&gt;) to access documentation</span></span></code></pre>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit1</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## ----------------------------------</span></span>
@@ -245,8 +250,7 @@ resolution.</p>
 <span><span class="co">## Model hyperparameters</span></span>
 <span><span class="co">##                             mean   sd 0.025quant 0.5quant 0.97quant mode</span></span>
 <span><span class="co">## Precision for time.struct   1212 9510        5.4      140      6882  9.8</span></span>
-<span><span class="co">## Precision for time.unstruct 1191 6732       11.2      207      6959 23.3</span></span>
-<span><span class="co">## NULL</span></span>
+<span><span class="co">## Precision for time.unstruct 1191 6730       11.2      207      6958 23.3</span></span>
 <span><span class="co">##                                       [,1]</span></span>
 <span><span class="co">## log marginal-likelihood (integration) -2.1</span></span>
 <span><span class="co">## log marginal-likelihood (Gaussian)    -1.9</span></span></code></pre>
@@ -258,7 +262,7 @@ that the direct estimates are still calculated in 5-year intervals, but
 the smoothed estimator now produce estimates at both yearly and period
 resolutions.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/smoothDirect.html">smoothDirect</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, Amat <span class="op">=</span> <span class="cn">NULL</span>, year_label <span class="op">=</span> <span class="va">years.all</span>, year_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>,</span>
+<code class="sourceCode R"><span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/smoothDirect.html">smoothDirect</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, Amat <span class="op">=</span> <span class="cn">NULL</span>, year.label <span class="op">=</span> <span class="va">years.all</span>, year.range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>,</span>
 <span>    <span class="fl">2019</span><span class="op">)</span>, time.model <span class="op">=</span> <span class="st">"rw2"</span>, m <span class="op">=</span> <span class="fl">5</span>, type.st <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## ----------------------------------</span></span>
 <span><span class="co">## Smoothed Direct Model</span></span>
@@ -287,7 +291,6 @@ resolutions.</p>
 <span><span class="co">##                          mean  sd 0.025quant 0.5quant 0.97quant mode</span></span>
 <span><span class="co">## Theta1 for time.struct    5.0 1.9        1.6      5.0       8.8  4.6</span></span>
 <span><span class="co">## Theta1 for time.unstruct  4.3 1.8        1.1      4.2       7.8  3.9</span></span>
-<span><span class="co">## NULL</span></span>
 <span><span class="co">##                                       [,1]</span></span>
 <span><span class="co">## log marginal-likelihood (integration)  -75</span></span>
 <span><span class="co">## log marginal-likelihood (Gaussian)     -75</span></span></code></pre>
@@ -309,7 +312,7 @@ use the following function to extract and re-arrange them.</p>
 <p>Now we fit the full model on all subnational regions. First, we use
 the Random Walk 2 model defined on the 5-year period.</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/smoothDirect.html">smoothDirect</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, Amat <span class="op">=</span> <span class="va">mat</span>, year_label <span class="op">=</span> <span class="va">years.all</span>, year_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>,</span>
+<code class="sourceCode R"><span><span class="va">fit3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/smoothDirect.html">smoothDirect</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, Amat <span class="op">=</span> <span class="va">mat</span>, year.label <span class="op">=</span> <span class="va">years.all</span>, year.range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>,</span>
 <span>    <span class="fl">2019</span><span class="op">)</span>, time.model <span class="op">=</span> <span class="st">"rw2"</span>, m <span class="op">=</span> <span class="fl">1</span>, type.st <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## ----------------------------------</span></span>
 <span><span class="co">## Smoothed Direct Model</span></span>
@@ -326,7 +329,7 @@ the Random Walk 2 model defined on the 5-year period.</p>
 <p>Similarly we can also estimate the Random Walk 2 random effects on
 the yearly scale.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/smoothDirect.html">smoothDirect</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, Amat <span class="op">=</span> <span class="va">mat</span>, year_label <span class="op">=</span> <span class="va">years.all</span>, year_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>,</span>
+<code class="sourceCode R"><span><span class="va">fit4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/smoothDirect.html">smoothDirect</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, Amat <span class="op">=</span> <span class="va">mat</span>, year.label <span class="op">=</span> <span class="va">years.all</span>, year.range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>,</span>
 <span>    <span class="fl">2019</span><span class="op">)</span>, time.model <span class="op">=</span> <span class="st">"rw2"</span>, m <span class="op">=</span> <span class="fl">5</span>, type.st <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## ----------------------------------</span></span>
 <span><span class="co">## Smoothed Direct Model</span></span>
@@ -400,10 +403,10 @@ total is ‘total’.</p>
 <span><span class="op">}</span></span></code></pre></div>
 <p>With the created data frame, we fit the cluster-level model using the
 <code>smoothCluster</code> function. Notice that here we need to specify
-the age groups (<code>age.groups</code>), the length of each age group
+the age groups (<code>age.group</code>), the length of each age group
 (<code>age.n</code>) in months, and how the age groups are mapped to the
-temporal random effects (<code>age.rw.group</code>). In the default
-case, <code>age.rw.group = c(1, 2, 3, 3, 3, 3)</code> means the first
+temporal random effects (<code>age.time.group</code>). In the default
+case, <code>age.time.group = c(1, 2, 3, 3, 3, 3)</code> means the first
 two age groups each has its own temporal trend, the the following four
 age groups share the same temporal trend. We start with the default
 temporal model of random walk or order 2 on the 5-year periods in this
@@ -421,16 +424,15 @@ used to model the main temporal effect.</p>
 <code class="sourceCode R"><span><span class="va">periods</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"85-89"</span>, <span class="st">"90-94"</span>, <span class="st">"95-99"</span>, <span class="st">"00-04"</span>, <span class="st">"05-09"</span>, <span class="st">"10-14"</span><span class="op">)</span></span>
 <span><span class="va">fit.bb</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/smoothCluster.html">smoothCluster</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">counts.all</span>, Amat <span class="op">=</span> <span class="va">DemoMap</span><span class="op">$</span><span class="va">Amat</span>, </span>
 <span>                    family <span class="op">=</span> <span class="st">"betabinomial"</span>,</span>
-<span>                    year_label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">periods</span>, <span class="st">"15-19"</span><span class="op">)</span>, </span>
-<span>                    age.groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0"</span>, <span class="st">"1-11"</span>, <span class="st">"12-23"</span>, <span class="st">"24-35"</span>, <span class="st">"36-47"</span>, <span class="st">"48-59"</span><span class="op">)</span>,</span>
+<span>                    year.label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">periods</span>, <span class="st">"15-19"</span><span class="op">)</span>, </span>
+<span>                    age.group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0"</span>, <span class="st">"1-11"</span>, <span class="st">"12-23"</span>, <span class="st">"24-35"</span>, <span class="st">"36-47"</span>, <span class="st">"48-59"</span><span class="op">)</span>,</span>
 <span>                    age.n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">11</span>, <span class="fl">12</span>, <span class="fl">12</span>, <span class="fl">12</span>, <span class="fl">12</span><span class="op">)</span>,</span>
-<span>                    age.rw.group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>                    age.time.group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span>,</span>
 <span>                    time.model <span class="op">=</span> <span class="st">"rw2"</span>,</span>
 <span>                    st.time.model <span class="op">=</span> <span class="st">"ar1"</span>,</span>
 <span>                    pc.st.slope.u <span class="op">=</span> <span class="fl">1</span>, pc.st.slope.alpha <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>                    survey.effect <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>                    strata.time.effect <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Argument 'age.rw.group' have been deprecated and replaced by 'age.time.group' in version 1.4.0. The value for 'age.time.group' has been set to be the input argument 'age.rw.group'</span></span></code></pre>
 <pre><code><span><span class="co">## ----------------------------------</span></span>
 <span><span class="co">## Cluster-level model</span></span>
 <span><span class="co">##   Main temporal model:        rw2</span></span>
@@ -447,7 +449,7 @@ used to model the main temporal effect.</p>
 <span><span class="co">##   Strata-specific temporal trends: yes</span></span>
 <span><span class="co">##   Survey effect: yes</span></span>
 <span><span class="co">## ----------------------------------</span></span></code></pre>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit.bb</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## ----------------------------------</span></span>
 <span><span class="co">## Cluster-level model</span></span>
@@ -476,7 +478,7 @@ used to model the main temporal effect.</p>
 <span><span class="co">## age.intercept0:urban     -2.7 0.13       -3.0     -2.7      -2.5 -2.7   0</span></span>
 <span><span class="co">## age.intercept1-11:urban  -5.0 0.13       -5.2     -5.0      -4.7 -5.0   0</span></span>
 <span><span class="co">## age.intercept12-23:urban -5.7 0.17       -6.1     -5.7      -5.4 -5.7   0</span></span>
-<span><span class="co">## age.intercept24-35:urban -7.1 0.28       -7.6     -7.1      -6.5 -7.1   0</span></span>
+<span><span class="co">## age.intercept24-35:urban -7.1 0.29       -7.6     -7.1      -6.5 -7.1   0</span></span>
 <span><span class="co">## age.intercept36-47:urban -7.6 0.37       -8.3     -7.6      -6.9 -7.6   0</span></span>
 <span><span class="co">## age.intercept48-59:urban -8.0 0.46       -8.9     -8.0      -7.1 -8.0   0</span></span>
 <span><span class="co">## </span></span>
@@ -500,23 +502,22 @@ used to model the main temporal effect.</p>
 <span><span class="co">## Model hyperparameters</span></span>
 <span><span class="co">##                                                     mean       sd 0.025quant</span></span>
 <span><span class="co">## overdispersion for the betabinomial observations   0.002    0.001      0.001</span></span>
-<span><span class="co">## Precision for time.struct                         89.127  107.545     11.587</span></span>
-<span><span class="co">## Precision for time.unstruct                      835.404 3162.330     13.344</span></span>
-<span><span class="co">## Precision for region.struct                      362.694 1178.564      7.304</span></span>
-<span><span class="co">## Phi for region.struct                              0.347    0.237      0.029</span></span>
-<span><span class="co">## Precision for region.int                         662.287 2901.332      6.107</span></span>
-<span><span class="co">## Group PACF1 for region.int                         0.898    0.190      0.304</span></span>
-<span><span class="co">## Precision for st.slope.id                        106.781  393.439      1.313</span></span>
+<span><span class="co">## Precision for time.struct                         92.389  114.363     11.757</span></span>
+<span><span class="co">## Precision for time.unstruct                      892.453 3497.372     14.470</span></span>
+<span><span class="co">## Precision for region.struct                      278.545  784.633      5.267</span></span>
+<span><span class="co">## Phi for region.struct                              0.348    0.240      0.028</span></span>
+<span><span class="co">## Precision for region.int                         631.014 2735.110      5.798</span></span>
+<span><span class="co">## Group PACF1 for region.int                         0.898    0.190      0.308</span></span>
+<span><span class="co">## Precision for st.slope.id                         97.954  343.534      1.243</span></span>
 <span><span class="co">##                                                  0.5quant 0.97quant   mode</span></span>
 <span><span class="co">## overdispersion for the betabinomial observations    0.002     0.005  0.002</span></span>
-<span><span class="co">## Precision for time.struct                          57.308   338.863 27.622</span></span>
-<span><span class="co">## Precision for time.unstruct                       219.625  4806.292 28.959</span></span>
-<span><span class="co">## Precision for region.struct                       109.650  2037.244 16.380</span></span>
-<span><span class="co">## Phi for region.struct                               0.300     0.844  0.088</span></span>
-<span><span class="co">## Precision for region.int                          146.979  3888.536 11.031</span></span>
-<span><span class="co">## Group PACF1 for region.int                          0.971     1.000  1.000</span></span>
-<span><span class="co">## Precision for st.slope.id                          27.986   615.455  2.528</span></span>
-<span><span class="co">## NULL</span></span>
+<span><span class="co">## Precision for time.struct                          58.599   356.168 27.907</span></span>
+<span><span class="co">## Precision for time.unstruct                       228.183  5145.389 31.865</span></span>
+<span><span class="co">## Precision for region.struct                        92.838  1527.118 11.111</span></span>
+<span><span class="co">## Phi for region.struct                               0.300     0.852  0.080</span></span>
+<span><span class="co">## Precision for region.int                          141.223  3702.840 10.377</span></span>
+<span><span class="co">## Group PACF1 for region.int                          0.971     0.999  1.000</span></span>
+<span><span class="co">## Precision for st.slope.id                          26.737   561.032  2.378</span></span>
 <span><span class="co">##                                        [,1]</span></span>
 <span><span class="co">## log marginal-likelihood (integration) -3454</span></span>
 <span><span class="co">## log marginal-likelihood (Gaussian)    -3449</span></span></code></pre>
@@ -530,7 +531,7 @@ areas and time points, this step may take some time to compute. The
 <code>save.draws</code> argument makes it possible to save the raw
 posterior draws, so that we can use them again in other functions or
 recompute different posterior credible intervals.</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">est.bb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/getSmoothed.html">getSmoothed</a></span><span class="op">(</span><span class="va">fit.bb</span>, nsim <span class="op">=</span> <span class="fl">1000</span>, CI <span class="op">=</span> <span class="fl">0.95</span>, save.draws <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">est.bb</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## ---------------------------------------------</span></span>
@@ -543,7 +544,7 @@ recompute different posterior credible intervals.</p>
 <span><span class="co">## 1000 posterior draws taken.</span></span></code></pre>
 <p>For example, to recompute the posterior CI directly using the
 existing draws:</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">est.bb.90CI</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/getSmoothed.html">getSmoothed</a></span><span class="op">(</span><span class="va">fit.bb</span>, nsim <span class="op">=</span> <span class="fl">1000</span>, CI <span class="op">=</span> <span class="fl">0.95</span>, draws <span class="op">=</span> <span class="va">est.bb</span><span class="op">$</span><span class="va">draws</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="aggregation-across-strata">Aggregation across strata<a class="anchor" aria-label="anchor" href="#aggregation-across-strata"></a>
@@ -553,7 +554,7 @@ urban/rural strata. In order to obtain the overall region-specific U5MR,
 we need additional information on the population fractions of each
 stratum within regions. As an demonstration, we simulate the population
 totals over the years with</p>
-<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pop.base</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>region <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"central"</span>, <span class="st">"eastern"</span>, <span class="st">"northern"</span>, <span class="st">"western"</span><span class="op">)</span>,</span>
 <span>    strata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"urban"</span>, <span class="st">"rural"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">pop.base</span><span class="op">$</span><span class="va">population</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">pop.base</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fl">1000</span>, <span class="fl">20000</span><span class="op">)</span><span class="op">)</span></span>
@@ -576,7 +577,7 @@ totals over the years with</p>
 <span><span class="co">## 6  eastern  rural      17979 85-89</span></span></code></pre>
 <p>In order to compute the aggregated estimates, we need the proportion
 of urban/rural populations within each region in each time period.</p>
-<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">weight.strata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>region <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"central"</span>, <span class="st">"eastern"</span>, <span class="st">"northern"</span>, <span class="st">"western"</span><span class="op">)</span>,</span>
 <span>    years <span class="op">=</span> <span class="va">periods.all</span><span class="op">)</span></span>
 <span><span class="va">weight.strata</span><span class="op">$</span><span class="va">urban</span> <span class="op">&lt;-</span> <span class="va">weight.strata</span><span class="op">$</span><span class="va">rural</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span>
@@ -599,16 +600,16 @@ of urban/rural populations within each region in each time period.</p>
 <span><span class="co">## 6  eastern 90-94  0.87  0.13</span></span></code></pre>
 <p>Now we can recompute the smoothed estimates with the population
 fractions.</p>
-<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">est.bb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/getSmoothed.html">getSmoothed</a></span><span class="op">(</span><span class="va">fit.bb</span>, nsim <span class="op">=</span> <span class="fl">1000</span>, CI <span class="op">=</span> <span class="fl">0.95</span>, save.draws <span class="op">=</span> <span class="cn">TRUE</span>, weight.strata <span class="op">=</span> <span class="va">weight.strata</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">est.bb</span><span class="op">$</span><span class="va">overall</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##    region years time area variance median mean upper lower rural urban</span></span>
-<span><span class="co">## 5 central 85-89    1    1  0.00116   0.23 0.23  0.30  0.17  0.50  0.50</span></span>
-<span><span class="co">## 6 central 90-94    2    1  0.00047   0.21 0.21  0.26  0.17  0.51  0.49</span></span>
-<span><span class="co">## 7 central 95-99    3    1  0.00027   0.19 0.19  0.23  0.16  0.50  0.50</span></span>
-<span><span class="co">## 1 central 00-04    4    1  0.00023   0.18 0.18  0.21  0.15  0.51  0.49</span></span>
-<span><span class="co">## 2 central 05-09    5    1  0.00021   0.17 0.17  0.20  0.14  0.50  0.50</span></span>
-<span><span class="co">## 3 central 10-14    6    1  0.00030   0.15 0.15  0.18  0.12  0.50  0.50</span></span>
+<span><span class="co">## 5 central 85-89    1    1  0.00110   0.23 0.23  0.30  0.18  0.50  0.50</span></span>
+<span><span class="co">## 6 central 90-94    2    1  0.00049   0.21 0.21  0.26  0.17  0.51  0.49</span></span>
+<span><span class="co">## 7 central 95-99    3    1  0.00031   0.19 0.19  0.23  0.16  0.50  0.50</span></span>
+<span><span class="co">## 1 central 00-04    4    1  0.00026   0.18 0.18  0.22  0.15  0.51  0.49</span></span>
+<span><span class="co">## 2 central 05-09    5    1  0.00022   0.17 0.17  0.20  0.14  0.50  0.50</span></span>
+<span><span class="co">## 3 central 10-14    6    1  0.00032   0.15 0.15  0.19  0.12  0.50  0.50</span></span>
 <span><span class="co">##   is.yearly years.num</span></span>
 <span><span class="co">## 5     FALSE        NA</span></span>
 <span><span class="co">## 6     FALSE        NA</span></span>
@@ -618,7 +619,7 @@ fractions.</p>
 <span><span class="co">## 3     FALSE        NA</span></span></code></pre>
 <p>We can compare the stratum-specific and aggregated U5MR estimates
 now.</p>
-<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">est.bb</span><span class="op">$</span><span class="va">stratified</span>, plot.CI <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">strata</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span><span class="op">)</span></span>
 <span><span class="va">g2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">est.bb</span><span class="op">$</span><span class="va">overall</span>, plot.CI <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Aggregated estimates"</span><span class="op">)</span></span>
 <span><span class="va">g1</span> <span class="op">+</span> <span class="va">g2</span></span></code></pre></div>
@@ -631,7 +632,7 @@ now.</p>
 <p>There are extensive visualization tools in the package. We can add
 hatching to the map visualizations to indicate uncertainty of the
 estimates using <code>hatchPlot</code> with similar syntax.</p>
-<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../../reference/hatchPlot.html">hatchPlot</a></span><span class="op">(</span><span class="va">est.bb</span><span class="op">$</span><span class="va">overall</span>,   </span>
 <span>        geo <span class="op">=</span> <span class="va">DemoMap</span><span class="op">$</span><span class="va">geo</span>, by.data <span class="op">=</span> <span class="st">"region"</span>, by.geo <span class="op">=</span> <span class="st">"REGNAME"</span>, </span>
 <span>        is.long <span class="op">=</span> <span class="cn">TRUE</span>, variables <span class="op">=</span> <span class="st">"years"</span>, values <span class="op">=</span> <span class="st">"median"</span>, </span>
@@ -642,13 +643,13 @@ estimates using <code>hatchPlot</code> with similar syntax.</p>
 each panel correspond to one time period, and the regions are ordered by
 the posterior median of estimates in the last year (specified by the
 <code>order = -1</code> argument).</p>
-<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../../reference/ridgePlot.html">ridgePlot</a></span><span class="op">(</span>draws <span class="op">=</span> <span class="va">est.bb</span>, year_plot <span class="op">=</span> <span class="va">periods.all</span>,</span>
+<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../../reference/ridgePlot.html">ridgePlot</a></span><span class="op">(</span>draws <span class="op">=</span> <span class="va">est.bb</span>, year.plot <span class="op">=</span> <span class="va">periods.all</span>,</span>
 <span>                  ncol <span class="op">=</span> <span class="fl">4</span>, per1000 <span class="op">=</span> <span class="cn">TRUE</span>, order <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, direction <span class="op">=</span> <span class="op">-</span><span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figure%2Funnamed-chunk-28-1.png" width="90%"></p>
 <p>It can also be plotted for each region over time as well.</p>
-<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../../reference/ridgePlot.html">ridgePlot</a></span><span class="op">(</span>draws <span class="op">=</span> <span class="va">est.bb</span>, year_plot <span class="op">=</span> <span class="va">periods.all</span>,</span>
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../../reference/ridgePlot.html">ridgePlot</a></span><span class="op">(</span>draws <span class="op">=</span> <span class="va">est.bb</span>, year.plot <span class="op">=</span> <span class="va">periods.all</span>,</span>
 <span>                  ncol <span class="op">=</span> <span class="fl">4</span>, per1000 <span class="op">=</span> <span class="cn">TRUE</span>, by.year <span class="op">=</span> <span class="cn">FALSE</span>, direction <span class="op">=</span> <span class="op">-</span><span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figure%2Funnamed-chunk-29-1.png" width="90%"></p>
 <div class="section level3">
@@ -673,7 +674,7 @@ For a realistic simulation, we reuse the national direct estimates and
 add a constant bias term. We assume these estimates are from an external
 source. Thus we expect the estimates after benchmarking will be larger
 in general.</p>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">national</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>years <span class="op">=</span> <span class="va">periods.all</span>, est <span class="op">=</span> <span class="va">out1</span><span class="op">$</span><span class="va">median</span> <span class="op">+</span> <span class="fl">0.01</span>, sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">7</span>,</span>
 <span>    <span class="fl">0.01</span>, <span class="fl">0.03</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">national</span><span class="op">)</span></span></code></pre></div>
@@ -687,7 +688,7 @@ in general.</p>
 <p>In order to perform the benchmarking process, we need the proportion
 of population by region over the time periods. We can compute these from
 the simulated population before.</p>
-<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">weight.region</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>region <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"central"</span>, <span class="st">"eastern"</span>, <span class="st">"northern"</span>, <span class="st">"western"</span><span class="op">)</span>,</span>
 <span>    years <span class="op">=</span> <span class="va">periods.all</span><span class="op">)</span></span>
 <span><span class="va">weight.region</span><span class="op">$</span><span class="va">proportion</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span>
@@ -706,20 +707,20 @@ the simulated population before.</p>
 <span><span class="co">## 6  eastern 90-94      0.256</span></span></code></pre>
 <p>We perform the benchmarking procedure using the
 <code>Benchmark</code> function</p>
-<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">est.bb.bench</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/Benchmark.html">Benchmark</a></span><span class="op">(</span><span class="va">est.bb</span>, <span class="va">national</span>, weight.region <span class="op">=</span> <span class="va">weight.region</span>, estVar <span class="op">=</span> <span class="st">"est"</span>,</span>
 <span>    sdVar <span class="op">=</span> <span class="st">"sd"</span>, timeVar <span class="op">=</span> <span class="st">"years"</span><span class="op">)</span></span></code></pre></div>
 <p>Since the benchmarking procedure is based on a rejection sampler, the
 number of posterior draws accepted after benchmarking can be small, as
 in this example. We recommend increasing the number of draws first,
 i.e.,</p>
-<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">est.bb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/getSmoothed.html">getSmoothed</a></span><span class="op">(</span><span class="va">fit.bb</span>, nsim <span class="op">=</span> <span class="fl">20000</span>, CI <span class="op">=</span> <span class="fl">0.95</span>, save.draws <span class="op">=</span> <span class="cn">TRUE</span>, weight.strata <span class="op">=</span> <span class="va">weight.strata</span><span class="op">)</span></span>
 <span><span class="va">est.bb.bench</span> <span class="op">&lt;-</span> <span class="fu"><a href="../../reference/Benchmark.html">Benchmark</a></span><span class="op">(</span><span class="va">est.bb</span>, <span class="va">national</span>, weight.region <span class="op">=</span> <span class="va">weight.region</span>, estVar <span class="op">=</span> <span class="st">"est"</span>,</span>
 <span>    sdVar <span class="op">=</span> <span class="st">"sd"</span>, timeVar <span class="op">=</span> <span class="st">"years"</span><span class="op">)</span></span></code></pre></div>
 <p>We can compare the posterior median and variance before and after
 benchmarking.</p>
-<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">est.bb</span><span class="op">$</span><span class="va">overall</span><span class="op">$</span><span class="va">median</span>, <span class="va">est.bb.bench</span><span class="op">$</span><span class="va">overall</span><span class="op">$</span><span class="va">median</span>, xlab <span class="op">=</span> <span class="st">"Before benchmarking"</span>,</span>
 <span>    ylab <span class="op">=</span> <span class="st">"After benchmarking"</span>, main <span class="op">=</span> <span class="st">"Posterior median"</span><span class="op">)</span></span>
@@ -733,7 +734,7 @@ posterior median of all regions to form a set of rough national
 estimates. It can be seen that the benchmarked estimates are indeed
 higher and closer to the simulated national estimates benchmarked
 against.</p>
-<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">compare</span> <span class="op">&lt;-</span> <span class="va">national</span></span>
 <span><span class="va">compare</span><span class="op">$</span><span class="va">before</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span>
 <span><span class="va">compare</span><span class="op">$</span><span class="va">after</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span>

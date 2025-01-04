@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">SUMMER</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,6 +21,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/web_only/small-area-estimation.html">Generic small area estimation</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-vignette.html">Estimating Subnational U5MR using Simulated Data</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-dhs-vignette.html">Estimating Subnational U5MR using DHS Data</a></li>
+    <li><a class="dropdown-item" href="../articles/web_only/cluster-model-vignette.html">Specifying cluster-level model for mortality estimation</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -35,7 +36,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Smoothed direct estimates for mortality rates</h1>
-      <small class="dont-index">Source: <a href="https://github.com/richardli/SUMMER/blob/master/R/fitINLA.R" class="external-link"><code>R/fitINLA.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/richardli/SUMMER/blob/master/R/smoothDirect.R" class="external-link"><code>R/smoothDirect.R</code></a></small>
       <div class="d-none name"><code>smoothDirect.Rd</code></div>
     </div>
 
@@ -51,40 +52,10 @@
 <span>  formula <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time.model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rw1"</span>, <span class="st">"rw2"</span>, <span class="st">"ar1"</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>,</span>
 <span>  st.time.model <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">year_label</span>,</span>
-<span>  year_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1980</span>, <span class="fl">2014</span><span class="op">)</span>,</span>
-<span>  is.yearly <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  m <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  type.st <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  survey.effect <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  hyper <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pc"</span>, <span class="st">"gamma"</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
-<span>  pc.u <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  pc.alpha <span class="op">=</span> <span class="fl">0.01</span>,</span>
-<span>  pc.u.phi <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>  pc.alpha.phi <span class="op">=</span> <span class="fl">2</span><span class="op">/</span><span class="fl">3</span>,</span>
-<span>  pc.u.cor <span class="op">=</span> <span class="fl">0.7</span>,</span>
-<span>  pc.alpha.cor <span class="op">=</span> <span class="fl">0.9</span>,</span>
-<span>  pc.st.u <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  pc.st.alpha <span class="op">=</span> <span class="cn">NA</span>,</span>
-<span>  control.compute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dic <span class="op">=</span> <span class="cn">TRUE</span>, mlik <span class="op">=</span> <span class="cn">TRUE</span>, cpo <span class="op">=</span> <span class="cn">TRUE</span>, openmp.strategy <span class="op">=</span></span>
-<span>    <span class="st">"default"</span>, config <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>  control.inla <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>strategy <span class="op">=</span> <span class="st">"adaptive"</span>, int.strategy <span class="op">=</span> <span class="st">"auto"</span><span class="op">)</span>,</span>
-<span>  control.fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  geo <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  rw <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  ar <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  options <span class="op">=</span> <span class="cn">NULL</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">fitINLA</span><span class="op">(</span></span>
-<span>  <span class="va">data</span>,</span>
-<span>  <span class="va">Amat</span>,</span>
-<span>  formula <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  time.model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rw1"</span>, <span class="st">"rw2"</span>, <span class="st">"ar1"</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>,</span>
-<span>  st.time.model <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">year_label</span>,</span>
-<span>  year_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1980</span>, <span class="fl">2014</span><span class="op">)</span>,</span>
+<span>  <span class="va">year.label</span>,</span>
+<span>  year_label <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  year.range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1980</span>, <span class="fl">2014</span><span class="op">)</span>,</span>
+<span>  year_range <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  is.yearly <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  m <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  type.st <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -134,12 +105,20 @@
 <dd><p>Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. For ar1 interaction model, region-specific random slopes are currently not implemented.</p></dd>
 
 
-<dt id="arg-year-label">year_label<a class="anchor" aria-label="anchor" href="#arg-year-label"></a></dt>
+<dt id="arg-year-label">year.label<a class="anchor" aria-label="anchor" href="#arg-year-label"></a></dt>
 <dd><p>string vector of year names</p></dd>
 
 
+<dt id="arg-year-label">year_label<a class="anchor" aria-label="anchor" href="#arg-year-label"></a></dt>
+<dd><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> replaced by year.label</p></dd>
+
+
+<dt id="arg-year-range">year.range<a class="anchor" aria-label="anchor" href="#arg-year-range"></a></dt>
+<dd><p>Entire range of the years (inclusive) defined in year.label.</p></dd>
+
+
 <dt id="arg-year-range">year_range<a class="anchor" aria-label="anchor" href="#arg-year-range"></a></dt>
-<dd><p>Entire range of the years (inclusive) defined in year_label.</p></dd>
+<dd><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> replaced by year.range</p></dd>
 
 
 <dt id="arg-is-yearly">is.yearly<a class="anchor" aria-label="anchor" href="#arg-is-yearly"></a></dt>
@@ -257,14 +236,14 @@
 <span class="r-in"><span>  <span class="co">#  national model</span></span></span>
 <span class="r-in"><span>  <span class="va">years.all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">years</span>, <span class="st">"15-19"</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">fit1</span> <span class="op">&lt;-</span> <span class="fu">smoothDirect</span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, Amat <span class="op">=</span> <span class="cn">NULL</span>, </span></span>
-<span class="r-in"><span>  year_label <span class="op">=</span> <span class="va">years.all</span>, year_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>, <span class="fl">2019</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>  year.label <span class="op">=</span> <span class="va">years.all</span>, year.range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>, <span class="fl">2019</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>  time.model <span class="op">=</span> <span class="st">'rw2'</span>, m <span class="op">=</span> <span class="fl">5</span>, control.compute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>config <span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">out1</span> <span class="op">&lt;-</span> <span class="fu"><a href="getSmoothed.html">getSmoothed</a></span><span class="op">(</span><span class="va">fit1</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">out1</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  </span></span>
 <span class="r-in"><span>  <span class="co">#  subnational model</span></span></span>
 <span class="r-in"><span>  <span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu">smoothDirect</span><span class="op">(</span>data <span class="op">=</span> <span class="va">data</span>, Amat <span class="op">=</span> <span class="va">DemoMap</span><span class="op">$</span><span class="va">Amat</span>, </span></span>
-<span class="r-in"><span>  year_label <span class="op">=</span> <span class="va">years.all</span>, year_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>, <span class="fl">2019</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>  year.label <span class="op">=</span> <span class="va">years.all</span>, year.range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1985</span>, <span class="fl">2019</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>  time.model <span class="op">=</span> <span class="st">'rw2'</span>, m <span class="op">=</span> <span class="fl">5</span>, type.st <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">out2</span> <span class="op">&lt;-</span> <span class="fu"><a href="getSmoothed.html">getSmoothed</a></span><span class="op">(</span><span class="va">fit2</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">out2</span><span class="op">)</span></span></span>

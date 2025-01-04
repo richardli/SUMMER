@@ -9,7 +9,7 @@ pixel level to the level of the area of interest."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">SUMMER</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,6 +23,7 @@ pixel level to the level of the area of interest."></head><body>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/web_only/small-area-estimation.html">Generic small area estimation</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-vignette.html">Estimating Subnational U5MR using Simulated Data</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-dhs-vignette.html">Estimating Subnational U5MR using DHS Data</a></li>
+    <li><a class="dropdown-item" href="../articles/web_only/cluster-model-vignette.html">Specifying cluster-level model for mortality estimation</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -52,11 +53,11 @@ pixel level to the level of the area of interest.</p>
 <span>  <span class="va">Zg</span>,</span>
 <span>  <span class="va">Ng</span>,</span>
 <span>  <span class="va">areas</span>,</span>
-<span>  urban <span class="op">=</span> <span class="va">targetPopMat</span><span class="op">$</span><span class="va">urban</span>,</span>
-<span>  targetPopMat <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  useDensity <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  stratifyByUrban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  normalize <span class="op">=</span> <span class="va">useDensity</span></span>
+<span>  urban <span class="op">=</span> <span class="va">target.pop.mat</span><span class="op">$</span><span class="va">urban</span>,</span>
+<span>  target.pop.mat <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  use.density <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  stratify.by.urban <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  normalize <span class="op">=</span> <span class="va">use.density</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -80,15 +81,15 @@ pixel level to the level of the area of interest.</p>
 <dd><p>nIntegrationPoint length vector of indicators specifying whether or not pixels are urban or rural</p></dd>
 
 
-<dt id="arg-targetpopmat">targetPopMat<a class="anchor" aria-label="anchor" href="#arg-targetpopmat"></a></dt>
+<dt id="arg-target-pop-mat">target.pop.mat<a class="anchor" aria-label="anchor" href="#arg-target-pop-mat"></a></dt>
 <dd><p>same as in <code><a href="simPop.html">simPopCustom</a></code></p></dd>
 
 
-<dt id="arg-usedensity">useDensity<a class="anchor" aria-label="anchor" href="#arg-usedensity"></a></dt>
+<dt id="arg-use-density">use.density<a class="anchor" aria-label="anchor" href="#arg-use-density"></a></dt>
 <dd><p>whether to use population density as aggregation weights.</p></dd>
 
 
-<dt id="arg-stratifybyurban">stratifyByUrban<a class="anchor" aria-label="anchor" href="#arg-stratifybyurban"></a></dt>
+<dt id="arg-stratify-by-urban">stratify.by.urban<a class="anchor" aria-label="anchor" href="#arg-stratify-by-urban"></a></dt>
 <dd><p>whether or not to stratify simulations by urban/rural classification</p></dd>
 
 

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">SUMMER</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,6 +21,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/web_only/small-area-estimation.html">Generic small area estimation</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-vignette.html">Estimating Subnational U5MR using Simulated Data</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-dhs-vignette.html">Estimating Subnational U5MR using DHS Data</a></li>
+    <li><a class="dropdown-item" href="../articles/web_only/cluster-model-vignette.html">Specifying cluster-level model for mortality estimation</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -35,7 +36,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Extract smoothed estimates.</h1>
-      <small class="dont-index">Source: <a href="https://github.com/richardli/SUMMER/blob/master/R/projINLA.R" class="external-link"><code>R/projINLA.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/richardli/SUMMER/blob/master/R/getSmoothed.R" class="external-link"><code>R/getSmoothed.R</code></a></small>
       <div class="d-none name"><code>getSmoothed.Rd</code></div>
     </div>
 
@@ -46,17 +47,20 @@
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">getSmoothed</span><span class="op">(</span></span>
-<span>  <span class="va">inla_mod</span>,</span>
+<span>  <span class="va">fitted</span>,</span>
+<span>  inla_mod <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  nsim <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  weight.strata <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  weight.frame <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  mc <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  include_time_unstruct <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  include.time.unstruct <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  include_time_unstruct <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  CI <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  draws <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  save.draws <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  include_subnational <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  include.subnational <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  include_subnational <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  only.age <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  joint <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -67,8 +71,12 @@
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-inla-mod">inla_mod<a class="anchor" aria-label="anchor" href="#arg-inla-mod"></a></dt>
+<dl><dt id="arg-fitted">fitted<a class="anchor" aria-label="anchor" href="#arg-fitted"></a></dt>
 <dd><p>output from <code><a href="smoothDirect.html">smoothDirect</a></code> or <code><a href="smoothCluster.html">smoothCluster</a></code></p></dd>
+
+
+<dt id="arg-inla-mod">inla_mod<a class="anchor" aria-label="anchor" href="#arg-inla-mod"></a></dt>
+<dd><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> replaced by <code>fitted</code></p></dd>
 
 
 <dt id="arg-nsim">nsim<a class="anchor" aria-label="anchor" href="#arg-nsim"></a></dt>
@@ -91,8 +99,12 @@
 <dd><p>number of monte carlo draws to approximate the marginal prevalence/hazards for binomial model. If mc = 0, analytical approximation is used. The analytical approximation is invalid for hazard modeling with more than one age groups.</p></dd>
 
 
+<dt id="arg-include-time-unstruct">include.time.unstruct<a class="anchor" aria-label="anchor" href="#arg-include-time-unstruct"></a></dt>
+<dd><p>Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates from cluster-level model. The argument only applies to the cluster-level models (from <code><a href="smoothCluster.html">smoothCluster</a></code>). Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included. Alternatively, if this is specified as a vector of   subset of year labels (as in the year.label argument), only the unstructured terms in the corresponding time periods will be added to the prediction.</p></dd>
+
+
 <dt id="arg-include-time-unstruct">include_time_unstruct<a class="anchor" aria-label="anchor" href="#arg-include-time-unstruct"></a></dt>
-<dd><p>Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates from cluster-level model. The argument only applies to the cluster-level models (from <code><a href="smoothCluster.html">smoothCluster</a></code>). Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included. Alternatively, if this is specified as a vector of   subset of year labels (as in the year_label argument), only the unstructured terms in the corresponding time periods will be added to the prediction.</p></dd>
+<dd><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> replaced by <code>include.time.unstruct</code></p></dd>
 
 
 <dt id="arg-ci">CI<a class="anchor" aria-label="anchor" href="#arg-ci"></a></dt>
@@ -107,8 +119,12 @@
 <dd><p>Logical indicator whether the raw posterior draws will be saved. Saved draws can be used to accelerate aggregations with different weights.</p></dd>
 
 
-<dt id="arg-include-subnational">include_subnational<a class="anchor" aria-label="anchor" href="#arg-include-subnational"></a></dt>
+<dt id="arg-include-subnational">include.subnational<a class="anchor" aria-label="anchor" href="#arg-include-subnational"></a></dt>
 <dd><p>logical indicator whether to include the spatial and space-time interaction components in the smoothed estimates. If set to FALSE, only the main temporal trends are returned.</p></dd>
+
+
+<dt id="arg-include-subnational">include_subnational<a class="anchor" aria-label="anchor" href="#arg-include-subnational"></a></dt>
+<dd><p><a href="https://lifecycle.r-lib.org/articles/stages.html#deprecated" class="external-link"><img src="figures/lifecycle-deprecated.svg" alt="[Deprecated]"></a> replaced by <code>include.subnational</code></p></dd>
 
 
 <dt id="arg-only-age">only.age<a class="anchor" aria-label="anchor" href="#arg-only-age"></a></dt>
@@ -120,7 +136,7 @@
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.</p></dd>
+<dd><p>Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year.label, and year.range can still be specified manually.</p></dd>
 
 </dl></div>
     <div class="section level2">

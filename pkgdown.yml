@@ -2,10 +2,11 @@ pandoc: 3.1.11
 pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
+  articles/web_only/cluster-model-vignette: web_only/cluster-model-vignette.html
   articles/web_only/small-area-estimation: web_only/small-area-estimation.html
   articles/web_only/u5mr-dhs-vignette: web_only/u5mr-dhs-vignette.html
   articles/web_only/u5mr-vignette: web_only/u5mr-vignette.html
-last_built: 2025-01-02T15:29Z
+last_built: 2025-01-04T06:19Z
 urls:
   reference: https://richardli.github.io/SUMMER/reference
   article: https://richardli.github.io/SUMMER/articles

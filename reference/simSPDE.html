@@ -9,7 +9,7 @@ values of the SPDE spatial process"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">SUMMER</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,6 +23,7 @@ values of the SPDE spatial process"></head><body>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/web_only/small-area-estimation.html">Generic small area estimation</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-vignette.html">Estimating Subnational U5MR using Simulated Data</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-dhs-vignette.html">Estimating Subnational U5MR using DHS Data</a></li>
+    <li><a class="dropdown-item" href="../articles/web_only/cluster-model-vignette.html">Specifying cluster-level model for mortality estimation</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -52,8 +53,8 @@ values of the SPDE spatial process</p>
 <span>  <span class="va">coords</span>,</span>
 <span>  nsim <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  <span class="va">mesh</span>,</span>
-<span>  effRange <span class="op">=</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">coords</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">coords</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fl">3</span>,</span>
-<span>  margVar <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  eff.range <span class="op">=</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">coords</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">coords</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">/</span><span class="fl">3</span>,</span>
+<span>  marg.var <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  inla.seed <span class="op">=</span> <span class="fl">0L</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -74,19 +75,22 @@ values of the SPDE spatial process</p>
 <dd><p>SPDE mesh</p></dd>
 
 
-<dt id="arg-effrange">effRange<a class="anchor" aria-label="anchor" href="#arg-effrange"></a></dt>
+<dt id="arg-eff-range">eff.range<a class="anchor" aria-label="anchor" href="#arg-eff-range"></a></dt>
 <dd><p>effective spatial range</p></dd>
 
 
-<dt id="arg-margvar">margVar<a class="anchor" aria-label="anchor" href="#arg-margvar"></a></dt>
+<dt id="arg-marg-var">marg.var<a class="anchor" aria-label="anchor" href="#arg-marg-var"></a></dt>
 <dd><p>marginal variance of the spatial process</p></dd>
 
 
 <dt id="arg-inla-seed">inla.seed<a class="anchor" aria-label="anchor" href="#arg-inla-seed"></a></dt>
-<dd><p>seed input to inla.qsample. 0L sets seed intelligently,
-&gt; 0 sets a specific seed, &lt; 0 keeps existing RNG</p></dd>
+<dd><p>seed input to inla.qsample. 0L sets seed intelligently, positive value sets a specific seed, negative value keeps existing RNG</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="figures/lifecycle-experimental.svg" alt="[Experimental]"></a></p>
+    </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Lindgren, F., Rue, H., Lindström, J., 2011. An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic differential equation approach (with discussion). Journal of the Royal Statistical Society, Series B 73, 423–498.</p>
@@ -104,7 +108,7 @@ values of the SPDE spatial process</p>
 <span class="r-in"><span><span class="va">coords</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">10</span><span class="op">*</span><span class="fl">2</span><span class="op">)</span>, ncol<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">mesh</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/INLA/man/inla.mesh.2d.html" class="external-link">inla.mesh.2d</a></span><span class="op">(</span>loc.domain<span class="op">=</span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>  n<span class="op">=</span><span class="fl">3000</span>, max.n<span class="op">=</span><span class="fl">5000</span>, max.edge<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.01</span>, <span class="fl">.05</span><span class="op">)</span>, offset<span class="op">=</span><span class="op">-</span><span class="fl">.1</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">simVals</span> <span class="op">=</span> <span class="fu">simSPDE</span><span class="op">(</span><span class="va">coords</span>, nsim<span class="op">=</span><span class="fl">1</span>, <span class="va">mesh</span>, effRange<span class="op">=</span><span class="fl">.2</span>, inla.seed<span class="op">=</span><span class="fl">1L</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">simVals</span> <span class="op">=</span> <span class="fu">simSPDE</span><span class="op">(</span><span class="va">coords</span>, nsim<span class="op">=</span><span class="fl">1</span>, <span class="va">mesh</span>, eff.range<span class="op">=</span><span class="fl">.2</span>, inla.seed<span class="op">=</span><span class="fl">1L</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

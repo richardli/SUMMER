@@ -11,7 +11,7 @@ than the region level specified."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">SUMMER</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,6 +25,7 @@ than the region level specified."></head><body>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/web_only/small-area-estimation.html">Generic small area estimation</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-vignette.html">Estimating Subnational U5MR using Simulated Data</a></li>
     <li><a class="dropdown-item" href="../articles/web_only/u5mr-dhs-vignette.html">Estimating Subnational U5MR using DHS Data</a></li>
+    <li><a class="dropdown-item" href="../articles/web_only/cluster-model-vignette.html">Specifying cluster-level model for mortality estimation</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -51,18 +52,18 @@ than the region level specified.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calibrateByRegion</span><span class="op">(</span><span class="va">pointTotals</span>, <span class="va">pointRegions</span>, <span class="va">regions</span>, <span class="va">regionTotals</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">calibrateByRegion</span><span class="op">(</span><span class="va">point.totals</span>, <span class="va">point.regions</span>, <span class="va">regions</span>, <span class="va">region.totals</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-pointtotals">pointTotals<a class="anchor" aria-label="anchor" href="#arg-pointtotals"></a></dt>
+<dl><dt id="arg-point-totals">point.totals<a class="anchor" aria-label="anchor" href="#arg-point-totals"></a></dt>
 <dd><p>Vector of point level totals that will be calibrated/normalized</p></dd>
 
 
-<dt id="arg-pointregions">pointRegions<a class="anchor" aria-label="anchor" href="#arg-pointregions"></a></dt>
+<dt id="arg-point-regions">point.regions<a class="anchor" aria-label="anchor" href="#arg-point-regions"></a></dt>
 <dd><p>Vector of regions associated with each point</p></dd>
 
 
@@ -70,15 +71,19 @@ than the region level specified.</p>
 <dd><p>Vector of region names</p></dd>
 
 
-<dt id="arg-regiontotals">regionTotals<a class="anchor" aria-label="anchor" href="#arg-regiontotals"></a></dt>
-<dd><p>Vector of desired region level totals associated with `regions`</p></dd>
+<dt id="arg-region-totals">region.totals<a class="anchor" aria-label="anchor" href="#arg-region-totals"></a></dt>
+<dd><p>Vector of desired region level totals associated with <code>regions</code></p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A vector of same length as pointTotals and pointRegions containing
+    <p>A vector of same length as point.totals and point.regions containing
 the calibrated/normalized point totals that sum to the correct regional totals</p>
 <p>Vector of updated point level totals, calibrated to match region totals</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="figures/lifecycle-experimental.svg" alt="[Experimental]"></a></p>
     </div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>
@@ -87,11 +92,11 @@ the calibrated/normalized point totals that sum to the correct regional totals</
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">pointTotals</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">pointRegions</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"b"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">regionTotals</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">point.totals</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">point.regions</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"b"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">region.totals</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">regions</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">calibrateByRegion</span><span class="op">(</span><span class="va">pointTotals</span>, <span class="va">pointRegions</span>, <span class="va">regions</span>, <span class="va">regionTotals</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">calibrateByRegion</span><span class="op">(</span><span class="va">point.totals</span>, <span class="va">point.regions</span>, <span class="va">regions</span>, <span class="va">region.totals</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1]  5.000000  5.000000  6.666667 13.333333</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
