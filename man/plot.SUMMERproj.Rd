@@ -17,7 +17,7 @@
   option.add = list(point = NULL, lower = NULL, upper = NULL, by = NULL),
   color.add = "black",
   label.add = NULL,
-  dodge.width = 1,
+  dodge.width = 0.5,
   plot.CI = NULL,
   per1000 = FALSE,
   color.CI = NULL,
@@ -50,7 +50,7 @@
 
 \item{label.add}{the label of the Comparisons data points in the legend.}
 
-\item{dodge.width}{the amount to add to data points at the same year to avoid overlap. Default to be 1.}
+\item{dodge.width}{the amount to add to data points at the same year to avoid overlap. Default to be 0.5.}
 
 \item{plot.CI}{logical indicator of whether to plot the error bars.}
 

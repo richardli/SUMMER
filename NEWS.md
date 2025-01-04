@@ -1,5 +1,11 @@
 # SUMMER - changes
 
+Version 2.0.0
+==========================
++ Major updates to function argument naming to improve consistency. Most of the arguments are backward compatible. 
++ New set of unit tests. 
++ New vignette on specifying cluster-level model for mortality estimation. 
++ Improvements to existing functions.
 
 Version 1.4.0
 ==========================
