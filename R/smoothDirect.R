@@ -7,8 +7,10 @@
 #' @param formula INLA formula. See vignette for example of using customized formula.
 #' @param time.model Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale. 
 #' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. For ar1 interaction model, region-specific random slopes are currently not implemented.
-#' @param year_label string vector of year names
-#' @param year_range Entire range of the years (inclusive) defined in year_label.
+#' @param year.label string vector of year names
+#' @param year_label `r lifecycle::badge("deprecated")` replaced by year.label
+#' @param year.range Entire range of the years (inclusive) defined in year.label.
+#' @param year_range `r lifecycle::badge("deprecated")` replaced by year.range
 #' @param is.yearly Logical indicator for fitting yearly or period model.
 #' @param m Number of years in each period.
 #' @param type.st type for space-time interaction
@@ -50,14 +52,14 @@
 #'   #  national model
 #'   years.all <- c(years, "15-19")
 #'   fit1 <- smoothDirect(data = data, Amat = NULL, 
-#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   year.label = years.all, year.range = c(1985, 2019), 
 #'   time.model = 'rw2', m = 5, control.compute = list(config =TRUE))
 #'   out1 <- getSmoothed(fit1)
 #'   plot(out1)
 #'   
 #'   #  subnational model
 #'   fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat, 
-#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   year.label = years.all, year.range = c(1985, 2019), 
 #'   time.model = 'rw2', m = 5, type.st = 4)
 #'   out2 <- getSmoothed(fit2)
 #'   plot(out2)
@@ -69,7 +71,19 @@
 #'   plot(out3, plot.CI = TRUE)
 #' }
 #' @export
-smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, year_label, year_range = c(1980, 2014), is.yearly=TRUE, m = 5, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA, pc.st.alpha = NA, control.compute = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy = 'default', config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), control.fixed = list(), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, options = NULL){
+smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, year.label, year_label = deprecated(), year.range = c(1980, 2014), year_range = deprecated(), is.yearly=TRUE, m = 5, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA, pc.st.alpha = NA, control.compute = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy = 'default', config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), control.fixed = list(), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, options = NULL){
+
+
+
+  if (lifecycle::is_present(year_label)) {
+      lifecycle::deprecate_soft("2.0.0", "smoothDirect(year_label)", "smoothDirect(year.label)")
+      year.label <- year_label
+  }
+  if (lifecycle::is_present(year_range)) {
+      lifecycle::deprecate_soft("2.0.0", "smoothDirect(year_range)", "smoothDirect(year.range)")
+      year.range <- year_range
+  }
+
 
   if(!is.null(geo)){
     message("Argument geo is deprecated in the smoothDirect function. Only Amat is needed.")
@@ -116,7 +130,7 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
     }else{
       is.temporal <- FALSE
       strata.time.effect <- FALSE
-      year_label <- NULL
+      year.label <- NULL
       is.yearly <- FALSE
     }
     st.time.model <- tolower(st.time.model)
@@ -170,9 +184,9 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
             "\n  No temporal components")
 
   }else{
-    T <- year_range[2] - year_range[1] + 1
+    T <- year.range[2] - year.range[1] + 1
     if(!is.yearly){
-      T <- length(year_label)
+      T <- length(year.label)
     }
     message("----------------------------------",
           "\nSmoothed Direct Model",
@@ -311,8 +325,8 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
     ################################################################### 
     ## get the list of region and numeric index in one data frame
     if(is.yearly){
-      n <- year_range[2] - year_range[1] + 1
-      if(n %% m  != 0) stop("The year_range specification is not a multiple of m. Please check that  year_range contains the first and last  year of the periods used. For example, if the last period is 2015-2019, the second element in year_range should be 2019.")
+      n <- year.range[2] - year.range[1] + 1
+      if(n %% m  != 0) stop("The year.range specification is not a multiple of m. Please check that  year.range contains the first and last  year of the periods used. For example, if the last period is 2015-2019, the second element in year.range should be 2019.")
       nn <- n %/% m
       N <- n + nn
       rw.model <- INLA::inla.rgeneric.define(model = rw.new,
@@ -365,8 +379,8 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
                                        alpha0 = pc.alpha) 
        }
       
-      year_label_new <- c(as.character(c(year_range[1]:year_range[2])), year_label)
-      time.index <- cbind.data.frame(idx = 1:N, Year = year_label_new)
+      year.label_new <- c(as.character(c(year.range[1]:year.range[2])), year.label)
+      time.index <- cbind.data.frame(idx = 1:N, Year = year.label_new)
       constr = list(A = matrix(c(rep(1, n), rep(0, nn)), 1, N), e = 0)
       
       # sum to zero in time for each region
@@ -411,11 +425,11 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
       }else{
         constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
       }
-      years <- data.frame(year = year_label_new[1:N], year_number = seq(1, N))
+      years <- data.frame(year = year.label_new[1:N], year_number = seq(1, N))
     }else if(is.temporal){
       n <- 0
-      N <- nn <- length(year_label)
-      years <- data.frame(year = year_label, year_number = seq(1, N))      
+      N <- nn <- length(year.label)
+      years <- data.frame(year = year.label, year_number = seq(1, N))      
     }else{
       n <- 0
       N <- nn <- 1
@@ -550,9 +564,9 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
       if("region" %in% by && (!"years" %in% by)){
         which <- which(X$region == region_names[ii])
       }else if((!"region" %in% by) && "years" %in% by){
-        which <- which(X$years == year_label[tt]) 
+        which <- which(X$years == year.label[tt]) 
       }else{
-        which <- intersect(which(X$years == year_label[tt]), which(X$region == region_names[ii]))
+        which <- intersect(which(X$years == year.label[tt]), which(X$region == region_names[ii]))
       }
       Xnew[i, covariate.names] <- X[which, covariate.names]
     }
@@ -569,7 +583,7 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
 
   if(is.null(formula)){
         period.constr <- NULL
-        # Tmax <- length(year_label)            
+        # Tmax <- length(year.label)            
         # if(rw == 2) period.constr <- list(A = matrix(c(rep(1, Tmax)), 1, Tmax), e = 0)
 
      ## ---------------------------------------------------------
@@ -985,13 +999,26 @@ if(is.main.ar){
     
 
     fit <- INLA::inla(mod, family = "gaussian", control.compute = control.compute, data = exdat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE ))), scale = exdat$logit.prec, lincomb = lincombs.fit, control.inla = control.inla, control.fixed = control.fixed, verbose = verbose)
-    out <- list(model = mod, fit = fit, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, lincombs.info = lincombs.info, control.fixed = control.fixed, is.yearly = is.yearly, type.st = type.st, year_range = year_range, year_label = year_label, Amat = Amat, has.Amat = TRUE, is.temporal = is.temporal, msg = msg)
+    out <- list(model = mod, fit = fit, Amat = Amat, newdata = exdat, time = seq(0, N - 1), area = seq(0, region_count - 1), time.area = time.area, survey.table = survey.table, a.iid = a.iid, b.iid = b.iid, a.rw = a.rw, b.rw = b.rw, a.rw = a.rw, b.rw = b.rw, a.icar = a.icar, b.icar = b.icar, lincombs.info = lincombs.info, control.fixed = control.fixed, is.yearly = is.yearly, type.st = type.st, year.range = year.range, year_range = year.range, year.label = year.label, year_label = year.label, Amat = Amat, has.Amat = TRUE, is.temporal = is.temporal, msg = msg)
     class(out) <- "SUMMERmodel"
     return(out)
-  }
+  } 
 }
 
 
+#' Smoothed direct estimates for mortality rates 
+#' 
+#' 
+#' @description 
+#' `r lifecycle::badge("deprecated")`
+#' 
+#' `fitINLA()` was renamed to `smoothDirect()` to create a more
+#' consistent API.
+#' @keywords internal
 #' @export
-#' @rdname smoothDirect
-fitINLA <- smoothDirect
+fitINLA <- function(...) {
+  lifecycle::deprecate_stop("2.0.0", "fitINLA()", "smoothDirect()")
+}
+
+
+

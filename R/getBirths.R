@@ -25,8 +25,8 @@
 #' @importFrom haven as_factor
 #' @examples 
 #' \dontrun{
-#' my_fp <- "/myExampleFilepath/surveyData.DTA"
-#' DemoData <- getBirths(filepath = my_fp, surveyyear = 2015) 
+#' # my_fp <- "/myExampleFilepath/surveyData.DTA"
+#' # DemoData <- getBirths(filepath = my_fp, surveyyear = 2015) 
 #' }
 #' 
 #' @export

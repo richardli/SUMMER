@@ -1,5 +1,7 @@
 #' Benchmark posterior draws to national estimates
 #' 
+#' `r lifecycle::badge("experimental")`
+#' 
 #' @param fitted output from \code{\link{getSmoothed}} to be benchmarked. 
 #' @param national a data frame of national level estimates that is benchmarked against, with at least two columns indicating national estimates (probability scale) and the associated standard error. If benchmarking over multiple time period, a third column indicating time period is needed.  
 #' @param estVar column name in \code{national} that indicates national estimates.
@@ -10,6 +12,7 @@
 #' 
 #' @return Benchmarked object in S3 class SUMMERproj or SUMMERprojlist in the same format as the input object \code{fitted}.
 #' @author Taylor Okonek, Zehang Richard Li 
+#' @references Okonek, Taylor, and Jon Wakefield. "A computationally efficient approach to fully Bayesian benchmarking." Journal of Official Statistics 40, no. 2 (2024): 283-316.
 #' @importFrom stats runif
 #' @importFrom stats dnorm
 #' @importFrom stats rbinom
@@ -36,7 +39,7 @@
 #' periods <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")
 #' fit.bb  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat, 
 #' 				family = "betabinomial",
-#' 				year_label = periods, 
+#' 				year.label = periods, 
 #' 				survey.effect = TRUE)
 #' est.bb <- getSmoothed(fit.bb, nsim = 1e4, CI = 0.95, save.draws=TRUE)
 #' 
@@ -133,7 +136,7 @@
 #' #  specified for fixed effects when fitting the model
 #' fit.bb.new  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat, 
 #' 				family = "betabinomial",
-#' 				year_label = periods, 
+#' 				year.label = periods, 
 #' 				survey.effect = TRUE, 
 #' 				control.fixed = list(
 #' 					mean=list(`age.intercept0:1`=-4, 
@@ -196,7 +199,7 @@
 #' #  subnational model
 #' years.all <- c(years, "15-19")
 #' fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat,
-#'                  year_label = years.all, year_range = c(1985, 2019),
+#'                  year.label = years.all, year.range = c(1985, 2019),
 #'                  time.model = "rw2", m = 5, type.st = 4)
 #' out2a <- getSmoothed(fit2, joint = TRUE, nsim = 1e5, save.draws = TRUE)
 #' 

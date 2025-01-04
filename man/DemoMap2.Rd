@@ -18,8 +18,8 @@ Shapefiles are from 2014 Kenya Admin 1 regions provided by DHS.
 }
 \details{
 \itemize{
- \item geo Geographic map files
- \item Amat Adjacency matrix for regions
+\item geo Geographic map files
+\item Amat Adjacency matrix for regions
 }
 }
 \keyword{datasets}

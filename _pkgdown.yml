@@ -22,6 +22,8 @@ navbar:
         href: articles/web_only/u5mr-vignette.html
       - text: Estimating Subnational U5MR using DHS Data
         href: articles/web_only/u5mr-dhs-vignette.html
+      - text: Specifying cluster-level model for mortality estimation
+        href: articles/web_only/cluster-model-vignette.html
 pkgdown:
   as_is: yes
 reference:
@@ -43,10 +45,6 @@ reference:
   - summary.SUMMERprojlist
 - title: General SAE models
   contents:
-  - mapPoints
-  - getAmat
-  - getCounts
-  - ChangeRegion
   - smoothSurvey
   - smoothArea
   - smoothUnit
@@ -61,6 +59,15 @@ reference:
   - tcpPlot
   - compareEstimates
   - mapEstimates
+- title: Utility functions
+  contents:
+  - mapPoints
+  - getAmat
+  - getCounts
+  - changeRegion
+  - expit
+  - logit
+  - rst
 - title: Pixel-level population simulation
   contents:
   - getAreaName
@@ -83,10 +90,8 @@ reference:
   - MalawiMap
   - KenData
   - kenyaPopulationData
-- title: Other functions
+- title: Internal functions
   contents:
-  - expit
-  - logit
   - rw.new
   - rw.new.pc
   - st.new
@@ -95,6 +100,5 @@ reference:
   - iid.new.pc
   - logitNormMean
   - simhyper
-  - rst
   - SUMMER-package
 

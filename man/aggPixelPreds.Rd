@@ -8,11 +8,11 @@ aggPixelPreds(
   Zg,
   Ng,
   areas,
-  urban = targetPopMat$urban,
-  targetPopMat = NULL,
-  useDensity = FALSE,
-  stratifyByUrban = TRUE,
-  normalize = useDensity
+  urban = target.pop.mat$urban,
+  target.pop.mat = NULL,
+  use.density = FALSE,
+  stratify.by.urban = TRUE,
+  normalize = use.density
 )
 }
 \arguments{
@@ -24,16 +24,16 @@ aggPixelPreds(
 
 \item{urban}{nIntegrationPoint length vector of indicators specifying whether or not pixels are urban or rural}
 
-\item{targetPopMat}{same as in \code{\link{simPopCustom}}}
+\item{target.pop.mat}{same as in \code{\link{simPopCustom}}}
 
-\item{useDensity}{whether to use population density as aggregation weights.}
+\item{use.density}{whether to use population density as aggregation weights.}
 
-\item{stratifyByUrban}{whether or not to stratify simulations by urban/rural classification}
+\item{stratify.by.urban}{whether or not to stratify simulations by urban/rural classification}
 
-\item{normalize}{if TRUE, pixel level aggregation weights within specified area are normalized to sum to 1. This produces an 
+\item{normalize}{if TRUE, pixel level aggregation weights within specified area are normalized to sum to 1. This produces an
 average of the values in Zg rather than a sum. In general, should only be set to TRUE for smooth integrals of risk.}
 }
 \description{
-Aggregates population from the 
+Aggregates population from the
 pixel level to the level of the area of interest.
 }

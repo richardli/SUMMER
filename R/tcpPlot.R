@@ -5,7 +5,8 @@
 #' @param draws a posterior draw object from \code{\link{getSmoothed}}
 #' @param geo SpatialPolygonsDataFrame object for the map
 #' @param by.geo variable name specifying region names in geo
-#' @param year_plot vector of year string vector to be plotted.
+#' @param year.plot vector of year string vector to be plotted.
+#' @param year_plot `r lifecycle::badge("deprecated")` replaced by year.plot
 #' @param ncol number of columns in the output figure.
 #' @param per1000 logical indicator to multiply results by 1000.
 #' @param thresholds a vector of thresholds (on the mortality scale) defining the discrete color scale of the maps. 
@@ -48,17 +49,24 @@
 #'       strata.time.effect =  TRUE, 
 #'       survey.effect = TRUE,
 #'       family = "betabinomial",
-#'       year_label = c(periods, "15-19"))
+#'       year.label = c(periods, "15-19"))
 #' est <- getSmoothed(fit, nsim = 1000, save.draws=TRUE)
 #' 
-#' tcp <- tcpPlot(est, DemoMap$geo, by.geo = "REGNAME", interval = 3, year_plot = periods) 
+#' tcp <- tcpPlot(est, DemoMap$geo, by.geo = "REGNAME", interval = 3, year.plot = periods) 
 #' tcp$g
 #' }
 #' 
 
 #' @export
-tcpPlot <- function(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4, per1000 = FALSE, thresholds = NULL, intervals = 3, size.title = 0.7, legend.label = NULL, border = "gray20", size = 0.5){
+tcpPlot <- function(draws, geo, by.geo = NULL, year.plot = NULL, year_plot = deprecated(), ncol = 4, per1000 = FALSE, thresholds = NULL, intervals = 3, size.title = 0.7, legend.label = NULL, border = "gray20", size = 0.5){
 
+
+
+  if (lifecycle::is_present(year_plot)) {
+      lifecycle::deprecate_soft("2.0.0", "tcpPlot(year_plot)", "tcpPlot(year.plot)")
+      year.plot <- year_plot
+  }
+  
   grp_val <- long <- lat <- group <- NA
 
   if(is(draws, "data.frame") || (is(draws, "list") && !is.null(draws$fit))){
@@ -89,7 +97,7 @@ tcpPlot <- function(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4, per10
             tmp <- c(tmp, draws.plot[[i]]$years)
         }
         timelabel.yearly <- tmp 
-        if(!is.null(year_plot)) timelabel.yearly <- year_plot
+        if(!is.null(year.plot)) timelabel.yearly <- year.plot
         
         n_years <- length(timelabel.yearly)
         
@@ -181,7 +189,7 @@ tcpPlot <- function(draws, geo, by.geo = NULL, year_plot = NULL, ncol = 4, per10
           labeltext <- format(round(labelat, 3), nsmall = 3)
         }
         
-        which.plot <- match(year_plot, timelabel.yearly)
+        which.plot <- match(year.plot, timelabel.yearly)
         n_plot <- length(which.plot)
         map_list <- TCP_list <- vector(mode = "list", length = n_plot)
         toplot <- NULL

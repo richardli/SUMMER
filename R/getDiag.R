@@ -1,11 +1,12 @@
 #' Extract posterior summaries of random effects
 #' 
-#' @param inla_mod output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}
+#' @param fitted output from \code{\link{smoothDirect}} or \code{\link{smoothCluster}}
+#' @param inla_mod `r lifecycle::badge("deprecated")` replaced by \code{fitted}.
 #' @param field which random effects to plot. It can be one of the following: space, time, and spacetime.
 #' @param CI Desired level of credible intervals
 #' @param draws Posterior samples drawn from the fitted model. This argument allows the previously sampled draws (by setting save.draws to be TRUE) be used in new aggregation tasks.  
 #' @param nsim number of simulations, only applicable for the cluster-level model space-time interaction terms when random slopes are included.
-#' @param ... Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year_label, and year_range can still be specified manually.
+#' @param ... Unused arguments, for users with fitted object from the package before v1.0.0, arguments including Amat, year.label, and year.range can still be specified manually.
 #' 
 #' @return List of diagnostic plots
 #' @author Zehang Richard Li
@@ -30,7 +31,7 @@
 #'   #  national model
 #'   years.all <- c(years, "15-19")
 #'   fit1 <- smoothDirect(data = data, geo = DemoMap$geo, Amat = DemoMap$Amat, 
-#'     year_label = years.all, year_range = c(1985, 2019), 
+#'     year.label = years.all, year.range = c(1985, 2019), 
 #'     rw = 2, is.yearly=FALSE, m = 5)
 #' random.time <- getDiag(fit1, field = "time")
 #'   random.space <- getDiag(fit1, field = "space")
@@ -40,21 +41,28 @@
 #' @export
 
 
-getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0.95, draws = NULL, nsim = 1000, ...){
+getDiag <- function(fitted, inla_mod = deprecated(), field = c("space", "time", "spacetime")[1], CI = 0.95, draws = NULL, nsim = 1000, ...){
+
+
+  if (lifecycle::is_present(inla_mod)) {
+      lifecycle::deprecate_soft("2.0.0", "getDiag(inla_mod)", "getDiag(fitted)")
+      fitted <- inla_mod
+  }
+  
 	lower <- (1 - CI) / 2
 	upper <- 1 - lower
-	if(!is.null(inla_mod$year_range)){
-		year_range <- inla_mod$year_range
+	if(!is.null(fitted$year.range)){
+		year.range <- fitted$year.range
 	}else{
-		warning("The fitted object was from an old version of SUMMER, please specify 'year_range' argument when calling getDiag()")
+		warning("The fitted object was from an old version of SUMMER, please specify 'year.range' argument when calling getDiag()")
 	}
-	if(!is.null(inla_mod$year_label)){
-		year_label <- inla_mod$year_label
+	if(!is.null(fitted$year.label)){
+		year.label <- fitted$year.label
 	}else{
-		warning("The fitted object was from an old version of SUMMER, please specify 'year_label' argument when calling getDiag()")
+		warning("The fitted object was from an old version of SUMMER, please specify 'year.label' argument when calling getDiag()")
 	}
-	if(!is.null(inla_mod$has.Amat)){
-        Amat <- inla_mod$Amat
+	if(!is.null(fitted$has.Amat)){
+        Amat <- fitted$Amat
       }else{
         warning("The fitted object was from an old version of SUMMER, please specify 'Amat' argument when calling getDiag()")
       }
@@ -67,29 +75,29 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 		return(quants)
 	}
 
-	is.yearly = inla_mod$is.yearly
-	has.slope <- sum(grepl("slope", rownames(inla_mod$fit$summary.fixed)))
+	is.yearly = fitted$is.yearly
+	has.slope <- sum(grepl("slope", rownames(fitted$fit$summary.fixed)))
 
 	if(field == "time" && has.slope == 0){
-		struct <- inla_mod$fit$marginals.random$time.struct
-		unstruct <- inla_mod$fit$marginals.random$time.unstruct
+		struct <- fitted$fit$marginals.random$time.struct
+		unstruct <- fitted$fit$marginals.random$time.unstruct
 		if(is.yearly){
-		    label <- label.unstruct <- c(year_range[1] : year_range[2], year_label)
+		    label <- label.unstruct <- c(year.range[1] : year.range[2], year.label)
 		  }else{
-		    label <- label.unstruct <- year_label
+		    label <- label.unstruct <- year.label
 		 }
-		if(!is.null(inla_mod$age.rw.group)){
-			group <- rep(inla_mod$age.groups, each = length(label))
-			label <- rep(label, length(inla_mod$age.rw.group))
+		if(!is.null(fitted$age.rw.group)){
+			group <- rep(fitted$age.groups, each = length(label))
+			label <- rep(label, length(fitted$age.rw.group))
 		} 
 		expand <- 1
-		if(!is.null(inla_mod$age.rw.group)) expand <-  max(inla_mod$age.rw.group) / length(inla_mod$age.rw.group) 
-		if(length(struct) != length(label) * expand) stop("The input year_range or year_label does not match the fitted model. Please double check.")
+		if(!is.null(fitted$age.rw.group)) expand <-  max(fitted$age.rw.group) / length(fitted$age.rw.group) 
+		if(length(struct) != length(label) * expand) stop("The input year.range or year.label does not match the fitted model. Please double check.")
 		temp <- getquants(struct, lower = lower, upper = upper)	
 		quants <- NULL
-		if(!is.null(inla_mod$age.rw.group)){
-			for(i in 1:length(inla_mod$age.groups)){
-				where <- (inla_mod$age.rw.group[i] - 1) * length(year_label) + c(1:length(year_label))
+		if(!is.null(fitted$age.rw.group)){
+			for(i in 1:length(fitted$age.groups)){
+				where <- (fitted$age.rw.group[i] - 1) * length(year.label) + c(1:length(year.label))
 				quants <- rbind(quants,  temp[where, ])
 			}
 		}else{
@@ -99,16 +107,16 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 		m <- length(unstruct)
 		quants <- rbind(quants, getquants(unstruct, lower = lower, upper = upper))
 		quants$years <- c(label, label.unstruct)
-		if(!is.null(inla_mod$age.rw.group)){
+		if(!is.null(fitted$age.rw.group)){
 			quants$group <- c(group, rep("IID", m))
 		}
 	  	quants$years.num <- suppressWarnings(as.numeric(as.character(quants$years)))
 		quants$label <- c(rep("Structured", n), rep("IID", m))
-		quants$is.yearly <- !(quants$years %in% year_label)
+		quants$is.yearly <- !(quants$years %in% year.label)
 
 	}else if(field == "time" && has.slope > 0){
 
-		fixed <- rownames(inla_mod$fit$summary.fixed)
+		fixed <- rownames(fitted$fit$summary.fixed)
 		fixed <- fixed[grepl("slope", fixed)]
 		fixed <- c(fixed, "time.struct")
         select <- list()
@@ -118,25 +126,25 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
         }
         if(is.null(draws)){
 	        message("AR1 model diagnostics are still experimental, starting posterior sampling...")
-	        sampAll <- INLA::inla.posterior.sample(n = 1e3, result = inla_mod$fit, intern = TRUE, selection = select, verbose = FALSE)        	
+	        sampAll <- INLA::inla.posterior.sample(n = 1e3, result = fitted$fit, intern = TRUE, selection = select, verbose = FALSE)        	
         }else{
         	sampAll <- draws
         }
 
-	    #inla_mod$fit$marginals.random$time.struct 
+	    #fitted$fit$marginals.random$time.struct 
 	    re <- grep("time.struct", rownames(sampAll[[1]]$latent))
 	    fe <- grep("time.slope.group", rownames(sampAll[[1]]$latent))
 	    fe0 <- grep("time.slope:1", rownames(sampAll[[1]]$latent))
 	    if(length(fe0) > 0){
-	    	fe <- rep(fe0, length(inla_mod$age.rw.group))
+	    	fe <- rep(fe0, length(fitted$age.rw.group))
 	    } 
 
 	    struct.all <- matrix(0, length(re), length(sampAll))
 	    T <- length(re) / length(fe)
 	    xx <- ((1:T) -  (T + 1)/2) / (T + 1)
 	    for(j in 1:length(sampAll)){
-	    	for(k in 1:length(inla_mod$age.rw.group)){
-	    		group.index <- inla_mod$age.rw.group[k]
+	    	for(k in 1:length(fitted$age.rw.group)){
+	    		group.index <- fitted$age.rw.group[k]
 	    		where <- ((group.index-1) * T + 1) :(group.index * T )
 		    	struct.all[where, j] <- sampAll[[j]]$latent[re[where], 1] + sampAll[[j]]$latent[fe[group.index], 1]	* xx    		
 	    	}
@@ -144,25 +152,25 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 	    temp <- data.frame(t(apply(struct.all, 1, stats::quantile, c(lower, 0.5, upper))))
 	    colnames(temp) <- c("lower", "median", "upper")
 	    rownames(temp) <- NULL
-		unstruct <- inla_mod$fit$marginals.random$time.unstruct
+		unstruct <- fitted$fit$marginals.random$time.unstruct
 		if(is.yearly){
-		    label <- label.unstruct <- c(year_range[1] : year_range[2], year_label)
+		    label <- label.unstruct <- c(year.range[1] : year.range[2], year.label)
 		  }else{
-		    label <- label.unstruct <- year_label
+		    label <- label.unstruct <- year.label
 		 }
-		if(!is.null(inla_mod$age.rw.group)){
-			group <- rep(inla_mod$age.groups, each = length(label))
+		if(!is.null(fitted$age.rw.group)){
+			group <- rep(fitted$age.groups, each = length(label))
 			# Now in this version, do not repeat the same effects
-			label <- rep(label, length(inla_mod$age.rw.group))
+			label <- rep(label, length(fitted$age.rw.group))
 		} 
 		expand <- 1
 
-		if(!is.null(inla_mod$age.rw.group)) expand <-  max(inla_mod$age.rw.group) / length(inla_mod$age.rw.group) 
-		if(nrow(temp) != length(label) * expand) stop("The input year_range or year_label does not match the fitted model. Please double check.")
+		if(!is.null(fitted$age.rw.group)) expand <-  max(fitted$age.rw.group) / length(fitted$age.rw.group) 
+		if(nrow(temp) != length(label) * expand) stop("The input year.range or year.label does not match the fitted model. Please double check.")
 		quants <- NULL
-		if(!is.null(inla_mod$age.rw.group)){
-			for(i in 1:length(inla_mod$age.groups)){
-				where <- (inla_mod$age.rw.group[i] - 1) * length(year_label) + c(1:length(year_label))
+		if(!is.null(fitted$age.rw.group)){
+			for(i in 1:length(fitted$age.groups)){
+				where <- (fitted$age.rw.group[i] - 1) * length(year.label) + c(1:length(year.label))
 				quants <- rbind(quants,  temp[where, ])
 			}
 		}else{
@@ -172,22 +180,22 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 		m <- length(unstruct)
 		quants <- rbind(quants, getquants(unstruct, lower = lower, upper = upper))
 		quants$years <- c(label, label.unstruct)
-		if(!is.null(inla_mod$age.rw.group)){
+		if(!is.null(fitted$age.rw.group)){
 			quants$group <- c(group, rep(NA, m))
 		}
 	  	quants$years.num <- suppressWarnings(as.numeric(as.character(quants$years)))
 		quants$label <- c(rep("Structured", n), rep("IID", m))
-		quants$is.yearly <- !(quants$years %in% year_label)
+		quants$is.yearly <- !(quants$years %in% year.label)
 
 	}else if(field == "space"){
 		N <- dim(Amat)[1]
-		if("region.unstruct" %in% names(inla_mod$fit$marginals.random)){
-			struct <- inla_mod$fit$marginals.random$region.struct
-			unstruct <- inla_mod$fit$marginals.random$region.unstruct
+		if("region.unstruct" %in% names(fitted$fit$marginals.random)){
+			struct <- fitted$fit$marginals.random$region.struct
+			unstruct <- fitted$fit$marginals.random$region.unstruct
 			group <- rep(c("Besag", "IID"), each = N)
-		}else if("region.struct" %in% names(inla_mod$fit$marginals.random)){
-			struct <- inla_mod$fit$marginals.random$region.struct[1:N]
-			unstruct <- inla_mod$fit$marginals.random$region.struct[(N+1):(N*2)]	
+		}else if("region.struct" %in% names(fitted$fit$marginals.random)){
+			struct <- fitted$fit$marginals.random$region.struct[1:N]
+			unstruct <- fitted$fit$marginals.random$region.struct[(N+1):(N*2)]	
 			group <- rep(c("Total", "Besag"), each = N)
 		}else{
 			stop("No spatial term used in this model.")
@@ -196,20 +204,20 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 		quants$region <- rep(colnames(Amat), 2)
 		quants$label <- group
 	}else if(field == "spacetime"){
-		if("region.struct" %in% names(inla_mod$fit$marginals.random)){
+		if("region.struct" %in% names(fitted$fit$marginals.random)){
 			N <- dim(Amat)[1]
 		}else{
 			stop("No spatial term used in this model.")
 		}
 		if(is.yearly){
-		    label <- c(year_range[1] : year_range[2], year_label)
+		    label <- c(year.range[1] : year.range[2], year.label)
 		  }else{
-		    label <- year_label
+		    label <- year.label
 		 }
-		has.random.slope <- sum(grepl("slope", names(inla_mod$fit$summary.random)))
+		has.random.slope <- sum(grepl("slope", names(fitted$fit$summary.random)))
 		if(has.random.slope){
 					fixed <- c("st.slope.id", "region.int", "time.area")
-	  	    fixed <- fixed[fixed %in% c(rownames(inla_mod$fit$summary.fixed), names(inla_mod$fit$summary.random))]
+	  	    fixed <- fixed[fixed %in% c(rownames(fitted$fit$summary.fixed), names(fitted$fit$summary.random))]
 	        select <- list()
 	        for(i in 1:length(fixed)){
 	           select[[i]] <- 0
@@ -217,12 +225,12 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 	        }
         	if(is.null(draws)){
 				message("Posterior draws not provided. Start new posterior sampling...")
-	        	sampAll <- INLA::inla.posterior.sample(n = nsim, result = inla_mod$fit, intern = TRUE, selection = select, verbose = FALSE)
+	        	sampAll <- INLA::inla.posterior.sample(n = nsim, result = fitted$fit, intern = TRUE, selection = select, verbose = FALSE)
 	        }else{
 	        	sampAll <- draws
 	        }
 	        fields <- rownames(sampAll[[1]]$latent)        
-			A <- inla_mod$fit$.args$data
+			A <- fitted$fit$.args$data
 	        A <- A[, colnames(A) %in% c(fixed, "time.unstruct", "region.struct")]
 	        A <- unique(A)
 	        AA.loc <- A
@@ -251,22 +259,22 @@ getDiag <- function(inla_mod, field = c("space", "time", "spacetime")[1], CI = 0
 		    quants <- data.frame(quants)
 		    colnames(quants) <- c("lower", "median", "upper")
 
-		}else if("region.int" %in% names(inla_mod$fit$marginals.random)){
+		}else if("region.int" %in% names(fitted$fit$marginals.random)){
 			 group <- rep(colnames(Amat), length(label))
 			 label <- rep(label, each = N)	
-			 struct <- inla_mod$fit$marginals.random$region.int	 	
+			 struct <- fitted$fit$marginals.random$region.int	 	
 		 }else{
-		 	group <- colnames(Amat)[inla_mod$time.area$region_number]	
-		 	label  <- label[inla_mod$time.area$time.unstruct]	
-			struct <- inla_mod$fit$marginals.random$time.area
+		 	group <- colnames(Amat)[fitted$time.area$region_number]	
+		 	label  <- label[fitted$time.area$time.unstruct]	
+			struct <- fitted$fit$marginals.random$time.area
 		 }
 
-		if(!is.null(struct) && length(struct) != length(label)) stop("The input year_range or year_label does not match the fitted model. Please double check.")
+		if(!is.null(struct) && length(struct) != length(label)) stop("The input year.range or year.label does not match the fitted model. Please double check.")
 		if(!is.null(struct)) quants <- getquants(struct, lower = lower, upper = upper) 
 		quants$years <- label
 	  	quants$years.num <- suppressWarnings(as.numeric(as.character(quants$years)))
 		quants$region <- group	
-		quants$is.yearly <- !(quants$years %in% year_label)
+		quants$is.yearly <- !(quants$years %in% year.label)
 
 	}else{
 		stop("The field argument needs to be space, time, or spacetime.")

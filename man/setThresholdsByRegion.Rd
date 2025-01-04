@@ -2,30 +2,29 @@
 % Please edit documentation in R/popGrid.R
 \name{setThresholdsByRegion}
 \alias{setThresholdsByRegion}
-\title{Set thresholds of population density for urbanicity classifications 
-within each region of the given type}
+\title{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}}
 \usage{
-setThresholdsByRegion(popMat, poppr, regionType = "area")
+setThresholdsByRegion(pop.mat, poppr, region.type = "area")
 }
 \arguments{
-\item{popMat}{pixellated population density data frame with variables 
-regionType and `pop`}
+\item{pop.mat}{pixellated population density data frame with variables
+region.type and \code{pop}}
 
-\item{poppr}{A table with population totals by region of the given type 
+\item{poppr}{A table with population totals by region of the given type
 (e.g. poppa or poppsub from \code{\link{makePopIntegrationTab}})}
 
-\item{regionType}{The variable name from poppr giving the region names. 
+\item{region.type}{The variable name from poppr giving the region names.
 Defaults to "area"}
 }
 \value{
 A list of region names and their urbanicity thresholds in population density
 }
 \description{
-Set thresholds of population density for urbanicity classifications 
+Set thresholds of population density for urbanicity classifications
 within each region of the given type
 }
 \details{
-Thresholds are set based on that region's percent population 
+Thresholds are set based on that region's percent population
 urban. Intended as a helper function of \code{\link{makePopIntegrationTab}}.
 }
 \examples{
@@ -43,6 +42,7 @@ if(!file.exists(mapsFilename)) {
 # load it in
 out = load(mapsFilename)
 out
+kenyaMesh <- fmesher::fm_as_fm(kenyaMesh)
 adm1@data$NAME_1 = as.character(adm1@data$NAME_1)
 adm1@data$NAME_1[adm1@data$NAME_1 == "Trans Nzoia"] = "Trans-Nzoia"
 adm1@data$NAME_1[adm1@data$NAME_1 == "Elgeyo-Marakwet"] = "Elgeyo Marakwet"
@@ -81,7 +81,7 @@ temp <- sf::as_Spatial(temp)
 
 tempData = newadm2@data[-unknown8I,]
 tempData = tempData[order(tempData$NAME_2),]
-newadm2 <- SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
+newadm2 <- sp::SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
 adm2 = newadm2
 
 # download 2014 Kenya population density TIF file
@@ -96,25 +96,27 @@ if(!file.exists(popTIFFilename)) {
 # load it in
 pop = terra::rast(popTIFFilename)
 
-eastLim = c(-110.6405, 832.4544)
-northLim = c(-555.1739, 608.7130)
+east.lim = c(-110.6405, 832.4544)
+north.lim = c(-555.1739, 608.7130)
 
 require(fields)
+
+data(kenyaPopulationData)
 
 # Now generate a general population integration table at 5km resolution, 
 # based on subarea (Admin-2) x urban/rural population totals. This takes 
 # ~1 minute
-system.time(popMatKenya <- makePopIntegrationTab(
-  kmRes=5, pop=pop, domainMapDat=adm0,
-  eastLim=eastLim, northLim=northLim, mapProjection=projKenya,
+pop.matKenya <- makePopIntegrationTab(
+  km.res=5, pop=pop, domain.map.dat=adm0,
+  east.lim=east.lim, north.lim=north.lim, map.projection=projKenya,
   poppa = poppaKenya, poppsub=poppsubKenya, 
-  areaMapDat = adm1, subareaMapDat = adm2,
-  areaNameVar = "NAME_1", subareaNameVar="NAME_2"))
+  area.map.dat = adm1, subarea.map.dat = adm2,
+  areaNameVar = "NAME_1", subareaNameVar="NAME_2")
 
-out = setThresholdsByRegion(popMatKenya, poppaKenya)
+out = setThresholdsByRegion(pop.matKenya, poppaKenya)
 out
 
-out = setThresholdsByRegion(popMatKenya, poppsubKenya, regionType="subarea")
+out = setThresholdsByRegion(pop.matKenya, poppsubKenya, region.type="subarea")
 out
 }
 

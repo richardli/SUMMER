@@ -5,13 +5,35 @@
 
 SAE Unit/area Models and Methods for Estimation in R
 
-### Overview
+## Overview
 
 **SUMMER** is an R package providing an extensive collection of space-time smoothing and small area estimation methods for prevalence estimation using complex survey data, with a special focus on Demographic Health Surveys (DHS) data, and the estimation of child mortality using full birth history data. The package also provides a collection of plotting functions to visualize the estimates in space and time.
 
 
+## Where do I start?
 
-### Citation
++ Interested in small area estimation models for binary indicators? Start with [Generic small area estimation]().
++ Interested in child mortality estimation?
+  +  For a reproducible example with simulated data, start with [Estimating Subnational U5MR using Simulated Data]().
+  +  For a reproducible example with DHS data (data access required), start with [Case Study: Estimating Subnational U5MR using DHS data]().
+  +  For more technical details of the statistical models, start with [Space-Time Smoothing of Demographic and Health Indicators using the R Package SUMMER](https://arxiv.org/abs/2007.05117).
+  +  For more tips on customizing the model structure, start with [Specifying cluster-level model in SUMMER for mortality estimation]().
++ Interested in full pipeline analyzing DHS data for more indicators? Start with [surveyPrev package](https://github.com/richardli/surveyPrev).
+
+
+## Roadmap of SUMMER workflow
+
+The diagram below illustrates three commonly used workflows of the SUMMER package. Rounded blocks represent data types and rectangular blocks represent functions in the SUMMER package. Output estimates are highlighted in the boxes with red borders. 
+
+<img src="man/figures/Workflow.png" align="center" width="800" />
+
++ The dotted yellow arrows represent the workflow using `smoothSurvey()` to estimate the prevalence of a generic binary indicator. 
++ The black solid arrows represent the workflow using `smoothDirect()` to perform area-level smoothing of mortality rates. 
++ The blue solid arrows represent the workflow using `smoothCluster()` to perform cluster-level smoothing of mortality rates.
+
+
+
+## Citation
 
 To cite the SUMMER package in publications use
 ```
@@ -24,6 +46,15 @@ To cite the SUMMER package in publications use
 ```
 
 To cite specific version of the SUMMER package use
++ v2.0.0 
+```
+  @Manual{summer2025,
+    title = {SUMMER: Spatio-Temporal Under-Five Mortality Methods for Estimation},
+    author = {Zehang R Li and Bryan D Martin and Yuan Hsiao and Jessica Godwin and John Paige and Peter Gao and Jon Wakefield and Samuel J Clark and Geir-Arne Fuglstad and Andrea Riebler},
+    year = {2025},
+    note = {R package version 2.0.0},
+  }
+```
 + v1.0.0 
 ```
   @Manual{summer2020,

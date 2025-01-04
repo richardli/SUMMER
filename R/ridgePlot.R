@@ -5,8 +5,10 @@
 #' @param x output from \code{\link{smoothDirect}} for the smoothed direct estimates, or \code{\link{smoothCluster}} for the cluster-level estimates.
 #' @param nsim number of posterior draws to take. Only used for cluster-level models when \code{draws} is NULL. Otherwise the posterior draws in \code{draws} will be used instead without resampling.
 #' @param draws Output of \code{\link{getSmoothed}} with \code{save.draws} set to TRUE. This argument allows the previously sampled draws (by setting \code{save.draws} to be TRUE) be used in new aggregation tasks. This argument is only used for cluster-level models.   
-#' @param year_plot A vector indicate which years to plot
-#' @param strata_plot Name of the strata to plot. If not specified, the overall is plotted.
+#' @param year.plot A vector indicate which years to plot
+#' @param year_plot `r lifecycle::badge("deprecated")` replaced by year.plot
+#' @param strata.plot Name of the strata to plot. If not specified, the overall is plotted.
+#' @param strata_plot `r lifecycle::badge("deprecated")` replaced by strata.plot
 #' @param by.year logical indicator for whether the output uses years as facets. 
 #' @param ncol number of columns in the output figure.
 #' @param scale numerical value controlling the height of the density plots.
@@ -42,32 +44,32 @@
 #' #  national model
 #' years.all <- c(years, "15-19")
 #' fit1 <- smoothDirect(data = data, geo = NULL, Amat = NULL, 
-#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   year.label = years.all, year.range = c(1985, 2019), 
 #'   rw = 2, m = 5)
 #' ## Plot marginal posterior densities over time
-#' ridgePlot(fit1, year_plot = years.all, 
+#' ridgePlot(fit1, year.plot = years.all, 
 #'           ncol = 4, by.year = FALSE)
 #' 
 #' #  subnational model
 #' fit2 <- smoothDirect(data = data, geo = DemoMap$geo, Amat = DemoMap$Amat, 
-#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   year.label = years.all, year.range = c(1985, 2019), 
 #'   rw = 2, m = 5, type.st = 1)
 #' 
 ##' # Plot marginal posterior densities over time (regions are ordered alphabetically)
-#' ridgePlot(fit2, year_plot = years.all, ncol = 4)
+#' ridgePlot(fit2, year.plot = years.all, ncol = 4)
 #' 
 ##' # Re-order the regions and save the density to avoid re-compute later
-#' density <- ridgePlot(fit2, year_plot = years.all,
+#' density <- ridgePlot(fit2, year.plot = years.all,
 #'  ncol = 4, per1000 = TRUE, order = -1, save.density = TRUE)
 #' density$g
 #' 
 #' # Show each region (instead of each year) in a panel 
 #' ## Instead of recalculate the posteriors, we can use previously calculated densities as input 
-#' ridgePlot(results = density, year_plot = years.all, 
+#' ridgePlot(results = density, year.plot = years.all, 
 #' ncol = 4, by.year=FALSE, per1000 = TRUE)
 #' 
 #' # Show more years
-#' ridgePlot(results = density, year_plot = c(1990:2019), 
+#' ridgePlot(results = density, year.plot = c(1990:2019), 
 #' ncol = 4, by.year=FALSE, per1000 = TRUE)
 #'
 #' 
@@ -96,8 +98,17 @@
 #' 
 
 #' @export
-ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strata_plot = NULL, by.year = TRUE, ncol = 4, scale = 2, per1000 = FALSE, order = 0, direction = 1, linewidth = 0.5, results = NULL, save.density = FALSE, ...){
+ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year.plot = NULL, year_plot = deprecated(), strata.plot = NULL, strata_plot = deprecated(), by.year = TRUE, ncol = 4, scale = 2, per1000 = FALSE, order = 0, direction = 1, linewidth = 0.5, results = NULL, save.density = FALSE, ...){
 
+
+      if (lifecycle::is_present(year_plot)) {
+          lifecycle::deprecate_soft("2.0.0", "ridgePlot(year_plot)", "ridgePlot(year.plot)")
+          year.plot <- year_plot
+      }
+      if (lifecycle::is_present(strata_plot)) {
+          lifecycle::deprecate_soft("2.0.0", "ridgePlot(strata_plot)", "ridgePlot(strata.plot)")
+          strata.plot <- strata_plot
+      }
       years <-  y <- `..x..` <- region <- value <- region.name <- admin2.name.short <- NA
 
       # FOR SURVEYPREV INPUT
@@ -225,7 +236,7 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strat
             stop("Posterior draws not found. Please rerun getSmoothed() with save.draws = TRUE.")
           }
           tmp <- NULL
-          if(is.null(strata_plot)){
+          if(is.null(strata.plot)){
             draws.plot <- x$draws.est.overall
           }else{
              draws.plot <- NULL
@@ -243,9 +254,9 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strat
             if(draws.plot[[i]]$years %in% tmp) next
             tmp <- c(tmp, draws.plot[[i]]$years)
           }
-          year_label <- tmp 
+          year.label <- tmp 
         
-          timelabel.yearly <- year_label
+          timelabel.yearly <- year.label
           results <- NULL
 
           for(i in 1:length(timelabel.yearly)){
@@ -284,11 +295,11 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strat
         }else{
           is.density <- TRUE
           is.yearly = x$is.yearly
-          year_label <- x$year_label
+          year.label <- x$year.label
           if(is.yearly){
-            timelabel.yearly <- c(x$year_range[1] : x$year_range[2], year_label)
+            timelabel.yearly <- c(x$year.range[1] : x$year.range[2], year.label)
           }else{
-            timelabel.yearly <- year_label
+            timelabel.yearly <- year.label
           }
 
           names <- expand.grid(area = region_nums, time = timelabel.yearly)
@@ -305,7 +316,7 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strat
                 results <- rbind(results, tmp)
             }
           }
-          results$is.yearly <- !(results$years %in% year_label)
+          results$is.yearly <- !(results$years %in% year.label)
           results$years.num <- suppressWarnings(as.numeric(as.character(results$years)))  
           if(region_names[1] != "All"){
             results$region <- region_names[results$region]
@@ -331,30 +342,30 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strat
 
       results.plot <- results
       if(per1000) results.plot$x <- 1000 * results.plot$x
-      if(is.null(year_plot)){
-        year_plot <- year_label 
+      if(is.null(year.plot)){
+        year.plot <- year.label 
       }
       # plot calculated density
       if(by.year && is.density){
-         g <- ggplot2::ggplot(subset(results.plot, years %in% year_plot), ggplot2::aes(x = x, y = region, height = y, fill = ..x..)) 
+         g <- ggplot2::ggplot(subset(results.plot, years %in% year.plot), ggplot2::aes(x = x, y = region, height = y, fill = ..x..)) 
       }else if(is.density){
          results.plot$years <- factor(results.plot$years, levels = rev(timelabel.yearly))
-         g <- ggplot2::ggplot(subset(results.plot, years %in% year_plot), ggplot2::aes(x = x, y = years, height = y, fill = ..x..)) 
+         g <- ggplot2::ggplot(subset(results.plot, years %in% year.plot), ggplot2::aes(x = x, y = years, height = y, fill = ..x..)) 
       }
       if(is.density) g <- g + ggridges::geom_density_ridges_gradient(stat="identity", alpha = 0.5, linewidth = linewidth) 
 
       # plot draws
       if(by.year && !is.density){
-        g <- ggplot2::ggplot(subset(results.plot, years %in% year_plot), ggplot2::aes(x = x, y = region)) 
+        g <- ggplot2::ggplot(subset(results.plot, years %in% year.plot), ggplot2::aes(x = x, y = region)) 
       }else if(!is.density){
         results.plot$years <- factor(results.plot$years, levels = rev(timelabel.yearly))
-        g <- ggplot2::ggplot(subset(results.plot, years %in% year_plot), ggplot2::aes(x = x, y = years)) 
+        g <- ggplot2::ggplot(subset(results.plot, years %in% year.plot), ggplot2::aes(x = x, y = years)) 
       }
       if(!is.density) g <- g + ggridges::geom_density_ridges_gradient(ggplot2::aes(fill = ..x..), scale = scale, alpha = 0.5, linewidth = linewidth)
 
       g <- g + ggplot2::scale_fill_viridis_c(option = "D", direction = direction) + ggplot2::theme_bw()  + ggplot2::ylab("") + ggplot2::theme(legend.position = 'none') + ggplot2::xlab("")
       if(by.year){
-        if(length(year_plot) > 1) g <- g + ggplot2::facet_wrap(~years, ncol = ncol)
+        if(length(year.plot) > 1) g <- g + ggplot2::facet_wrap(~years, ncol = ncol)
       }else{
         if(length(region_names) > 1) g <- g + ggplot2::facet_wrap(~region, ncol = ncol)
       }
@@ -368,9 +379,3 @@ ridgePlot <- function(x=NULL, nsim = 1000, draws = NULL, year_plot = NULL, strat
   }
 
 }
-
-
-
-#' @export
-#' @rdname ridgePlot
-getSmoothedDensity <- ridgePlot

@@ -24,7 +24,7 @@ smoothArea(
 )
 }
 \arguments{
-\item{formula}{An object of class 'formula' describing the model to be fitted. 
+\item{formula}{An object of class 'formula' describing the model to be fitted.
 If direct.est is specified, the right hand side of the formula is not necessary.}
 
 \item{domain}{One-sided formula specifying factors containing domain labels}

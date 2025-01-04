@@ -26,7 +26,7 @@
 #'   
 #'   years.all <- c(years, "15-19")
 #'   fit <- smoothDirect(data = data, Amat = NULL, 
-#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   year.label = years.all, year.range = c(1985, 2019), 
 #'   time.model = 'rw2', is.yearly=FALSE, m = 5)
 #'   summary(fit)
 #' 
@@ -52,7 +52,7 @@
 #'      strata.time.effect =  TRUE, 
 #'      survey.effect = TRUE,
 #'      family = "betabinomial",
-#'      year_label = c(periods, "15-19"))
+#'      year.label = c(periods, "15-19"))
 #'   summary(fit) 
 #' }
 #' @export 
@@ -119,7 +119,7 @@ summary.SUMMERmodel <- function(object,...){
 #'   
 #'   years.all <- c(years, "15-19")
 #'   fit <- smoothDirect(data = data, Amat = NULL, 
-#'   year_label = years.all, year_range = c(1985, 2019), 
+#'   year.label = years.all, year.range = c(1985, 2019), 
 #'   time.model = 'rw2', is.yearly=FALSE, m = 5)
 #'   fit
 #' 
@@ -145,7 +145,7 @@ summary.SUMMERmodel <- function(object,...){
 #'      strata.time.effect =  TRUE, 
 #'      survey.effect = TRUE,
 #'      family = "betabinomial",
-#'      year_label = c(periods, "15-19"))
+#'      year.label = c(periods, "15-19"))
 #'   fit
 #' }
 #' @export 
@@ -194,7 +194,7 @@ print.SUMMERmodel <- function(x,...){
 #'     strata.time.effect =  TRUE, 
 #'     survey.effect = TRUE,
 #'     family = "betabinomial",
-#'     year_label = c(periods, "15-19"))
+#'     year.label = c(periods, "15-19"))
 #'  summary(fit)
 #'  est <- getSmoothed(fit, nsim = 1000)
 #' }
@@ -242,7 +242,7 @@ summary.SUMMERprojlist <- function(object, ...){
 #'     strata.time.effect =  TRUE, 
 #'     survey.effect = TRUE,
 #'     family = "betabinomial",
-#'     year_label = c(periods, "15-19"))
+#'     year.label = c(periods, "15-19"))
 #'  summary(fit)
 #'  est <- getSmoothed(fit, nsim = 1000)
 #' }
@@ -348,10 +348,10 @@ print.SUMMERmodel.svy <- function(x,...){
 	cat(x$msg)  
 	cat("\n\n$formula\n")
 	print(paste(as.character(x$formula)[c(2,1,3)], collapse = " "))
-	if(!is.null(x$HT)){
+	if(!is.null(x$direct)){
 		cat("----------------------------------\n")
-		cat("$HT\n")
-		print(head(x$HT))
+		cat("$direct\n")
+		print(head(x$direct))
 		cat("...\n")
 	}
 	if(!is.null(x$smooth)){

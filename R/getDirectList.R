@@ -9,7 +9,7 @@
 #' @param weightsVar Variable name for sampling weights, typically 'v005'
 #' @param clusterVar Variable name for the IDs in the second-stage cluster sampling, typically '~v001 + v002', i.e., the cluster number and household number. When no cluster sampling design exists, this variable usually is the household ID.
 #' @param Ntrials Variable for the total number of person-months if the input data (births) is in the compact form.
-#' @param geo.recode The recode matrix to be used if region name is not consistent across different surveys. See \code{\link{ChangeRegion}}.
+#' @param geo.recode The recode matrix to be used if region name is not consistent across different surveys. See \code{changeRegion}.
 #' @param national.only Logical indicator to obtain only the national estimates
 #'
 #' @return This is the extension to the \code{\link{getDirect}} function that returns estimates from multiple surveys. Additional columns in the output (survey and surveyYears) specify the estimates from different surveys.

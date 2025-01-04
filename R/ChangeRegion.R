@@ -19,10 +19,11 @@
 #' print(Bmat)
 #' 
 #' # New data after transformation
-#' test <- ChangeRegion(testdata, Bmat, "region")
+#' test <- changeRegion(testdata, Bmat, "region")
 #' print(test)
 #' @export
-ChangeRegion <- function(data, Bmat, regionVar = "region") {
+#' 
+changeRegion <- function(data, Bmat, regionVar = "region") {
     final_names <- colnames(Bmat)
     current_names <- rownames(Bmat)
     nc <- length(current_names)

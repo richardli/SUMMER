@@ -8,8 +8,8 @@ simSPDE(
   coords,
   nsim = 1,
   mesh,
-  effRange = (max(coords[, 1]) - min(coords[, 1]))/3,
-  margVar = 1,
+  eff.range = (max(coords[, 1]) - min(coords[, 1]))/3,
+  marg.var = 1,
   inla.seed = 0L
 )
 }
@@ -20,16 +20,18 @@ simSPDE(
 
 \item{mesh}{SPDE mesh}
 
-\item{effRange}{effective spatial range}
+\item{eff.range}{effective spatial range}
 
-\item{margVar}{marginal variance of the spatial process}
+\item{marg.var}{marginal variance of the spatial process}
 
-\item{inla.seed}{seed input to inla.qsample. 0L sets seed intelligently, 
-> 0 sets a specific seed, < 0 keeps existing RNG}
+\item{inla.seed}{seed input to inla.qsample. 0L sets seed intelligently, positive value sets a specific seed, negative value keeps existing RNG}
 }
 \description{
-Generates nCoords x nsim matrix of simulated 
+Generates nCoords x nsim matrix of simulated
 values of the SPDE spatial process
+}
+\details{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 }
 \examples{
 \dontrun{
@@ -38,7 +40,7 @@ require(INLA)
 coords = matrix(runif(10*2), ncol=2)
 mesh = inla.mesh.2d(loc.domain=cbind(c(0, 0, 1, 1), c(0, 1, 0, 1)), 
   n=3000, max.n=5000, max.edge=c(.01, .05), offset=-.1)
-simVals = simSPDE(coords, nsim=1, mesh, effRange=.2, inla.seed=1L)
+simVals = simSPDE(coords, nsim=1, mesh, eff.range=.2, inla.seed=1L)
 }
 
 }

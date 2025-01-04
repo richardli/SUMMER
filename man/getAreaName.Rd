@@ -10,7 +10,7 @@ getAreaName(
   areaNameVar = "NAME_1",
   delta = 0.05,
   mean.neighbor = 50,
-  maxBytes = 3 * 2^30
+  max.bytes = 3 * 2^30
 )
 }
 \arguments{
@@ -18,30 +18,32 @@ getAreaName(
 
 \item{shapefile}{A SpatialPolygonsDataFrame object}
 
-\item{areaNameVar}{The column name in \code{slot(shapefile, "data")} 
+\item{areaNameVar}{The column name in \code{slot(shapefile, "data")}
 corresponding to the area level of interest}
 
 \item{delta}{Argument passed to fields::fields.rdist.near in fields package}
 
-\item{mean.neighbor}{Argument passed to fields::fields.rdist.near in fields 
+\item{mean.neighbor}{Argument passed to fields::fields.rdist.near in fields
 package}
 
-\item{maxBytes}{Maximum allowed memory in bytes (default is 3Gb). Determines 
-whether to call fields::fields.rdist.near which saves memory but requires 
+\item{max.bytes}{Maximum allowed memory in bytes (default is 3Gb). Determines
+whether to call fields::fields.rdist.near which saves memory but requires
 delta and mean.neighbor inputs to be specified for fields::fields.rdist.near}
 }
 \value{
-A list of area IDs, area names, whether or not 
-points are in multiple areas, and whether or not points 
+A list of area IDs, area names, whether or not
+points are in multiple areas, and whether or not points
 are in no areas and assigned to the nearest one.
 }
 \description{
-For any points not in an area, they are assigned the nearest area using 
-fields::fields.rdist.near or fields::rdist depending on the number of points 
-and the maximum memory in bytes with a warning.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 }
 \details{
-delta and mean.neighbor arguments only used when some points 
+For any points not in an area, they are assigned the nearest area using
+fields::fields.rdist.near or fields::rdist depending on the number of points
+and the maximum memory in bytes with a warning.
+
+delta and mean.neighbor arguments only used when some points
 are not in areas, perhaps due to inconsistencies in shapefiles.
 }
 \examples{

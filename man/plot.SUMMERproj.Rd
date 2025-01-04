@@ -6,15 +6,18 @@
 \usage{
 \method{plot}{SUMMERproj}(
   x,
-  year_label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"),
-  year_med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017),
+  year.label = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19"),
+  year_label = deprecated(),
+  year.med = c(1987, 1992, 1997, 2002, 2007, 2012, 2017),
+  year_med = deprecated(),
   is.subnational = TRUE,
-  proj_year = 2015,
+  year.proj = 2015,
+  proj_year = deprecated(),
   data.add = NULL,
   option.add = list(point = NULL, lower = NULL, upper = NULL, by = NULL),
   color.add = "black",
   label.add = NULL,
-  dodge.width = 1,
+  dodge.width = 0.5,
   plot.CI = NULL,
   per1000 = FALSE,
   color.CI = NULL,
@@ -25,13 +28,19 @@
 \arguments{
 \item{x}{output from \code{\link{getSmoothed}}}
 
-\item{year_label}{labels for the periods}
+\item{year.label}{labels for the periods}
 
-\item{year_med}{labels for the middle years in each period, only used when both yearly and period estimates are plotted. In that case, \code{year_med} specifies where each period estimates are aligned.}
+\item{year_label}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} replaced by year.label}
+
+\item{year.med}{labels for the middle years in each period, only used when both yearly and period estimates are plotted. In that case, \code{year.med} specifies where each period estimates are aligned.}
+
+\item{year_med}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} replaced by year.med}
 
 \item{is.subnational}{logical indicator of whether the data contains subnational estimates}
 
-\item{proj_year}{the first year where projections are made, i.e., where no data are available.}
+\item{year.proj}{the first year where projections are made, i.e., where no data are available.}
+
+\item{proj_year}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} replaced by year.proj}
 
 \item{data.add}{data frame for the Comparisons data points to add to the graph. This can be, for example, the raw direct estimates. This data frame is merged to the projections by column 'region' and 'years'. Except for these two columns, this dataset should not have Comparisons columns with names overlapping the getSmoothed output.}
 
@@ -41,7 +50,7 @@
 
 \item{label.add}{the label of the Comparisons data points in the legend.}
 
-\item{dodge.width}{the amount to add to data points at the same year to avoid overlap. Default to be 1.}
+\item{dodge.width}{the amount to add to data points at the same year to avoid overlap. Default to be 0.5.}
 
 \item{plot.CI}{logical indicator of whether to plot the error bars.}
 
@@ -76,14 +85,14 @@ data <- aggregateSurvey(data_multi)
 #  national model
 years.all <- c(years, "15-19")
 fit1 <- smoothDirect(data = data, geo = NULL, Amat = NULL, 
-  year_label = years.all, year_range = c(1985, 2019), 
+  year.label = years.all, year.range = c(1985, 2019), 
   rw = 2, is.yearly=FALSE, m = 5)
 out1 <- getSmoothed(fit1)
 plot(out1, is.subnational=FALSE)
 
 #  subnational model
 fit2 <- smoothDirect(data = data, geo = geo, Amat = mat, 
-  year_label = years.all, year_range = c(1985, 2019), 
+  year.label = years.all, year.range = c(1985, 2019), 
   rw = 2, is.yearly=TRUE, m = 5, type.st = 4)
 out2 <- getSmoothed(fit2)
 plot(out2, is.yearly=TRUE, is.subnational=TRUE)

@@ -8,7 +8,8 @@ tcpPlot(
   draws,
   geo,
   by.geo = NULL,
-  year_plot = NULL,
+  year.plot = NULL,
+  year_plot = deprecated(),
   ncol = 4,
   per1000 = FALSE,
   thresholds = NULL,
@@ -26,7 +27,9 @@ tcpPlot(
 
 \item{by.geo}{variable name specifying region names in geo}
 
-\item{year_plot}{vector of year string vector to be plotted.}
+\item{year.plot}{vector of year string vector to be plotted.}
+
+\item{year_plot}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} replaced by year.plot}
 
 \item{ncol}{number of columns in the output figure.}
 
@@ -76,10 +79,10 @@ fit <- smoothCluster(data = counts.all,
       strata.time.effect =  TRUE, 
       survey.effect = TRUE,
       family = "betabinomial",
-      year_label = c(periods, "15-19"))
+      year.label = c(periods, "15-19"))
 est <- getSmoothed(fit, nsim = 1000, save.draws=TRUE)
 
-tcp <- tcpPlot(est, DemoMap$geo, by.geo = "REGNAME", interval = 3, year_plot = periods) 
+tcp <- tcpPlot(est, DemoMap$geo, by.geo = "REGNAME", interval = 3, year.plot = periods) 
 tcp$g
 }
 

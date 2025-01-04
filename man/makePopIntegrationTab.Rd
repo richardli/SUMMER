@@ -7,195 +7,198 @@
 \title{Generating pixellated populations, and population frames}
 \usage{
 makePopIntegrationTab(
-  kmRes = 5,
+  km.res = 5,
   pop,
-  domainMapDat,
-  eastLim,
-  northLim,
-  mapProjection,
-  areaMapDat,
-  subareaMapDat,
+  domain.map.dat,
+  east.lim,
+  north.lim,
+  map.projection,
+  area.map.dat,
+  subarea.map.dat,
   areaNameVar = "NAME_1",
   subareaNameVar = "NAME_2",
   poppa = NULL,
   poppsub = NULL,
-  stratifyByUrban = TRUE,
+  stratify.by.urban = TRUE,
   areapa = NULL,
   areapsub = NULL,
-  customSubsetPolygons = NULL,
-  areaPolygonSubsetI = NULL,
-  subareaPolygonSubsetI = NULL,
+  custom.subset.polygons = NULL,
+  area.polygon.subset.I = NULL,
+  subarea.polygon.subset.I = NULL,
   mean.neighbor = 50,
   delta = 0.1,
-  returnPoppTables = FALSE,
-  setNAsToZero = TRUE,
-  fixZeroPopDensitySubareas = FALSE,
-  extractMethod = "bilinear"
+  return.popp.tables = FALSE,
+  set.na.to.zero = TRUE,
+  fix.zero.pop.density.subareas = FALSE,
+  extract.method = "bilinear"
 )
 
 getPoppsub(
-  kmRes = 1,
+  km.res = 1,
   pop,
-  domainMapDat,
-  eastLim,
-  northLim,
-  mapProjection,
+  domain.map.dat,
+  east.lim,
+  north.lim,
+  map.projection,
   poppa,
   areapa = NULL,
   areapsub,
-  subareaMapDat,
+  subarea.map.dat,
   subareaNameVar = "NAME_2",
-  stratifyByUrban = TRUE,
-  areaMapDat = NULL,
+  stratify.by.urban = TRUE,
+  area.map.dat = NULL,
   areaNameVar = "NAME_1",
-  areaPolygonSubsetI = NULL,
-  subareaPolygonSubsetI = NULL,
-  customSubsetPolygons = NULL,
+  area.polygon.subset.I = NULL,
+  subarea.polygon.subset.I = NULL,
+  custom.subset.polygons = NULL,
   mean.neighbor = 50,
   delta = 0.1,
-  setNAsToZero = TRUE,
-  fixZeroPopDensitySubareas = FALSE
+  set.na.to.zero = TRUE,
+  fix.zero.pop.density.subareas = FALSE
 )
 
 adjustPopMat(
-  popMat,
-  poppaTarget = NULL,
-  adjustBy = c("area", "subarea"),
-  stratifyByUrban = TRUE
+  pop.mat,
+  poppa.target = NULL,
+  adjust.by = c("area", "subarea"),
+  stratify.by.urban = TRUE
 )
 }
 \arguments{
-\item{kmRes}{The resolution of the pixelated grid in km}
+\item{km.res}{The resolution of the pixelated grid in km}
 
 \item{pop}{Population density raster}
 
-\item{domainMapDat}{A shapefile representing the full spatial domain (e.g. country)}
+\item{domain.map.dat}{A shapefile representing the full spatial domain (e.g. country)}
 
-\item{eastLim}{Range in km easting over the spatial domain under the input projection}
+\item{east.lim}{Range in km easting over the spatial domain under the input projection}
 
-\item{northLim}{Range in km northing over the spatial domain under the input projection}
+\item{north.lim}{Range in km northing over the spatial domain under the input projection}
 
-\item{mapProjection}{A projection function taking longitude and latitude and returning easting and 
-northing in km. Or the inverse if inverse is set to TRUE. For example, 
-\code{\link{projKenya}}. Check https://epsg.io/ for example for best projection EPSG codes 
+\item{map.projection}{A projection function taking longitude and latitude and returning easting and
+northing in km. Or the inverse if inverse is set to TRUE. For example,
+\code{\link{projKenya}}. Check https://epsg.io/ for example for best projection EPSG codes
 for specific countries}
 
-\item{areaMapDat}{SpatialPolygonsDataFrame object with area level map information}
+\item{area.map.dat}{SpatialPolygonsDataFrame object with area level map information}
 
-\item{subareaMapDat}{SpatialPolygonsDataFrame object with subarea level map information}
+\item{subarea.map.dat}{SpatialPolygonsDataFrame object with subarea level map information}
 
-\item{areaNameVar}{The name of the area variable associated with \code{areaMapDat@data} 
-and \code{subareaMapDat@data}}
+\item{areaNameVar}{The name of the area variable associated with \code{area.map.dat@data}
+and \code{subarea.map.dat@data}}
 
-\item{subareaNameVar}{The name of the subarea variable associated with \code{subareaMapDat@data}}
+\item{subareaNameVar}{The name of the subarea variable associated with \code{subarea.map.dat@data}}
 
-\item{poppa}{data.frame of population per area separated by urban/rural. If `poppsub` 
-  is not included, this is used for normalization of populations associated with 
-  population integration points. Contains variables:
+\item{poppa}{data.frame of population per area separated by urban/rural. If \code{poppsub}
+is not included, this is used for normalization of populations associated with
+population integration points. Contains variables:
 \describe{
-  \item{area}{name of area}
-  \item{popUrb}{total urban (general) population of area}
-  \item{popRur}{total rural (general) population of area}
-  \item{popTotal}{total (general) population of area}
-  \item{pctUrb}{percentage of population in the area that is urban (between 0 and 100)}
+\item{area}{name of area}
+\item{popUrb}{total urban (general) population of area}
+\item{popRur}{total rural (general) population of area}
+\item{popTotal}{total (general) population of area}
+\item{pctUrb}{percentage of population in the area that is urban (between 0 and 100)}
 }}
 
-\item{poppsub}{data.frame of population per subarea separated by 
-urban/rural using for population normalization or urbanicity 
-classification. Often based on extra fine scale population density grid. 
+\item{poppsub}{data.frame of population per subarea separated by
+urban/rural using for population normalization or urbanicity
+classification. Often based on extra fine scale population density grid.
 Has variables:
 \describe{
-  \item{subarea}{name of subarea}
-  \item{area}{name of area}
-  \item{popUrb}{total urban (general) population of subarea}
-  \item{popRur}{total rural (general) population of subarea}
-  \item{popTotal}{total (general) population of subarea}
-  \item{pctUrb}{percentage of population in the subarea that is urban (between 0 and 100)}
+\item{subarea}{name of subarea}
+\item{area}{name of area}
+\item{popUrb}{total urban (general) population of subarea}
+\item{popRur}{total rural (general) population of subarea}
+\item{popTotal}{total (general) population of subarea}
+\item{pctUrb}{percentage of population in the subarea that is urban (between 0 and 100)}
 }}
 
-\item{stratifyByUrban}{Whether to stratify the pixellated grid by urban/rural. If TRUE, 
+\item{stratify.by.urban}{Whether to stratify the pixellated grid by urban/rural. If TRUE,
 renormalizes population densities within areas or subareas crossed with urban/rural}
 
 \item{areapa}{A list with variables:
 \describe{
-  \item{area}{name of area}
-  \item{spatialArea}{spatial area of the subarea (e.g. in km^2)}
+\item{area}{name of area}
+\item{spatialArea}{spatial area of the subarea (e.g. in km^2)}
 }}
 
 \item{areapsub}{A list with variables:
 \describe{
-  \item{subarea}{name of subarea}
-  \item{spatialArea}{spatial area of the subarea (e.g. in km^2)}
+\item{subarea}{name of subarea}
+\item{spatialArea}{spatial area of the subarea (e.g. in km^2)}
 }}
 
-\item{customSubsetPolygons}{'SpatialPolygonsDataFrame' or 'SpatialPolygons' object to subset 
-the grid over. This option can help reduce computation time relative to 
-constructing the whole grid and subsetting afterwards. `areaPolygonSubsetI` or 
-`subareaPolygonSubsetI` can be used when subsetting by areas or subareas in 
-`areaMapDat` or `subareaMapDat`. Must be in latitude/longitude projection "EPSG:4326"}
+\item{custom.subset.polygons}{'SpatialPolygonsDataFrame' or 'SpatialPolygons' object to subset
+the grid over. This option can help reduce computation time relative to
+constructing the whole grid and subsetting afterwards. \code{area.polygon.subset.I} or
+\code{subarea.polygon.subset.I} can be used when subsetting by areas or subareas in
+\code{area.map.dat} or \code{subarea.map.dat}. Must be in latitude/longitude projection "EPSG:4326"}
 
-\item{areaPolygonSubsetI}{Index in areaMapDat for a specific area to subset the grid over. This 
-option can help reduce computation time relative to constructing the whole grid 
+\item{area.polygon.subset.I}{Index in area.map.dat for a specific area to subset the grid over. This
+option can help reduce computation time relative to constructing the whole grid
 and subsetting afterwards}
 
-\item{subareaPolygonSubsetI}{FOR EXPERIMENTAL PURPOSES ONLY. Index in subareaMapDat for a 
-specific area to subset the grid over. This 
-option can help reduce computation time relative to constructing the whole grid 
+\item{subarea.polygon.subset.I}{FOR EXPERIMENTAL PURPOSES ONLY. Index in subarea.map.dat for a
+specific area to subset the grid over. This
+option can help reduce computation time relative to constructing the whole grid
 and subsetting afterwards}
 
-\item{mean.neighbor}{For determining what area or subarea points are nearest to if they do not 
+\item{mean.neighbor}{For determining what area or subarea points are nearest to if they do not
 directly fall into an area. See \code{\link[fields]{fields.rdist.near}} for details.}
 
-\item{delta}{For determining what area or subarea points are nearest to if they do not 
+\item{delta}{For determining what area or subarea points are nearest to if they do not
 directly fall into an area. See \code{\link[fields]{fields.rdist.near}} for details.}
 
-\item{returnPoppTables}{If TRUE, poppa and poppsub will be calculated based on the generated 
+\item{return.popp.tables}{If TRUE, poppa and poppsub will be calculated based on the generated
 population integration matrix and input area/subarea map data}
 
-\item{setNAsToZero}{If TRUE, sets NA populations to 0.}
+\item{set.na.to.zero}{If TRUE, sets NA populations to 0.}
 
-\item{fixZeroPopDensitySubareas}{If TRUE, if population density in a subarea is estimated to be 
-zero, but the total population in the subarea is nonzero, population is filled into the 
+\item{fix.zero.pop.density.subareas}{If TRUE, if population density in a subarea is estimated to be
+zero, but the total population in the subarea is nonzero, population is filled into the
 area uniformly}
 
-\item{extractMethod}{Either 'bilinear' or 'simple'. see `method` from 
+\item{extract.method}{Either 'bilinear' or 'simple'. see \code{method} from
 \code{\link[terra]{extract}}}
 
-\item{popMat}{Pixellated grid data frame with variables `area` and `pop` such as that 
+\item{pop.mat}{Pixellated grid data frame with variables \code{area} and \code{pop} such as that
 generated by \code{\link{makePopIntegrationTab}}}
 
-\item{poppaTarget}{Target population per area stratified by urban rural. Same format as poppa}
+\item{poppa.target}{Target population per area stratified by urban rural. Same format as poppa}
 
-\item{adjustBy}{Whether to adjust population density by the `area` or `subarea` level}
+\item{adjust.by}{Whether to adjust population density by the \code{area} or \code{subarea} level}
 }
 \description{
-Functions for generating pixellated population information and 
-population frames at the `area` and `subarea` levels.  
-The `area` and `subarea` levels can be thought of as big 
-regions and little regions, where areas can be partitioned into 
-unique sets of subareas. For example, Admin-1 and Admin-2 
-areas might be areas and subareas respectively. The population totals are either 
-tabulated at the area x urban/rural level, the subarea x urban/rural 
-level, or at the pixel level of a specified resolution. Totals 
-are calculated using population density information, shapefiles, 
-and, possibly, preexisting population frames at different 
-areal levels. Note that area names should each be unique, and similarly for 
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+}
+\details{
+Functions for generating pixellated population information and
+population frames at the \code{area} and \code{subarea} levels.
+The \code{area} and \code{subarea} levels can be thought of as big
+regions and little regions, where areas can be partitioned into
+unique sets of subareas. For example, Admin-1 and Admin-2
+areas might be areas and subareas respectively. The population totals are either
+tabulated at the area x urban/rural level, the subarea x urban/rural
+level, or at the pixel level of a specified resolution. Totals
+are calculated using population density information, shapefiles,
+and, possibly, preexisting population frames at different
+areal levels. Note that area names should each be unique, and similarly for
 subarea names.
 }
 \section{Functions}{
 \itemize{
-\item \code{makePopIntegrationTab()}: Generate pixellated `grid` of coordinates (both longitude/latitude and east/north) 
-over spatial domain of the given resolution with associated population totals, areas, subareas, 
-and urban/rural levels. For very small areas that might not 
-otherwise have a grid point in them, a custom integration point is added at their 
-centroid. Sets urbanicity classifications by thresholding input population density raster 
-using area and subarea population tables, and generates area and subarea population 
-tables from population density information if not already given. Can be used for integrating 
+\item \code{makePopIntegrationTab()}: Generate pixellated \code{grid} of coordinates (both longitude/latitude and east/north)
+over spatial domain of the given resolution with associated population totals, areas, subareas,
+and urban/rural levels. For very small areas that might not
+otherwise have a grid point in them, a custom integration point is added at their
+centroid. Sets urbanicity classifications by thresholding input population density raster
+using area and subarea population tables, and generates area and subarea population
+tables from population density information if not already given. Can be used for integrating
 predictions from the given coordinates to area and subarea levels using population weights.
 
 \item \code{getPoppsub()}: Generate table of estimates of population
 totals per subarea x urban/rural combination based on population density
-raster at `kmres` resolution "grid", including custom integration points
+raster at \code{kmres} resolution "grid", including custom integration points
 for any subarea too small to include grid points at their centroids.
 
 \item \code{adjustPopMat()}: Adjust population densities in grid based on a population frame.
@@ -255,7 +258,7 @@ temp <- sf::as_Spatial(temp)
 
 tempData = newadm2@data[-unknown8I,]
 tempData = tempData[order(tempData$NAME_2),]
-newadm2 <- SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
+newadm2 <- sp::SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
 adm2 = newadm2
 
 # download 2014 Kenya population density TIF file
@@ -270,8 +273,8 @@ if(!file.exists(popTIFFilename)) {
 # load it in
 pop = terra::rast(popTIFFilename)
 
-eastLim = c(-110.6405, 832.4544)
-northLim = c(-555.1739, 608.7130)
+east.lim = c(-110.6405, 832.4544)
+north.lim = c(-555.1739, 608.7130)
 
 ## Construct poppsubKenya, a table of urban/rural general population totals 
 ## in each subarea. Technically, this is not necessary since we can load in 
@@ -308,28 +311,32 @@ areapsubKenya = data.frame(area=adm2proj@data$NAME_1, subarea=adm2proj@data$NAME
 # each area matches poppaKenya.
 require(fields)
 # NOTE: the following function will typically take ~15-20 minutes. Can speed up 
-#       by setting kmRes to be higher, but we recommend fine resolution for 
-#       this step, since it only needs to be done once. Instead of running this, 
+#       by setting km.res to be higher, but we recommend fine resolution for 
+#       this step, since it only needs to be done once. Instead of running 
+#       the code in the following if(FALSE) section, 
 #       you can simply run data(kenyaPopulationData)
-system.time(poppsubKenya <- getPoppsub(
-  kmRes=1, pop=pop, domainMapDat=adm0,
-  eastLim=eastLim, northLim=northLim, mapProjection=projKenya,
-  poppa = poppaKenya, areapa=areapaKenya, areapsub=areapsubKenya, 
-  areaMapDat=adm1, subareaMapDat=adm2, 
-  areaNameVar = "NAME_1", subareaNameVar="NAME_2"))
+if(FALSE){
+  system.time(poppsubKenya <- getPoppsub(
+    km.res=1, pop=pop, domain.map.dat=adm0,
+    east.lim=east.lim, north.lim=north.lim, map.projection=projKenya,
+    poppa = poppaKenya, areapa=areapaKenya, areapsub=areapsubKenya, 
+    area.map.dat=adm1, subarea.map.dat=adm2, 
+    areaNameVar = "NAME_1", subareaNameVar="NAME_2"))
+}
+data(kenyaPopulationData)
 
 # Now generate a general population integration table at 5km resolution, 
 # based on subarea (Admin-2) x urban/rural population totals. This takes 
 # ~1 minute
-system.time(popMatKenya <- makePopIntegrationTab(
-  kmRes=5, pop=pop, domainMapDat=adm0,
-  eastLim=eastLim, northLim=northLim, mapProjection=projKenya,
+system.time(pop.matKenya <- makePopIntegrationTab(
+  km.res=5, pop=pop, domain.map.dat=adm0,
+  east.lim=east.lim, north.lim=north.lim, map.projection=projKenya,
   poppa = poppaKenya, poppsub=poppsubKenya, 
-  areaMapDat = adm1, subareaMapDat = adm2,
+  area.map.dat = adm1, subarea.map.dat = adm2,
   areaNameVar = "NAME_1", subareaNameVar="NAME_2"))
 
-## Adjust popMat to be target (neonatal) rather than general population density. First
-## creat the target population frame
+## Adjust pop.mat to be target (neonatal) rather than general population density. First
+## create the target population frame
 ## (these numbers are based on IPUMS microcensus data)
 mothersPerHouseholdUrb = 0.3497151
 childrenPerMotherUrb = 1.295917
@@ -347,12 +354,12 @@ easpaKenyaNeonatal$pctTotal =
 
 # Generate the target population density by scaling the current population density grid 
 # at the Admin1 x urban/rural level
-popMatKenyaNeonatal = adjustPopMat(popMatKenya, easpaKenyaNeonatal)
+pop.matKenyaNeonatal = adjustPopMat(pop.matKenya, easpaKenyaNeonatal)
 
 # Generate neonatal population table from the neonatal population integration matrix.
 # This is technically not necessary for population simulation purposes, but is here 
 # for illustrative purposes
-poppsubKenyaNeonatal = poppRegionFromPopMat(popMatKenyaNeonatal, popMatKenyaNeonatal$subarea)
+poppsubKenyaNeonatal = poppRegionFromPopMat(pop.matKenyaNeonatal, pop.matKenyaNeonatal$subarea)
 poppsubKenyaNeonatal = cbind(subarea=poppsubKenyaNeonatal$region, 
                              area=adm2@data$NAME_1[match(poppsubKenyaNeonatal$region, 
                                adm2@data$NAME_2)], 

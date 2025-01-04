@@ -8,10 +8,10 @@
 #' @param logit the column name for the logit of the unadjusted mortality rates in the data 
 #' @param logit.var the column name for the variance of the logit of the unadjusted mortality rates in the data
 #' @param logit.prec the column name for the precision of the logit of the unadjusted mortality rates in the data
-#' @param logit.lower the column name for the 95\% lower bound of the logit of the unadjusted mortality rates in the data
-#' @param logit.upper the column name for the 95\% lower bound of the logit of the unadjusted mortality rates in the data
-#' @param prob.lower the column name for the 95\% lower bound of the unadjusted mortality rates in the data. If this is provided instead of logit.lower, the logit scale lower bound will be created.
-#' @param prob.upper the column name for the 95\% lower bound of the unadjusted mortality rates in the data. if this is provided instead of logit.upper, the logit scale upper bound will be created.
+#' @param logit.lower the column name for the 95% lower bound of the logit of the unadjusted mortality rates in the data
+#' @param logit.upper the column name for the 95% lower bound of the logit of the unadjusted mortality rates in the data
+#' @param prob.lower the column name for the 95% lower bound of the unadjusted mortality rates in the data. If this is provided instead of logit.lower, the logit scale lower bound will be created.
+#' @param prob.upper the column name for the 95% lower bound of the unadjusted mortality rates in the data. if this is provided instead of logit.upper, the logit scale upper bound will be created.
 #' @param adj the column name for the adjustment ratio
 #' @param lower previous argument name for prob.lower. Will be removed in the next update
 #' @param upper previous argument name for prob.upper. Will be removed in the next update

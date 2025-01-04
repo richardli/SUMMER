@@ -2,16 +2,16 @@
 % Please edit documentation in R/logitNormMean.R
 \name{logitNormMean}
 \alias{logitNormMean}
-\title{Calculate the mean of a distribution whose 
+\title{Calculate the mean of a distribution whose
 logit is Gaussian}
 \usage{
 logitNormMean(muSigmaMat, logisticApprox = FALSE, ...)
 }
 \arguments{
-\item{muSigmaMat}{An n x 2 matrix where each row is \eqn{\mu}{mu} and \eqn{\sigma}{sigma} 
+\item{muSigmaMat}{An n x 2 matrix where each row is \eqn{\mu}{mu} and \eqn{\sigma}{sigma}
 on the logit scale for an independent random variable.}
 
-\item{logisticApprox}{Whether or not to use logistic approximation to speed 
+\item{logisticApprox}{Whether or not to use logistic approximation to speed
 up computation. See details for more information.}
 
 \item{...}{More arguments, passed to \code{integrate} function}
@@ -20,18 +20,18 @@ up computation. See details for more information.}
 A vector of expectations of the specified random variables
 }
 \description{
-Adapted from logitnorm package.  Calculates the mean of a distribution whose 
-logit is Gaussian. Each row of muSigmaMat is a mean and standard deviation 
+Adapted from logitnorm package.  Calculates the mean of a distribution whose
+logit is Gaussian. Each row of muSigmaMat is a mean and standard deviation
 on the logit scale.
 }
 \details{
-If \eqn{\mbox{logit}(Y) \sim N(\mu, \sigma^2)}{logit(Y) ~ N(mu, sigma^2)}, 
-This function calculates \eqn{E[Y]}{E[Y]} via either numerical integration or by 
-assuming that Y follows a logistic distribution. Under this approximation, setting 
-\eqn{k = 16 \sqrt(3) / (15 \pi)}{k = 16 * sqrt(3) / (15 * pi)}, we approximate 
+If \eqn{\mbox{logit}(Y) \sim N(\mu, \sigma^2)}{logit(Y) ~ N(mu, sigma^2)},
+This function calculates \eqn{E[Y]}{E[Y]} via either numerical integration or by
+assuming that Y follows a logistic distribution. Under this approximation, setting
+\eqn{k = 16 \sqrt{3} / (15 \pi)}{k = 16 * sqrt(3) / (15 * pi)}, we approximate
 the expectation as:
-\deqn{E[Y] = expit(\mu / \sqrt(1 + k^2 \sigma^2))}{E[Y] = expit(mu / sqrt(1 + k^2 * sigma^2))}.
-The above logistic approximation speeds up the computation, but also sacrifices 
+\deqn{E[Y] = expit(\mu / \sqrt{1 + k^2 \sigma^2})}{E[Y] = expit(mu / sqrt(1 + k^2 * sigma^2)}
+The above logistic approximation speeds up the computation, but also sacrifices
 some accuracy.
 }
 \examples{
