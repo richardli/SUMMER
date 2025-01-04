@@ -29,28 +29,62 @@ jobs:
       R_KEEP_PKG_SOURCE: yes
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - uses: r-lib/actions/setup-pandoc@v1
+      - uses: r-lib/actions/setup-pandoc@v2
 
-      - name:  Installing GDAL and PROJ in macOS
-        if: runner.os == 'macOS'
-        run:  brew install gdal proj    
-        shell: bash
 
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
+          extra-repositories: 'https://inla.r-inla-download.org/R/stable'
+
+      - name: Install system dependencies on MacOS (X11, gdal)
+        if: runner.os == 'macOS'
+        run: |
+          brew install --cask xquartz
+          brew install pkg-config
+          brew install proj@9
+          brew install gdal
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          dependencies: '"all"'
+          extra-packages: |
+             rcmdcheck
+             remotes
+             stars
+             starsdata=?ignore
+
+      - name: Fix temporary out-of-sync binary packages
+        run: |
+          install.packages("MatrixModels", repos = "https://cloud.r-project.org", type = "source")
+        shell: Rscript {0}
+
 
       - name: Add inla repo
         run: |
           writeLines('options(repos = c(INLA = "https://inla.r-inla-download.org/R/stable/", getOption(\"repos\")))', file("~/.Rprofile", "ab"))
         shell: Rscript {0}
 
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: any::rcmdcheck
+      - name: Limit INLA version to 24.05.10 on old R version
+        run: |
+          if (getRversion() < "4.4.0") {
+            remotes::install_version("INLA", version = "24.05.10", repos = "https://inla.r-inla-download.org/R/stable")
+          }
+        shell: Rscript {0}
+
+      - name: Session info
+        run: |
+          options(width = 100)
+          pkgs <- installed.packages()[, "Package"]
+          sessioninfo::session_info(pkgs, include_base = TRUE)
+        shell: Rscript {0}
 
       - uses: r-lib/actions/check-r-package@v2
+        env:
+          _R_CHECK_CRAN_INCOMING_REMOTE_: false
+        with:
+          args: 'c("--no-manual", "--as-cran")'
