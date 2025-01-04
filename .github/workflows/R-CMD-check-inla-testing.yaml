@@ -42,12 +42,12 @@ jobs:
           extra-repositories: 'https://inla.r-inla-download.org/R/testing'
 
       - name: Install system dependencies on MacOS (X11, gdal)
-              if: runner.os == 'macOS'
-              run: |
-                brew install --cask xquartz
-                brew install pkg-config
-                brew install proj@9
-                brew install gdal
+        if: runner.os == 'macOS'
+        run: |
+          brew install --cask xquartz
+          brew install pkg-config
+          brew install proj@9
+          brew install gdal
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
