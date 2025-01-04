@@ -63,7 +63,7 @@
                         <h4 data-toc-skip class="author">Zehang Richard
 Li</h4>
             
-            <h4 data-toc-skip class="date">2025-01-03</h4>
+            <h4 data-toc-skip class="date">2025-01-04</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/richardli/SUMMER/blob/master/vignettes/articles/web_only/cluster-model-vignette.Rmd" class="external-link"><code>vignettes/articles/web_only/cluster-model-vignette.Rmd</code></a></small>
       <div class="d-none name"><code>cluster-model-vignette.Rmd</code></div>
@@ -244,19 +244,6 @@ mapping
 is specified in <code>age.time.group</code> argument.</p>
 </div>
 <div class="section level3">
-<h3 id="unstructured-temporal-effect">Unstructured temporal effect<a class="anchor" aria-label="anchor" href="#unstructured-temporal-effect"></a>
-</h3>
-<p>The
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\epsilon_t</annotation></semantics></math>
-are unstructured temporal effects that allow for perturbations over
-time. It is a contextual choice whether they are used in predictions. By
-default, when applying <code><a href="../../reference/getSmoothed.html">getSmoothed()</a></code> to a fitted
-cluster-level model,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\epsilon_t</annotation></semantics></math>
-are not included in the predictions. They can be included by specifying
-<code>include.time.unstruct = TRUE</code>.</p>
-</div>
-<div class="section level3">
 <h3 id="survey-fixed-effect">Survey fixed effect<a class="anchor" aria-label="anchor" href="#survey-fixed-effect"></a>
 </h3>
 <p>We include a survey fixed effect
@@ -274,7 +261,20 @@ we ignore any survey-specific difference, we can remove the
 term by setting <code>survey.effect = FALSE</code>.</p>
 </div>
 <div class="section level3">
-<h3 id="temporal-main-effect">Temporal main effect<a class="anchor" aria-label="anchor" href="#temporal-main-effect"></a>
+<h3 id="unstructured-temporal-effect">Unstructured temporal effect<a class="anchor" aria-label="anchor" href="#unstructured-temporal-effect"></a>
+</h3>
+<p>The
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\epsilon_t</annotation></semantics></math>
+are unstructured temporal effects that allow for perturbations over
+time. It is a contextual choice whether they are used in predictions. By
+default, when applying <code><a href="../../reference/getSmoothed.html">getSmoothed()</a></code> to a fitted
+cluster-level model,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ϵ</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\epsilon_t</annotation></semantics></math>
+are not included in the predictions. They can be included by specifying
+<code>include.time.unstruct = TRUE</code>.</p>
+</div>
+<div class="section level3">
+<h3 id="structured-temporal-effect">Structured temporal effect<a class="anchor" aria-label="anchor" href="#structured-temporal-effect"></a>
 </h3>
 <p>The temporal main effects are specified for urban and rural stratum
 seperately with
@@ -382,7 +382,7 @@ rural time series.</p>
 <pre><code><span><span class="co">## [1] 42</span></span></code></pre>
 </div>
 <div class="section level4">
-<h4 id="including-linear-trend">Including linear trend<a class="anchor" aria-label="anchor" href="#including-linear-trend"></a>
+<h4 id="linear-trend">Linear trend<a class="anchor" aria-label="anchor" href="#linear-trend"></a>
 </h4>
 <p>As mentioned before, for RW1 and AR1 model, by default we include an
 additional linear trend by default, so that
@@ -448,7 +448,7 @@ by setting <code>linear.trend = FALSE</code></p>
 <span><span class="co">## [11] "age.intercept36-47:urban" "age.intercept48-59:urban"</span></span></code></pre>
 </div>
 <div class="section level4">
-<h4 id="linear-trend">Linear trend<a class="anchor" aria-label="anchor" href="#linear-trend"></a>
+<h4 id="shared-linear-trend">Shared Linear trend<a class="anchor" aria-label="anchor" href="#shared-linear-trend"></a>
 </h4>
 <p>We can also enforce shared linear trends across all age groups,
 though this is usually too strong an assumption, i.e.,
@@ -492,9 +492,10 @@ slope correspond to which age-stratum pairs, we can inspect the
 <span><span class="co">## $time.slope.group6</span></span>
 <span><span class="co">## [1] "12-23:urban" "24-35:urban" "36-47:urban" "48-59:urban"</span></span></code></pre>
 </div>
-<div class="section level4">
-<h4 id="spatial-effects">Spatial effects<a class="anchor" aria-label="anchor" href="#spatial-effects"></a>
-</h4>
+</div>
+<div class="section level3">
+<h3 id="spatial-effects">Spatial effects<a class="anchor" aria-label="anchor" href="#spatial-effects"></a>
+</h3>
 <p>The spatial effects are assumed to be shared across all age groups
 and strata. The
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mrow><mi>i</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>s</mi><mi>c</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow></msub><mo>+</mo><msub><mi>e</mi><mrow><mi>i</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>s</mi><mi>c</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow></msub></mrow><annotation encoding="application/x-tex">S_{i[s_c]} + e_{i[s_c]}</annotation></semantics></math>
@@ -502,9 +503,9 @@ terms correspond to the sum of a structured spatial effect and an
 unstructured effect for each area. It is parameterized with a BYM2 model
 described in <span class="citation">Riebler et al. (2016)</span>.</p>
 </div>
-<div class="section level4">
-<h4 id="space-time-interaction">Space-time interaction<a class="anchor" aria-label="anchor" href="#space-time-interaction"></a>
-</h4>
+<div class="section level3">
+<h3 id="space-time-interaction-effects">Space-time interaction effects<a class="anchor" aria-label="anchor" href="#space-time-interaction-effects"></a>
+</h3>
 <p>The space-time interaction term
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>δ</mi><mrow><mi>i</mi><mi>t</mi></mrow></msub><annotation encoding="application/x-tex">\delta_{it}</annotation></semantics></math>
 are modelled with the type I to IV interactions of the chosen temporal
@@ -542,16 +543,16 @@ to be a second order random walk.</p>
 <code class="sourceCode R"><span><span class="va">fit6</span><span class="op">$</span><span class="va">fit</span><span class="op">$</span><span class="va">summary.random</span><span class="op">$</span><span class="va">st.slope.id</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">##   ID   mean   sd</span></span>
 <span><span class="co">## 1  1  0.051 0.30</span></span>
-<span><span class="co">## 2  2  0.115 0.31</span></span>
-<span><span class="co">## 3  3  0.123 0.32</span></span>
-<span><span class="co">## 4  4 -0.290 0.34</span></span></code></pre>
+<span><span class="co">## 2  2  0.113 0.30</span></span>
+<span><span class="co">## 3  3  0.120 0.31</span></span>
+<span><span class="co">## 4  4 -0.284 0.33</span></span></code></pre>
 </div>
-<div class="section level4">
-<h4 id="hyperpriors">Hyperpriors<a class="anchor" aria-label="anchor" href="#hyperpriors"></a>
-</h4>
+<div class="section level3">
+<h3 id="hyperpriors">Hyperpriors<a class="anchor" aria-label="anchor" href="#hyperpriors"></a>
+</h3>
 <p>By default, all hyperpriors are assumed to be PC priors. The
-hyperprior arguments start with <code>pc.xxx</code>.</p>
-</div>
+hyperprior arguments start with <code>pc.</code>. Their definition can
+be easily found in the help file.</p>
 </div>
 <div class="section level3 unnumbered">
 <h3 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
