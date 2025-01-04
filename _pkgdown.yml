@@ -22,6 +22,8 @@ navbar:
         href: articles/web_only/u5mr-vignette.html
       - text: Estimating Subnational U5MR using DHS Data
         href: articles/web_only/u5mr-dhs-vignette.html
+      - text: Specifying cluster-level model for mortality estimation
+        href: articles/web_only/cluster-model-vignette.html
 pkgdown:
   as_is: yes
 reference:

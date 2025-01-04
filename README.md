@@ -10,6 +10,17 @@ SAE Unit/area Models and Methods for Estimation in R
 **SUMMER** is an R package providing an extensive collection of space-time smoothing and small area estimation methods for prevalence estimation using complex survey data, with a special focus on Demographic Health Surveys (DHS) data, and the estimation of child mortality using full birth history data. The package also provides a collection of plotting functions to visualize the estimates in space and time.
 
 
+## Roadmap for functions
+
+
+Commonly used Wworkflow of the SUMMER package. Rounded blocks represent data types and rectangular blocks represent functions in the SUMMER package. Output estimates are highlighted in the boxes with red borders. 
++ The dotted yellow arrows represent the workflow using `smoothSurvey` to estimate prevalence of a generic binary indicator using general survey data. 
++ The black solid arrows represent the workflow using `smoothDirect()` to perform area-level smoothing of mortality rates. 
++ The blue solid arrows represent the workflow using `smoothCluster()` to perform cluster-level smoothing of mortality rates.
+
+<img src="man/figures/Workflow.png" align="center" width="600" />
+
+
 
 ### Citation
 

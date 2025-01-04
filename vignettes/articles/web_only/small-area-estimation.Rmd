@@ -1,7 +1,7 @@
 ---
 title: "Generic small area estimation"
 author: "Peter Gao and Jon Wakefield"
-date: "2024-02-29"
+date: "2025-01-03"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Generic small area estimation}
@@ -17,7 +17,7 @@ In this vignette, we illustrate the use of the `smoothArea` and `smoothUnit` fun
 First, we load the necessary packages and data. The required package `INLA` is not available via a standard repository, so we include code for installation if it is not found. The `survey` package will be used to generate direct estimates, while `dplyr` and `tidyr` will be used for data manipulation.
 
 
-```r
+``` r
 library(sae)
 library(SUMMER)
 library(survey)
@@ -38,7 +38,7 @@ if (!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
 In their vignette for the `sae` package, @molina2015 generate an artificial dataset on income and other related variables to illustrate the use of area level models. In this example, the objective is to estimate prevalence of poverty in Spanish counties.
 
 
-```r
+``` r
 data("incomedata")
 data("sizeprov")
 data("sizeprovedu")
@@ -59,7 +59,7 @@ $$
 where $N_i$ is the population size of domain $i$, $S_i$ is the set of sampled observations in domain $i$, $w_{j}$ is the sampling weight for unit $j$, and $y_{j}$ is the observation for unit $j$, for all $j \in S_i$. The `sae::direct` function also estimates standard deviation and coefficient of variation for each domain. Note that $N_i$ is assumed known and is provided in the data frame `sizeprov`. The domains of interest are identified via the `provlab` variable.
 
 
-```r
+``` r
 Popn <- sizeprov[, c("provlab", "Nd")]
 sae.DIR <- sae::direct(y = incomedata$in_poverty, dom = incomedata$provlab,
                        sweight = incomedata$weight, domsize = Popn) |>
@@ -71,7 +71,7 @@ sae.DIR <- sae::direct(y = incomedata$in_poverty, dom = incomedata$provlab,
 We can similarly use the `survey::svyby` function to compute the Horvitz-Thompson estimates:
 
 
-```r
+``` r
 incomedata$pop <- sum(sizeprov$Nd[match(incomedata$provlab, sizeprov$provlab)])
 design <- survey::svydesign(ids = ~1, weights = ~weight,
                             data = incomedata, fpc = ~pop)
@@ -111,7 +111,7 @@ where $\sigma_u^2$ (between-area residual variance) is estimated. In this basic 
 Below, we provide a quantile-quantile plot comparing the direct estimates to a Gaussian distribution. Here the observed quantiles align well with those from a Gaussian distribution, which lends some support to the basic IID model.
 
 
-```r
+``` r
 par(pty = "s")
 mu.DIR <- mean(sae.DIR$Direct)
 sd.DIR <- sd(sae.DIR$Direct)
@@ -126,7 +126,7 @@ abline(0, 1, col = "red")
 As described by @molina2015, the `sae::mseFH` function fits the basic area level model (via REML by default) and calculates the empirical best linear unbiased predictors (EBLUP) for all domain means as well as their estimated MSEs. 
 
 
-```r
+``` r
 sae.FH <- sae::mseFH(sae.DIR$Direct~1, sae.DIR$SD^2)
 sae.FH.table <- data.frame(
   Domain = sae.DIR$Domain,
@@ -164,7 +164,7 @@ Other optional arguments can be specified to change the priors and are described
 For the artificial poverty rate example, we fit the Fay-Herriot model and obtain the following smoothed estimates.
 
 
-```r
+``` r
 # specify known domain sizes
 domain.size <- sizeprov[, c("provlab", "Nd")]
 colnames(domain.size)[2] <- "size"
@@ -186,12 +186,12 @@ summer.FH.table <- data.frame(
 )
 head(summer.FH.table)
 ##     Domain     Median         SE
-## 1    Alava 0.23449184 0.03704801
-## 2 Albacete 0.15383656 0.02760217
-## 3 Alicante 0.20385758 0.02104621
-## 4  Almeria 0.24485689 0.03331238
-## 5    Avila 0.07516739 0.02379961
-## 6  Badajoz 0.20959769 0.02128758
+## 1    Alava 0.23442357 0.04263200
+## 2 Albacete 0.15176438 0.02634074
+## 3 Alicante 0.20456059 0.01990948
+## 4  Almeria 0.24298231 0.03275375
+## 5    Avila 0.07570625 0.02445050
+## 6  Badajoz 0.20733347 0.02237689
 ```
 
 
@@ -200,7 +200,7 @@ The fitted parameters from `sae` (obtained via likelihood-based methods) and est
 We first illustrate the shrinkage of the EBLUP estimates, and the reduced uncertainty:
 
 
-```r
+``` r
 par(mfrow = c(1, 2))
 plot(sae.DIR$Direct, sae.FH$est$eblup,
      xlab = "Direct estimates",ylab = "sae package",
@@ -221,7 +221,7 @@ abline(0,1,col="red")
 Now compare EBLUP and HB, using posterior variance from `SUMMER` and estimated MSE from `sae` to measure uncertainty:
 
 
-```r
+``` r
 par(mfrow = c(1, 2))
 plot(sae.FH$est$eblup, summer.FH$iid.model.est$median,
      xlab = "sae package",ylab = "SUMMER package",
@@ -255,7 +255,7 @@ The `sae::mseSFH` function estimates the unknown variance parameters, the result
 To illustrate the use of this function, @molina2015 consider a synthetic dataset concerning grape production surface area for 274 Italian municipalities. Below we load the relevant objects from the `sae` package. The `grapes` dataset containes direct estimators of the mean surface area in hectares for grape production in each municipality (`grapehect`), the sampling variance of these direct estimators (`var`), and relevant covariates including number of working dats and overall agrarian surface area. The `grapesprox` object contains the relevant adjacency matrix representing the municipalities' neighborhood structure.
 
 
-```r
+``` r
 data("grapes")
 data("grapesprox")
 ```
@@ -263,7 +263,7 @@ data("grapesprox")
 #### Results using `sae`
 
 
-```r
+``` r
 sae.FH.grapes <- sae::mseSFH(grapehect ~ area + workdays - 1, var, grapesprox, data = grapes)
 
 results <- data.frame(DIR = grapes$grapehect,
@@ -278,143 +278,54 @@ results$area_name <- paste0('area_', rownames(results))
 The `smoothArea` function also allows the use of a model with spatially correlated area effects, but the default implementation assumes a BYM2 model for $\textbf{u}$ rather than a simultaneous autoregressive model as in the SFH model implemented in `sae`.
 
 
-```r
+``` r
 # create area_name as SUMMER requires rownames of adj.mat to match area variable
 grapes$area_name <- paste0('area_', rownames(grapes))
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'grapes' not found
-```
-
-```r
 adj.mat.grapes <- as.matrix(grapesprox)
-```
-
-```
-## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'as.matrix': object 'grapesprox' not found
-```
-
-```r
 rownames(adj.mat.grapes) <- colnames(adj.mat.grapes) <- grapes$area_name
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'grapes' not found
-```
-
-```r
 X_grapes <- grapes[,c('area_name', 'area', 'workdays')]
-```
 
-```
-## Error in eval(expr, envir, enclos): object 'grapes' not found
-```
-
-```r
 # format direct estimates for SUMMER
 grapes.dir <- grapes[, c(5, 1, 4)]
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'grapes' not found
-```
-
-```r
 # scale direct estimates for use with INLA
 grapes.dir$grapehect <- grapes.dir$grapehect / 10
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'grapes.dir' not found
-```
-
-```r
 grapes.dir$var <- grapes.dir$var/ 100
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'grapes.dir' not found
-```
-
-```r
 summer.FH.grapes <- smoothArea(formula = grapehect~area + workdays, 
                                direct.est = grapes.dir, X.domain = X_grapes,
                                domain = ~area_name, adj.mat = adj.mat.grapes)
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'grapes.dir' not found
-```
-
-```r
 plot_list <- plot(summer.FH.grapes, return_list = T)
-```
-
-```
-## Error in h(simpleError(msg, call)): error in evaluating the argument 'x' in selecting a method for function 'plot': object 'summer.FH.grapes' not found
 ```
 
 
 Despite the differing models, we again observe good agreement with the estimates, though less so with the estimates of uncertainty.
 
 
-```r
+``` r
 summer.bym2.est <- 
   summer.FH.grapes$bym2.model.est[match(rownames(adj.mat.grapes), summer.FH.grapes$bym2.model.est$domain),]
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'summer.FH.grapes' not found
-```
-
-```r
 par(mfrow = c(1, 2))
 plot(results$eblup.SFH,
      summer.bym2.est$median * 10,  
      xlab = "sae package",
      ylab = "SUMMER package",
      main = "Small area estimates")
-```
-
-```
-## Error in h(simpleError(msg, call)): error in evaluating the argument 'y' in selecting a method for function 'plot': object 'summer.bym2.est' not found
-```
-
-```r
 abline(0, 1, col = 'red')
-```
-
-```
-## Error in int_abline(a = a, b = b, h = h, v = v, untf = untf, ...): plot.new has not been called yet
-```
-
-```r
 plot(results$mse,
      summer.bym2.est$var * 100,  
      xlab = "sae package mse",
      ylab = "SUMMER package model variance",
      main = "Estimates of mse/variance")
-```
-
-```
-## Error in h(simpleError(msg, call)): error in evaluating the argument 'y' in selecting a method for function 'plot': object 'summer.bym2.est' not found
-```
-
-```r
 abline(0, 1, col = 'red')
 ```
 
-```
-## Error in int_abline(a = a, b = b, h = h, v = v, untf = untf, ...): plot.new has not been called yet
-```
+<img src="figure/grape.comp-1.png" width="100%" />
 
 ### BRFSS Data
 
 Below, we provide an example comparing spatial models from ```sae``` and ```SUMMER``` using data from the Behavioral Risk Factor Surveillance System (BRFSS).
 
 
-```r
+``` r
 library(ggplot2)
 library(patchwork)
 data(BRFSS)
@@ -444,6 +355,10 @@ head(BRFSS)
 ## 5       0     0       NA  98102       0    1    4      1
 ## 6       0     0       NA  98106       0    3    4      1
 mat <- getAmat(KingCounty, KingCounty$HRA2010v2_)
+## Warning in spdep::poly2nb(geo, queen = F, row.names = names): some observations have no neighbours;
+## if this seems unexpected, try increasing the snap argument.
+## Warning in spdep::poly2nb(geo, queen = F, row.names = names): neighbour object has 2 sub-graphs;
+## if this sub-graph count seems unexpected, try increasing the snap argument.
 design <- svydesign(ids = ~1, weights = ~rwt_llcp,
                     strata = ~strata, data = BRFSS)
 direct <- svyby(~diab2, ~hracode, design, svymean)
@@ -454,7 +369,7 @@ direct <- svyby(~diab2, ~hracode, design, svymean)
 Below, we use `sae` to smooth the logit-transformed direct estimates.
 
 
-```r
+``` r
 direct$var <- direct$se ^ 2
 direct$logit.diab2 <- SUMMER::logit(direct$diab2)
 direct$logit.var <- direct$var / (direct$diab2 ^ 2 * (1 - direct$diab2) ^ 2)
@@ -470,7 +385,7 @@ results <- data.frame(domain = direct$hracode,
 Below, we fit two versions of the spatial area levelmodel in `SUMMER`. If we change ```pc.u``` and ```pc.alpha``` from the default value $u=1,\alpha=0.01$ to $u=0.1,\alpha=0.01$, we assign more prior mass on smaller variance of the random effects, inducing more smoothing.
 
 
-```r
+``` r
 summer.brfss <- smoothArea(diab2~1, domain= ~hracode,
                            design = design,
                            transform = "logit",
@@ -485,7 +400,7 @@ summer.brfss.alt <- smoothArea(diab2~1, domain= ~hracode,
 Finally, we use `SUMMER::mapPlot` to compare median estimates and uncertainty estimates obtained via `sae` and `SUMMER`.
 
 
-```r
+``` r
 toplot <-  summer.brfss$bym2.model.est
 toplot$logit.var <- toplot$var / 
   (summer.brfss$bym2.model.est$median ^ 2 * 
@@ -508,7 +423,7 @@ mapPlot(data = toplot, geo = KingCounty,
 
 <img src="figure/brfss.comp-1.png" width="100%" />
 
-```r
+``` r
 mapPlot(data = toplot, geo = KingCounty,
         variables=variables[4:6], labels = names[4:6],
         by.data = "domain", by.geo = "HRA2010v2_", size = 0.1)  
@@ -517,7 +432,7 @@ mapPlot(data = toplot, geo = KingCounty,
 <img src="figure/brfss.comp-2.png" width="100%" />
 
 
-```r
+``` r
 par(mfrow = c(1, 2))
 range1 <- range(c(direct$diab2,toplot$median.alt))
 plot(direct$diab2,toplot$median,  
@@ -586,7 +501,7 @@ The variables ```MeanCornPixPerSeg``` and ```MeanSoyBeansPixPerSeg``` provide th
 We load the sample data:
 
 
-```r
+``` r
 data("cornsoybean")
 head(cornsoybean)
 ```
@@ -604,7 +519,7 @@ head(cornsoybean)
 Next, we load the population auxiliary information:
 
 
-```r
+``` r
 data("cornsoybeanmeans")
 Xmean <-
   data.frame(cornsoybeanmeans[, c("CountyIndex",
@@ -623,7 +538,7 @@ head(Xmean)
 ## 6           6            257.17                247.13
 ```
 
-```r
+``` r
 Popn <-
   data.frame(cornsoybeanmeans[, c("CountyIndex",
                                   "PopnSegments")])
@@ -643,7 +558,7 @@ head(Popn)
 The ```sae::pbmseBHF``` function obtains EBLUPs under the nested error model and then uses a parametric bootstrap approach to estimate MSEs.
 
 
-```r
+``` r
 cornsoybean <- cornsoybean[-33, ] # remove outlier
 sae.bhf <- 
   pbmseBHF(CornHec ~ CornPix + SoyBeansPix,
@@ -655,7 +570,7 @@ sae.bhf <-
 ```SUMMER::smoothUnit``` provides the ability to fit unit level models with unit level covariates for Gaussian response variables. Below we use the ```is.unit``` argument to specify a unit level model and then provide the column names of the unit level covariates in ```X.unit```. Finally, the ```X``` argument provides the area level means of each covariate for use when generating predictions. Note that in order to align the ```SUMMER``` estimates with those from the ```sae``` package, we specify a relatively flat prior on the variance of the area-specific random effect (```pc.u = 100, pc.alpha = 0.01``` specifies a penalized complexity prior such that $P(\sigma_u > 100)=0.01$ where $\sigma_u$ is the standard deviation of the area-specific random effects).
 
 
-```r
+``` r
 cornsoybean$id <- 1:dim(cornsoybean)[1]
 Xsummer <- Xmean
 colnames(Xsummer) = c("County", "CornPix", "SoyBeansPix")
@@ -674,7 +589,7 @@ summer.bhf.unit <- smoothUnit(formula = CornHec ~ CornPix + SoyBeansPix,
 Below, we plot comparisons of the ```sae``` and ```SUMMER``` results.
 
 
-```r
+``` r
 par(mfrow = c(1, 2))
 range1 <- range(c(sae.bhf$est$eblup$eblup,summer.bhf.unit$median))
 plot(sae.bhf$est$eblup$eblup,summer.bhf.unit$iid.model.est$median,  
