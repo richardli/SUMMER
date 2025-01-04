@@ -8,7 +8,6 @@ test_that("getCounts and smoothCluster works without covariates", {
 
  library(dplyr)
  library(INLA)
- library(sn)
  # make devtools::check() happy with single process
  inla.setOption( num.threads = 1 )
 
@@ -89,9 +88,13 @@ fit2 <- smoothCluster(data = counts.all,
 test_that("getCounts and smoothCluster works with covariates", {
 
 
-  skip_on_cran()
+ skip_on_cran()
 
  library(dplyr)
+ library(INLA)
+ # make devtools::check() happy with single process
+ inla.setOption( num.threads = 1 )
+
  data(DemoData)
  # Create dataset of counts
  counts.all <- NULL
@@ -151,9 +154,14 @@ test_that("getCounts and smoothCluster works with covariates", {
 test_that("getCounts and smoothCluster works with space-only model", {
 
 
-  skip_on_cran()
+ skip_on_cran()
 
  library(dplyr)
+ library(INLA)
+ # make devtools::check() happy with single process
+ inla.setOption( num.threads = 1 )
+
+
  data(DemoData)
  # Create dataset of counts
  counts.all <- NULL
