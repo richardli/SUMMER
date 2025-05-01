@@ -33,7 +33,7 @@ rst(
 a matrix (for spatial or temporal) or a three-dimensional array (for spatial-temporal) of the random effects.
 }
 \description{
-This function simulates spatial and temporal random effects with mean zero. The method is described in Algorithm 3.1 of Rue & Held 2015.
+This function simulates spatial and temporal random effects with mean zero. The method is described in Algorithm 3.1 of Rue & Held 2005.
 }
 \examples{
 \dontrun{

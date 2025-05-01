@@ -1,6 +1,6 @@
 #' Simulate spatial and temporal random effects
 #' 
-#' This function simulates spatial and temporal random effects with mean zero. The method is described in Algorithm 3.1 of Rue & Held 2015.
+#' This function simulates spatial and temporal random effects with mean zero. The method is described in Algorithm 3.1 of Rue & Held 2005.
 #' 
 #' @param n sample size
 #' @param type type of random effects: temporal (t), spatial (s), or spatial-temporal (st)
