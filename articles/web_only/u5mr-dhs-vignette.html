@@ -312,7 +312,7 @@ specified. Here we simply take the median year in each period.</p>
 <span><span class="va">g2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">out2</span>, year_med <span class="op">=</span> <span class="va">years.ref</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"National yearly model"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,</span>
 <span>    <span class="fl">0.17</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">g1</span> <span class="op">+</span> <span class="va">g2</span></span></code></pre></div>
-<p><img src="figure%2Funnamed-chunk-15-1.png" width="90%"></p>
+<p><img src="figure/unnamed-chunk-15-1.png" width="90%"></p>
 <p>The national model also allows us to benchmark the estimates using
 other published national results. For example, we take the 2019 UN-IGME
 estimates and find the median under-5 mortality rates in each periods.
@@ -355,7 +355,7 @@ estimates.</p>
 <span>    option.add <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>point <span class="op">=</span> <span class="st">"mean"</span><span class="op">)</span>, label.add <span class="op">=</span> <span class="st">"UN"</span>, color.add <span class="op">=</span> <span class="st">"orange"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"National yearly model: benchmarked"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.17</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">g1</span> <span class="op">+</span> <span class="va">g2</span></span></code></pre></div>
-<p><img src="figure%2Funnamed-chunk-18-1.png" width="90%"></p>
+<p><img src="figure/unnamed-chunk-18-1.png" width="90%"></p>
 </div>
 <div class="section level3">
 <h3 id="subnational-estimates-of-u5mr">Subnational estimates of U5MR<a class="anchor" aria-label="anchor" href="#subnational-estimates-of-u5mr"></a>
@@ -380,19 +380,19 @@ the yearly scale.</p>
 <span><span class="va">g1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">out3</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Subnational period model"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">g2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">out4</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Subnational yearly model"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/lims.html" class="external-link">ylim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">g1</span> <span class="op">+</span> <span class="va">g2</span></span></code></pre></div>
-<p><img src="figure%2Funnamed-chunk-20-1.png" width="90%"></p>
+<p><img src="figure/unnamed-chunk-20-1.png" width="90%"></p>
 <p>We can also add back the direct estimates for comparison.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">out4</span>, data.add <span class="op">=</span> <span class="va">direct</span>, option.add <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>point <span class="op">=</span> <span class="st">"mean"</span>, by <span class="op">=</span> <span class="st">"survey"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">region</span>, scales <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="figure%2Funnamed-chunk-21-1.png" width="90%"></p>
+<p><img src="figure/unnamed-chunk-21-1.png" width="90%"></p>
 <p>We can show the estimates over time on maps. We revert the color
 scale so that higher mortality are represented by darker colors.</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../../reference/mapPlot.html">mapPlot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">out4</span>, <span class="va">is.yearly</span> <span class="op">==</span> <span class="cn">FALSE</span><span class="op">)</span>, geo <span class="op">=</span> <span class="va">geo</span>, variables <span class="op">=</span> <span class="st">"years"</span>,</span>
 <span>    values <span class="op">=</span> <span class="st">"median"</span>, by.data <span class="op">=</span> <span class="st">"region"</span>, by.geo <span class="op">=</span> <span class="st">"REGNAME"</span>, is.long <span class="op">=</span> <span class="cn">TRUE</span>, ncol <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>    direction <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, legend.label <span class="op">=</span> <span class="st">"U5MR"</span>, per1000 <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="figure%2Funnamed-chunk-22-1.png" width="90%"></p>
+<p><img src="figure/unnamed-chunk-22-1.png" width="90%"></p>
 <p>In order to also illustrate uncertainties of the estimates when
 presented on maps, we can use hatching to indicate the width of the 94%
 posterior credible intervals.</p>
@@ -400,7 +400,7 @@ posterior credible intervals.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../../reference/hatchPlot.html">hatchPlot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">out4</span>, <span class="va">is.yearly</span> <span class="op">==</span> <span class="cn">FALSE</span><span class="op">)</span>, geo <span class="op">=</span> <span class="va">geo</span>, variables <span class="op">=</span> <span class="st">"years"</span>,</span>
 <span>    values <span class="op">=</span> <span class="st">"median"</span>, by.data <span class="op">=</span> <span class="st">"region"</span>, by.geo <span class="op">=</span> <span class="st">"REGNAME"</span>, lower <span class="op">=</span> <span class="st">"lower"</span>, upper <span class="op">=</span> <span class="st">"upper"</span>,</span>
 <span>    is.long <span class="op">=</span> <span class="cn">TRUE</span>, direction <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, legend.label <span class="op">=</span> <span class="st">"U5MR"</span>, per1000 <span class="op">=</span> <span class="cn">TRUE</span>, ncol <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
-<p><img src="figure%2Funnamed-chunk-23-1.png" width="90%"></p>
+<p><img src="figure/unnamed-chunk-23-1.png" width="90%"></p>
 </div>
 </div>
 <div class="section level2">
@@ -437,7 +437,7 @@ posterior is not sensitive to the choice of
 <span>    <span class="op">}</span></span>
 <span><span class="op">}</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">est.list</span>, plot.CI <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="va">st.model</span> <span class="op">~</span> <span class="va">st.u</span><span class="op">)</span></span></code></pre></div>
-<p><img src="figure%2Funnamed-chunk-24-1.png" width="90%"></p>
+<p><img src="figure/unnamed-chunk-24-1.png" width="90%"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -450,7 +450,7 @@ posterior is not sensitive to the choice of
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer>

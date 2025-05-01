@@ -228,7 +228,7 @@ to the basic IID model.</p>
 <span><span class="va">sd.DIR</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">sae.DIR</span><span class="op">$</span><span class="va">Direct</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/qqnorm.html" class="external-link">qqnorm</a></span><span class="op">(</span><span class="op">(</span><span class="va">sae.DIR</span><span class="op">$</span><span class="va">Direct</span> <span class="op">-</span> <span class="va">mu.DIR</span><span class="op">)</span> <span class="op">/</span> <span class="va">sd.DIR</span>, main <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="figure%2Funnamed-chunk-1-1.png" width="50%"></p>
+<p><img src="figure/unnamed-chunk-1-1.png" width="50%"></p>
 </div>
 <div class="section level4">
 <h4 id="area-level-modeling-with-sae">Area level modeling with <code>sae</code><a class="anchor" aria-label="anchor" href="#area-level-modeling-with-sae"></a>
@@ -362,7 +362,7 @@ reduced uncertainty:</p>
 <span>     ylim<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">sae.DIR</span><span class="op">$</span><span class="va">SD</span><span class="op">^</span><span class="fl">2</span>, <span class="va">sae.FH</span><span class="op">$</span><span class="va">mse</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">sae.DIR</span><span class="op">$</span><span class="va">SD</span><span class="op">^</span><span class="fl">2</span>, <span class="va">sae.FH</span><span class="op">$</span><span class="va">mse</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>     main <span class="op">=</span> <span class="st">"Estimates of uncertainty"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span>,col<span class="op">=</span><span class="st">"red"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="figure%2Funnamed-chunk-2-1.png" width="100%"></p>
+<p><img src="figure/unnamed-chunk-2-1.png" width="100%"></p>
 <p>Now compare EBLUP and HB, using posterior variance from
 <code>SUMMER</code> and estimated MSE from <code>sae</code> to measure
 uncertainty:</p>
@@ -378,7 +378,7 @@ uncertainty:</p>
 <span>     ylab <span class="op">=</span> <span class="st">"SUMMER package model variance"</span>,</span>
 <span>     main <span class="op">=</span> <span class="st">"Estimates of mse/variance"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span>,col<span class="op">=</span><span class="st">"red"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="figure%2Funnamed-chunk-3-1.png" width="100%"></p>
+<p><img src="figure/unnamed-chunk-3-1.png" width="100%"></p>
 <p>The <code>SUMMER</code> package includes functions to generate
 additional diagnostic plots based on samples from the model posterior.
 The <code><a href="../../reference/compareEstimates.html">compareEstimates()</a></code> function generates a heatmap of the
@@ -483,7 +483,7 @@ the estimates, though less so with the estimates of uncertainty.</p>
 <span>     ylab <span class="op">=</span> <span class="st">"SUMMER package model variance"</span>,</span>
 <span>     main <span class="op">=</span> <span class="st">"Estimates of mse/variance"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, col <span class="op">=</span> <span class="st">'red'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="figure%2Fgrape.comp-1.png" width="100%"></p>
+<p><img src="figure/grape.comp-1.png" width="100%"></p>
 </div>
 <div class="section level4">
 <h4 id="brfss-data">BRFSS Data<a class="anchor" aria-label="anchor" href="#brfss-data"></a>
@@ -586,12 +586,12 @@ estimates and uncertainty estimates obtained via <code>sae</code> and
 <span>        variables<span class="op">=</span><span class="va">variables</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, </span>
 <span>        labels <span class="op">=</span> <span class="va">names</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>, by.data <span class="op">=</span> <span class="st">"domain"</span>,</span>
 <span>        by.geo <span class="op">=</span> <span class="st">"HRA2010v2_"</span>, size <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> </span></code></pre></div>
-<p><img src="figure%2Fbrfss.comp-1.png" width="100%"></p>
+<p><img src="figure/brfss.comp-1.png" width="100%"></p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../../reference/mapPlot.html">mapPlot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">toplot</span>, geo <span class="op">=</span> <span class="va">KingCounty</span>,</span>
 <span>        variables<span class="op">=</span><span class="va">variables</span><span class="op">[</span><span class="fl">4</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>, labels <span class="op">=</span> <span class="va">names</span><span class="op">[</span><span class="fl">4</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>,</span>
 <span>        by.data <span class="op">=</span> <span class="st">"domain"</span>, by.geo <span class="op">=</span> <span class="st">"HRA2010v2_"</span>, size <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>  </span></code></pre></div>
-<p><img src="figure%2Fbrfss.comp-2.png" width="100%"></p>
+<p><img src="figure/brfss.comp-2.png" width="100%"></p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">range1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">direct</span><span class="op">$</span><span class="va">diab2</span>,<span class="va">toplot</span><span class="op">$</span><span class="va">median.alt</span><span class="op">)</span><span class="op">)</span></span>
@@ -616,7 +616,7 @@ estimates and uncertainty estimates obtained via <code>sae</code> and
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">'topleft'</span>, pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'red'</span>, <span class="st">'cyan'</span>,<span class="st">'blue'</span><span class="op">)</span>,</span>
 <span>       legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SUMMER var."</span>, <span class="st">'SUMMER var. (new prior)'</span>, <span class="st">"sae mse"</span><span class="op">)</span>,bty<span class="op">=</span><span class="st">"n"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="figure%2Fbrfss.comp.2-1.png" width="100%"></p>
+<p><img src="figure/brfss.comp.2-1.png" width="100%"></p>
 </div>
 </div>
 </div>
@@ -777,7 +777,7 @@ is the standard deviation of the area-specific random effects).</p>
 <span>     main <span class="op">=</span> <span class="st">"Estimates of mse/variance"</span>,</span>
 <span>     xlim<span class="op">=</span><span class="va">range2</span>,ylim<span class="op">=</span><span class="va">range2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="figure%2Fbhf.unit.comp-1.png" width="100%"></p>
+<p><img src="figure/bhf.unit.comp-1.png" width="100%"></p>
 <div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
 <div id="ref-battese_error-components_1988" class="csl-entry">
 Battese, George E, Rachel M Harter, and Wayne A Fuller. 1988. <span>“An
@@ -817,7 +817,7 @@ Journal</em> 7: 81–98.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.2.</p>
 </div>
 
     </footer>
