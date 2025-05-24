@@ -69,7 +69,8 @@ rmultinom1(
   burnIn = floor(n/4),
   filterEvery = 10,
   zeroProbZeroSamples = TRUE,
-  allowSizeLessThanK = FALSE
+  allowSizeLessThanK = FALSE,
+  returnIfResample = FALSE
 )
 
 sampleNMultilevelMultinomial(
@@ -156,6 +157,8 @@ rural if stratifyByUrban is TRUE}
 
 \item{allowSizeLessThanK}{If TRUE, then if size < the number of categories (k), returns matrix where each 
 column is vector of size ones and k - size zeros. If FALSE, throws an error if size < k}
+
+\item{returnIfResample}{If TRUE, returns a list with elements 'sample' and 'everResampled'}
 
 \item{nDraws}{Number of draws}
 

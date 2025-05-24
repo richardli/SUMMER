@@ -26,7 +26,9 @@ simPopSPDE(
   doFineScaleRisk = FALSE,
   doSmoothRisk = FALSE,
   doSmoothRiskLogisticApprox = FALSE,
-  min1PerSubarea = TRUE
+  min1PerSubarea = TRUE,
+  offset = NULL,
+  verbose = TRUE
 )
 
 simPopCustom(
@@ -46,7 +48,8 @@ simPopCustom(
   subareaLevel = FALSE,
   min1PerSubarea = TRUE,
   returnEAinfo = FALSE,
-  epsc = NULL
+  epsc = NULL,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -109,7 +112,11 @@ If 0, no spatial component is included}
 have enumeration areas since they have a very low proportion of the population in an area, then setting this to TRUE may be 
 computationally intensive.}
 
-\item{logitRiskDraws}{nIntegrationPoints x nsim dimension matrix of draws from the pixel leve risk field on logit scale, leaving out 
+\item{offset}{An optional vector of length nrow(popMat) containing pixel level logit offsets. Used for including covariates, for example.}
+
+\item{verbose}{Whether or not to print progress}
+
+\item{logitRiskDraws}{nIntegrationPoints x nsim dimension matrix of draws from the pixel level risk field on logit scale, leaving out 
 potential nugget/cluster/EA level effects.}
 
 \item{sigmaEpsilonDraws}{nsim length vector of draws of cluster effect logit scale SD (joint draws with logitRiskDraws)}
@@ -123,9 +130,8 @@ potential nugget/cluster/EA level effects.}
 \item{returnEAinfo}{If TRUE, returns information on every individual EA (BAU) for each simulated population}
 
 \item{epsc}{nEAs x nsim matrix of simulated EA (BAU) level iid effects representing fine scale variation in 
-      risk. If NULL, they are simulated as iid Gaussian on a logit scale with 
-      SD given by sigmaEpsilonDraws
-list(pixelPop=outPixelLevel, subareaPop=outSubareaLevel, areaPop=outAreaLevel, logitRiskDraws=logitRiskDraws)}
+risk. If NULL, they are simulated as iid Gaussian on a logit scale with 
+SD given by sigmaEpsilonDraws}
 }
 \value{
 The simulated population aggregated to the enumeration area, 
@@ -436,7 +442,7 @@ dev.off()
 }
 }
 \references{
-In preparation
+Paige, J., Fuglstad, G.-A., Riebler, A., and Wakefield, J., 2022. Spatial Aggregation with Respect to a Population Distribution: Impact on Inference. Spatial Statistics 52, 100714.
 }
 \seealso{
 \code{\link{simPopCustom}}, \code{\link{makePopIntegrationTab}}, \code{\link{adjustPopMat}}, \code{\link{simSPDE}}.

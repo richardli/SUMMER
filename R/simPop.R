@@ -45,7 +45,7 @@
 #' @param min1PerSubarea If TRUE, ensures there is at least 1 EA per subarea. If subareas are particularly unlikely to 
 #' have enumeration areas since they have a very low proportion of the population in an area, then setting this to TRUE may be 
 #' computationally intensive.
-#' @param logitRiskDraws nIntegrationPoints x nsim dimension matrix of draws from the pixel leve risk field on logit scale, leaving out 
+#' @param logitRiskDraws nIntegrationPoints x nsim dimension matrix of draws from the pixel level risk field on logit scale, leaving out 
 #' potential nugget/cluster/EA level effects.
 #' @param sigmaEpsilonDraws nsim length vector of draws of cluster effect logit scale SD (joint draws with logitRiskDraws)
 #' @param validationPixelI CURRENTLY FOR TESTING PURPOSES ONLY a set of indices of pixels for which we want to simulate populations (used for pixel level validation)
@@ -55,7 +55,8 @@
 #' @param epsc nEAs x nsim matrix of simulated EA (BAU) level iid effects representing fine scale variation in 
 #'       risk. If NULL, they are simulated as iid Gaussian on a logit scale with 
 #'       SD given by sigmaEpsilonDraws
-#' list(pixelPop=outPixelLevel, subareaPop=outSubareaLevel, areaPop=outAreaLevel, logitRiskDraws=logitRiskDraws)
+#' @param offset An optional vector of length nrow(popMat) containing pixel level logit offsets. Used for including covariates, for example.
+#' @param verbose Whether or not to print progress
 #' @return The simulated population aggregated to the enumeration area, 
 #' pixel, subarea (generally Admin2), and area (generally Admin1) levels. Output includes:
 #' \item{pixelPop}{A list of pixel level population aggregates}
@@ -95,7 +96,7 @@
 #' and information on the spatial population density and the population frame.
 #' 
 #' @author John Paige
-#' @references In preparation
+#' @references Paige, J., Fuglstad, G.-A., Riebler, A., and Wakefield, J., 2022. Spatial Aggregation with Respect to a Population Distribution: Impact on Inference. Spatial Statistics 52, 100714.
 #' @seealso \code{\link{simPopCustom}}, \code{\link{makePopIntegrationTab}}, \code{\link{adjustPopMat}}, \code{\link{simSPDE}}.
 #' @examples 
 #' \dontrun{
@@ -350,7 +351,7 @@
 #' }
 #' @name simPop
 NULL
-#' @importFrom stats cor
+#' @importFrom stats rnorm
 #' @describeIn simPop
 #' Simulate populations and population prevalences given census frame and population density 
 #' information. Uses SPDE model for generating spatial risk and can include iid cluster 
@@ -364,17 +365,13 @@ simPopSPDE = function(nsim=1, easpa, popMat, targetPopMat, poppsub, spdeMesh,
                       stratifyByUrban=TRUE, subareaLevel=TRUE, 
                       doFineScaleRisk=FALSE, doSmoothRisk=FALSE, 
                       doSmoothRiskLogisticApprox=FALSE, 
-                      min1PerSubarea=TRUE) {
+                      min1PerSubarea=TRUE, offset=NULL, verbose=TRUE) {
   if(!is.null(seed))  {
     set.seed(seed)
     
     if(inla.seed < 0) {
       stop("seed specified, but not inla.seed. Set inla.seed to a positive integer to ensure reproducibility")
     }
-  }
-  
-  if(nsim > 1) {
-    warning("nsim > 1. eaDat will only be generated for first simulation")
   }
   
   totalEAs = sum(easpa$EATotal)
@@ -406,6 +403,9 @@ simPopSPDE = function(nsim=1, easpa, popMat, targetPopMat, poppsub, spdeMesh,
   
   # simulate the enumeration areas
   logitRiskDraws = simVals
+  if(!is.null(offset)) {
+    logitRiskDraws = sweep(logitRiskDraws, 1, offset)
+  }
   sigmaEpsilonDraws = rep(sigmaEpsilon, nsim)
   
   print("Using SPDE model to simulate EA and pixel level populations")
@@ -415,19 +415,24 @@ simPopSPDE = function(nsim=1, easpa, popMat, targetPopMat, poppsub, spdeMesh,
                               doSmoothRiskLogisticApprox=doSmoothRiskLogisticApprox, 
                               doFineScaleRisk=doFineScaleRisk, poppsub=poppsub, 
                               subareaLevel=subareaLevel, min1PerSubarea=min1PerSubarea, 
-                              returnEAinfo=TRUE, epsc=epsc)
+                              returnEAinfo=TRUE, epsc=epsc, verbose=verbose)
   eaPop = list(eaDatList=outPixelLevel$eaDatList, eaSamples=outPixelLevel$eaSamples)
   outPixelLevel$eaDatList = NULL
   outPixelLevel$eaSamples = NULL
   
   if(subareaLevel) {
-    print("aggregating from pixel level to subarea level")
+    if(verbose) {
+      print("aggregating from pixel level to subarea level")
+    }
+    
     outSubareaLevel = pixelPopToArea(pixelLevelPop=outPixelLevel, eaSamples=eaPop$eaSamples, 
                                      areas=popMat$subarea, stratifyByUrban=stratifyByUrban, 
                                      targetPopMat=targetPopMat, doFineScaleRisk=doFineScaleRisk, 
                                      doSmoothRisk=doSmoothRisk)
     
-    print("aggregating from subarea level to area level")
+    if(verbose) {
+      print("aggregating from subarea level to area level")
+    }
     
     # get areas associated with each subarea for aggregation
     tempAreasFrom = popMat$subarea
@@ -900,7 +905,7 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
                         doSmoothRiskLogisticApprox=FALSE, 
                         poppsub=NULL, subareaLevel=FALSE, 
                         min1PerSubarea=TRUE, 
-                        returnEAinfo=FALSE, epsc=NULL) {
+                        returnEAinfo=FALSE, epsc=NULL, verbose=TRUE) {
   
   if(is.null(poppsub) && subareaLevel) {
     stop("if subareaLevel is TRUE, user must specify poppsub")
@@ -996,16 +1001,16 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
     # with equal probability from each cluster/faux EA
     Ncs = sampleNMultilevelMultinomialFixed(clustersPerPixel, nDraws=nDraws, pixelIndices=pixelIndices, 
                                             urbanVals=urbanVals, areaVals=areaVals, easpa=easpa, popMat=popMat, stratifyByUrban=stratifyByUrban, 
-                                            verbose=TRUE)
+                                            verbose=verbose)
   } else {
     if(returnEAinfo) {
       out = sampleNMultilevelMultinomial(pixelIndexMat=pixelIndexMat, easpaList=list(easpa), 
-                                         popMat=popMat, stratifyByUrban=stratifyByUrban, verbose=TRUE, returnEAinfo=returnEAinfo)
+                                         popMat=popMat, stratifyByUrban=stratifyByUrban, verbose=verbose, returnEAinfo=returnEAinfo)
       householdDraws = out$householdDraws
       Ncs = out$targetPopDraws
     } else {
       Ncs <- sampleNMultilevelMultinomial(pixelIndexMat=pixelIndexMat, easpaList=list(easpa), 
-                                       popMat=popMat, stratifyByUrban=stratifyByUrban, verbose=TRUE, returnEAinfo=returnEAinfo)
+                                       popMat=popMat, stratifyByUrban=stratifyByUrban, verbose=verbose, returnEAinfo=returnEAinfo)
       householdDraws = NULL
     }
   }
@@ -1066,7 +1071,9 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
   ##### Line 5: We already did this, resulting in logitRiskDraws input
   
   ##### Line 6: aggregate population denominators for each grid cell to get N_{ig}
-  print("Aggregating from EA level to the pixel level")
+  if(verbose) {
+    print("Aggregating from EA level to the pixel level")
+  }
   Ng <- sapply(1:ncol(Ncs), getPixelColumnFromEAs, vals=Ncs)
   Ng[is.na(Ng)] = 0
   
@@ -1120,7 +1127,6 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
     pixelLevelPop
   } else {
     
-    
     # return list of eaDat objects
     getEADat = function(i) {
       theseI = pixelIndexMat[,i]
@@ -1149,7 +1155,9 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
       eaDat
     }
     
-    print("Constructing list of simulated EA data.frames")
+    if(verbose) {
+      print("Constructing list of simulated EA data.frames")
+    }
     eaDatList = lapply(1:nDraws, getEADat)
     
     c(pixelLevelPop, list(eaDatList=eaDatList, eaSamples=eaSamples))
@@ -1212,6 +1220,7 @@ simPopCustom = function(logitRiskDraws, sigmaEpsilonDraws, easpa, popMat, target
 #' @param fixHHPerEA If not NULL, the fixed number of households per EA
 #' @param fixPopPerHH If not NULL, the fixed target population per household
 #' @param level Whether to calculate results at the integration grid or EA level
+#' @param returnIfResample If TRUE, returns a list with elements 'sample' and 'everResampled'
 #' @name simPopInternal
 NULL
 
@@ -1445,14 +1454,19 @@ rMyMultinomial = function(n, i, stratifyByUrban=TRUE, urban=TRUE, popMat=NULL, e
   }
   
   # sample from the pixels if this stratum exists
-  if(sum(includeI) == 0)
+  if(sum(includeI) == 0) {
     return(matrix(nrow=0, ncol=n))
+  }
   thesePixelProbs = popMat$pop[includeI]
   if(any(thesePixelProbs > 0)) {
     if(!min1PerSubarea) {
       stats::rmultinom(n, nEA, prob=thesePixelProbs)
     } else {
-      rmultinom1(n, nEA, prob=thesePixelProbs, method=method, allowSizeLessThanK=TRUE, minSample=minSample)
+      out = rmultinom1(n, nEA, prob=thesePixelProbs, method=method, allowSizeLessThanK=TRUE, minSample=minSample, returnIfResample=TRUE)
+      if(out$everResampled) {
+        warning(paste0("area ", areas[i], " may have subareas with low (but nonzero) urban or rural populations. Consider thresholding those populations to zero for more efficient sampling."))
+      }
+      out$samples
     }
   } else {
     matrix(0, nrow=length(thesePixelProbs), ncol=n)
@@ -1478,6 +1492,7 @@ rMyMultinomialSubarea = function(n, i, easpsub, stratifyByUrban=TRUE, urban=TRUE
   if(sum(includeI) == 0){
     if(any(nEA != 0))
       stop(paste0("no valid pixels to put EAs in for subarea ", as.character(subareas[i]), " and urban level ", urban))
+    
     return(matrix(nrow=0, ncol=n))
   }
   
@@ -1493,7 +1508,7 @@ rMyMultinomialSubarea = function(n, i, easpsub, stratifyByUrban=TRUE, urban=TRUE
 #' @describeIn simPopInternal Random (truncated) multinomial draws conditional on the number of each type being at least one
 rmultinom1 = function(n=1, size, prob, maxSize=8000*8000, method=c("mult1", "mult", "indepMH"), verbose=FALSE, minSample=100, 
                       maxExpectedSizeBeforeSwitch=1000*1e7, init=NULL, burnIn=floor(n/4), filterEvery=10, zeroProbZeroSamples=TRUE, 
-                      allowSizeLessThanK=FALSE) {
+                      allowSizeLessThanK=FALSE, returnIfResample=FALSE) {
   method = match.arg(method)
   prob = prob*(1/sum(prob))
   
@@ -1502,23 +1517,37 @@ rmultinom1 = function(n=1, size, prob, maxSize=8000*8000, method=c("mult1", "mul
     out = matrix(0, nrow=length(prob), ncol=n)
     
     if(sum(!zero) > 0) {
-      out[!zero,] = rmultinom1(n, size, prob[!zero], maxSize, method, verbose, minSample, maxExpectedSizeBeforeSwitch, init, burnIn, 
-                               filterEvery, zeroProbZeroSamples, allowSizeLessThanK)
+      if(returnIfResample) {
+        res = rmultinom1(n, size, prob[!zero], maxSize, method, verbose, minSample, maxExpectedSizeBeforeSwitch, init, burnIn, 
+                         filterEvery, zeroProbZeroSamples, allowSizeLessThanK, returnIfResample)
+        
+        out[!zero,] = res$samples
+        everResampled = res$everResampled
+        return(list(samples=out, everResampled=everResampled))
+      } else {
+        out[!zero,] = rmultinom1(n, size, prob[!zero], maxSize, method, verbose, minSample, maxExpectedSizeBeforeSwitch, init, burnIn, 
+                                 filterEvery, zeroProbZeroSamples, allowSizeLessThanK, returnIfResample)
+        
+        return(out)
+      }
     }
-    
-    return(out)
   }
   
   k = length(prob)
   if(allowSizeLessThanK && (size <= k)) {
-    return(replicate(n, as.numeric(1:k %in% sample(1:k, size, replace=FALSE))))
+    if(returnIfResample) {
+      return(list(samples = replicate(n, as.numeric(1:k %in% sample(1:k, size, replace=FALSE))), 
+                  everResampled = FALSE))
+    } else {
+      return(replicate(n, as.numeric(1:k %in% sample(1:k, size, replace=FALSE))))
+    }
   } else if(size < k) {
     stop("size < k but rmultinom1 requires at least 1 sample per multinomial type")
   }
   
   maxSamples = floor(maxSize / k)
   averageProbMult = prod((size/k)*prob)
-  
+  everResampled = FALSE
   if(method != "indepMH")
     samples = matrix(NA, nrow=k, ncol=n)
   else
@@ -1527,6 +1556,7 @@ rmultinom1 = function(n=1, size, prob, maxSize=8000*8000, method=c("mult1", "mul
     averagex = 1 + (size-k)*prob
     averageProb = (size-k) / (prod(averagex))
     
+    isResample = FALSE
     while(any(is.na(samples))) {
       # calculate the number of remaining samples
       samplesLeft = sum(apply(samples, 2, function(x) {any(is.na(x))}))
@@ -1545,7 +1575,7 @@ rmultinom1 = function(n=1, size, prob, maxSize=8000*8000, method=c("mult1", "mul
         warning("too many samples expected with method=='mult1'. Switching to method=='indepMH'")
         return(rmultinom1(n, size, prob, maxSize, method="indepMH", verbose, minSample, 
                           maxExpectedSizeBeforeSwitch, init, burnIn, filterEvery, 
-                          zeroProbZeroSamples, allowSizeLessThanK))
+                          zeroProbZeroSamples, allowSizeLessThanK, returnIfResample))
       }
       
       # sample expectedSamples times a fudge factor, but make sure we don't get past memory limit
@@ -1575,12 +1605,23 @@ rmultinom1 = function(n=1, size, prob, maxSize=8000*8000, method=c("mult1", "mul
       # add in accepted samples, if any
       if(ncol(thisSamples) > 0) {
         samples[,(n-samplesLeft+1):(n-samplesLeft+ncol(thisSamples))] = thisSamples
+        if(isResample) {
+          cat("\n")
+          isResample = FALSE
+        }
       } else {
-        warning(paste0("no samples accepted this round out of ", thisNumberOfSamples, " total. Redrawing..."))
+        if(!isResample) {
+          cat(paste0("no samples accepted this round out of ", thisNumberOfSamples, " total. Redrawing..."))
+          isResample = TRUE
+          everResampled = TRUE
+        } else {
+          cat(".")
+        }
       }
     }
   } else if(method == "mult") {
     
+    isResample = FALSE
     while(any(is.na(samples))) {
       # calculate the number of remaining samples
       samplesLeft = sum(apply(samples, 2, function(x) {any(is.na(x))}))
@@ -1593,7 +1634,7 @@ rmultinom1 = function(n=1, size, prob, maxSize=8000*8000, method=c("mult1", "mul
         warning("too many samples expected with method=='mult'. Switching to method=='mult1'")
         return(rmultinom1(n, size, prob, maxSize, method="mult1", verbose, minSample, maxExpectedSizeBeforeSwitch, 
                           init, burnIn, filterEvery, 
-                          zeroProbZeroSamples, allowSizeLessThanK))
+                          zeroProbZeroSamples, allowSizeLessThanK, returnIfResample))
       }
       
       # sample expectedSamples times a fudge factor, but make sure we don't get past memory limit
@@ -1615,8 +1656,18 @@ rmultinom1 = function(n=1, size, prob, maxSize=8000*8000, method=c("mult1", "mul
       # add in accepted samples, if any
       if(ncol(thisSamples) > 0) {
         samples[,(n-samplesLeft+1):(n-samplesLeft+ncol(thisSamples))] = thisSamples
+        if(isResample) {
+          cat("\n")
+          isResample = FALSE
+        }
       } else {
-        warning(paste0("no samples accepted this round out of ", thisNumberOfSamples, " total. Redrawing..."))
+        if(!isResample) {
+          cat(paste0("no samples accepted this round out of ", thisNumberOfSamples, " total. Redrawing..."))
+          isResample = TRUE
+          everResampled = TRUE
+        } else {
+          cat(".")
+        }
       }
     }
   } else if(method == "indepMH") {
@@ -1690,7 +1741,11 @@ rmultinom1 = function(n=1, size, prob, maxSize=8000*8000, method=c("mult1", "mul
     samples = samples[,seq(from=1, to=ncol(samples), by=filterEvery)]
   }
   
-  samples
+  if(returnIfResample) {
+    list(samples=samples, everResampled=everResampled)
+  } else {
+    samples
+  }
 }
 
 #' @describeIn simPopInternal Take multilevel multinomial draws first from joint distribution of 
