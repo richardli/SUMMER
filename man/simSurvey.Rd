@@ -154,6 +154,7 @@ temp <- sf::as_Spatial(temp)
 
 tempData = newadm2@data[-unknown8I,]
 tempData = tempData[order(tempData$NAME_2),]
+library(sp)
 newadm2 <- SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
 adm2 = newadm2
 
@@ -167,17 +168,20 @@ if(!file.exists(popTIFFilename)) {
 }
 
 # load it in
+# extent -180-180, -90-90
+# EPSG:4326
+# resolution 0.04166667, 0.04166667
 pop = terra::rast(popTIFFilename)
 
-ver = terra::gdal(lib="proj")
-PROJ6 <- as.numeric(substr(ver, 1, 1)) >= 6
-
-# from lon/lat coords to easting/northing
-if(!PROJ6) {
-  crs(pop) = "+proj=longlat"
-} else {
-  crs(pop) = "EPSG:4326"
-}
+#ver = terra::gdal(lib="proj")
+#PROJ6 <- as.numeric(substr(ver, 1, 1)) >= 6
+#
+## from lon/lat coords to easting/northing
+#if(!PROJ6) {
+#  crs(pop) = "+proj=longlat"
+#} else {
+#  crs(pop) = "EPSG:4326"
+#}
 
 eastLim = c(-110.6405, 832.4544)
 northLim = c(-555.1739, 608.7130)
