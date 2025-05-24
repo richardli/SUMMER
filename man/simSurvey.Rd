@@ -23,8 +23,9 @@ sampleClusterSurveys(
 getClustpaFromSurvey(
   survDat,
   stratName = "area",
-  stratOrder = sort(survDat[[stratName]]),
-  HHperClust = 25
+  stratOrder = sort(unique(survDat[[stratName]])),
+  nVarName = "N",
+  nHHVarName = "nHH"
 )
 }
 \arguments{
@@ -55,10 +56,6 @@ information on the number of clusters to sample per stratum. Should contain elem
   \item{area}{name of area}
   \item{EAUrb}{number of urban enumeration areas in the area}
   \item{EARur}{number of rural enumeration areas in the area}
-  \item{EATotal}{total number of enumeration areas in the area}
-  \item{HHUrb}{number of urban households in the area}
-  \item{HHRur}{number of rural households in the area}
-  \item{HHTotal}{total number of households in the area}
 }}
 
 \item{seed}{If not NULL, the random number seed to set at the beginning of the function}
@@ -69,6 +66,10 @@ information on the number of clusters to sample per stratum. Should contain elem
 of clusters over. Defaults to 'area'.}
 
 \item{stratOrder}{if provided, will sort resulting strata to be in the same order as in}
+
+\item{nVarName}{variable name in the survey data.frame of the target population denominator}
+
+\item{nHHVarName}{variance name in the survey data.frame of the number of households variable name}
 }
 \value{
 The simulated survey data, household level population, or aggregated survey information from 
@@ -314,11 +315,28 @@ aggregate(simPop$eaPop$eaSamples[,1], by=list(area=popMatKenya$subarea), FUN=sum
 thisEApop = simPop$eaPop$eaDatList[1]
 
 ## get associated HH level population information
-thisHHpop = getHHpop(thisEApop, fixPopPerHH=fixPopPerHH)
+thisHHpop = getHHpop(thisEApop, fixPopPerHH=NULL)
 
-## sample DHS survey for this population. Must define clustpaDHS data.frame 
+## simulate a survey of .1\% of the EAs, with 25 households per EA
+tempClustpa = easpaKenya[,1:7]
+tempClustpa$EAUrb = round(tempClustpa$EAUrb * .01)
+tempClustpa$EARur = round(tempClustpa$EARur * .01)
+tempClustpa$EATotal = tempClustpa$EAUrb + tempClustpa$EARur
+tempClustpa$HHUrb = tempClustpa$EAUrb * 25
+tempClustpa$HHRur = tempClustpa$EARur * 25
+tempClustpa$HHTotal = tempClustpa$HHUrb + tempClustpa$HHRur
+tempClustpa
+
+## sample DHS-like survey for this population and design
 ## first based on your desired survey design
-survDHS = sampleClusterSurveys(1, thisHHpop, HHperClust=25, clustpaList=list(clustpaDHS))
+survs = sampleClusterSurveys(1, thisHHpop, clustpaList=list(tempClustpa))
+surv = survs[[1]]
+
+## extract the actual number of clusters sampled at Admin1 level from the survey
+getClustpaFromSurvey(surv)
+
+## Now get the info at the Admin2 level
+getClustpaFromSurvey(surv, stratName="subarea")
 }
 }
 \seealso{

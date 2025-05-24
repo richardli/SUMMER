@@ -28,10 +28,6 @@
 #'   \item{area}{name of area}
 #'   \item{EAUrb}{number of urban enumeration areas in the area}
 #'   \item{EARur}{number of rural enumeration areas in the area}
-#'   \item{EATotal}{total number of enumeration areas in the area}
-#'   \item{HHUrb}{number of urban households in the area}
-#'   \item{HHRur}{number of rural households in the area}
-#'   \item{HHTotal}{total number of households in the area}
 #' }
 #' @param fixPopPerHH Currently only 1 or NULL is supported. If 1, fixes the target population 
 #'                    to be 1 in each simulated household (requires EA populations and 
@@ -39,6 +35,8 @@
 #'                    among the households (default)
 #' @param verbose If TRUE, prints progress and all warnings
 #' @param seed If not NULL, the random number seed to set at the beginning of the function
+#' @param nVarName variable name in the survey data.frame of the target population denominator
+#' @param nHHVarName variance name in the survey data.frame of the number of households variable name
 #' @return The simulated survey data, household level population, or aggregated survey information from 
 #' \code{sampleClusterSurveys}, \code{getHHpop}, and \code{getClustpaFromSurvey} respectively.
 #' 
@@ -269,11 +267,28 @@
 #' thisEApop = simPop$eaPop$eaDatList[1]
 #' 
 #' ## get associated HH level population information
-#' thisHHpop = getHHpop(thisEApop, fixPopPerHH=fixPopPerHH)
+#' thisHHpop = getHHpop(thisEApop, fixPopPerHH=NULL)
 #' 
-#' ## sample DHS survey for this population. Must define clustpaDHS data.frame 
+#' ## simulate a survey of .1% of the EAs, with 25 households per EA
+#' tempClustpa = easpaKenya[,1:7]
+#' tempClustpa$EAUrb = round(tempClustpa$EAUrb * .01)
+#' tempClustpa$EARur = round(tempClustpa$EARur * .01)
+#' tempClustpa$EATotal = tempClustpa$EAUrb + tempClustpa$EARur
+#' tempClustpa$HHUrb = tempClustpa$EAUrb * 25
+#' tempClustpa$HHRur = tempClustpa$EARur * 25
+#' tempClustpa$HHTotal = tempClustpa$HHUrb + tempClustpa$HHRur
+#' tempClustpa
+#' 
+#' ## sample DHS-like survey for this population and design
 #' ## first based on your desired survey design
-#' survDHS = sampleClusterSurveys(1, thisHHpop, HHperClust=25, clustpaList=list(clustpaDHS))
+#' survs = sampleClusterSurveys(1, thisHHpop, clustpaList=list(tempClustpa))
+#' surv = survs[[1]]
+#' 
+#' ## extract the actual number of clusters sampled at Admin1 level from the survey
+#' getClustpaFromSurvey(surv)
+#' 
+#' ## Now get the info at the Admin2 level
+#' getClustpaFromSurvey(surv, stratName="subarea")
 #' }
 #' @name simSurvey
 NULL
@@ -603,16 +618,13 @@ sampleClusterSurveys = function(n=NULL, popSim=NULL, HHperClust=25, fixPopPerHH=
 #' Collects information about number of clusters per stratum into a data.frame
 #' 
 #' @export
-getClustpaFromSurvey = function(survDat, stratName="area", stratOrder=sort(survDat[[stratName]]), HHperClust=25) {
-  
-  if("ns" %in% names(survDat)) {
-    survDat$n = survDat$ns
-  }
+getClustpaFromSurvey = function(survDat, stratName="area", stratOrder=sort(unique(survDat[[stratName]])), 
+                                nVarName="N", nHHVarName="nHH") {
   
   nAreas = length(unique(survDat[[stratName]]))
   
   # first the number of sampled clusters
-  nEAtabTmp = stats::aggregate(survDat$n, by=list(strat=survDat[[stratName]], urban=survDat$urban), FUN=length, drop=FALSE)
+  nEAtabTmp = stats::aggregate(survDat[[nVarName]], by=list(strat=survDat[[stratName]], urban=survDat$urban), FUN=length, drop=FALSE)
   nEAtabTmp[is.na(nEAtabTmp[,3]), 3] = 0
   
   nEAtab = data.frame(nEAtabTmp[1:nAreas, 1], EAUrb=nEAtabTmp[(nAreas+1):(2*nAreas), 3], EARur=nEAtabTmp[1:nAreas, 3])
@@ -623,14 +635,22 @@ getClustpaFromSurvey = function(survDat, stratName="area", stratOrder=sort(survD
   clustpa = nEAtab
   
   # second the number of households
-  clustpa$HHUrb = clustpa$EAUrb * HHperClust
-  clustpa$HHRur = clustpa$EARur * HHperClust
-  clustpa$HHTotal = clustpa$EATotal * HHperClust
+  nHHTabTmp = stats::aggregate(survDat[[nHHVarName]], by=list(strat=survDat[[stratName]], urban=survDat$urban), FUN=sum, drop=FALSE)
+  nHHTabTmp[is.na(nHHTabTmp[,3]), 3] = 0
+  
+  nHHTab = data.frame(nHHTabTmp[1:nAreas, 1], nHHUrb=nHHTabTmp[(nAreas+1):(2*nAreas), 3], nHHRur=nHHTabTmp[1:nAreas, 3])
+  names(nHHTab)[1] = stratName
+  nHHTab$nHHTotal = nHHTab$nHHUrb + nHHTab$nHHRur
+  
+  # concatenate cluster level household total info to clustpa info
+  clustpa$nHHUrb = nHHTab$nHHUrb
+  clustpa$nHHRur = nHHTab$nHHRur
+  clustpa$nHHTotal = nHHTab$nHHTotal
   
   # third the number of people
-  popTabTmp = stats::aggregate(survDat$n, by=list(strat=survDat[[stratName]], urban=survDat$urban), FUN=sum, drop=FALSE)
+  popTabTmp = stats::aggregate(survDat[[nVarName]], by=list(strat=survDat[[stratName]], urban=survDat$urban), FUN=sum, drop=FALSE)
   popTabTmp[is.na(popTabTmp[,3]), 3] = 0
-  # urbanToRuralI = c(1:27, 29, 31:47) # skip mombasa and nairobi
+  
   popTab = data.frame(popTabTmp[1:nAreas, 1], popUrb=popTabTmp[(nAreas+1):(2*nAreas), 3], popRur=popTabTmp[1:nAreas, 3])
   names(popTab)[1] = stratName
   popTab$popTotal = popTab$popUrb + popTab$popRur
@@ -646,5 +666,5 @@ getClustpaFromSurvey = function(survDat, stratName="area", stratOrder=sort(survD
     clustpa = clustpa[ordering,]
   }
   
-  clustpa
+  clustpa[1:nAreas,]
 }
