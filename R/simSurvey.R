@@ -527,7 +527,6 @@ sampleClusterSurveys = function(n=NULL, popSim=NULL, HHperClust=25, fixPopPerHH=
           inclusionProbsRur = rep(nRurEA/length(thisEAIsRur), nRurEA)
         }
       } else if(eaSampleStrat == "pps") {
-        require(sampling)
         if(nUrbEA != 0) {
           # sampUrbEAIs = sample(thisEAIsUrb, nUrbEA, replace=F, prob=thisEAhhsUrb/sum(thisEAhhsUrb))
           inclusionProbsUrb = nUrbEA * thisEAhhsUrb/sum(thisEAhhsUrb)
