@@ -485,12 +485,11 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
             stop("Input data needs to be a data frame")
         }
         if (is.null(strataVar)) {
-            message("Strata not defined. Ignoring sample design")
-            svy <- FALSE
+            message("Strata not defined. Ignoring stratification")
         }
         if (is.null(clusterVar)){
-            message("cluster not specified. Ignoring sample design")
-            svy <- FALSE
+            message("cluster not specified. Ignoring clustering")
+            clusterVar <- "~1"
         } 
         data$response0 <- data[, responseVar]
         data$region0 <- as.character(data[, regionVar])
@@ -511,7 +510,11 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
         data$region0 <- factor(data$region0, levels = colnames(Amat))   
         if(svy){
             data$weights0 <- data[, weightVar]
-            data$strata0 <- factor(data[, strataVar])
+            if(is.null(strataVar)){
+            	data$strata0 <- 1
+            }else{
+            	data$strata0 <- factor(data[, strataVar])            	
+            }
         }
     }
 
