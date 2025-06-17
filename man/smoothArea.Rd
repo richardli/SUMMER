@@ -62,7 +62,9 @@ A svysae object
 }
 \description{
 Generates small area estimates  by smoothing direct estimates using an
-area level model
+area level model. For continuous outcome, standardizing the outcome variable
+so that it has unit standard deviation is recommended when using the default
+priors.
 }
 \examples{
 \dontrun{
