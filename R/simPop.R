@@ -404,7 +404,7 @@ simPopSPDE = function(nsim=1, easpa, popMat, targetPopMat, poppsub, spdeMesh,
   # simulate the enumeration areas
   logitRiskDraws = simVals
   if(!is.null(offset)) {
-    logitRiskDraws = sweep(logitRiskDraws, 1, offset)
+    logitRiskDraws = sweep(logitRiskDraws, 1, offset, "+")
   }
   sigmaEpsilonDraws = rep(sigmaEpsilon, nsim)
   
