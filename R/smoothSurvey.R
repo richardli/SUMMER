@@ -1035,7 +1035,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
        if(sum(!is.na(proj$time)) == 0) proj <- proj[, colnames(proj) != "time"]
        if(response.type == "gaussian"){
             HT <- HT[, !colnames(HT) %in% c("HT.logit.est", "HT.logit.var", "HT.logit.prec")]
-            proj <- proj[, !colnames(HT) %in% c("logit.mean", "logit.var", "logit.median", "logit.lower", "logit.upper")]
+            proj <- proj[, !colnames(proj) %in% c("logit.mean", "logit.var", "logit.median", "logit.lower", "logit.upper")]
        }    
    }else{
         HT <- NULL
