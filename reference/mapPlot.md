@@ -1,0 +1,162 @@
+# Plot region-level variables on a map
+
+This function visualizes the map with different variables. The input
+data frame can be either the long or wide format.
+
+## Usage
+
+``` r
+mapPlot(
+  data = NULL,
+  variables,
+  values = NULL,
+  labels = NULL,
+  geo,
+  by.data,
+  by.geo,
+  is.long = FALSE,
+  size = 0.5,
+  removetab = FALSE,
+  border = "gray20",
+  ncol = NULL,
+  ylim = NULL,
+  legend.label = NULL,
+  per1000 = FALSE,
+  clean = TRUE,
+  size.label = 2,
+  add.adj = FALSE,
+  color.adj = "red",
+  alpha.adj = 0.85,
+  direction = 1,
+  cut = NULL
+)
+```
+
+## Arguments
+
+- data:
+
+  a data frame with variables to be plotted. When it is null, a map is
+  produced.
+
+- variables:
+
+  vector of variables to be plotted. If long format of data is used,
+  only one variable can be selected
+
+- values:
+
+  the column corresponding to the values to be plotted, only used when
+  long format of data is used
+
+- labels:
+
+  vector of labels to use for each variable, only used when wide format
+  of data is used
+
+- geo:
+
+  SpatialPolygonsDataFrame object for the map
+
+- by.data:
+
+  column name specifying region names in the data
+
+- by.geo:
+
+  variable name specifying region names in the data
+
+- is.long:
+
+  logical indicator of whether the data is in the long format, default
+  to FALSE
+
+- size:
+
+  size of the border
+
+- removetab:
+
+  logical indicator to not show the tab label, only applicable when only
+  one tab is present.
+
+- border:
+
+  color of the border
+
+- ncol:
+
+  number of columns for the output tabs
+
+- ylim:
+
+  range of the values to be plotted.
+
+- legend.label:
+
+  Label for the color legend.
+
+- per1000:
+
+  logical indicator to plot mortality rates as rates per 1,000 live
+  births. Note that the added comparison data should always be in the
+  probability scale.
+
+- clean:
+
+  remove all coordinates for a cleaner layout, default to TRUE.
+
+- size.label:
+
+  size of the label of the regions.
+
+- add.adj:
+
+  logical indicator to add edges between connected regions.
+
+- color.adj:
+
+  color of the adjacency matrix edges.
+
+- alpha.adj:
+
+  alpha level (transparency) of the adjacency matrix edges.
+
+- direction:
+
+  Direction of the color scheme. It can be either 1 (smaller values are
+  darker) or -1 (higher values are darker). Default is set to 1.
+
+- cut:
+
+  a vector of values to cut the continuous scale color to discrete
+  intervals.
+
+## Author
+
+Zehang Richard Li
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+data(DemoMap)
+# Plotting data in the long format
+dat <- data.frame(region = rep(c("central",  "eastern", "northern", "western"), 3),
+year = rep(c(1980, 1990, 2000), each = 4),
+values = stats::rnorm(12))
+utils::head(dat)
+mapPlot(dat, variables = "year", values = "values",
+by.data = "region", geo = DemoMap$geo,
+by.geo = "NAME_final", is.long = TRUE)
+dat <- data.frame(region = c("central",  "eastern", "northern", "western"),
+Year1 = stats::rnorm(4), Year2 = stats::rnorm(4),
+Year3 = stats::rnorm(4))
+utils::head(dat)
+mapPlot(dat, variables = c("Year1", "Year2", "Year3"),
+ labels = c(1980, 1990, 2000),
+by.data = "region", geo = DemoMap$geo,
+by.geo = "NAME_final", is.long = FALSE)
+
+} # }
+```

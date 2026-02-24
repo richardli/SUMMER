@@ -1,0 +1,333 @@
+# Benchmark posterior draws to national estimates
+
+**\[experimental\]**
+
+## Usage
+
+``` r
+Benchmark(
+  fitted,
+  national,
+  estVar,
+  sdVar,
+  timeVar = NULL,
+  weight.region = NULL,
+  method = c("MH", "Rejection")[2]
+)
+```
+
+## Arguments
+
+- fitted:
+
+  output from
+  [`getSmoothed`](https://richardli.github.io/SUMMER/reference/getSmoothed.md)
+  to be benchmarked.
+
+- national:
+
+  a data frame of national level estimates that is benchmarked against,
+  with at least two columns indicating national estimates (probability
+  scale) and the associated standard error. If benchmarking over
+  multiple time period, a third column indicating time period is needed.
+
+- estVar:
+
+  column name in `national` that indicates national estimates.
+
+- sdVar:
+
+  column name in `national` that indicates standard errors of national
+  estimates.
+
+- timeVar:
+
+  column name in `national` that indicates time periods.
+
+- weight.region:
+
+  a data frame with a column `region` specifying subnational regions, a
+  column `proportion` that specifies the proportion of population in
+  each region. When multiple time periods exist, a third column `years`
+  is required and the population proportions are the population
+  proportions of each region in the corresponding time period.
+
+- method:
+
+  a string denoting the algorithm to use for benchmarking. Options
+  include `MH` for Metropolis-Hastings, and `Rejection` for rejection
+  sampler. Defaults to `Rejection`.
+
+## Value
+
+Benchmarked object in S3 class SUMMERproj or SUMMERprojlist in the same
+format as the input object `fitted`.
+
+## References
+
+Okonek, Taylor, and Jon Wakefield. "A computationally efficient approach
+to fully Bayesian benchmarking." Journal of Official Statistics 40, no.
+2 (2024): 283-316.
+
+## Author
+
+Taylor Okonek, Zehang Richard Li
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+##  ------------------------------------------ ##
+##     Benchmarking with smoothCluster output
+##  ------------------------------------------ ##
+
+data(DemoData)
+# fit unstratified cluster-level model
+counts.all <- NULL
+for(i in 1:length(DemoData)){
+vars <- c("clustid", "region", "time", "age")
+counts <- getCounts(DemoData[[i]][, c(vars, "died")], 
+            variables = 'died',
+             by = vars, drop=TRUE)
+counts$cluster <- counts$clustid
+counts$years <- counts$time
+counts$Y <- counts$died
+counts$survey <- names(DemoData)[i]  
+counts.all <- rbind(counts.all, counts)
+}
+periods <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14", "15-19")
+fit.bb  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat, 
+        family = "betabinomial",
+        year.label = periods, 
+        survey.effect = TRUE)
+est.bb <- getSmoothed(fit.bb, nsim = 1e4, CI = 0.95, save.draws=TRUE)
+
+# construct a simple population weight data frame with equal weights
+weight.region <- expand.grid(region = unique(counts.all$region), 
+             years = periods)
+weight.region$proportion <- 0.25
+
+# construct a simple national estimates
+national <- data.frame(years = periods, 
+           est = seq(0.27, 0.1, length = 7), 
+           sd = runif(7, 0.01, 0.03))
+
+ # benchmarking
+est.bb.bench <- Benchmark(est.bb, national, weight.region = weight.region, 
+            estVar = "est", sdVar = "sd", timeVar = "years")
+
+# Sanity check: Benchmarking comparison
+compare <- national
+compare$before <- NA
+compare$after <- NA
+for(i in 1:dim(compare)[1]){
+  weights <- subset(weight.region, years == national$years[i])
+  sub <- subset(est.bb$overall, years == national$years[i])
+  sub <- merge(sub, weights)
+  sub.bench <- subset(est.bb.bench$overall, years == national$years[i])
+  sub.bench <- merge(sub.bench, weights)
+  compare$before[i] <- sum(sub$proportion * sub$median)
+  compare$after[i] <- sum(sub.bench$proportion * sub.bench$median)
+}
+plot(compare$est, compare$after, col = 2, pch = 10,
+     xlim = range(c(compare$est, compare$before, compare$after)),
+     ylim = range(c(compare$est, compare$before, compare$after)),
+     xlab = "External national estimates", 
+     ylab = "Weighted posterior median after benchmarking",
+    main = "Sanity check: weighted average of area medians")
+points(compare$est, compare$before)
+abline(c(0, 1))
+legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, 10), col = c(1, 2))
+
+#  construct a simple national estimates
+national <- data.frame(years = periods, 
+             est = seq(0.22, 0.1, length = 7), 
+             sd = runif(7, 0.01, 0.03))
+# national does not need to have all years
+national_sub <- national[1:3,]
+
+# benchmarking
+est.bb.bench <- Benchmark(est.bb, national_sub, 
+            weight.region = weight.region, 
+            estVar = "est", sdVar = "sd", timeVar = "years")
+
+# Sanity check: only benchmarked for three periods
+compare <- national
+compare$before <- NA
+compare$after <- NA
+for(i in 1:dim(compare)[1]){
+  weights <- subset(weight.region, years == national$years[i])
+  sub <- subset(est.bb$overall, years == national$years[i])
+  sub <- merge(sub, weights)
+  sub.bench <- subset(est.bb.bench$overall, years == national$years[i])
+  sub.bench <- merge(sub.bench, weights)
+  compare$before[i] <- sum(sub$proportion * sub$median)
+  compare$after[i] <- sum(sub.bench$proportion * sub.bench$median)
+}
+plot(compare$est, compare$after, col = 2, pch = 10,
+     xlim = range(c(compare$est, compare$before, compare$after)),
+     ylim = range(c(compare$est, compare$before, compare$after)),
+     xlab = "External national estimates", 
+     ylab = "Weighted posterior median after benchmarking",
+    main = "Sanity check: weighted average of area medians")
+points(compare$est, compare$before)
+abline(c(0, 1))
+legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, 10), col = c(1, 2))
+
+#  Another extreme benchmarking example, where almost all weights in central region
+weight.region$proportion <- 0.01
+weight.region$proportion[weight.region$region == "central"] <- 0.97
+# benchmarking
+est.bb.bench <- Benchmark(est.bb, national, weight.region = weight.region, 
+          estVar = "est", sdVar = "sd", timeVar = "years")
+# It can be seen the central region are pulled to the national benchmark
+plot(national$est, 
+   subset(est.bb.bench$overall, region == "central")$mean,
+   col = 2, pch = 10, xlab = "External national estimates", 
+   ylab = "Central region estimates") 
+points(national$est, 
+   subset(est.bb$overall, region == "central")$mean) 
+legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, 10),  col = c(1, 2))
+abline(c(0, 1))
+
+# Example with the MH method
+# Benchmarking with MH should be applied when customized priors are 
+#  specified for fixed effects when fitting the model
+fit.bb.new  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat, 
+        family = "betabinomial",
+        year.label = periods, 
+        survey.effect = TRUE, 
+        control.fixed = list(
+          mean=list(`age.intercept0:1`=-4, 
+                   `age.intercept1-11:1`=-5,
+                   `age.intercept12-23:1`=-8,
+                   `age.intercept24-35:1`=-9,
+                   `age.intercept36-47:1`=-10,
+                   `age.intercept48-59:1`=-11), 
+          prec=list(`age.intercept0:1`=10, 
+                   `age.intercept1-11:1`=10,
+                   `age.intercept12-23:1`=10,
+                   `age.intercept24-35:1`=10,
+                   `age.intercept36-47:1`=10,
+                   `age.intercept48-59:1`=10)))
+est.bb.new <- getSmoothed(fit.bb.new, nsim = 10000, CI = 0.95, save.draws=TRUE)
+
+#  construct a simple national estimates
+national <- data.frame(years = periods, 
+             est = seq(0.22, 0.1, length = 7), 
+             sd = runif(7, 0.01, 0.03))
+weight.region <- expand.grid(region = unique(counts.all$region), 
+             years = periods)
+weight.region$proportion <- 0.25             
+est.bb.bench.MH <- Benchmark(est.bb.new, national, 
+  weight.region = weight.region, 
+  estVar = "est", sdVar = "sd", timeVar = "years",
+  method = "MH")
+
+compare <- national
+compare$before <- NA
+compare$after <- NA
+for(i in 1:dim(compare)[1]){
+  weights <- subset(weight.region, years == national$years[i])
+  sub <- subset(est.bb.new$overall, years == national$years[i])
+  sub <- merge(sub, weights)
+  sub.bench <- subset(est.bb.bench.MH$overall, years == national$years[i])
+  sub.bench <- merge(sub.bench, weights)
+  compare$before[i] <- sum(sub$proportion * sub$median)
+  compare$after[i] <- sum(sub.bench$proportion * sub.bench$median)
+}
+plot(compare$est, compare$after, col = 2, pch = 10,
+     xlim = range(c(compare$est, compare$before, compare$after)),
+     ylim = range(c(compare$est, compare$before, compare$after)),
+     xlab = "External national estimates", 
+     ylab = "Weighted posterior median after benchmarking",
+    main = "Sanity check: weighted average of area medians")
+points(compare$est, compare$before)
+abline(c(0, 1))
+legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, 10), col = c(1, 2))
+
+##  ------------------------------------------ ##
+##     Benchmarking with smoothDirect output
+##  ------------------------------------------ ##
+years <- levels(DemoData[[1]]$time)
+# obtain direct estimates
+data_multi <- getDirectList(births = DemoData, years = years,
+                        regionVar = "region",  timeVar = "time", clusterVar = "~clustid+id",
+                        ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+data <- aggregateSurvey(data_multi)
+#  subnational model
+years.all <- c(years, "15-19")
+fit2 <- smoothDirect(data = data, Amat = DemoMap$Amat,
+                 year.label = years.all, year.range = c(1985, 2019),
+                 time.model = "rw2", m = 5, type.st = 4)
+out2a <- getSmoothed(fit2, joint = TRUE, nsim = 1e5, save.draws = TRUE)
+
+##
+## Benchmarking for yearly estimates
+##
+weight.region <- expand.grid(region = unique(data$region[data$region != "All"]),
+                             years = 1985:2019)
+weight.region$proportion <- 0.25
+# construct a simple national estimates
+national <- data.frame(years = 1985:2019,
+                       est = seq(0.25, 0.15, length = 35),
+                       sd = runif(35, 0.03, 0.05))
+# Benchmarking to national estimates on the yearly scale
+out2b <- Benchmark(out2a, national, weight.region = weight.region,
+                          estVar = "est", sdVar = "sd", timeVar = "years")
+plot(out2a$overall)  
+plot(out2b$overall) 
+
+# combine the point estimate and compare with the benchmark values
+national.est <- aggregate(mean ~ years, 
+   data = out2a$overall[out2a$overall$is.yearly, ], FUN = mean)
+national.est.bench <- aggregate(mean ~ years, 
+   data = out2b$overall[out2b$overall$is.yearly, ], FUN = mean)
+
+plot(national$est, national.est$mean,  
+     xlim = range(c(national$est, national.est$mean, national.est.bench$mean)),
+     ylim = range(c(national$est, national.est$mean, national.est.bench$mean)),
+     xlab = "External national estimates", 
+     ylab = "Weighted posterior median after benchmarking",
+    main = "Sanity check: weighted average of area means")
+points(national$est, national.est.bench$mean, col = 2, pch = 10)
+abline(c(0, 1))
+legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, 10), col = c(1, 2))
+
+
+
+##
+## Benchmarking for period estimates
+##
+weight.region <- expand.grid(region = unique(data$region[data$region != "All"]),
+                             years = years.all)
+weight.region$proportion <- 0.25
+# construct a simple national estimates
+national <- data.frame(years = years.all,
+                       est = seq(0.25, 0.15, len = 7),
+                       sd = runif(7, 0.01, 0.03))
+# Benchmarking to national estimates on the period scale
+out2c <- Benchmark(out2a, national, weight.region = weight.region,
+                          estVar = "est", sdVar = "sd", timeVar = "years")
+plot(out2a$overall)
+plot(out2c$overall)
+
+# combine the point estimate and compare with the benchmark values
+national.est <- aggregate(mean ~ years, 
+      data = out2a$overall[!out2a$overall$is.yearly, ], FUN = mean)
+national.est.bench <- aggregate(mean ~ years, 
+      data = out2c$overall[!out2b$overall$is.yearly, ], FUN = mean)
+
+plot(national$est, national.est$mean,  
+     xlim = range(c(national$est, national.est$mean, national.est.bench$mean)),
+     ylim = range(c(national$est, national.est$mean, national.est.bench$mean)),
+     xlab = "External national estimates", 
+     ylab = "Weighted posterior median after benchmarking",
+    main = "Sanity check: weighted average of area means")
+points(national$est, national.est.bench$mean, col = 2, pch = 10)
+abline(c(0, 1))
+legend("topleft", c("Before benchmarking", "After benchmarking"), pch = c(1, 10), col = c(1, 2))
+
+
+ } # }
+```

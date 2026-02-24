@@ -1,0 +1,164 @@
+# Reformat full birth records into person-month format
+
+Reformat full birth records into person-month format
+
+## Usage
+
+``` r
+getBirths(
+  filepath = NULL,
+  data = NULL,
+  surveyyear = NA,
+  variables = c("caseid", "v001", "v002", "v004", "v005", "v021", "v022", "v023", "v024",
+    "v025", "v139", "bidx"),
+  strata = c("v024", "v025"),
+  dob = "b3",
+  alive = "b5",
+  age = "b7",
+  age.truncate = 24,
+  date.interview = "v008",
+  month.cut = c(1, 12, 24, 36, 48, 60),
+  year.cut = seq(1980, 2020, by = 5),
+  min.last.period = 0,
+  cmc.adjust = 0,
+  compact = FALSE,
+  compact.by = c("v001", "v024", "v025", "v005")
+)
+```
+
+## Arguments
+
+- filepath:
+
+  file path of raw .dta file from DHS. Only used when data frame is not
+  provided in the function call.
+
+- data:
+
+  data frame of a DHS survey
+
+- surveyyear:
+
+  year of survey. Observations after this year will be excluded from the
+  analysis.
+
+- variables:
+
+  vector of variables to be used in obtaining the person-month files.
+  The variables correspond the the DHS recode manual VI. For early DHS
+  data, the variable names may need to be changed.
+
+- strata:
+
+  vector of variable names used for strata. If a single variable is
+  specified, then that variable will be used as strata indicator If
+  multiple variables are specified, the interaction of these variables
+  will be used as strata indicator.
+
+- dob:
+
+  variable name for the date of birth.
+
+- alive:
+
+  variable name for the indicator of whether child was alive or dead at
+  the time of interview. It should be factor or character variable with
+  levels "no" or "yes". Other coding scheme will not be recognized and
+  can lead to errors.
+
+- age:
+
+  variable name for the age at death of the child in completed months.
+
+- age.truncate:
+
+  the smallest age in months where only full years are reported. The
+  default value is 24, which corresponds to the DHS practice of
+  recording only age in full years for children over 2 years old. That
+  is, for children with age starting from 24 months old, we assume the
+  age variable reported in multiples of 12 are truncated from its true
+  value. For example, children between age 24 to 35 months are all
+  recorded as 24. To account for the truncation of age, 5 months are
+  added to all ages recorded in multiples of 12 starting from 24. To
+  avoid this adjustment, set this argument to NA.
+
+- date.interview:
+
+  variable name for the date of interview.
+
+- month.cut:
+
+  the cutoff of each bins of age group in the unit of months. Default
+  values are 1, 12, 24, 36, 48, and 60, representing the age groups (0,
+  1), \[1, 12), \[12, 24), ..., \[48, 60).
+
+- year.cut:
+
+  The cutoff of each bins of time periods, including both boundaries.
+  Default values are 1980, 1985, ..., 2020, representing the time
+  periods 80-84, 85-89, ..., 15-19. Notice that if each bin contains one
+  year, the last year in the output is max(year.cut)-1. For example, if
+  year.cut = 1980:2020, the last year in the output is 2019.
+
+- min.last.period:
+
+  The cutoff for how many years the last period must contain in order to
+  be counted in the output. For example, if the last period is 2015-2019
+  and min.last.period = 3, person-months for the last period will only
+  be returned if survey contains observations at least in 2017. This
+  argument avoids the situation that estimates for the last period being
+  based on only a small number of initial years, if applicable. Default
+  to be 0.
+
+- cmc.adjust:
+
+  number of months to add to the recorded month in the dataset. Some DHS
+  surveys does not use Gregorian calendar (the calendar used in most of
+  the world). For example, the Ethiopian calendar is 92 months behind
+  the Gregorian calendar in general. Then we can set cmc.adjust to 92,
+  which adds 92 months to all dates in the dataset, effectively
+  transforming the Ethiopian calendar to the Gregorian calendar.
+
+- compact:
+
+  logical indicator of whether the compact format is returned. In the
+  compact output, person months are aggregated by cluster, age, and
+  time. Total number of person months and deaths in each group are
+  returned instead of the raw person-months.
+
+- compact.by:
+
+  vector of variables to summarize the compact form by.
+
+## Value
+
+This function returns a new data frame where each row indicate a
+person-month, with the additional variables specified in the function
+argument.
+
+## References
+
+Li, Z., Hsiao, Y., Godwin, J., Martin, B. D., Wakefield, J., Clark, S.
+J., & with support from the United Nations Inter-agency Group for Child
+Mortality Estimation and its technical advisory group. (2019). *Changes
+in the spatial distribution of the under-five mortality rate: Small-area
+analysis of 122 DHS surveys in 262 subregions of 35 countries in
+Africa.* PloS one, 14(1), e0210645.
+
+Mercer, L. D., Wakefield, J., Pantazis, A., Lutambi, A. M., Masanja, H.,
+& Clark, S. (2015). *Space-time smoothing of complex survey data: small
+area estimation for child mortality.* The annals of applied statistics,
+9(4), 1889.
+
+## Author
+
+Zehang Richard Li, Bryan Martin, Laina Mercer
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# my_fp <- "/myExampleFilepath/surveyData.DTA"
+# DemoData <- getBirths(filepath = my_fp, surveyyear = 2015) 
+} # }
+```

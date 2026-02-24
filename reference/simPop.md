@@ -1,0 +1,579 @@
+# Simulate populations and areal prevalences
+
+Given a spatial risk model, simulate populations and population
+prevalences at the enumeration area level (represented as points), and
+aggregate to the pixel and administrative areal level.
+
+## Usage
+
+``` r
+simPopSPDE(
+  nsim = 1,
+  easpa,
+  pop.mat,
+  target.pop.mat,
+  poppsub,
+  spde.mesh,
+  marg.var = 0.243,
+  sigma.epsilon = sqrt(0.463),
+  gamma = 0.009,
+  eff.range = 406.51,
+  beta0 = -3.922,
+  seed = NULL,
+  inla.seed = -1L,
+  n.HH.sampled = 25,
+  stratify.by.urban = TRUE,
+  subarea.level = TRUE,
+  do.fine.scale.risk = FALSE,
+  do.smooth.risk = FALSE,
+  do.smooth.risk.logistic.approx = FALSE,
+  min1.per.subarea = TRUE
+)
+
+simPopCustom(
+  logit.risk.draws,
+  sigma.epsilon.draws,
+  easpa,
+  pop.mat,
+  target.pop.mat,
+  stratify.by.urban = TRUE,
+  validation.pixel.I = NULL,
+  validation.cluster.I = NULL,
+  clusters.per.pixel = NULL,
+  do.fine.scale.risk = FALSE,
+  do.smooth.risk = FALSE,
+  do.smooth.risk.logistic.approx = FALSE,
+  poppsub = NULL,
+  subarea.level = FALSE,
+  min1.per.subarea = TRUE,
+  return.EA.info = FALSE,
+  epsc = NULL
+)
+```
+
+## Arguments
+
+- nsim:
+
+  Number of simulations
+
+- easpa:
+
+  data.frame of enumeration area, households, and target population per
+  area stratified by urban/rural with variables:
+
+  area
+
+  :   name of area
+
+  EAUrb
+
+  :   number of urban enumeration areas in the area
+
+  EARur
+
+  :   number of rural enumeration areas in the area
+
+  EATotal
+
+  :   total number of enumeration areas in the area
+
+  HHUrb
+
+  :   number of urban households in the area
+
+  HHRur
+
+  :   number of rural households in the area
+
+  HHTotal
+
+  :   total number of households in the area
+
+  popUrb
+
+  :   total urban (target) population of area
+
+  popRur
+
+  :   total rural (target) population of area
+
+  popTotal
+
+  :   total (general) population of area
+
+- pop.mat:
+
+  Pixellated grid data frame with variables `lon`, `lat`, `pop`, `area`,
+  `subareas` (if subarea.level is TRUE), `urban` (if stratify.by.urban
+  is TRUE), `east`, and `north`
+
+- target.pop.mat:
+
+  Same as pop.mat, but `pop` variable gives target rather than general
+  population
+
+- poppsub:
+
+  data.frame of population per subarea separated by urban/rural using
+  for population density grid normalization or urbanicity
+  classification. Often based on extra fine scale population density
+  grid. Has variables:
+
+- spde.mesh:
+
+  Triangular mesh for the SPDE
+
+- marg.var:
+
+  Marginal variance of the spatial process, excluding cluster effects.
+  If 0, no spatial component is included
+
+- sigma.epsilon:
+
+  Standard deviation on the logit scale for iid Gaussian EA level random
+  effects in the risk model
+
+- gamma:
+
+  Effect of urban on logit scale for logit model for risk
+
+- eff.range:
+
+  Effective spatial range for the SPDE model
+
+- beta0:
+
+  Intercept of logit model for risk
+
+- seed:
+
+  Random number generator seed
+
+- inla.seed:
+
+  Seed input to inla.qsample. 0L sets seed intelligently, \> 0 sets a
+  specific seed, \< 0 keeps existing RNG
+
+- n.HH.sampled:
+
+  Number of households sampled per enumeration area. Default is 25 to
+  match DHS surveys
+
+- stratify.by.urban:
+
+  Whether or not to stratify simulations by urban/rural classification
+
+- subarea.level:
+
+  Whether or not to aggregate the population by subarea
+
+- do.fine.scale.risk:
+
+  Whether or not to calculate the fine scale risk at each aggregation
+  level in addition to the prevalence
+
+- do.smooth.risk:
+
+  Whether or not to calculate the smooth risk at each aggregation level
+  in addition to the prevalence
+
+- do.smooth.risk.logistic.approx:
+
+  Whether to use logistic approximation when calculating smooth risk.
+  See
+  [`logitNormMean`](https://richardli.github.io/SUMMER/reference/logitNormMean.md)
+  for details.
+
+- min1.per.subarea:
+
+  If TRUE, ensures there is at least 1 EA per subarea. If subareas are
+  particularly unlikely to have enumeration areas since they have a very
+  low proportion of the population in an area, then setting this to TRUE
+  may be computationally intensive.
+
+- logit.risk.draws:
+
+  nIntegrationPoints x nsim dimension matrix of draws from the pixel
+  leve risk field on logit scale, leaving out potential
+  nugget/cluster/EA level effects.
+
+- sigma.epsilon.draws:
+
+  nsim length vector of draws of cluster effect logit scale SD (joint
+  draws with logit.risk.draws)
+
+- validation.pixel.I:
+
+  CURRENTLY FOR TESTING PURPOSES ONLY a set of indices of pixels for
+  which we want to simulate populations (used for pixel level
+  validation)
+
+- validation.cluster.I:
+
+  CURRENTLY FOR TESTING PURPOSES ONLY a set of indices of cluster for
+  which we want to simulate populations (used for cluster level
+  validation)
+
+- clusters.per.pixel:
+
+  CURRENTLY FOR TESTING PURPOSES ONLY Used for pixel level validation.
+  Fixes the number of EAs per pixel.
+
+- return.EA.info:
+
+  If TRUE, returns information on every individual EA (BAU) for each
+  simulated population
+
+- epsc:
+
+  nEAs x nsim matrix of simulated EA (BAU) level iid effects
+  representing fine scale variation in risk. If NULL, they are simulated
+  as iid Gaussian on a logit scale with SD given by sigma.epsilon.draws
+  list(pixelPop=outPixelLevel, subareaPop=outSubareaLevel,
+  areaPop=outAreaLevel, logit.risk.draws=logit.risk.draws)
+
+## Value
+
+The simulated population aggregated to the enumeration area, pixel,
+subarea (generally Admin2), and area (generally Admin1) levels. Output
+includes:
+
+- pixelPop:
+
+  A list of pixel level population aggregates
+
+- subareaPop:
+
+  A list of `subarea` level population aggregates
+
+- areaPop:
+
+  A list of `area` level population aggregates
+
+Each of these contains population numerator and denominator as well as
+prevalence and risk information aggregated to the appropriate level.
+
+## Details
+
+**\[experimental\]**
+
+For population simulation and aggregation, we consider three models:
+smooth risk, fine scale risk, and the fine scale prevalence. All will be
+described in detail in a paper in preparation. In the smooth risk model,
+pixel level risks are integrated with respect to target population
+density when producing areal estimates on a prespecified set of
+integration points. The target population may be, for example, neonatals
+rather than the general population. In the fine scale models,
+enumeration areas (EAs) are simulated as point locations and iid random
+effects in the EA level risk are allowed. EAs and populations are
+dispersed conditional on the (possibly approximately) known number of
+EAs, households, and target population at a particular areal level
+(these we call `areas`) using multilevel multinomial sampling, first
+sampling the EAs, then distributing households among the EAs, then the
+target population among the households. Any areal level below the
+`areas` we call `subareas`. For instance, the `areas` might be Admin-1
+if that is the smallest level at which the number of EAs, households,
+and people is known, and the `subareas` might be Admin-2. The multilevel
+multinomial sampling may be stratified by urban/rural within the areas
+if the number of EAs, households, and people is also approximately known
+at that level.
+
+Within each EA we assume a fixed probability of an event occurring,
+which is the fine scale `risk`. The fine scale `prevalence` is the
+empirical proportion of events within that EA. We assume EA level logit
+scale iid N(0, sigma.epsilon^2) random effects in the risk model. When
+averaged with equal weights over all EAs in an areal unit, this forms
+the fine scale risk. When instead the population numerators and
+denominators are aggregated, and are used to calculate the empirical
+proportion of events occurring in an areal unit, the resulting quantity
+is the fine scale prevalence in that areal unit.
+
+Note that these functions can be used for either simulating populations
+for simulation studies, or for generating predictions accounting for
+uncertainty in EA locations and fine scale variation occurring at the EA
+level due to EA level iid random effects. Required, however, is a
+separately fit EA level spatial risk model and information on the
+spatial population density and the population frame.
+
+## Functions
+
+- `simPopSPDE()`: Simulate populations and population prevalences given
+  census frame and population density information. Uses SPDE model for
+  generating spatial risk and can include iid cluster level effect.
+
+- `simPopCustom()`: Simulate populations and population prevalences
+  given census frame and population density information. Uses custom
+  spatial logit risk function and can include iid cluster level effect.
+
+## References
+
+Paige, John, Geir-Arne Fuglstad, Andrea Riebler, and Jon Wakefield.
+"Spatial aggregation with respect to a population distribution: Impact
+on inference." Spatial Statistics 52 (2022): 100714.
+
+## See also
+
+`simPopCustom`,
+[`makePopIntegrationTab`](https://richardli.github.io/SUMMER/reference/makePopIntegrationTab.md),
+[`adjustPopMat`](https://richardli.github.io/SUMMER/reference/makePopIntegrationTab.md),
+[`simSPDE`](https://richardli.github.io/SUMMER/reference/simSPDE.md).
+
+## Author
+
+John Paige
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+## In this script we will create 5km resolution pixellated grid over Kenya, 
+## and generate tables of estimated (both target and general) population 
+## totals at the area (e.g. Admin-1) and subarea (e.g. Admin-2) levels. Then 
+## we will use that to simulate populations of 
+
+# download Kenya GADM shapefiles from SUMMERdata github repository
+githubURL <- paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/", 
+                    "kenyaMaps.rda?raw=true")
+tempDirectory = "~/"
+mapsFilename = paste0(tempDirectory, "/kenyaMaps.rda")
+if(!file.exists(mapsFilename)) {
+  download.file(githubURL,mapsFilename)
+}
+
+# load it in
+out = load(mapsFilename)
+out
+kenyaMesh <- fmesher::fm_as_fm(kenyaMesh)
+adm1@data$NAME_1 = as.character(adm1@data$NAME_1)
+adm1@data$NAME_1[adm1@data$NAME_1 == "Trans Nzoia"] = "Trans-Nzoia"
+adm1@data$NAME_1[adm1@data$NAME_1 == "Elgeyo-Marakwet"] = "Elgeyo Marakwet"
+adm2@data$NAME_1 = as.character(adm2@data$NAME_1)
+adm2@data$NAME_1[adm2@data$NAME_1 == "Trans Nzoia"] = "Trans-Nzoia"
+adm2@data$NAME_1[adm2@data$NAME_1 == "Elgeyo-Marakwet"] = "Elgeyo Marakwet"
+
+# some Admin-2 areas have the same name
+adm2@data$NAME_2 = as.character(adm2@data$NAME_2)
+adm2@data$NAME_2[(adm2@data$NAME_1 == "Bungoma") & 
+                   (adm2@data$NAME_2 == "Lugari")] = "Lugari, Bungoma"
+adm2@data$NAME_2[(adm2@data$NAME_1 == "Kakamega") & 
+                   (adm2@data$NAME_2 == "Lugari")] = "Lugari, Kakamega"
+adm2@data$NAME_2[(adm2@data$NAME_1 == "Meru") & 
+                   (adm2@data$NAME_2 == "Igembe South")] = "Igembe South, Meru"
+adm2@data$NAME_2[(adm2@data$NAME_1 == "Tharaka-Nithi") & 
+                   (adm2@data$NAME_2 == "Igembe South")] = "Igembe South, Tharaka-Nithi"
+
+# The spatial area of unknown 8 is so small, it causes problems unless its removed or 
+# unioned with another subarea. Union it with neighboring Kakeguria:
+newadm2 = adm2
+unknown8I = which(newadm2$NAME_2 == "unknown 8")
+newadm2$NAME_2[newadm2$NAME_2 %in% c("unknown 8", "Kapenguria")] <- 
+  "Kapenguria + unknown 8"
+admin2.IDs <- newadm2$NAME_2
+
+newadm2@data = cbind(newadm2@data, NAME_2OLD = newadm2@data$NAME_2)
+newadm2@data$NAME_2OLD = newadm2@data$NAME_2
+newadm2@data$NAME_2 = admin2.IDs
+newadm2$NAME_2 = admin2.IDs
+temp <- terra::aggregate(as(newadm2, "SpatVector"), by="NAME_2")
+
+library(sf)
+temp <- sf::st_as_sf(temp)
+temp <- sf::as_Spatial(temp)
+
+tempData = newadm2@data[-unknown8I,]
+tempData = tempData[order(tempData$NAME_2),]
+newadm2 <- sp::SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
+adm2 = newadm2
+
+# download 2014 Kenya population density TIF file
+
+githubURL <- paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/", 
+                    "Kenya2014Pop/worldpop_total_1y_2014_00_00.tif?raw=true")
+popTIFFilename = paste0(tempDirectory, "/worldpop_total_1y_2014_00_00.tif")
+if(!file.exists(popTIFFilename)) {
+  download.file(githubURL,popTIFFilename)
+}
+
+# load it in
+pop = terra::rast(popTIFFilename)
+
+east.lim = c(-110.6405, 832.4544)
+north.lim = c(-555.1739, 608.7130)
+
+## Construct poppsubKenya, a table of urban/rural general population totals 
+## in each subarea. Technically, this is not necessary since we can load in 
+## poppsubKenya via data(kenyaPopulationData). First, we will need to calculate 
+## the areas in km^2 of the areas and subareas
+
+# use Lambert equal area projection of areas (Admin-1) and subareas (Admin-2)
+midLon = mean(adm1@bbox[1,])
+midLat = mean(adm1@bbox[2,])
+p4s = paste0("+proj=laea +x_0=0 +y_0=0 +lon_0=", midLon, 
+             " +lat_0=", midLat, " +units=km")
+
+adm1_sf = st_as_sf(adm1)
+adm1proj_sf = st_transform(adm1_sf, p4s)
+adm1proj = as(adm1proj_sf, "Spatial")
+
+adm2_sf = st_as_sf(adm2)
+adm2proj_sf = st_transform(adm2_sf, p4s)
+adm2proj = as(adm2proj_sf, "Spatial")
+
+# now calculate spatial area in km^2
+admin1Areas = as.numeric(st_area(adm1proj_sf))
+admin2Areas = as.numeric(st_area(adm2proj_sf))
+
+areapaKenya = data.frame(area=adm1proj@data$NAME_1, spatialArea=admin1Areas)
+areapsubKenya = data.frame(area=adm2proj@data$NAME_1, subarea=adm2proj@data$NAME_2, 
+                           spatialArea=admin2Areas)
+
+# Calculate general population totals at the subarea (Admin-2) x urban/rural 
+# level and using 1km resolution population grid. Assign urbanicity by 
+# thresholding population density based on estimated proportion population 
+# urban/rural, making sure total area (Admin-1) urban/rural populations in 
+# each area matches poppaKenya.
+
+# NOTE: the following function will typically take ~15-20 minutes. Can speed up 
+#       by setting km.res to be higher, but we recommend fine resolution for 
+#       this step, since it only needs to be done once. Instead of running 
+#       the code in the following if(FALSE) section, 
+#       you can simply run data(kenyaPopulationData)
+if(FALSE){
+  system.time(poppsubKenya <- getPoppsub(
+    km.res=1, pop=pop, domain.map.dat=adm0,
+    east.lim=east.lim, north.lim=north.lim, map.projection=projKenya,
+    poppa = poppaKenya, areapa=areapaKenya, areapsub=areapsubKenya, 
+    area.map.dat=adm1, subarea.map.dat=adm2, 
+    areaNameVar = "NAME_1", subareaNameVar="NAME_2"))
+}
+data(kenyaPopulationData)
+
+# Now generate a general population integration table at 5km resolution, 
+# based on subarea (Admin-2) x urban/rural population totals. This takes 
+# ~1 minute
+pop.matKenya <- makePopIntegrationTab(
+  km.res=5, pop=pop, domain.map.dat=adm0,
+  east.lim=east.lim, north.lim=north.lim, map.projection=projKenya,
+  poppa = poppaKenya, poppsub=poppsubKenya, 
+  area.map.dat = adm1, subarea.map.dat = adm2,
+  areaNameVar = "NAME_1", subareaNameVar="NAME_2")
+
+## Adjust pop.mat to be target (neonatal) rather than general population 
+## density. First create the target population frame
+## (these numbers are based on IPUMS microcensus data)
+mothersPerHouseholdUrb = 0.3497151
+childrenPerMotherUrb = 1.295917
+mothersPerHouseholdRur = 0.4787696
+childrenPerMotherRur = 1.455222
+targetPopPerStratumUrban = easpaKenya$HHUrb * mothersPerHouseholdUrb * 
+  childrenPerMotherUrb
+targetPopPerStratumRural = easpaKenya$HHRur * mothersPerHouseholdRur * 
+  childrenPerMotherRur
+easpaKenyaNeonatal = easpaKenya
+easpaKenyaNeonatal$popUrb = targetPopPerStratumUrban
+easpaKenyaNeonatal$popRur = targetPopPerStratumRural
+easpaKenyaNeonatal$popTotal = easpaKenyaNeonatal$popUrb + 
+  easpaKenyaNeonatal$popRur
+easpaKenyaNeonatal$pctUrb = 100 * easpaKenyaNeonatal$popUrb / 
+  easpaKenyaNeonatal$popTotal
+easpaKenyaNeonatal$pctTotal = 
+  100 * easpaKenyaNeonatal$popTotal / sum(easpaKenyaNeonatal$popTotal)
+
+# Generate the target population density by scaling the current 
+# population density grid at the Admin1 x urban/rural level
+pop.matKenyaNeonatal = adjustPopMat(pop.matKenya, easpaKenyaNeonatal)
+
+# Generate neonatal population table from the neonatal population integration 
+# matrix. This is technically not necessary for population simulation purposes, 
+# but is here for illustrative purposes
+poppsubKenyaNeonatal = poppRegionFromPopMat(pop.matKenyaNeonatal, 
+                                            pop.matKenyaNeonatal$subarea)
+poppsubKenyaNeonatal = 
+  cbind(subarea=poppsubKenyaNeonatal$region, 
+        area=adm2@data$NAME_1[match(poppsubKenyaNeonatal$region, adm2@data$NAME_2)], 
+        poppsubKenyaNeonatal[,-1])
+print(head(poppsubKenyaNeonatal))
+
+## Now we're ready to simulate neonatal populations along with neonatal 
+## mortality risks and prevalences
+
+# use the following model to simulate the neonatal population based roughly 
+# on Paige et al. (2020) neonatal mortality modeling for Kenya.
+beta0=-2.9 # intercept
+gamma=-1 # urban effect
+rho=(1/3)^2 # spatial variance
+eff.range = 400 # effective spatial range in km
+sigma.epsilon=sqrt(1/2.5) # cluster (nugget) effect standard deviation
+
+# Run a simulation! This produces multiple dense nEA x nsim and nPixel x nsim 
+# matrices. In the future sparse matrices and chunk by chunk computations 
+# may be incorporated.
+simPop = simPopSPDE(nsim=1, easpa=easpaKenyaNeonatal, 
+                    pop.mat=pop.matKenya, target.pop.mat=pop.matKenyaNeonatal, 
+                    poppsub=poppsubKenya, spde.mesh=kenyaMesh, 
+                    marg.var=rho, sigma.epsilon=sigma.epsilon, 
+                    gamma=gamma, eff.range=eff.range, beta0=beta0, 
+                    seed=12, inla.seed=12, n.HH.sampled=25, 
+                    stratify.by.urban=TRUE, subarea.level=TRUE, 
+                    do.fine.scale.risk=TRUE, do.smooth.risk=TRUE, 
+                    min1.per.subarea=TRUE)
+
+# get average absolute percent error relative to fine scale prevalence at Admin-2 level
+tempDat = simPop$subareaPop$aggregationResults[c("region", "pFineScalePrevalence", 
+                                                  "pFineScaleRisk", "pSmoothRisk")]
+100*mean(abs(tempDat$pFineScalePrevalence - tempDat$pFineScaleRisk) / 
+           tempDat$pFineScalePrevalence)
+100*mean(abs(tempDat$pFineScalePrevalence - tempDat$pSmoothRisk) / 
+           tempDat$pFineScalePrevalence)
+100*mean(abs(tempDat$pFineScaleRisk - tempDat$pSmoothRisk) / 
+           tempDat$pFineScalePrevalence)
+
+# verify number of EAs per area and subarea
+cbind(aggregate(simPop$eaPop$ea.samples[,1], by=list(area=pop.matKenya$area), FUN=sum), 
+      trueNumEAs=easpaKenya$EATotal[order(easpaKenya$area)])
+aggregate(simPop$eaPop$ea.samples[,1], by=list(area=pop.matKenya$subarea), FUN=sum)
+
+## plot simulated population
+# directory for plotting 
+# (mapPlot takes longer when it doesn't save to a file)
+tempDirectory = "~/"
+
+# pixel level plots. Some pixels have no simulated EAs, in which case they will be 
+# plotted as white. Expected noisy looking plots of fine scale risk and prevalence 
+# due to EAs being discrete, as compared to a very smooth plot of smooth risk.
+zlim = c(0, quantile(probs=.995, c(simPop$pixelPop$pFineScalePrevalence, 
+                                   simPop$pixelPop$pFineScaleRisk, 
+                                   simPop$pixelPop$pSmoothRisk), na.rm=TRUE))
+par(mfrow=c(2,2))
+plot(adm2, asp=1)
+points(simPop$eaPop$eaDatList[[1]]$lon, simPop$eaPop$eaDatList[[1]]$lat, pch=".", col="blue")
+plot(adm2, asp=1)
+fields::quilt.plot(pop.matKenya$lon, pop.matKenya$lat, simPop$pixelPop$pFineScalePrevalence, 
+           zlim=zlim, add=TRUE, FUN=function(x) {mean(x, na.rm=TRUE)})
+plot(adm2, asp=1)
+fields::quilt.plot(pop.matKenya$lon, pop.matKenya$lat, simPop$pixelPop$pFineScaleRisk, 
+           zlim=zlim, add=TRUE, FUN=function(x) {mean(x, na.rm=TRUE)})
+fields::quilt.plot(pop.matKenya$lon, pop.matKenya$lat, simPop$pixelPop$pSmoothRisk, 
+           zlim=zlim, FUN=function(x) {mean(x, na.rm=TRUE)}, asp=1)
+plot(adm2, add=TRUE)
+
+range(simPop$eaPop$eaDatList[[1]]$N)
+
+# areal (Admin-1) level: these results should look essentially identical
+
+tempDat = simPop$areaPop$aggregationResults[c("region", "pFineScalePrevalence", 
+                                               "pFineScaleRisk", "pSmoothRisk")]
+mapPlot(tempDat, 
+        variables=c("pFineScalePrevalence", "pFineScaleRisk", "pSmoothRisk"), 
+        geo=adm1, by.geo="NAME_1", by.data="region", is.long=FALSE)
+
+# subareal (Admin-2) level: these results should look subtley different 
+# depending on the type of prevalence/risk considered
+tempDat = simPop$subareaPop$aggregationResults[c("region", "pFineScalePrevalence", 
+                                                  "pFineScaleRisk", "pSmoothRisk")]
+mapPlot(tempDat, 
+        variables=c("pFineScalePrevalence", "pFineScaleRisk", "pSmoothRisk"), 
+        geo=adm2, by.geo="NAME_2", by.data="region", is.long=FALSE)
+} # }
+```

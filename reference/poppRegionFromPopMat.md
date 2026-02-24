@@ -1,0 +1,143 @@
+# Generate a population frame of a similar format to poppa argument of [`simPopCustom`](https://richardli.github.io/SUMMER/reference/simPop.md) with a custom set of regions
+
+**\[experimental\]**
+
+## Usage
+
+``` r
+poppRegionFromPopMat(pop.mat, regions)
+```
+
+## Arguments
+
+- pop.mat:
+
+  Pixellated grid data frame with variables `area` and `pop`. Assumed to
+  be stratified by urban/rural
+
+- regions:
+
+  character vector of length nPixels giving a custom set of regions for
+  which to generate a population frame using population density
+
+## Value
+
+A table of population totals by region
+
+## Details
+
+Urbanicity thresholds are set based on that region's percent population
+urban. Intended as a helper function of
+[`getPoppsub`](https://richardli.github.io/SUMMER/reference/makePopIntegrationTab.md),
+but can also be used for custom sets of regions (i.e. more than just 2
+areal levels: area and subarea).
+
+## See also
+
+[`getPoppsub`](https://richardli.github.io/SUMMER/reference/makePopIntegrationTab.md)
+
+## Author
+
+John Paige
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+data(kenyaPopulationData)
+
+#' # download Kenya GADM shapefiles from SUMMERdata github repository
+githubURL <- "https://github.com/paigejo/SUMMERdata/blob/main/data/kenyaMaps.rda?raw=true"
+tempDirectory = "~/"
+mapsFilename = paste0(tempDirectory, "/kenyaMaps.rda")
+if(!file.exists(mapsFilename)) {
+  download.file(githubURL,mapsFilename)
+}
+
+# load it in
+out = load(mapsFilename)
+out
+kenyaMesh <- fmesher::fm_as_fm(kenyaMesh)
+adm1@data$NAME_1 = as.character(adm1@data$NAME_1)
+adm1@data$NAME_1[adm1@data$NAME_1 == "Trans Nzoia"] = "Trans-Nzoia"
+adm1@data$NAME_1[adm1@data$NAME_1 == "Elgeyo-Marakwet"] = "Elgeyo Marakwet"
+adm2@data$NAME_1 = as.character(adm2@data$NAME_1)
+adm2@data$NAME_1[adm2@data$NAME_1 == "Trans Nzoia"] = "Trans-Nzoia"
+adm2@data$NAME_1[adm2@data$NAME_1 == "Elgeyo-Marakwet"] = "Elgeyo Marakwet"
+
+# some Admin-2 areas have the same name
+adm2@data$NAME_2 = as.character(adm2@data$NAME_2)
+adm2@data$NAME_2[(adm2@data$NAME_1 == "Bungoma") & 
+  (adm2@data$NAME_2 == "Lugari")] = "Lugari, Bungoma"
+adm2@data$NAME_2[(adm2@data$NAME_1 == "Kakamega") & 
+  (adm2@data$NAME_2 == "Lugari")] = "Lugari, Kakamega"
+adm2@data$NAME_2[(adm2@data$NAME_1 == "Meru") & 
+  (adm2@data$NAME_2 == "Igembe South")] = "Igembe South, Meru"
+adm2@data$NAME_2[(adm2@data$NAME_1 == "Tharaka-Nithi") & 
+  (adm2@data$NAME_2 == "Igembe South")] = "Igembe South, Tharaka-Nithi"
+
+# The spatial area of unknown 8 is so small, it causes problems unless 
+# its removed or unioned with another subarea. Union it with neighboring 
+# Kakeguria:
+newadm2 = adm2
+unknown8I = which(newadm2$NAME_2 == "unknown 8")
+newadm2$NAME_2[newadm2$NAME_2 %in% c("unknown 8", "Kapenguria")] <- "Kapenguria + unknown 8"
+admin2.IDs <- newadm2$NAME_2
+
+newadm2@data = cbind(newadm2@data, NAME_2OLD = newadm2@data$NAME_2)
+newadm2@data$NAME_2OLD = newadm2@data$NAME_2
+newadm2@data$NAME_2 = admin2.IDs
+newadm2$NAME_2 = admin2.IDs
+temp <- terra::aggregate(as(newadm2, "SpatVector"), by="NAME_2")
+
+library(sf)
+temp <- sf::st_as_sf(temp)
+temp <- sf::as_Spatial(temp)
+
+tempData = newadm2@data[-unknown8I,]
+tempData = tempData[order(tempData$NAME_2),]
+newadm2 <- SpatialPolygonsDataFrame(temp, tempData, match.ID = F)
+adm2 = newadm2
+
+# download 2014 Kenya population density TIF file
+
+githubURL <- paste0("https://github.com/paigejo/SUMMERdata/blob/main/data/", 
+                    "Kenya2014Pop/worldpop_total_1y_2014_00_00.tif?raw=true")
+popTIFFilename = paste0(tempDirectory, "/worldpop_total_1y_2014_00_00.tif")
+if(!file.exists(popTIFFilename)) {
+  download.file(githubURL,popTIFFilename)
+}
+
+# load it in
+pop = terra::rast(popTIFFilename)
+
+east.lim = c(-110.6405, 832.4544)
+north.lim = c(-555.1739, 608.7130)
+
+require(fields)
+#' 
+# Now generate a general population integration table at 5km resolution, 
+# based on subarea (Admin-2) x urban/rural population totals. This takes 
+# ~1 minute
+pop.matKenya <- makePopIntegrationTab(
+  km.res=5, pop=pop, domain.map.dat=adm0,
+  east.lim=east.lim, north.lim=north.lim, map.projection=projKenya,
+  poppa = poppaKenya, poppsub=poppsubKenya, 
+  area.map.dat = adm1, subarea.map.dat = adm2,
+  areaNameVar = "NAME_1", subareaNameVar="NAME_2")
+  
+out = poppRegionFromPopMat(pop.matKenya, pop.matKenya$area)
+out
+poppaKenya
+
+out = poppRegionFromPopMat(pop.matKenya, pop.matKenya$subarea)
+out
+poppsubKenya
+
+pop.matKenyaUnstratified = pop.matKenya
+pop.matKenyaUnstratified$urban = NULL
+out = poppRegionFromPopMat(pop.matKenyaUnstratified, pop.matKenyaUnstratified$area)
+out
+poppaKenya
+} # }
+```

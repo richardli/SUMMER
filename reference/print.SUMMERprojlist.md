@@ -1,0 +1,60 @@
+# Print method for the combined projection output.
+
+This function is the print method for class `SUMMERprojlist`.
+
+## Usage
+
+``` r
+# S3 method for class 'SUMMERprojlist'
+print(x, ...)
+```
+
+## Arguments
+
+- x:
+
+  output from
+  [`getSmoothed`](https://richardli.github.io/SUMMER/reference/getSmoothed.md)
+
+- ...:
+
+  not used
+
+## Author
+
+Zehang Li
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+ library(SUMMER)
+ library(dplyr)
+ data(DemoData)
+ # Create dataset of counts
+ counts.all <- NULL
+ for(i in 1:length(DemoData)){
+ counts <- getCounts(DemoData[[i]][, c("clustid", "time", "age", "died",
+                                      "region", "strata")],
+          variables = 'died', by = c("age", "clustid", "region", 
+                                       "time", "strata"))
+ counts <- counts %>% mutate(cluster = clustid, years = time, Y=died)
+ counts$strata <- gsub(".*\\.","",counts$strata)
+ counts$survey <- names(DemoData)[i] 
+ counts.all <- rbind(counts.all, counts)
+ }
+ 
+ # fit cluster-level model on the periods
+ periods <- levels(DemoData[[1]]$time)
+ fit <- smoothCluster(data = counts.all, 
+    Amat = DemoMap$Amat, 
+    time.model = "rw2", 
+    st.time.model = "rw1",
+    strata.time.effect =  TRUE, 
+    survey.effect = TRUE,
+    family = "betabinomial",
+    year.label = c(periods, "15-19"))
+ summary(fit)
+ est <- getSmoothed(fit, nsim = 1000)
+} # }
+```

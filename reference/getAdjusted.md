@@ -1,0 +1,144 @@
+# Adjust direct estimates and their associated variances
+
+Adjust direct estimates and their associated variances
+
+## Usage
+
+``` r
+getAdjusted(
+  data,
+  ratio,
+  time = "years",
+  region = "region",
+  est = "mean",
+  logit = "logit.est",
+  logit.var = "var.est",
+  logit.prec = "logit.prec",
+  logit.lower = "lower",
+  logit.upper = "upper",
+  prob.lower = NULL,
+  prob.upper = NULL,
+  adj = "ratio",
+  verbose = FALSE,
+  lower = NULL,
+  upper = NULL
+)
+```
+
+## Arguments
+
+- data:
+
+  data frame of the adjusted estimates and the associated uncertainties,
+  see the arguments below for specific columns.
+
+- ratio:
+
+  the ratio of unadjusted mortality rates to the true mortality rates.
+  It can be either a data frame with the following three columns
+  (region, time, and adj) if adjustment factor differ by region; or a
+  data frame with the following two columns (time and adj) if adjustment
+  factor only varies over time. The column names specifying region,
+  time, and adjustment are specified by the arguments in the function
+  call.
+
+- time:
+
+  the column name for time in the data and adjustment ratio.
+
+- region:
+
+  the column name for region in the data and adjustment ratio.
+
+- est:
+
+  the column name for unadjusted mortality rates in the data
+
+- logit:
+
+  the column name for the logit of the unadjusted mortality rates in the
+  data
+
+- logit.var:
+
+  the column name for the variance of the logit of the unadjusted
+  mortality rates in the data
+
+- logit.prec:
+
+  the column name for the precision of the logit of the unadjusted
+  mortality rates in the data
+
+- logit.lower:
+
+  the column name for the 95% lower bound of the logit of the unadjusted
+  mortality rates in the data
+
+- logit.upper:
+
+  the column name for the 95% lower bound of the logit of the unadjusted
+  mortality rates in the data
+
+- prob.lower:
+
+  the column name for the 95% lower bound of the unadjusted mortality
+  rates in the data. If this is provided instead of logit.lower, the
+  logit scale lower bound will be created.
+
+- prob.upper:
+
+  the column name for the 95% lower bound of the unadjusted mortality
+  rates in the data. if this is provided instead of logit.upper, the
+  logit scale upper bound will be created.
+
+- adj:
+
+  the column name for the adjustment ratio
+
+- verbose:
+
+  logical indicator for whether to print out unadjusted row index
+
+- lower:
+
+  previous argument name for prob.lower. Will be removed in the next
+  update
+
+- upper:
+
+  previous argument name for prob.upper. Will be removed in the next
+  update
+
+## Value
+
+adjusted dataset of the same columns.
+
+## Author
+
+Zehang Richard Li
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+years <- levels(DemoData[[1]]$time)
+
+# obtain direct estimates
+data <- getDirectList(births = DemoData, 
+years = years,  
+regionVar = "region", timeVar = "time", 
+clusterVar = "~clustid+id", 
+ageVar = "age", weightsVar = "weights", 
+geo.recode = NULL)
+# obtain direct estimates
+data_multi <- getDirectList(births = DemoData, years = years,
+  regionVar = "region",  timeVar = "time", clusterVar = "~clustid+id",
+  ageVar = "age", weightsVar = "weights", geo.recode = NULL)
+data <- aggregateSurvey(data_multi)
+
+# randomly simulate adjustment factor
+adj <- expand.grid(region = unique(data$region), years = years)
+adj$ratio <- runif(dim(adj)[1], min = 0.5, max = 0.8)
+data.adj <- getAdjusted(data = data, ratio = adj)
+ } # }
+```

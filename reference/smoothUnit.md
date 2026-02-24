@@ -1,0 +1,127 @@
+# Smooth via basic unit level model
+
+Generates small area estimates by smoothing direct estimates using a
+basic unit level model
+
+## Usage
+
+``` r
+smoothUnit(
+  formula,
+  domain,
+  design,
+  family = c("gaussian", "binomial")[1],
+  X.pop = NULL,
+  adj.mat = NULL,
+  domain.size = NULL,
+  pc.u = 1,
+  pc.alpha = 0.01,
+  pc.u.phi = 0.5,
+  pc.alpha.phi = 2/3,
+  level = 0.95,
+  n.sample = 250,
+  return.samples = F,
+  X.pop.weights = NULL
+)
+```
+
+## Arguments
+
+- formula:
+
+  An object of class 'formula' describing the model to be fitted.
+
+- domain:
+
+  One-sided formula specifying factors containing domain labels
+
+- design:
+
+  An object of class "svydesign" containing the data for the model
+
+- family:
+
+  of the response variable, currently supports 'binomial' (default with
+  logit link function) or 'gaussian'.
+
+- X.pop:
+
+  Data frame of population unit-level covariates. One of the column name
+  needs to match the domain specified, in order to be linked to the data
+  input. Currently only supporting time-invariant covariates.
+
+- adj.mat:
+
+  Adjacency matrix with rownames matching the domain labels. If set to
+  NULL, the IID spatial effect will be used.
+
+- domain.size:
+
+  Data frame of domain sizes. One of the column names needs to match the
+  name of the domain variable, in order to be linked to the data input
+  and there must be a column names 'size' containing domain sizes. The
+  default option is no transformation, but logit and log are
+  implemented.
+
+- pc.u:
+
+  Hyperparameter U for the PC prior on precisions. See the INLA
+  documentation for more details on the parameterization.
+
+- pc.alpha:
+
+  Hyperparameter alpha for the PC prior on precisions.
+
+- pc.u.phi:
+
+  Hyperparameter U for the PC prior on the mixture probability phi in
+  BYM2 model.
+
+- pc.alpha.phi:
+
+  Hyperparameter alpha for the PC prior on the mixture probability phi
+  in BYM2 model.
+
+- level:
+
+  The specified level for the posterior credible intervals
+
+- n.sample:
+
+  Number of draws from posterior used to compute summaries
+
+- return.samples:
+
+  If TRUE, return matrix of posterior samples of area level quantities
+
+- X.pop.weights:
+
+  Optional vector of weights to use when aggregating unit level
+  predictions
+
+## Value
+
+A svysae object
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+data(DemoData2)
+data(DemoMap2)
+library(survey)
+des0 <- svydesign(ids = ~clustid+id, strata = ~strata,
+                 weights = ~weights, data = DemoData2, nest = TRUE)
+                 
+# EXAMPLE 1: Continuous response model
+cts.res <- smoothUnit(formula = tobacco.use ~ 1,
+                      domain = ~region,
+                      design = des0, X.pop = DemoData2)
+                      
+# EXAMPLE 2: Binary response model
+bin.res <- smoothUnit(formula = tobacco.use ~ 1,
+                      family = "binomial",
+                      domain = ~region,
+                      design = des0, X.pop = DemoData2)
+} # }
+```
