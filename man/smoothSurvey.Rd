@@ -26,6 +26,7 @@ smoothSurvey(
   formula = NULL,
   timeVar = NULL,
   time.model = c("rw1", "rw2")[1],
+  space.model = c("bym2", "sar")[1],
   include_time_unstruct = deprecated(),
   include.time.unstruct = FALSE,
   type.st = 1,
@@ -90,6 +91,8 @@ smoothSurvey(
 
 \item{time.model}{the model for temporal trends and interactions. It can be either "rw1" or "rw2".}
 
+\item{space.model}{the model for spatial main random effects. It can be either "bym2" or "sar". Note that if Amat is not provided, only IID model will be used for spatial main effect.}
+
 \item{include_time_unstruct}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} The argument has been renamed into \code{include.time.unstruct}.}
 
 \item{include.time.unstruct}{Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates from cluster-level model. The argument only applies to the unit-level models. Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included.}
@@ -148,6 +151,12 @@ responseVar="tobacco.use", strataVar="strata",
 weightVar="weights", regionVar="region", 
 clusterVar = "~clustid+id", CI = 0.95)
 summary(fit0)
+fit0SAR <- smoothSurvey(data=DemoData2,  
+Amat=DemoMap2$Amat, response.type="binary", 
+responseVar="tobacco.use", strataVar="strata", 
+weightVar="weights", regionVar="region", 
+clusterVar = "~clustid+id", CI = 0.95, space.model = "sar")
+summary(fit0SAR) 
 
 # if only direct estimates without smoothing is of interest
 fit0.dir <- smoothSurvey(data=DemoData2,  

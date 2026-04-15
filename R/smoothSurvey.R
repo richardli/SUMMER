@@ -31,6 +31,7 @@
 #' @param formula a string of user-specified random effects model to be used in the INLA call
 #' @param timeVar The variable indicating time period. If set to NULL then the temporal model and space-time interaction model are ignored.
 #' @param time.model the model for temporal trends and interactions. It can be either "rw1" or "rw2".
+#' @param space.model the model for spatial main random effects. It can be either "bym2" or "sar". Note that if Amat is not provided, only IID model will be used for spatial main effect.
 #' @param include_time_unstruct  `r lifecycle::badge("deprecated")` The argument has been renamed into \code{include.time.unstruct}.
 #' @param include.time.unstruct  Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates from cluster-level model. The argument only applies to the unit-level models. Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included. 
 #' @param type.st can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.
@@ -72,6 +73,12 @@
 #' weightVar="weights", regionVar="region", 
 #' clusterVar = "~clustid+id", CI = 0.95)
 #' summary(fit0)
+#' fit0SAR <- smoothSurvey(data=DemoData2,  
+#' Amat=DemoMap2$Amat, response.type="binary", 
+#' responseVar="tobacco.use", strataVar="strata", 
+#' weightVar="weights", regionVar="region", 
+#' clusterVar = "~clustid+id", CI = 0.95, space.model = "sar")
+#' summary(fit0SAR) 
 #' 
 #' # if only direct estimates without smoothing is of interest
 #' fit0.dir <- smoothSurvey(data=DemoData2,  
@@ -289,7 +296,7 @@
 #' @export
 
 
-smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = NULL, X.unit = NULL, responseType = deprecated(), response.type = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], include_time_unstruct = deprecated(), include.time.unstruct = FALSE, type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, save.draws = FALSE, smooth = TRUE, ...){
+smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = NULL, X.unit = NULL, responseType = deprecated(), response.type = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], space.model = c("bym2", "sar")[1],include_time_unstruct = deprecated(), include.time.unstruct = FALSE, type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, save.draws = FALSE, smooth = TRUE, ...){
 
 	if (lifecycle::is_present(include_time_unstruct)) {
 	    lifecycle::deprecate_soft(when = "2.0.0", what = "smoothSurvey(include_time_unstruct)", with = "smoothSurvey(include.time.unstruct)")
@@ -784,8 +791,22 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
     if(is.null(formula)){
        if(is.iid.space){
             formula <- paste(formulatext, "f(region.struct, model = 'iid', hyper = hyperpc1)", sep = "+")    
-       }else{
+       }else if(space.model == "bym2"){
             formula <- paste(formulatext, "f(region.struct, graph=Amat, model='bym2', hyper = hyperpc2, scale.model = TRUE)", sep = "+")    
+       }else if(space.model == "sar"){
+       		rs <- rowSums(Amat)
+       		W.sar <- Amat / rs
+       		# keep prior for rho default logit(rho) ~ N(0, 10) for now
+       		hyperSAR <- list(
+			    prec = list(prior = "pc.prec", param = c(pc.u, pc.alpha)))
+			 argsSAR <- list(
+		      rho.min = -1,
+		      rho.max =  1,
+		      W       = W.sar,
+		      X       = matrix(0, nrow = nrow(W.sar), ncol = 0),
+		      Q.beta  = matrix(0, 0, 0)
+		    )
+			formula <- paste(formulatext, "f(region.struct, model='slm', args.slm = argsSAR, hyper = hyperSAR)", sep = "+")    
        }
        ##
        ##  Constraints are not specified for the interactions.
