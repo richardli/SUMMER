@@ -82,13 +82,13 @@
 #' summary(fit0SAR) 
 #' 
 #' # Unmatched link model for binary data
-#' fit0c <- smoothSurvey(data=DemoData2,  
+#' fit0_unmatch <- smoothSurvey(data=DemoData2,  
 #'           Amat=DemoMap2$Amat, 
 #'           response.type="binary", unmatched.link = TRUE, 
 #'           responseVar="tobacco.use", strataVar="strata", 
 #'           weightVar="weights", regionVar="region", 
 #'           clusterVar = "~clustid+id", CI = 0.95)
-#' summary(fit0c)
+#' summary(fit0_unmatch)
 #' 
 #'  
 #' # if only direct estimates without smoothing is of interest
@@ -137,6 +137,17 @@
 #'                response.type = "gaussian")
 #' # Check it is the same as fit0
 #' plot(fit3$smooth$mean, fit0$smooth$logit.mean)
+#' 
+#' # Unmatched link model for direct estimates
+#' fit3_unmatch <- smoothSurvey(data=NULL,
+#' 			 direct.est = direct.logit,  
+#'           Amat=DemoMap2$Amat, regionVar="region",
+#'           responseVar="direct.logit.est", 
+#'           direct.est.var = "direct.logit.var",
+#'           response.type = "gaussian", 
+#' 			 unmatched.link = TRUE)
+#' summary(fit3_unmatch)
+#' plot(fit3_unmatch$smooth$mean, fit0_unmatch$smooth$logit.mean)
 #' 
 #' # Example with non-spatial smoothing using IID random effects
 #' fit4 <- smoothSurvey(data=DemoData2, response.type="binary", 
@@ -678,9 +689,19 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
                 ht <- log(p.i/(1-p.i))
                 ht.v <- var.i/(p.i^2*(1-p.i)^2)
                 ht.prec <- 1/ht.v
-            }else if(response.type == "gaussian"){
+            # gaussian without transformation    
+            }else if(response.type == "gaussian" && !unmatched.link){
                 ht <- p.i
                 ht.v <- var.i
+                ht.prec <- 1/ht.v
+            # if direct estimates are used and unmatched linking model is used
+            #   inputs are logit scale direct estimates
+            #   need to transform back    
+            }else if(response.type == "gaussian" && unmatched.link){
+                p.i <- expit(data$response0)
+                var.i <- data$var0 * (p.i^2*(1-p.i)^2)
+                ht <- log(p.i/(1-p.i))
+                ht.v <- var.i/(p.i^2*(1-p.i)^2)
                 ht.prec <- 1/ht.v
             }else{
                 stop("response.type argument only supports binary or gaussian at the time.")
@@ -742,7 +763,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
     # and continuous non-survey area-level model  
     }else if(!is.unit.level){
     	# unmatched link model
-    	if(unmatched.link && response.type == "binary"){
+    	if(unmatched.link){
     		formulatext <- "HT.est ~ 1"
     	}else{
 	        formulatext <- "HT.logit.est ~ 1"
@@ -865,10 +886,13 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
 
     ## Unmatched link binary
     }else if(unmatched.link && response.type == "binary"){
-        fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = 1 / dat$HT.var,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
-    ## Matched link binary
+        fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(link = "logit", hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = 1 / dat$HT.var,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+    ## Matched link, direct estimates as input
+    }else if(unmatched.link){
+         fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(link = "logit",  hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = 1/dat$HT.var,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+    ## Matched link binary  
     }else{
-         fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(link = "logit", hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.logit.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+         fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list( hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.logit.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     }
     }else{
         fit <- NULL

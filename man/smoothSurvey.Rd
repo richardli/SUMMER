@@ -13,6 +13,7 @@ smoothSurvey(
   X.unit = NULL,
   responseType = deprecated(),
   response.type = c("binary", "gaussian")[1],
+  unmatched.link = FALSE,
   responseVar,
   strataVar = "strata",
   weightVar = "weights",
@@ -64,6 +65,8 @@ smoothSurvey(
 \item{responseType}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}} The argument has been renamed into \code{response.type}.}
 
 \item{response.type}{Type of the response variable, currently supports 'binary' (default with logit link function) or 'gaussian'.}
+
+\item{unmatched.link}{If TRUE, binary responses are going to be modeled using a unmatched link function, where the direct estimates will not be transformed, so p_direct is modeled with a normal likelihood, and logit(p) is modeled with linear predictors.}
 
 \item{responseVar}{the response variable}
 
@@ -158,6 +161,16 @@ weightVar="weights", regionVar="region",
 clusterVar = "~clustid+id", CI = 0.95, space.model = "sar")
 summary(fit0SAR) 
 
+# Unmatched link model for binary data
+fit0c <- smoothSurvey(data=DemoData2,  
+          Amat=DemoMap2$Amat, 
+          response.type="binary", unmatched.link = TRUE, 
+          responseVar="tobacco.use", strataVar="strata", 
+          weightVar="weights", regionVar="region", 
+          clusterVar = "~clustid+id", CI = 0.95)
+summary(fit0c)
+
+ 
 # if only direct estimates without smoothing is of interest
 fit0.dir <- smoothSurvey(data=DemoData2,  
 Amat=DemoMap2$Amat, response.type="binary", 
