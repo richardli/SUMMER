@@ -18,6 +18,7 @@
 #' @param X.unit Column names of unit-level covariates. When \code{X.unit} is specified, a nested error model will be fitted with unit-level IID noise, and area-level predictions are produced by plugging in the covariate specified in the \code{X} argument. When \code{X} is not specified, the empirical mean of each covariate will be used. This is only implemented for continuous response with the Gaussian likelihood model and unit-level model. 
 #' @param responseType `r lifecycle::badge("deprecated")` The argument has been renamed into \code{response.type}.
 #' @param response.type Type of the response variable, currently supports 'binary' (default with logit link function) or 'gaussian'. 
+#' @param unmatched.link If TRUE, binary responses are going to be modeled using a unmatched link function, where the direct estimates will not be transformed, so p_direct is modeled with a normal likelihood, and logit(p) is modeled with linear predictors.
 #' @param responseVar the response variable
 #' @param strataVar the strata variable used in the area-level model. 
 #' @param weightVar the weights variable
@@ -73,6 +74,16 @@
 #' clusterVar = "~clustid+id", CI = 0.95)
 #' summary(fit0)
 #' 
+#' # Unmatched link model for binary data
+#' fit0c <- smoothSurvey(data=DemoData2,  
+#'           Amat=DemoMap2$Amat, 
+#'           response.type="binary", unmatched.link = TRUE, 
+#'           responseVar="tobacco.use", strataVar="strata", 
+#'           weightVar="weights", regionVar="region", 
+#'           clusterVar = "~clustid+id", CI = 0.95)
+#' summary(fit0c)
+#' 
+#'  
 #' # if only direct estimates without smoothing is of interest
 #' fit0.dir <- smoothSurvey(data=DemoData2,  
 #' Amat=DemoMap2$Amat, response.type="binary", 
@@ -289,7 +300,7 @@
 #' @export
 
 
-smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = NULL, X.unit = NULL, responseType = deprecated(), response.type = c("binary", "gaussian")[1], responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], include_time_unstruct = deprecated(), include.time.unstruct = FALSE, type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, save.draws = FALSE, smooth = TRUE, ...){
+smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = NULL, X.unit = NULL, responseType = deprecated(), response.type = c("binary", "gaussian")[1], unmatched.link = FALSE, responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], include_time_unstruct = deprecated(), include.time.unstruct = FALSE, type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, save.draws = FALSE, smooth = TRUE, ...){
 
 	if (lifecycle::is_present(include_time_unstruct)) {
 	    lifecycle::deprecate_soft(when = "2.0.0", what = "smoothSurvey(include_time_unstruct)", with = "smoothSurvey(include.time.unstruct)")
@@ -723,7 +734,12 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
     # binary and continuous survey area-level model  
     # and continuous non-survey area-level model  
     }else if(!is.unit.level){
-        formulatext <- "HT.logit.est ~ 1"
+    	# unmatched link model
+    	if(unmatched.link && response.type == "binary"){
+    		formulatext <- "HT.est ~ 1"
+    	}else{
+	        formulatext <- "HT.logit.est ~ 1"
+    	}
     # unit-level model    
     }else if(length(unique(data$strata0)) == 1){
         formulatext <- "y ~ 1"
@@ -825,8 +841,13 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
     
     }else if(!svy && response.type == "gaussian"){
         fit <- INLA::inla(formula, family="gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+
+    ## Unmatched link binary
+    }else if(unmatched.link && response.type == "binary"){
+        fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = 1 / dat$HT.var,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+    ## Matched link binary
     }else{
-         fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.logit.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
+         fit <- INLA::inla(formula, family = "gaussian", control.compute = list(dic = T, mlik = T, cpo = T, config = save.draws, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE), control.family = list(link = "logit", hyper= list(prec = list(initial= log(1), fixed= TRUE))), scale = dat$HT.logit.prec,  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     }
     }else{
         fit <- NULL
