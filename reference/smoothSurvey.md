@@ -19,6 +19,7 @@ smoothSurvey(
   X.unit = NULL,
   responseType = deprecated(),
   response.type = c("binary", "gaussian")[1],
+  unmatched.link = FALSE,
   responseVar,
   strataVar = "strata",
   weightVar = "weights",
@@ -32,6 +33,7 @@ smoothSurvey(
   formula = NULL,
   timeVar = NULL,
   time.model = c("rw1", "rw2")[1],
+  space.model = c("bym2", "sar")[1],
   include_time_unstruct = deprecated(),
   include.time.unstruct = FALSE,
   type.st = 1,
@@ -119,6 +121,13 @@ smoothSurvey(
   Type of the response variable, currently supports 'binary' (default
   with logit link function) or 'gaussian'.
 
+- unmatched.link:
+
+  If TRUE, binary responses are going to be modeled using a unmatched
+  link function, where the direct estimates will not be transformed, so
+  p_direct is modeled with a normal likelihood, and logit(p) is modeled
+  with linear predictors.
+
 - responseVar:
 
   the response variable
@@ -178,6 +187,12 @@ smoothSurvey(
 
   the model for temporal trends and interactions. It can be either "rw1"
   or "rw2".
+
+- space.model:
+
+  the model for spatial main random effects. It can be either "bym2" or
+  "sar". Note that if Amat is not provided, only IID model will be used
+  for spatial main effect.
 
 - include_time_unstruct:
 
@@ -313,7 +328,23 @@ responseVar="tobacco.use", strataVar="strata",
 weightVar="weights", regionVar="region", 
 clusterVar = "~clustid+id", CI = 0.95)
 summary(fit0)
+fit0SAR <- smoothSurvey(data=DemoData2,  
+Amat=DemoMap2$Amat, response.type="binary", 
+responseVar="tobacco.use", strataVar="strata", 
+weightVar="weights", regionVar="region", 
+clusterVar = "~clustid+id", CI = 0.95, space.model = "sar")
+summary(fit0SAR) 
 
+# Unmatched link model for binary data
+fit0c <- smoothSurvey(data=DemoData2,  
+          Amat=DemoMap2$Amat, 
+          response.type="binary", unmatched.link = TRUE, 
+          responseVar="tobacco.use", strataVar="strata", 
+          weightVar="weights", regionVar="region", 
+          clusterVar = "~clustid+id", CI = 0.95)
+summary(fit0c)
+
+ 
 # if only direct estimates without smoothing is of interest
 fit0.dir <- smoothSurvey(data=DemoData2,  
 Amat=DemoMap2$Amat, response.type="binary", 

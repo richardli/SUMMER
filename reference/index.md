@@ -97,7 +97,7 @@
   : Extract adjacency matrix from the map
 - [`getCounts()`](https://richardli.github.io/SUMMER/reference/getCounts.md)
   : Aggregate person-month data into counts and totals by groups.
-- [`changeRegion()`](https://richardli.github.io/SUMMER/reference/ChangeRegion.md)
+- [`changeRegion()`](https://richardli.github.io/SUMMER/reference/changeRegion.md)
   : Map region names to a common set.
 - [`expit()`](https://richardli.github.io/SUMMER/reference/expit.md) :
   Expit transformation

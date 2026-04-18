@@ -58,6 +58,7 @@ Normal or binary variables are currently supported. For binary variables, the lo
 <span>  X.unit <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  responseType <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  response.type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"binary"</span>, <span class="st">"gaussian"</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>  unmatched.link <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">responseVar</span>,</span>
 <span>  strataVar <span class="op">=</span> <span class="st">"strata"</span>,</span>
 <span>  weightVar <span class="op">=</span> <span class="st">"weights"</span>,</span>
@@ -71,6 +72,7 @@ Normal or binary variables are currently supported. For binary variables, the lo
 <span>  formula <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  timeVar <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time.model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rw1"</span>, <span class="st">"rw2"</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>  space.model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bym2"</span>, <span class="st">"sar"</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
 <span>  include_time_unstruct <span class="op">=</span> <span class="fu">deprecated</span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  include.time.unstruct <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  type.st <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -127,6 +129,10 @@ Normal or binary variables are currently supported. For binary variables, the lo
 <dd><p>Type of the response variable, currently supports 'binary' (default with logit link function) or 'gaussian'.</p></dd>
 
 
+<dt id="arg-unmatched-link">unmatched.link<a class="anchor" aria-label="anchor" href="#arg-unmatched-link"></a></dt>
+<dd><p>If TRUE, binary responses are going to be modeled using a unmatched link function, where the direct estimates will not be transformed, so p_direct is modeled with a normal likelihood, and logit(p) is modeled with linear predictors.</p></dd>
+
+
 <dt id="arg-responsevar">responseVar<a class="anchor" aria-label="anchor" href="#arg-responsevar"></a></dt>
 <dd><p>the response variable</p></dd>
 
@@ -177,6 +183,10 @@ Normal or binary variables are currently supported. For binary variables, the lo
 
 <dt id="arg-time-model">time.model<a class="anchor" aria-label="anchor" href="#arg-time-model"></a></dt>
 <dd><p>the model for temporal trends and interactions. It can be either "rw1" or "rw2".</p></dd>
+
+
+<dt id="arg-space-model">space.model<a class="anchor" aria-label="anchor" href="#arg-space-model"></a></dt>
+<dd><p>the model for spatial main random effects. It can be either "bym2" or "sar". Note that if Amat is not provided, only IID model will be used for spatial main effect.</p></dd>
 
 
 <dt id="arg-include-time-unstruct">include_time_unstruct<a class="anchor" aria-label="anchor" href="#arg-include-time-unstruct"></a></dt>
@@ -289,7 +299,23 @@ Normal or binary variables are currently supported. For binary variables, the lo
 <span class="r-in"><span>weightVar<span class="op">=</span><span class="st">"weights"</span>, regionVar<span class="op">=</span><span class="st">"region"</span>, </span></span>
 <span class="r-in"><span>clusterVar <span class="op">=</span> <span class="st">"~clustid+id"</span>, CI <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit0</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit0SAR</span> <span class="op">&lt;-</span> <span class="fu">smoothSurvey</span><span class="op">(</span>data<span class="op">=</span><span class="va">DemoData2</span>,  </span></span>
+<span class="r-in"><span>Amat<span class="op">=</span><span class="va">DemoMap2</span><span class="op">$</span><span class="va">Amat</span>, response.type<span class="op">=</span><span class="st">"binary"</span>, </span></span>
+<span class="r-in"><span>responseVar<span class="op">=</span><span class="st">"tobacco.use"</span>, strataVar<span class="op">=</span><span class="st">"strata"</span>, </span></span>
+<span class="r-in"><span>weightVar<span class="op">=</span><span class="st">"weights"</span>, regionVar<span class="op">=</span><span class="st">"region"</span>, </span></span>
+<span class="r-in"><span>clusterVar <span class="op">=</span> <span class="st">"~clustid+id"</span>, CI <span class="op">=</span> <span class="fl">0.95</span>, space.model <span class="op">=</span> <span class="st">"sar"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit0SAR</span><span class="op">)</span> </span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Unmatched link model for binary data</span></span></span>
+<span class="r-in"><span><span class="va">fit0c</span> <span class="op">&lt;-</span> <span class="fu">smoothSurvey</span><span class="op">(</span>data<span class="op">=</span><span class="va">DemoData2</span>,  </span></span>
+<span class="r-in"><span>          Amat<span class="op">=</span><span class="va">DemoMap2</span><span class="op">$</span><span class="va">Amat</span>, </span></span>
+<span class="r-in"><span>          response.type<span class="op">=</span><span class="st">"binary"</span>, unmatched.link <span class="op">=</span> <span class="cn">TRUE</span>, </span></span>
+<span class="r-in"><span>          responseVar<span class="op">=</span><span class="st">"tobacco.use"</span>, strataVar<span class="op">=</span><span class="st">"strata"</span>, </span></span>
+<span class="r-in"><span>          weightVar<span class="op">=</span><span class="st">"weights"</span>, regionVar<span class="op">=</span><span class="st">"region"</span>, </span></span>
+<span class="r-in"><span>          clusterVar <span class="op">=</span> <span class="st">"~clustid+id"</span>, CI <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit0c</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span> </span></span>
 <span class="r-in"><span><span class="co"># if only direct estimates without smoothing is of interest</span></span></span>
 <span class="r-in"><span><span class="va">fit0.dir</span> <span class="op">&lt;-</span> <span class="fu">smoothSurvey</span><span class="op">(</span>data<span class="op">=</span><span class="va">DemoData2</span>,  </span></span>
 <span class="r-in"><span>Amat<span class="op">=</span><span class="va">DemoMap2</span><span class="op">$</span><span class="va">Amat</span>, response.type<span class="op">=</span><span class="st">"binary"</span>, </span></span>
