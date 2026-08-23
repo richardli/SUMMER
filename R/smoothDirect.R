@@ -625,7 +625,7 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
             }else if(!is.yearly && (is.spatial)){
 
                 formula <- logit.est ~ 
-                     f(time.struct,model=paste0("rw", rw), constr = TRUE,  extraconstr = period.constr, hyper = hyperpc1)   + 
+                     f(time.struct,model=paste0("rw", rw), constr = TRUE,  extraconstr = period.constr, scale.model = TRUE, hyper = hyperpc1)   + 
                     f(time.unstruct,model="iid", hyper = hyperpc1) + 
                     f(region.struct, graph=Amat,model="bym2", hyper = hyperpc2, scale.model = TRUE, adjust.for.con.comp = TRUE)  
 
