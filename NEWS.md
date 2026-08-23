@@ -5,6 +5,12 @@ Version 2.0.0
 + Major updates to function argument naming to improve consistency. Most of the arguments are backward compatible. 
 + New set of unit tests. 
 + New vignette on specifying cluster-level model for mortality estimation. 
++ `smoothSurvey()` now has an internal backend extension interface used by
+  companion packages, while retaining INLA as its public/default engine.
+  Spatial and temporal constraints can be controlled with `constr`.
++ `smoothSurvey()` now stops with an informative error for nonpositive
+  sampling variances and corrects the Type II/IV interaction formulas and
+  transformed upper credible limits.
 + Improvements to existing functions.
 
 Version 1.4.0

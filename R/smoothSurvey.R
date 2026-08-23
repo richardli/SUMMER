@@ -46,6 +46,13 @@
 #' @param nsim number of posterior draws to take. This is only used for the unit-level model when \code{weight.strata} is provided. 
 #' @param save.draws logical indicator of whether to save the full posterior draws.
 #' @param smooth logical indicator of whether to perform smoothing. If set to FALSE, a data frame of direct estimate is returned. Only used when \code{is.unit.level} is FALSE.
+#' @param constr logical; apply the default linear constraints to intrinsic
+#' spatial, temporal, and space-time interaction effects.
+#' @param .backend optional computational backend used by extension packages.
+#' The default \code{NULL} preserves the existing INLA implementation. A
+#' backend is a list containing \code{name}, \code{fit},
+#' \code{linpred_draws}, and \code{posterior_sample}. This is a developer
+#' interface and may change between releases.
 #' @param ... additional arguments passed to \code{svydesign} function.
 #' 
 #' 
@@ -318,7 +325,7 @@
 #' @export
 
 
-smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = NULL, X.unit = NULL, responseType = deprecated(), response.type = c("binary", "gaussian")[1], unmatched.link = FALSE, responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], space.model = c("bym2", "sar")[1], include_time_unstruct = deprecated(), include.time.unstruct = FALSE, type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, save.draws = FALSE, smooth = TRUE, ...){
+smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = NULL, X.unit = NULL, responseType = deprecated(), response.type = c("binary", "gaussian")[1], unmatched.link = FALSE, responseVar, strataVar="strata", weightVar="weights", regionVar="region", clusterVar = "~v001+v002", pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, CI = 0.95, formula = NULL, timeVar = NULL, time.model = c("rw1", "rw2")[1], space.model = c("bym2", "sar")[1], include_time_unstruct = deprecated(), include.time.unstruct = FALSE, type.st = 1, direct.est = NULL, direct.est.var = NULL, is.unit.level = FALSE, is.agg = FALSE, strataVar.within = NULL,  totalVar = NULL, weight.strata = NULL, nsim = 1000, save.draws = FALSE, smooth = TRUE, constr = TRUE, .backend = NULL, ...){
 
 	if (lifecycle::is_present(include_time_unstruct)) {
 	    lifecycle::deprecate_soft(when = "2.0.0", what = "smoothSurvey(include_time_unstruct)", with = "smoothSurvey(include.time.unstruct)")
@@ -330,6 +337,17 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
 	    lifecycle::deprecate_soft("2.0.0", "smoothSurvey(responseType)", "smoothSurvey(response.type)")
 	    response.type <- responseType
 	  }  
+
+    if(!is.null(.backend)){
+        required.backend <- c("name", "fit", "linpred_draws", "posterior_sample")
+        if(!is.list(.backend) ||
+           !all(required.backend %in% names(.backend)) ||
+           !is.character(.backend$name) || length(.backend$name) != 1L ||
+           !all(vapply(.backend[required.backend[-1]], is.function, logical(1)))){
+            stop(".backend must provide name, fit, linpred_draws, and posterior_sample.")
+        }
+    }
+    backend.name <- if(is.null(.backend)) "INLA" else .backend$name
 
 
     svy <- TRUE
@@ -595,11 +613,11 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
     }else if(response.type == "gaussian"){
         FUN <- function(x){x}
     }
-    if(!isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+    if(is.null(.backend) && !isTRUE(requireNamespace("INLA", quietly = TRUE))) {
          stop("You need to install the packages 'INLA'. Please run in your R terminal:\n  install.packages('INLA', repos=c(getOption('repos'), INLA='https://inla.r-inla-download.org/R/stable'), dep=TRUE)")
     }
     # If INLA is installed, then attach the Namespace (so that all the relevant functions are available)
-    if (isTRUE(requireNamespace("INLA", quietly = TRUE))) {
+    if (is.null(.backend) && isTRUE(requireNamespace("INLA", quietly = TRUE))) {
         if (!is.element("INLA", (.packages()))) {
           attachNamespace("INLA")
         }
@@ -710,6 +728,17 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
             y <- NA
             time.i <- as.numeric(as.character(data$time0))
             name.i <- as.character(data$region0)
+        }
+
+        bad.variance <- which(!is.na(var.i) & var.i <= 0)
+        if(length(bad.variance)){
+            bad.labels <- as.character(name.i[bad.variance])
+            if(!is.null(timeVar)){
+                bad.labels <- paste0(bad.labels, " (time ", time.i[bad.variance], ")")
+            }
+            stop("Sampling variances must be strictly positive. Zero or negative variance found for: ",
+                 paste(utils::head(bad.labels, 10), collapse = ", "),
+                 if(length(bad.labels) > 10) " ..." else "", ".", call. = FALSE)
         }
 
         dat <- data.frame(
@@ -829,7 +858,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
        if(is.iid.space){
             formula <- paste(formulatext, "f(region.struct, model = 'iid', hyper = hyperpc1)", sep = "+")    
        }else if(space.model == "bym2"){
-            formula <- paste(formulatext, "f(region.struct, graph=Amat, model='bym2', hyper = hyperpc2, scale.model = TRUE)", sep = "+")    
+            formula <- paste(formulatext, "f(region.struct, graph=Amat, model='bym2', hyper = hyperpc2, scale.model = TRUE, constr = constr)", sep = "+")
        }else if(space.model == "sar"){
        		rs <- rowSums(Amat)
        		W.sar <- Amat / rs
@@ -846,18 +875,18 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
 			formula <- paste(formulatext, "f(region.struct, model='slm', args.slm = argsSAR, hyper = hyperSAR)", sep = "+")    
        }
        ##
-       ##  Constraints are not specified for the interactions.
+       ##  Intrinsic spatial and temporal interaction components use constr.
        ##
        if(!is.null(timeVar)){
-            formula <- paste(formula, "f(time.unstruct, model = 'iid', hyper = hyperpc1) + f(time.struct, model=tolower(time.model), hyper = hyperpc1, scale.model = TRUE)", sep = "+")
+            formula <- paste(formula, "f(time.unstruct, model = 'iid', hyper = hyperpc1) + f(time.struct, model=tolower(time.model), hyper = hyperpc1, scale.model = TRUE, constr = constr)", sep = "+")
             if(type.st == 1){
                 formula <- paste(formula, "f(region.int, model = 'iid', hyper = hyperpc1, group = time.int, control.group = list(model ='iid', hyper = hyperpc1))", sep = "+")
             }else if(type.st == 2){
-                formula <- paste(formula, "f(region.int, model = 'besag', graph = Amat, scale.model = TRUE, hyper = hyperpc1, group = time.int, control.group = list(model ='iid'))", sep = "+")
+                formula <- paste(formula, "f(region.int, model = 'besag', graph = Amat, scale.model = TRUE, hyper = hyperpc1, constr = constr, group = time.int, control.group = list(model ='iid'))", sep = "+")
             }else if(type.st == 3){
                 formula <- paste(formula, "f(region.int, model = 'iid', hyper = hyperpc1, group = time.int, control.group = list(model =tolower(time.model), scale.model = TRUE))", sep = "+")
             }else if(type.st == 4){
-                formula <- paste(formula, "f(region.int, model = 'besag', graph = Amat, scale.model = TRUE, hyper = hyperpc1, group = time.int, control.group = list(model =tolower(time.model), hyper = hyperpc1, scale.model = TRUE))", sep = "+")
+                formula <- paste(formula, "f(region.int, model = 'besag', graph = Amat, scale.model = TRUE, hyper = hyperpc1, constr = constr, group = time.int, control.group = list(model =tolower(time.model), hyper = hyperpc1, scale.model = TRUE))", sep = "+")
             }
         }
         formula <- as.formula(formula)
@@ -872,7 +901,18 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
     ##---------------------------------------------------------------------##   
 
     if(smooth){
-    if(is.unit.level && response.type == "binary"){
+    if(!is.null(.backend)){
+        model.input <- list(dat = dat, formulatext = formulatext,
+            Amat = Amat, is.iid.space = is.iid.space,
+            is.unit.level = is.unit.level, response.type = response.type,
+            svy = svy, unmatched.link = unmatched.link,
+            time.model = time.model, space.model = space.model,
+            type.st = type.st, constr = constr,
+            pc.u = pc.u, pc.alpha = pc.alpha,
+            pc.u.phi = pc.u.phi, pc.alpha.phi = pc.alpha.phi,
+            nsim = nsim)
+        fit <- .backend$fit(model.input)
+    }else if(is.unit.level && response.type == "binary"){
         fit <- INLA::inla(formula, family="betabinomial", Ntrials=dat$total, control.compute = list(dic = T, mlik = T, cpo = T, config = TRUE, return.marginals.predictor=TRUE), data = dat, control.predictor = list(compute = TRUE),  lincomb = NULL, quantiles = c((1-CI)/2, 0.5, 1-(1-CI)/2)) 
     
     }else if(is.unit.level && response.type == "gaussian"){
@@ -896,6 +936,17 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
     }
     }else{
         fit <- NULL
+    }
+
+    linpred.draws <- if(is.null(.backend)){
+        function(fit, i) matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[i]]))
+    }else{
+        .backend$linpred_draws
+    }
+    posterior.samples <- if(is.null(.backend)){
+        function(fit, n) INLA::inla.posterior.sample(n = n, result = fit, intern = TRUE)
+    }else{
+        .backend$posterior_sample
     }
     
     ##---------------------------------------------------------------------##
@@ -933,7 +984,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
         ##---------------------------------------------------------------------##   
 
         if(!is.unit.level){
-            tmp <- matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[i]]))
+            tmp <- matrix(linpred.draws(fit, i))
 
         ##---------------------------------------------------------------------##
         ## Estimates: Unit level model
@@ -950,7 +1001,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
                                dat$time == proj$time[i])[1] 
             }
             if(is.na(which)) next
-            tmp <- matrix(INLA::inla.rmarginal(1e5, fit$marginals.linear.predictor[[which]]))
+            tmp <- matrix(linpred.draws(fit, which))
         }
         
         ##---------------------------------------------------------------------##
@@ -982,7 +1033,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
                 proj[i, "logit.mean"] <-mean(tmp)
                 proj[i, "logit.var"] <- var(tmp)
                 proj[i, "logit.lower"] <- quantile(tmp, (1-CI)/2)
-                proj[i, "logit.upper"] <- quantile(tmp, (1-CI)/2) 
+                proj[i, "logit.upper"] <- quantile(tmp, 1-(1-CI)/2)
                 proj[i, "logit.median"] <- median(tmp)
             }
         }
@@ -1009,7 +1060,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
 
     sampAll <- NULL
     if(save.draws){
-        sampAll <- INLA::inla.posterior.sample(n = nsim, result = fit, intern = TRUE)
+        sampAll <- posterior.samples(fit, nsim)
         for(i in 1:dim(draws.out)[1]){
             for(j in 1:nsim){
                 draws.out[i, paste0("sample:", j)]  <- sampAll[[j]]$latent[i, 1]
@@ -1030,7 +1081,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
    if(is.unit.level && !is.null(weight.strata) && length(unique(data$strata0)) > 1){
      proj.agg <- expand.grid(region = colnames(Amat), time = temp)
      proj.agg <- cbind(proj.agg, data.frame(mean=NA, var=NA, median=NA, lower=NA, upper=NA, logit.mean=NA, logit.var=NA, logit.median=NA, logit.lower=NA, logit.upper=NA)) 
-     if(is.null(sampAll)) sampAll <- INLA::inla.posterior.sample(n = nsim, result = fit, intern = TRUE)
+     if(is.null(sampAll)) sampAll <- posterior.samples(fit, nsim)
 
      for(i in 1:dim(proj.agg)[1]){
         if(is.null(timeVar)){
@@ -1124,7 +1175,9 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
                response.type = response.type,
                formula = formula, 
                msg = msg, 
-               HT = HT)
+               HT = HT,
+               engine = backend.name,
+               constr = constr)
    if(save.draws){
     out$draws <- sampAll
     out$draws.est <- draws.out

@@ -1,5 +1,53 @@
 ##
 ## These tests cover all @examples of smoothSurvey()
+
+.test_smoothSurvey_backend <- function() {
+  list(
+    name = "test",
+    fit = function(input) {
+      list(eta = matrix(rep(input$dat$HT.logit.est, each = 50), nrow = 50))
+    },
+    linpred_draws = function(fit, i) matrix(fit$eta[, i]),
+    posterior_sample = function(fit, n) stop("not needed by this test")
+  )
+}
+
+test_that("smoothSurvey accepts an extension backend without loading INLA", {
+  regions <- c("a", "b", "c")
+  direct <- data.frame(region = regions, estimate = c(-0.2, 0.1, 0.3),
+                       variance = c(0.1, 0.2, 0.15))
+  W <- matrix(c(0, 1, 0, 1, 0, 1, 0, 1, 0), 3, 3,
+              dimnames = list(regions, regions))
+
+  fit <- smoothSurvey(
+    data = NULL, direct.est = direct, Amat = W,
+    regionVar = "region", responseVar = "estimate",
+    direct.est.var = "variance", response.type = "gaussian",
+    .backend = .test_smoothSurvey_backend()
+  )
+
+  expect_s3_class(fit, "SUMMERmodel.svy")
+  expect_identical(fit$engine, "test")
+  expect_equal(fit$smooth$mean, direct$estimate)
+})
+
+test_that("smoothSurvey rejects non-positive sampling variances before fitting", {
+  regions <- c("a", "b", "c")
+  direct <- data.frame(region = regions, estimate = c(-0.2, 0.1, 0.3),
+                       variance = c(0.1, 0, 0.15))
+  W <- matrix(c(0, 1, 0, 1, 0, 1, 0, 1, 0), 3, 3,
+              dimnames = list(regions, regions))
+
+  expect_error(
+    smoothSurvey(
+      data = NULL, direct.est = direct, Amat = W,
+      regionVar = "region", responseVar = "estimate",
+      direct.est.var = "variance", response.type = "gaussian",
+      .backend = .test_smoothSurvey_backend()
+    ),
+    "strictly positive.*b"
+  )
+})
 ##
 
 test_that("smoothSurvey: Area-level model works", {
