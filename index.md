@@ -107,6 +107,7 @@ The package is now available on CRAN. The easiest way to download is to
 install directly using the code below.
 
 ``` r
+
 install.packages("SUMMER")
 ```
 
@@ -116,6 +117,7 @@ To download the development version of the SUMMER package, use the code
 below.
 
 ``` r
+
 # install.packages("devtools")
 devtools::install_github("richardli/SUMMER")
 ```

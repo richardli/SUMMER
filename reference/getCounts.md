@@ -47,6 +47,7 @@ Zehang Richard Li
 ## Examples
 
 ``` r
+
  
 # a toy dataset with 4 time periods but one missing in data
 timelist <- factor(1:4)

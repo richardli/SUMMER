@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Estimating Subnational U5MR using Simulated Data • SUMMER</title>
 <script src="../../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../../deps/headroom-0.11.0/headroom.min.js"></script><script src="../../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../../deps/search-1.0.0/fuse.min.js"></script><script src="../../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../../pkgdown.js"></script><meta property="og:title" content="Estimating Subnational U5MR using Simulated Data">
 </head>
@@ -369,12 +369,11 @@ plotting the smoothed estimates.</p>
 </h2>
 <p>We now describe the fitting of the cluster-level model for U5MR
 described in <span class="citation">Martin et al. (2020)</span> and
-<span class="citation">Fuglstad, Li, and Wakefield (2021)</span>. For
-this simulated dataset, the strata variable is coded as region crossed
-by urban/rural status. For our analysis with urban/rural stratified
-model, we first construct a new strata variable that contains only the
-urban/rural status, i.e., the additional stratification within each
-region.</p>
+<span class="citation">Fuglstad et al. (2021)</span>. For this simulated
+dataset, the strata variable is coded as region crossed by urban/rural
+status. For our analysis with urban/rural stratified model, we first
+construct a new strata variable that contains only the urban/rural
+status, i.e., the additional stratification within each region.</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">DemoData</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">strata</span> <span class="op">&lt;-</span> <span class="va">DemoData</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">strata</span></span>
@@ -759,7 +758,7 @@ against.</p>
 <div class="section level4">
 <h4 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h4>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-fuglstad2021two" class="csl-entry">
 Fuglstad, Geir-Arne, Zehang Richard Li, and Jon Wakefield. 2021.
 <span>“The Two Cultures for Prevalence Mapping: Small Area Estimation
@@ -774,8 +773,7 @@ the Under Five Mortality Rate: Small-Area Analysis of 122
 <span>A</span>frica.”</span> <em><span>PLoS One</span></em>.
 </div>
 <div id="ref-li2020space" class="csl-entry">
-Martin, Bryan D, Dong Tracy Qi, Geir-Arne Fuglstad, Jessica Godwin, John
-Paige, Andrea Riebler, Samuel J Clark, and Jon Wakefield. 2020.
+Martin, Bryan D, Dong Tracy Qi, Geir-Arne Fuglstad, et al. 2020.
 <span>“<a href="https://arxiv.org/abs/2007.05117" class="external-link">Space-Time Smoothing
 of Demographic and Health Indicators Using the <span>R</span> Package
 <span>SUMMER</span></a>.”</span> <em>Submitted</em>.
@@ -806,7 +804,7 @@ Medical Research</em> 28: 2614–34.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

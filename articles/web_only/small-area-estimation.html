@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Generic small area estimation • SUMMER</title>
 <script src="../../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../../deps/headroom-0.11.0/headroom.min.js"></script><script src="../../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../../deps/search-1.0.0/fuse.min.js"></script><script src="../../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../../pkgdown.js"></script><meta property="og:title" content="Generic small area estimation">
 </head>
@@ -200,7 +200,7 @@ The sampling model treats
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mi>i</mi><mtext mathvariant="normal">DIR</mtext></msubsup><annotation encoding="application/x-tex">\widehat\theta^{\text{DIR}}_i</annotation></semantics></math>
 as a noisy observation of the true finite population quantity
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\theta_i</annotation></semantics></math>:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mi>i</mi><mtext mathvariant="normal">DIR</mtext></msubsup><mo>=</mo><msub><mi>θ</mi><mi>i</mi></msub><mo>+</mo><msub><mi>ϵ</mi><mi>i</mi></msub><mo>;</mo><mspace width="2.0em"></mspace><msub><mi>ϵ</mi><mi>i</mi></msub><msub><mo>∼</mo><mrow><mi>i</mi><mi>n</mi><mi>d</mi></mrow></msub><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msub><mi>V</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>M</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mi>i</mi><mtext mathvariant="normal">DIR</mtext></msubsup><mo>=</mo><msub><mi>θ</mi><mi>i</mi></msub><mo>+</mo><msub><mi>ϵ</mi><mi>i</mi></msub><mo>;</mo><mspace width="2.0em"></mspace><msub><mi>ϵ</mi><mi>i</mi></msub><msub><mo>∼</mo><mrow><mi>i</mi><mi>n</mi><mi>d</mi></mrow></msub><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><msub><mi>V</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>M</mi></mrow><annotation encoding="application/x-tex">
 \widehat\theta^{\text{DIR}}_i=\theta_i+\epsilon_i;\hspace{2em}\epsilon_i\sim_{ind}N(0,V_i),\hspace{2em}i=1,\ldots, M
 </annotation></semantics></math></p>
 <p>where
@@ -208,7 +208,7 @@ as a noisy observation of the true finite population quantity
 is the <strong>known sampling variance</strong> of the direct estimator
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mover><mi>θ</mi><mo accent="true">̂</mo></mover><mi>i</mi><mtext mathvariant="normal">DIR</mtext></msubsup><annotation encoding="application/x-tex">\widehat{\theta}^{\text{DIR}}_i</annotation></semantics></math>.</p>
 <p><strong>Linking model</strong>:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mi>i</mi></msub><mo>=</mo><msubsup><mtext mathvariant="bold">𝐱</mtext><mi>i</mi><mi>T</mi></msubsup><mi>𝛃</mi><mo>+</mo><msub><mi>u</mi><mi>i</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>u</mi><mi>i</mi></msub><msub><mo>∼</mo><mrow><mi>i</mi><mi>n</mi><mi>d</mi></mrow></msub><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>u</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="2.0em"></mspace><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>M</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>θ</mi><mi>i</mi></msub><mo>=</mo><msubsup><mtext mathvariant="bold">𝐱</mtext><mi>i</mi><mi>T</mi></msubsup><mi>𝛃</mi><mo>+</mo><msub><mi>u</mi><mi>i</mi></msub><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>u</mi><mi>i</mi></msub><msub><mo>∼</mo><mrow><mi>i</mi><mi>n</mi><mi>d</mi></mrow></msub><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>u</mi><mn>2</mn></msubsup><mo stretchy="false" form="postfix">)</mo><mspace width="2.0em"></mspace><mi>i</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mi>M</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \theta_i = \textbf{x}_i^T\boldsymbol\beta+u_i,\hspace{2em}u_i\sim_{ind}N(0,\sigma_u^2)\hspace{2em}i=1,\ldots, M,
 </annotation></semantics></math></p>
 <p>where
@@ -397,7 +397,7 @@ a summary map of posterior medians or posterior variances.</p>
 spatial version of the Fay-Herriot model which assumes that the vector
 of area specific effects follows a first order simultaneous
 autoregressive, or SAR(1), process:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="bold">𝐮</mtext><mo>=</mo><msub><mi>ρ</mi><mn>1</mn></msub><mtext mathvariant="bold">𝐖𝐮</mtext><mo>+</mo><mi>𝛜</mi><mo>,</mo><mspace width="1.0em"></mspace><mi>𝛜</mi><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mtext mathvariant="bold">𝟎</mtext><mi>i</mi></msub><mo>,</mo><msubsup><mi>σ</mi><mi>I</mi><mn>2</mn></msubsup><msub><mtext mathvariant="bold">𝐈</mtext><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\textbf{u}=\rho_1\textbf{Wu}+\boldsymbol\epsilon,\hspace{1em}\boldsymbol\epsilon\sim N(\textbf{0}_i,\sigma_I^2\textbf{I}_i),</annotation></semantics></math>
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="bold">𝐮</mtext><mo>=</mo><msub><mi>ρ</mi><mn>1</mn></msub><mtext mathvariant="bold">𝐖𝐮</mtext><mo>+</mo><mi>𝛜</mi><mo>,</mo><mspace width="1.0em"></mspace><mi>𝛜</mi><mo>∼</mo><mi>N</mi><mo stretchy="false" form="prefix">(</mo><msub><mtext mathvariant="bold">𝟎</mtext><mi>i</mi></msub><mo>,</mo><msubsup><mi>σ</mi><mi>I</mi><mn>2</mn></msubsup><msub><mtext mathvariant="bold">𝐈</mtext><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">\textbf{u}=\rho_1\textbf{Wu}+\boldsymbol\epsilon,\hspace{1em}\boldsymbol\epsilon\sim N(\textbf{0}_i,\sigma_I^2\textbf{I}_i),</annotation></semantics></math>
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mtext mathvariant="bold">𝐈</mtext><mi>i</mi></msub><annotation encoding="application/x-tex">\textbf{I}_i</annotation></semantics></math>
 is the identity matrix for the
@@ -407,7 +407,7 @@ areas and
 is a vector of zeroes of size
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>D</mi><annotation encoding="application/x-tex">D</annotation></semantics></math>.
 Additionally,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ρ</mi><mn>1</mn></msub><mo>∈</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><mn>1</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\rho_1\in(-1,1)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ρ</mi><mn>1</mn></msub><mo>∈</mo><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mn>1</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\rho_1\in(-1,1)</annotation></semantics></math>
 is an autoregression parameter and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtext mathvariant="bold">𝐖</mtext><annotation encoding="application/x-tex">\textbf{W}</annotation></semantics></math>
 is an adjacency matrix (with rows standardized to sum to 1).</p>
@@ -624,11 +624,10 @@ estimates and uncertainty estimates obtained via <code>sae</code> and
 <div class="section level2">
 <h2 id="unit-level-models">Unit Level Models<a class="anchor" aria-label="anchor" href="#unit-level-models"></a>
 </h2>
-<p>The nested error model, introduced by <span class="citation">Battese,
-Harter, and Fuller (1988)</span>, uses auxiliary data at the unit
-level.</p>
+<p>The nested error model, introduced by <span class="citation">Battese
+et al. (1988)</span>, uses auxiliary data at the unit level.</p>
 <p><strong>Nested error model:</strong>
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>d</mi><mi>k</mi></mrow></msub><mo>=</mo><msubsup><mi>𝐱</mi><mrow><mi>d</mi><mi>k</mi></mrow><mi>T</mi></msubsup><mi>𝛃</mi><mo>+</mo><msub><mi>u</mi><mi>d</mi></msub><mo>+</mo><msub><mi>ϵ</mi><mrow><mi>d</mi><mi>k</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><msub><mi>u</mi><mi>d</mi></msub><msub><mo>∼</mo><mrow><mi>i</mi><mi>n</mi><mi>d</mi></mrow></msub><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>u</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="1.0em"></mspace><msub><mi>ϵ</mi><mrow><mi>d</mi><mi>k</mi></mrow></msub><msub><mo>∼</mo><mrow><mi>i</mi><mi>n</mi><mi>d</mi></mrow></msub><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>ϵ</mi><mn>2</mn></msubsup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">y_{dk}=\mathbf{x}_{dk}^T\boldsymbol\beta+u_d+\epsilon_{dk},\hspace{1em}u_d\sim_{ind}N(0,\sigma_u^2),\hspace{1em}\epsilon_{dk}\sim_{ind}N(0,\sigma_\epsilon^2)</annotation></semantics></math></p>
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>y</mi><mrow><mi>d</mi><mi>k</mi></mrow></msub><mo>=</mo><msubsup><mi>𝐱</mi><mrow><mi>d</mi><mi>k</mi></mrow><mi>T</mi></msubsup><mi>𝛃</mi><mo>+</mo><msub><mi>u</mi><mi>d</mi></msub><mo>+</mo><msub><mi>ϵ</mi><mrow><mi>d</mi><mi>k</mi></mrow></msub><mo>,</mo><mspace width="1.0em"></mspace><msub><mi>u</mi><mi>d</mi></msub><msub><mo>∼</mo><mrow><mi>i</mi><mi>n</mi><mi>d</mi></mrow></msub><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>u</mi><mn>2</mn></msubsup><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="1.0em"></mspace><msub><mi>ϵ</mi><mrow><mi>d</mi><mi>k</mi></mrow></msub><msub><mo>∼</mo><mrow><mi>i</mi><mi>n</mi><mi>d</mi></mrow></msub><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><msubsup><mi>σ</mi><mi>ϵ</mi><mn>2</mn></msubsup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">y_{dk}=\mathbf{x}_{dk}^T\boldsymbol\beta+u_d+\epsilon_{dk},\hspace{1em}u_d\sim_{ind}N(0,\sigma_u^2),\hspace{1em}\epsilon_{dk}\sim_{ind}N(0,\sigma_\epsilon^2)</annotation></semantics></math></p>
 <p>Here
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>u</mi><mi>d</mi></msub><annotation encoding="application/x-tex">u_d</annotation></semantics></math>
 are area random effects and
@@ -644,7 +643,7 @@ Next, given known variance parameters, domain means
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>θ</mi><mi>d</mi></msub><annotation encoding="application/x-tex">\theta_d</annotation></semantics></math>
 are predicted by calculating the EBLUPs.</p>
 <p>The area fitted values are:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mover><mi>y</mi><mo accent="true">̂</mo></mover><mi>d</mi><mtext mathvariant="normal">EBLUP</mtext></msubsup><mo>=</mo><msub><mi>f</mi><mi>d</mi></msub><msub><mover><mi>y</mi><mo accent="true">¯</mo></mover><mrow><mi>d</mi><mi>S</mi></mrow></msub><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mover><mi>X</mi><mo accent="true">¯</mo></mover><mi>d</mi></msub><mo>−</mo><msub><mi>f</mi><mi>d</mi></msub><msub><mover><mi>x</mi><mo accent="true">¯</mo></mover><mrow><mi>d</mi><mi>S</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mover><mi>β</mi><mo accent="true">̂</mo></mover><mo>+</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>f</mi><mi>d</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><msub><mover><mi>u</mi><mo accent="true">̂</mo></mover><mi>d</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">\widehat{y}_d^{\text{EBLUP}} = f_d \overline{y}_{dS} + (\overline{X}_d-f_d \overline{x}_{dS})\widehat{\beta} + (1-f_d)\widehat{u}_d,</annotation></semantics></math>
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mover><mi>y</mi><mo accent="true">̂</mo></mover><mi>d</mi><mtext mathvariant="normal">EBLUP</mtext></msubsup><mo>=</mo><msub><mi>f</mi><mi>d</mi></msub><msub><mover><mi>y</mi><mo accent="true">¯</mo></mover><mrow><mi>d</mi><mi>S</mi></mrow></msub><mo>+</mo><mo stretchy="false" form="prefix">(</mo><msub><mover><mi>X</mi><mo accent="true">¯</mo></mover><mi>d</mi></msub><mo>−</mo><msub><mi>f</mi><mi>d</mi></msub><msub><mover><mi>x</mi><mo accent="true">¯</mo></mover><mrow><mi>d</mi><mi>S</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mover><mi>β</mi><mo accent="true">̂</mo></mover><mo>+</mo><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><msub><mi>f</mi><mi>d</mi></msub><mo stretchy="false" form="postfix">)</mo><msub><mover><mi>u</mi><mo accent="true">̂</mo></mover><mi>d</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">\widehat{y}_d^{\text{EBLUP}} = f_d \overline{y}_{dS} + (\overline{X}_d-f_d \overline{x}_{dS})\widehat{\beta} + (1-f_d)\widehat{u}_d,</annotation></semantics></math>
 where</p>
 <ul>
 <li><p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>d</mi></msub><mo>=</mo><msub><mi>n</mi><mi>d</mi></msub><mi>/</mi><msub><mi>N</mi><mi>d</mi></msub></mrow><annotation encoding="application/x-tex">f_d=n_d/N_d</annotation></semantics></math>
@@ -663,10 +662,9 @@ is the estimated random effect.</p></li>
 </h3>
 <p>The <code>cornsoybean</code> and <code>cornsoybeanmeans</code>
 datasets contain info on corn and soy beans production in 12 Iowa
-counties <span class="citation">Battese, Harter, and Fuller
-(1988)</span>. The objective here is use satellite imagery of the number
-of pixels assigned to corn and soy to estimate the hectares grown of
-corn.</p>
+counties <span class="citation">Battese et al. (1988)</span>. The
+objective here is use satellite imagery of the number of pixels assigned
+to corn and soy to estimate the hectares grown of corn.</p>
 <ul>
 <li>
 <code>SampSegments</code>: sample size.</li>
@@ -741,7 +739,7 @@ from the <code>sae</code> package, we specify a relatively flat prior on
 the variance of the area-specific random effect
 (<code>pc.u = 100, pc.alpha = 0.01</code> specifies a penalized
 complexity prior such that
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>σ</mi><mi>u</mi></msub><mo>&gt;</mo><mn>100</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0.01</mn></mrow><annotation encoding="application/x-tex">P(\sigma_u &gt; 100)=0.01</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>σ</mi><mi>u</mi></msub><mo>&gt;</mo><mn>100</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0.01</mn></mrow><annotation encoding="application/x-tex">P(\sigma_u &gt; 100)=0.01</annotation></semantics></math>
 where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>σ</mi><mi>u</mi></msub><annotation encoding="application/x-tex">\sigma_u</annotation></semantics></math>
 is the standard deviation of the area-specific random effects).</p>
@@ -778,7 +776,7 @@ is the standard deviation of the area-specific random effects).</p>
 <span>     xlim<span class="op">=</span><span class="va">range2</span>,ylim<span class="op">=</span><span class="va">range2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html" class="external-link">abline</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><img src="figure/bhf.unit.comp-1.png" width="100%"></p>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-battese_error-components_1988" class="csl-entry">
 Battese, George E, Rachel M Harter, and Wayne A Fuller. 1988. <span>“An
 Error-Components Model for Prediction of County Crop Areas Using Survey
@@ -817,7 +815,7 @@ Journal</em> 7: 81–98.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

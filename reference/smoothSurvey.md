@@ -47,6 +47,8 @@ smoothSurvey(
   nsim = 1000,
   save.draws = FALSE,
   smooth = TRUE,
+  constr = TRUE,
+  .backend = NULL,
   ...
 )
 ```
@@ -209,8 +211,9 @@ smoothSurvey(
 
 - type.st:
 
-  can take values 0 (no interaction), or 1 to 4, corresponding to the
-  type I to IV space-time interaction.
+  space-time interaction: 0 for none, 1 for IID space by IID time, 2 for
+  IID space by structured time, 3 for Besag space by IID time, and 4 for
+  Besag space by structured time.
 
 - direct.est:
 
@@ -263,6 +266,18 @@ smoothSurvey(
   logical indicator of whether to perform smoothing. If set to FALSE, a
   data frame of direct estimate is returned. Only used when
   `is.unit.level` is FALSE.
+
+- constr:
+
+  logical; apply the default linear constraints to intrinsic spatial,
+  temporal, and space-time interaction effects.
+
+- .backend:
+
+  optional computational backend used by extension packages. The default
+  `NULL` preserves the existing INLA implementation. A backend is a list
+  containing `name`, `fit`, `linpred_draws`, and `posterior_sample`.
+  This is a developer interface and may change between releases.
 
 - ...:
 
@@ -336,13 +351,13 @@ clusterVar = "~clustid+id", CI = 0.95, space.model = "sar")
 summary(fit0SAR) 
 
 # Unmatched link model for binary data
-fit0c <- smoothSurvey(data=DemoData2,  
+fit0_unmatch <- smoothSurvey(data=DemoData2,  
           Amat=DemoMap2$Amat, 
           response.type="binary", unmatched.link = TRUE, 
           responseVar="tobacco.use", strataVar="strata", 
           weightVar="weights", regionVar="region", 
           clusterVar = "~clustid+id", CI = 0.95)
-summary(fit0c)
+summary(fit0_unmatch)
 
  
 # if only direct estimates without smoothing is of interest
@@ -391,6 +406,17 @@ fit3 <- smoothSurvey(data=NULL, direct.est = direct.logit,
                response.type = "gaussian")
 # Check it is the same as fit0
 plot(fit3$smooth$mean, fit0$smooth$logit.mean)
+
+# Unmatched link model for direct estimates
+fit3_unmatch <- smoothSurvey(data=NULL,
+       direct.est = direct.logit,  
+          Amat=DemoMap2$Amat, regionVar="region",
+          responseVar="direct.logit.est", 
+          direct.est.var = "direct.logit.var",
+          response.type = "gaussian", 
+       unmatched.link = TRUE)
+summary(fit3_unmatch)
+plot(fit3_unmatch$smooth$mean, fit0_unmatch$smooth$logit.mean)
 
 # Example with non-spatial smoothing using IID random effects
 fit4 <- smoothSurvey(data=DemoData2, response.type="binary", 

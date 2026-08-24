@@ -9,6 +9,27 @@ CRAN release: 2025-01-07
 - New set of unit tests.
 - New vignette on specifying cluster-level model for mortality
   estimation.
+- [`smoothSurvey()`](https://richardli.github.io/SUMMER/reference/smoothSurvey.md)
+  now has an internal backend extension interface used by companion
+  packages, while retaining INLA as its public/default engine. Spatial
+  and temporal constraints can be controlled with `constr`.
+- [`smoothSurvey()`](https://richardli.github.io/SUMMER/reference/smoothSurvey.md)
+  now stops with an informative error for nonpositive sampling variances
+  and corrects the Type II/IV interaction formulas and transformed upper
+  credible limits.
+- Type IV interactions in
+  [`smoothSurvey()`](https://richardli.github.io/SUMMER/reference/smoothSurvey.md)
+  now use the scaled Kronecker precision and connected-component
+  constraints used by
+  [`smoothDirect()`](https://richardli.github.io/SUMMER/reference/smoothDirect.md);
+  [`smoothDirect()`](https://richardli.github.io/SUMMER/reference/smoothDirect.md)
+  also removes one redundant temporal constraint per non-singleton
+  spatial component.
+- [`smoothSurvey()`](https://richardli.github.io/SUMMER/reference/smoothSurvey.md)
+  now uses the same Type II and Type III labels as
+  [`smoothDirect()`](https://richardli.github.io/SUMMER/reference/smoothDirect.md):
+  IID space by structured time and Besag space by IID time,
+  respectively.
 - Improvements to existing functions.
 
 ## Version 1.4.0

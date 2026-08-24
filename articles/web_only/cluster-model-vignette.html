@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Specifying cluster-level model in SUMMER for mortality estimation • SUMMER</title>
 <script src="../../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../../deps/headroom-0.11.0/headroom.min.js"></script><script src="../../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../../deps/search-1.0.0/fuse.min.js"></script><script src="../../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../../pkgdown.js"></script><meta property="og:title" content="Specifying cluster-level model in SUMMER for mortality estimation">
 </head>
@@ -109,13 +109,13 @@ surveys. We index surveys by
 The sampling frame that was used for survey
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>,
 will be denoted by
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>k</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">r[k]</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">r[k]</annotation></semantics></math>.
 For example, if the first
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>3</mn><annotation encoding="application/x-tex">3</annotation></semantics></math>
 surveys are based on the first sampling frame and the next
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>2</mn><annotation encoding="application/x-tex">2</annotation></semantics></math>
 surveys are based on the second sampling frame, then
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">[</mo><mn>1</mn><mo>,</mo><mn>1</mn><mo>,</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mn>2</mn><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">r = [1, 1, 1, 2, 2]</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mo>=</mo><mo stretchy="false" form="prefix">[</mo><mn>1</mn><mo>,</mo><mn>1</mn><mo>,</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mn>2</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">r = [1, 1, 1, 2, 2]</annotation></semantics></math>.
 When only one survey is used, the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
 index can be dropped in all formulas below.</p>
@@ -164,7 +164,7 @@ in year
 This model allows for overdispersion relative to the binomial model.
 Assuming constant hazards within age bands, we assume the number of
 deaths occurring within age band
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>m</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">a[m]</annotation></semantics></math>,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo stretchy="false" form="prefix">[</mo><mi>m</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">a[m]</annotation></semantics></math>,
 in cluster
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>c</mi><annotation encoding="application/x-tex">c</annotation></semantics></math>,
 time
@@ -172,7 +172,7 @@ time
 and survey
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
 follow the beta-binomial distribution,
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mrow><mi>a</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>m</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mi>k</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>t</mi></mrow></msub><mspace width="0.222em"></mspace><mo stretchy="false" form="prefix">|</mo><mspace width="0.222em"></mspace><msub><mi>p</mi><mrow><mi>a</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>m</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mi>k</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>∼</mo><mtext mathvariant="normal">BetaBinomial</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mspace width="0.222em"></mspace><msub><mi>n</mi><mrow><mi>a</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>m</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mi>k</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>t</mi></mrow></msub><mspace width="0.222em"></mspace><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>p</mi><mrow><mi>m</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>t</mi></mrow></msub><mspace width="0.222em"></mspace><mo>,</mo><mi>d</mi><mspace width="0.222em"></mspace><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}\label{eq:BB1-age}
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mrow><mi>a</mi><mo stretchy="false" form="prefix">[</mo><mi>m</mi><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mi>k</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>t</mi></mrow></msub><mspace width="0.222em"></mspace><mo stretchy="false" form="prefix">|</mo><mspace width="0.222em"></mspace><msub><mi>p</mi><mrow><mi>a</mi><mo stretchy="false" form="prefix">[</mo><mi>m</mi><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mi>k</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>∼</mo><mtext mathvariant="normal">BetaBinomial</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mspace width="0.222em"></mspace><msub><mi>n</mi><mrow><mi>a</mi><mo stretchy="false" form="prefix">[</mo><mi>m</mi><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mi>k</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>t</mi></mrow></msub><mspace width="0.222em"></mspace><mo>,</mo><mspace width="0.222em"></mspace><msub><mi>p</mi><mrow><mi>m</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>t</mi></mrow></msub><mspace width="0.222em"></mspace><mo>,</mo><mi>d</mi><mspace width="0.222em"></mspace><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\begin{equation}\label{eq:BB1-age}
 Y_{a[m],k,c,t} ~|~  p_{a[m],k,c,t} \sim \mbox{BetaBinomial}\left(~ n_{a[m],k,c,t}~,~ p_{m,k,c,t}~,d~
 \right),
 \end{equation}</annotation></semantics></math> where
@@ -189,11 +189,11 @@ and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
 is the overdispersion parameter.</p>
 <p>In the likelihood model,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mrow><mi>a</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>m</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mi>k</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>t</mi></mrow></msub><annotation encoding="application/x-tex">n_{a[m],k,c,t}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>n</mi><mrow><mi>a</mi><mo stretchy="false" form="prefix">[</mo><mi>m</mi><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mi>k</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>t</mi></mrow></msub><annotation encoding="application/x-tex">n_{a[m],k,c,t}</annotation></semantics></math>
 is a known constant. The default prior for
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>d</mi><annotation encoding="application/x-tex">d</annotation></semantics></math>
 is
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">logit</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>d</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><msqrt><mrow><mn>1</mn><mi>/</mi><mn>0.4</mn></mrow></msqrt><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">logit</mtext><mo stretchy="false" form="prefix">(</mo><mi>d</mi><mo stretchy="false" form="postfix">)</mo><mo>∼</mo><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><msqrt><mrow><mn>1</mn><mi>/</mi><mn>0.4</mn></mrow></msqrt><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">
     \mbox{logit}(d) \sim N(0, \sqrt{1/0.4})
 </annotation></semantics></math> The mean and precision of the normal
 prior can be modified by specifying the <code>overdisp.mean</code> and
@@ -207,7 +207,7 @@ than two levels of stratification is automatically allowed when
 <code>strata</code> variable in the input data frame contains more
 unique values. Under the urban/rural stratification, the most general
 form of the latent logistic model we use is,
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>p</mi><mrow><mi>m</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>=</mo></mtd><mtd columnalign="left" style="text-align: left"><mtext mathvariant="normal">expit</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>α</mi><mrow><mi>m</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>+</mo><msub><mi>ϵ</mi><mi>t</mi></msub><mo>+</mo><msub><mi>b</mi><mi>k</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"><msub><mi>α</mi><mrow><mi>m</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>=</mo></mtd><mtd columnalign="left" style="text-align: left"><msub><mi>β</mi><mrow><mi>a</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>m</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mi>r</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>k</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mi>t</mi></mrow></msub><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>c</mi></msub><mo>∈</mo><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> rural </mtext><mspace width="0.333em"></mspace></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>γ</mi><mrow><mi>a</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>m</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mi>r</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>k</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mi>t</mi></mrow></msub><mi>I</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>s</mi><mi>c</mi></msub><mo>∈</mo><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> urban </mtext><mspace width="0.333em"></mspace></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd><mtd columnalign="left" style="text-align: left"><mspace width="0.278em"></mspace><mo>+</mo><msub><mi>S</mi><mrow><mi>i</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>s</mi><mi>c</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow></msub><mo>+</mo><msub><mi>e</mi><mrow><mi>i</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>s</mi><mi>c</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow></msub><mo>+</mo><msub><mi>δ</mi><mrow><mi>i</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>s</mi><mi>c</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mi>t</mi></mrow></msub><mo>+</mo><msub><mtext mathvariant="normal">BIAS</mtext><mrow><mi>k</mi><mo>,</mo><mi>t</mi></mrow></msub><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align}
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>p</mi><mrow><mi>m</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>=</mo></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mtext mathvariant="normal">expit</mtext><mo stretchy="false" form="prefix">(</mo><msub><mi>α</mi><mrow><mi>m</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>+</mo><msub><mi>ϵ</mi><mi>t</mi></msub><mo>+</mo><msub><mi>b</mi><mi>k</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"><msub><mi>α</mi><mrow><mi>m</mi><mo>,</mo><mi>k</mi><mo>,</mo><mi>c</mi><mo>,</mo><mi>t</mi></mrow></msub><mo>=</mo></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><msub><mi>β</mi><mrow><mi>a</mi><mo stretchy="false" form="prefix">[</mo><mi>m</mi><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mi>r</mi><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mi>t</mi></mrow></msub><mi>I</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mi>c</mi></msub><mo>∈</mo><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> rural </mtext><mspace width="0.333em"></mspace></mrow><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>γ</mi><mrow><mi>a</mi><mo stretchy="false" form="prefix">[</mo><mi>m</mi><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mi>r</mi><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mi>t</mi></mrow></msub><mi>I</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>s</mi><mi>c</mi></msub><mo>∈</mo><mrow><mspace width="0.333em"></mspace><mtext mathvariant="normal"> urban </mtext><mspace width="0.333em"></mspace></mrow><mo stretchy="false" form="postfix">)</mo></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right; padding-right: 0"></mtd><mtd columnalign="left" style="text-align: left; padding-left: 0"><mspace width="0.278em"></mspace><mo>+</mo><msub><mi>S</mi><mrow><mi>i</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>s</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">]</mo></mrow></msub><mo>+</mo><msub><mi>e</mi><mrow><mi>i</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>s</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">]</mo></mrow></msub><mo>+</mo><msub><mi>δ</mi><mrow><mi>i</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>s</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mi>t</mi></mrow></msub><mo>+</mo><msub><mtext mathvariant="normal">BIAS</mtext><mrow><mi>k</mi><mo>,</mo><mi>t</mi></mrow></msub><mi>.</mi></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{align}
 p_{m,k,c,t} =&amp; \mbox{expit}( \alpha_{m,c,k,t} +   \epsilon_t + b_k),\\ \nonumber
 \alpha_{m,k,c,t} =&amp;
 \beta_{a[m],r[k],t}I(s_c \in \mbox{ rural }) +
@@ -223,10 +223,10 @@ S_{i[s_c]} + e_{i[s_c]}  +\delta_{i[s_c],t} + \mbox{BIAS}_{k,t}.
 <p>In the temporal model, we usually would like to share some
 information across different age groups. This requires specifying a
 reduced group of age bands for some component. We use
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>a</mi><mo>*</mo></msup><mrow><mo stretchy="true" form="prefix">[</mo><mi>m</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">a^{*}[m]</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>a</mi><mo>*</mo></msup><mo stretchy="false" form="prefix">[</mo><mi>m</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">a^{*}[m]</annotation></semantics></math>
 here to differentiate from the age bands used in the hazard likelihood.
 The default choice for U5MR in the package is
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>a</mi><mo>*</mo></msup><mrow><mo stretchy="true" form="prefix">[</mo><mi>m</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><mi>m</mi><mo>=</mo><mn>0</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>2</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><mi>m</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mn>11</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>3</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><mi>m</mi><mo>=</mo><mn>12</mn><mo>,</mo><mi>…</mi><mo>,</mo><mn>59</mn><mi>.</mi></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">\begin{equation}
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>a</mi><mo>*</mo></msup><mo stretchy="false" form="prefix">[</mo><mi>m</mi><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><mi>m</mi><mo>=</mo><mn>0</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>2</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><mi>m</mi><mo>=</mo><mn>1</mn><mo>,</mo><mi>…</mi><mo>,</mo><mn>11</mn><mo>,</mo></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mn>3</mn></mtd><mtd columnalign="left" style="text-align: left"><mrow><mtext mathvariant="normal">if </mtext><mspace width="0.333em"></mspace></mrow><mi>m</mi><mo>=</mo><mn>12</mn><mo>,</mo><mi>…</mi><mo>,</mo><mn>59</mn><mi>.</mi></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">\begin{equation}
 a^{*}[m] = \left\{
 \begin{array}{ll}
 1 &amp; \mbox{if }m=0,\\
@@ -236,11 +236,11 @@ a^{*}[m] = \left\{
 \right.
 \label{eq:astar}
 \end{equation}</annotation></semantics></math> The
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>m</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">a[m]</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>a</mi><mo stretchy="false" form="prefix">[</mo><mi>m</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">a[m]</annotation></semantics></math>
 are specified in <code>age.group</code> argument, and the size of each
 age group is specified in <code>age.n</code> argument. The reduced
 mapping
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>a</mi><mo>*</mo></msup><mrow><mo stretchy="true" form="prefix">[</mo><mi>m</mi><mo stretchy="true" form="postfix">]</mo></mrow></mrow><annotation encoding="application/x-tex">a^{*}[m]</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>a</mi><mo>*</mo></msup><mo stretchy="false" form="prefix">[</mo><mi>m</mi><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">a^{*}[m]</annotation></semantics></math>
 is specified in <code>age.time.group</code> argument.</p>
 </div>
 <div class="section level3">
@@ -249,7 +249,7 @@ is specified in <code>age.time.group</code> argument.</p>
 <p>We include a survey fixed effect
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>b</mi><mi>k</mi></msub><annotation encoding="application/x-tex">b_k</annotation></semantics></math>
 with the constraint
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>k</mi></msub><msub><mi>b</mi><mi>k</mi></msub><msub><mn>𝟏</mn><mrow><mi>r</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>k</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><mi>r</mi></mrow></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\sum_{k} b_k \mathbf{1}_{r[k] = r} = 0</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mo>∑</mo><mi>k</mi></msub><msub><mi>b</mi><mi>k</mi></msub><msub><mn>𝟏</mn><mrow><mi>r</mi><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo><mo>=</mo><mi>r</mi></mrow></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\sum_{k} b_k \mathbf{1}_{r[k] = r} = 0</annotation></semantics></math>
 for each sampling frame
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>,
 so that the main temporal trends are identifiable for each sampling
@@ -278,9 +278,9 @@ are not included in the predictions. They can be included by specifying
 </h3>
 <p>The temporal main effects are specified for urban and rural stratum
 seperately with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mrow><msup><mi>a</mi><mo>*</mo></msup><mrow><mo stretchy="true" form="prefix">[</mo><mi>m</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mi>r</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>k</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mi>t</mi></mrow></msub><annotation encoding="application/x-tex">\beta_{a^{*}[m],r[k],t}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mrow><msup><mi>a</mi><mo>*</mo></msup><mo stretchy="false" form="prefix">[</mo><mi>m</mi><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mi>r</mi><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mi>t</mi></mrow></msub><annotation encoding="application/x-tex">\beta_{a^{*}[m],r[k],t}</annotation></semantics></math>
 and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mrow><msup><mi>a</mi><mo>*</mo></msup><mrow><mo stretchy="true" form="prefix">[</mo><mi>m</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mi>r</mi><mrow><mo stretchy="true" form="prefix">[</mo><mi>k</mi><mo stretchy="true" form="postfix">]</mo></mrow><mo>,</mo><mi>t</mi></mrow></msub><annotation encoding="application/x-tex">\gamma_{a^{*}[m],r[k],t}</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>γ</mi><mrow><msup><mi>a</mi><mo>*</mo></msup><mo stretchy="false" form="prefix">[</mo><mi>m</mi><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mi>r</mi><mo stretchy="false" form="prefix">[</mo><mi>k</mi><mo stretchy="false" form="postfix">]</mo><mo>,</mo><mi>t</mi></mrow></msub><annotation encoding="application/x-tex">\gamma_{a^{*}[m],r[k],t}</annotation></semantics></math>.
 These effects are also specific to each sampling frame
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>r</mi><annotation encoding="application/x-tex">r</annotation></semantics></math>,
 as the definition of urban and rural usually change across different
@@ -329,7 +329,7 @@ input data frame to be all NA.</p>
 <h4 id="time-invariant-urbanrural-effect">Time-invariant urban/rural effect<a class="anchor" aria-label="anchor" href="#time-invariant-urbanrural-effect"></a>
 </h4>
 <p>We can also specify the random effects
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>β</mi><mrow><msup><mi>a</mi><mo>*</mo></msup><mo>,</mo><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>*</mo></msubsup><mo>=</mo><msubsup><mi>γ</mi><mrow><msup><mi>a</mi><mo>*</mo></msup><mo>,</mo><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>*</mo></msubsup><mo>+</mo><mi>Δ</mi></mrow><annotation encoding="application/x-tex">\beta^{*}_{a^{*},r,t} = \gamma^{*}_{a^{*}, r, t} + \Delta</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>β</mi><mrow><msup><mi>a</mi><mo>*</mo></msup><mo>,</mo><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>*</mo></msubsup><mo>=</mo><msubsup><mi>γ</mi><mrow><msup><mi>a</mi><mo>*</mo></msup><mo>,</mo><mi>r</mi><mo>,</mo><mi>t</mi></mrow><mo>*</mo></msubsup><mo>+</mo><mi mathvariant="normal">Δ</mi></mrow><annotation encoding="application/x-tex">\beta^{*}_{a^{*},r,t} = \gamma^{*}_{a^{*}, r, t} + \Delta</annotation></semantics></math>.
 This</p>
 <p>This can be specified by setting
 <code>strata.time.effect = FALSE</code>.</p>
@@ -390,7 +390,7 @@ additional linear trend by default, so that
         \beta_{a, r, t} = \beta_{a, r, 0} + \tilde{\beta}_{a^{*}, r}X_t + \beta^{*}_{a^{*}, r, t}
 </annotation></semantics></math> The linear trend is modelled as a fixed
 effect for a rescaled time index variable
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>X</mi><mi>t</mi></msub><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>−</mo><mi>T</mi><mi>/</mi><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>T</mi><mo>−</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">X_t = (t - T/2) / (T - 1)</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>X</mi><mi>t</mi></msub><mo>=</mo><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo>−</mo><mi>T</mi><mi>/</mi><mn>2</mn><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mo stretchy="false" form="prefix">(</mo><mi>T</mi><mo>−</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">X_t = (t - T/2) / (T - 1)</annotation></semantics></math>.
 That is, the coefficient
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>β</mi><mo accent="true">̃</mo></mover><annotation encoding="application/x-tex">\tilde{\beta}</annotation></semantics></math>
 should be interpreted as unit change on the logit scale comparing the
@@ -498,7 +498,7 @@ slope correspond to which age-stratum pairs, we can inspect the
 </h3>
 <p>The spatial effects are assumed to be shared across all age groups
 and strata. The
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mrow><mi>i</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>s</mi><mi>c</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow></msub><mo>+</mo><msub><mi>e</mi><mrow><mi>i</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>s</mi><mi>c</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow></mrow></msub></mrow><annotation encoding="application/x-tex">S_{i[s_c]} + e_{i[s_c]}</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mrow><mi>i</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>s</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">]</mo></mrow></msub><mo>+</mo><msub><mi>e</mi><mrow><mi>i</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>s</mi><mi>c</mi></msub><mo stretchy="false" form="postfix">]</mo></mrow></msub></mrow><annotation encoding="application/x-tex">S_{i[s_c]} + e_{i[s_c]}</annotation></semantics></math>
 terms correspond to the sum of a structured spatial effect and an
 unstructured effect for each area. It is parameterized with a BYM2 model
 described in <span class="citation">Riebler et al. (2016)</span>.</p>
@@ -529,7 +529,7 @@ year to the last year to be projected, on the logit scale.</p>
 example, the following model specifies a type IV interaction between AR1
 in time and ICAR in space, with region-specific random slope in time,
 with PC prior such that
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mi>r</mi><mi>o</mi><mi>b</mi><mrow><mo stretchy="true" form="prefix">(</mo><mrow><mo stretchy="true" form="prefix">|</mo><msub><mi>ρ</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">|</mo></mrow><mo>&gt;</mo><mn>2</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mi>r</mi><mi>o</mi><mi>b</mi><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="prefix">|</mo><msub><mi>ρ</mi><mi>i</mi></msub><mo stretchy="false" form="prefix">|</mo><mo>&gt;</mo><mn>2</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>0.1</mn></mrow><annotation encoding="application/x-tex">
 Prob(|\rho_i| &gt; 2) = 0.1
 </annotation></semantics></math> The main temporal random effect is set
 to be a second order random walk.</p>
@@ -557,7 +557,7 @@ be easily found in the help file.</p>
 <div class="section level3 unnumbered">
 <h3 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h3>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-knorrheld_00" class="csl-entry">
 Knorr-Held, Leonhard. 2000. <span>“Bayesian Modelling of Inseparable
 Space-Time Variation in Disease Risk.”</span> <em>Statistics in
@@ -567,7 +567,7 @@ Medicine</em> 19: 2555–67.
 Mercer, Laina D, Jon Wakefield, Athena Pantazis, Angelina M Lutambi,
 Honorati Masanja, and Samuel Clark. 2015. <span>“Small Area Estimation
 of Childhood Mortality in the Absence of Vital Registration.”</span>
-<em>Annals of Applied Statistics</em> 9: 1889–1905.
+<em>Annals of Applied Statistics</em> 9: 1889–905.
 </div>
 <div id="ref-riebler_etal_16" class="csl-entry">
 Riebler, Andrea, Sigrunn H Sørbye, Daniel Simpson, and Håvard Rue. 2016.
@@ -589,7 +589,7 @@ Medical Research</em> 25: 1145–65.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

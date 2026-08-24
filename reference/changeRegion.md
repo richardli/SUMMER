@@ -36,6 +36,7 @@ Zehang Richard Li
 ## Examples
 
 ``` r
+
 # Construct a small test data
 testdata <- data.frame(region = c("north", "south", "east",
  "south", "east"), index = c(1:5))

@@ -16,6 +16,7 @@ to generate direct estimates, while `dplyr` and `tidyr` will be used for
 data manipulation.
 
 ``` r
+
 library(sae)
 library(SUMMER)
 library(survey)
@@ -39,6 +40,7 @@ illustrate the use of area level models. In this example, the objective
 is to estimate prevalence of poverty in Spanish counties.
 
 ``` r
+
 data("incomedata")
 data("sizeprov")
 data("sizeprovedu")
@@ -61,19 +63,22 @@ compute direct weighted estimators for the desired small area means. The
 [`sae::direct`](https://rdrr.io/pkg/sae/man/direct.html) function
 computes the Horvitz-Thompson estimator of domain means given by
 
-$${\widehat{\overline{Y}}}_{i}^{\text{DIR}} = \frac{1}{N_{i}}\sum\limits_{j \in S_{i}}w_{j}y_{j}$$
+``` math
+\widehat{\overline{Y}}_{i}^{\text{DIR}}=\frac{1}{N_i}\sum_{j\in S_i}w_{j}y_{j}
+```
 
-where $N_{i}$ is the population size of domain $i$, $S_{i}$ is the set
-of sampled observations in domain $i$, $w_{j}$ is the sampling weight
-for unit $j$, and $y_{j}$ is the observation for unit $j$, for all
-$j \in S_{i}$. The
+where $`N_i`$ is the population size of domain $`i`$, $`S_i`$ is the set
+of sampled observations in domain $`i`$, $`w_{j}`$ is the sampling
+weight for unit $`j`$, and $`y_{j}`$ is the observation for unit $`j`$,
+for all $`j \in S_i`$. The
 [`sae::direct`](https://rdrr.io/pkg/sae/man/direct.html) function also
 estimates standard deviation and coefficient of variation for each
-domain. Note that $N_{i}$ is assumed known and is provided in the data
+domain. Note that $`N_i`$ is assumed known and is provided in the data
 frame `sizeprov`. The domains of interest are identified via the
 `provlab` variable.
 
 ``` r
+
 Popn <- sizeprov[, c("provlab", "Nd")]
 sae.DIR <- sae::direct(y = incomedata$in_poverty, dom = incomedata$provlab,
                        sweight = incomedata$weight, domsize = Popn) |>
@@ -87,6 +92,7 @@ We can similarly use the
 compute the Horvitz-Thompson estimates:
 
 ``` r
+
 incomedata$pop <- sum(sizeprov$Nd[match(incomedata$provlab, sizeprov$provlab)])
 design <- survey::svydesign(ids = ~1, weights = ~weight,
                             data = incomedata, fpc = ~pop)
@@ -114,22 +120,26 @@ in small area quantities.
 
 **Sampling model**:
 
-Let ${\widehat{\theta}}_{i}^{\text{DIR}}$ be a direct estimator of an
-area level mean or total $\theta_{i}$. The sampling model treats
-${\widehat{\theta}}_{i}^{\text{DIR}}$ as a noisy observation of the true
-finite population quantity $\theta_{i}$:
+Let $`\widehat\theta^{\text{DIR}}_i`$ be a direct estimator of an area
+level mean or total $`\theta_i`$. The sampling model treats
+$`\widehat\theta^{\text{DIR}}_i`$ as a noisy observation of the true
+finite population quantity $`\theta_i`$:
 
-$${\widehat{\theta}}_{i}^{\text{DIR}} = \theta_{i} + \epsilon_{i};\qquad\epsilon_{i} \sim_{ind}N\left( 0,V_{i} \right),\qquad i = 1,\ldots,M$$
+``` math
+\widehat\theta^{\text{DIR}}_i=\theta_i+\epsilon_i;\hspace{2em}\epsilon_i\sim_{ind}N(0,V_i),\hspace{2em}i=1,\ldots, M
+```
 
-where $V_{i}$ is the **known sampling variance** of the direct estimator
-${\widehat{\theta}}_{i}^{\text{DIR}}$.
+where $`V_i`$ is the **known sampling variance** of the direct estimator
+$`\widehat{\theta}^{\text{DIR}}_i`$.
 
 **Linking model**:
 
-$$\theta_{i} = \textbf{𝐱}_{i}^{T}{\mathbf{β}} + u_{i},\qquad u_{i} \sim_{ind}N\left( 0,\sigma_{u}^{2} \right)\qquad i = 1,\ldots,M,$$
+``` math
+\theta_i = \textbf{x}_i^T\boldsymbol\beta+u_i,\hspace{2em}u_i\sim_{ind}N(0,\sigma_u^2)\hspace{2em}i=1,\ldots, M,
+```
 
-where $\sigma_{u}^{2}$ (between-area residual variance) is estimated. In
-this basic Fay-Herriot model, the area-specific random effects $u_{i}$
+where $`\sigma_u^2`$ (between-area residual variance) is estimated. In
+this basic Fay-Herriot model, the area-specific random effects $`u_i`$
 are assumed to be independent and identically distributed (IID) between
 areas.
 
@@ -139,6 +149,7 @@ well with those from a Gaussian distribution, which lends some support
 to the basic IID model.
 
 ``` r
+
 par(pty = "s")
 mu.DIR <- mean(sae.DIR$Direct)
 sd.DIR <- sd(sae.DIR$Direct)
@@ -157,6 +168,7 @@ empirical best linear unbiased predictors (EBLUP) for all domain means
 as well as their estimated MSEs.
 
 ``` r
+
 sae.FH <- sae::mseFH(sae.DIR$Direct~1, sae.DIR$SD^2)
 sae.FH.table <- data.frame(
   Domain = sae.DIR$Domain,
@@ -209,6 +221,7 @@ For the artificial poverty rate example, we fit the Fay-Herriot model
 and obtain the following smoothed estimates.
 
 ``` r
+
 # specify known domain sizes
 domain.size <- sizeprov[, c("provlab", "Nd")]
 colnames(domain.size)[2] <- "size"
@@ -241,21 +254,21 @@ head(summer.FH.table)
 The fitted parameters from `sae` (obtained via likelihood-based methods)
 and estimated parameter posterior distribution from `SUMMER` (obtained
 from Bayesian methods, implemented via `INLA`) are in reasonable
-agreement. The estimated intercept $\beta_{0}$ from `sae` is 0.202 ; the
-posterior median of $\beta_{0}$ from `SUMMER` is 0.202. In the absence
+agreement. The estimated intercept $`\beta_0`$ from `sae` is 0.202 ; the
+posterior median of $`\beta_0`$ from `SUMMER` is 0.202. In the absence
 of strong priors, fixed effects are usually in close agreement, with the
-posterior being symmetric. The estimated precision $1/\sigma_{u}^{2}$
-from `sae` is 281.34787 , while the posterior median of
-$1/\sigma_{u}^{2}$ from `SUMMER` is 273.241562. The differences are
-larger here, but the posterior for the variance is skewed, and we would
-expect the posterior median to be smaller than the REML estimate. The
-area estimates and measures of uncertainty are in close agreement,
-however.
+posterior being symmetric. The estimated precision $`1/\sigma_u^2`$ from
+`sae` is 281.34787 , while the posterior median of $`1/\sigma_u^2`$ from
+`SUMMER` is 273.241562. The differences are larger here, but the
+posterior for the variance is skewed, and we would expect the posterior
+median to be smaller than the REML estimate. The area estimates and
+measures of uncertainty are in close agreement, however.
 
 We first illustrate the shrinkage of the EBLUP estimates, and the
 reduced uncertainty:
 
 ``` r
+
 par(mfrow = c(1, 2))
 plot(sae.DIR$Direct, sae.FH$est$eblup,
      xlab = "Direct estimates",ylab = "sae package",
@@ -277,6 +290,7 @@ Now compare EBLUP and HB, using posterior variance from `SUMMER` and
 estimated MSE from `sae` to measure uncertainty:
 
 ``` r
+
 par(mfrow = c(1, 2))
 plot(sae.FH$est$eblup, summer.FH$iid.model.est$median,
      xlab = "sae package",ylab = "SUMMER package",
@@ -310,11 +324,13 @@ The `sae` package also provides tools for implementing a spatial version
 of the Fay-Herriot model which assumes that the vector of area specific
 effects follows a first order simultaneous autoregressive, or SAR(1),
 process:
-$$\textbf{𝐮} = \rho_{1}\textbf{𝐖𝐮} + {\mathbf{ϵ}},\quad{\mathbf{ϵ}} \sim N\left( \textbf{𝟎}_{i},\sigma_{I}^{2}\textbf{𝐈}_{i} \right),$$
-where $\textbf{𝐈}_{i}$ is the identity matrix for the $D$ areas and
-$\textbf{𝟎}_{i}$ is a vector of zeroes of size $D$. Additionally,
-$\rho_{1} \in ( - 1,1)$ is an autoregression parameter and $\textbf{𝐖}$
-is an adjacency matrix (with rows standardized to sum to 1).
+``` math
+\textbf{u}=\rho_1\textbf{Wu}+\boldsymbol\epsilon,\hspace{1em}\boldsymbol\epsilon\sim N(\textbf{0}_i,\sigma_I^2\textbf{I}_i),
+```
+where $`\textbf{I}_i`$ is the identity matrix for the $`D`$ areas and
+$`\textbf{0}_i`$ is a vector of zeroes of size $`D`$. Additionally,
+$`\rho_1\in(-1,1)`$ is an autoregression parameter and $`\textbf{W}`$ is
+an adjacency matrix (with rows standardized to sum to 1).
 
 The [`sae::mseSFH`](https://rdrr.io/pkg/sae/man/mseSFH.html) function
 estimates the unknown variance parameters, the resulting EBLUP small
@@ -333,6 +349,7 @@ the relevant adjacency matrix representing the municipalities’
 neighborhood structure.
 
 ``` r
+
 data("grapes")
 data("grapesprox")
 ```
@@ -340,6 +357,7 @@ data("grapesprox")
 ##### Results using `sae`
 
 ``` r
+
 sae.FH.grapes <- sae::mseSFH(grapehect ~ area + workdays - 1, var, grapesprox, data = grapes)
 
 results <- data.frame(DIR = grapes$grapehect,
@@ -353,10 +371,11 @@ results$area_name <- paste0('area_', rownames(results))
 
 The `smoothArea` function also allows the use of a model with spatially
 correlated area effects, but the default implementation assumes a BYM2
-model for $\textbf{𝐮}$ rather than a simultaneous autoregressive model
+model for $`\textbf{u}`$ rather than a simultaneous autoregressive model
 as in the SFH model implemented in `sae`.
 
 ``` r
+
 # create area_name as SUMMER requires rownames of adj.mat to match area variable
 grapes$area_name <- paste0('area_', rownames(grapes))
 adj.mat.grapes <- as.matrix(grapesprox)
@@ -378,6 +397,7 @@ Despite the differing models, we again observe good agreement with the
 estimates, though less so with the estimates of uncertainty.
 
 ``` r
+
 summer.bym2.est <- 
   summer.FH.grapes$bym2.model.est[match(rownames(adj.mat.grapes), summer.FH.grapes$bym2.model.est$domain),]
 par(mfrow = c(1, 2))
@@ -404,6 +424,7 @@ Below, we provide an example comparing spatial models from `sae` and
 (BRFSS).
 
 ``` r
+
 library(ggplot2)
 library(patchwork)
 data(BRFSS)
@@ -447,6 +468,7 @@ direct <- svyby(~diab2, ~hracode, design, svymean)
 Below, we use `sae` to smooth the logit-transformed direct estimates.
 
 ``` r
+
 direct$var <- direct$se ^ 2
 direct$logit.diab2 <- SUMMER::logit(direct$diab2)
 direct$logit.var <- direct$var / (direct$diab2 ^ 2 * (1 - direct$diab2) ^ 2)
@@ -461,10 +483,11 @@ results <- data.frame(domain = direct$hracode,
 
 Below, we fit two versions of the spatial area levelmodel in `SUMMER`.
 If we change `pc.u` and `pc.alpha` from the default value
-$u = 1,\alpha = 0.01$ to $u = 0.1,\alpha = 0.01$, we assign more prior
-mass on smaller variance of the random effects, inducing more smoothing.
+$`u=1,\alpha=0.01`$ to $`u=0.1,\alpha=0.01`$, we assign more prior mass
+on smaller variance of the random effects, inducing more smoothing.
 
 ``` r
+
 summer.brfss <- smoothArea(diab2~1, domain= ~hracode,
                            design = design,
                            transform = "logit",
@@ -482,6 +505,7 @@ to compare median estimates and uncertainty estimates obtained via `sae`
 and `SUMMER`.
 
 ``` r
+
 toplot <-  summer.brfss$bym2.model.est
 toplot$logit.var <- toplot$var / 
   (summer.brfss$bym2.model.est$median ^ 2 * 
@@ -505,6 +529,7 @@ mapPlot(data = toplot, geo = KingCounty,
 ![](figure/brfss.comp-1.png)
 
 ``` r
+
 mapPlot(data = toplot, geo = KingCounty,
         variables=variables[4:6], labels = names[4:6],
         by.data = "domain", by.geo = "HRA2010v2_", size = 0.1)  
@@ -513,6 +538,7 @@ mapPlot(data = toplot, geo = KingCounty,
 ![](figure/brfss.comp-2.png)
 
 ``` r
+
 par(mfrow = c(1, 2))
 range1 <- range(c(direct$diab2,toplot$median.alt))
 plot(direct$diab2,toplot$median,  
@@ -542,41 +568,45 @@ abline(0,1)
 
 ## Unit Level Models
 
-The nested error model, introduced by Battese, Harter, and Fuller
-(1988), uses auxiliary data at the unit level.
+The nested error model, introduced by Battese et al. (1988), uses
+auxiliary data at the unit level.
 
 **Nested error model:**
-$$y_{dk} = \mathbf{x}_{dk}^{T}{\mathbf{β}} + u_{d} + \epsilon_{dk},\quad u_{d} \sim_{ind}N\left( 0,\sigma_{u}^{2} \right),\quad\epsilon_{dk} \sim_{ind}N\left( 0,\sigma_{\epsilon}^{2} \right)$$
+``` math
+y_{dk}=\mathbf{x}_{dk}^T\boldsymbol\beta+u_d+\epsilon_{dk},\hspace{1em}u_d\sim_{ind}N(0,\sigma_u^2),\hspace{1em}\epsilon_{dk}\sim_{ind}N(0,\sigma_\epsilon^2)
+```
 
-Here $u_{d}$ are area random effects and $\epsilon_{dk}$ are unit level
-errors. This model assumes the sampling design is ignorable.
+Here $`u_d`$ are area random effects and $`\epsilon_{dk}`$ are unit
+level errors. This model assumes the sampling design is ignorable.
 
 The `sae` package conducts estimation of domain means by first
-estimating variance parameters $\sigma_{u}^{2}$ and
-$\sigma_{\epsilon}^{2}$. Next, given known variance parameters, domain
-means $\theta_{d}$ are predicted by calculating the EBLUPs.
+estimating variance parameters $`\sigma^2_u`$ and $`\sigma^2_\epsilon`$.
+Next, given known variance parameters, domain means $`\theta_d`$ are
+predicted by calculating the EBLUPs.
 
 The area fitted values are:
-$${\widehat{y}}_{d}^{\text{EBLUP}} = f_{d}{\overline{y}}_{dS} + \left( {\overline{X}}_{d} - f_{d}{\overline{x}}_{dS} \right)\widehat{\beta} + \left( 1 - f_{d} \right){\widehat{u}}_{d},$$
+``` math
+\widehat{y}_d^{\text{EBLUP}} = f_d \overline{y}_{dS} + (\overline{X}_d-f_d \overline{x}_{dS})\widehat{\beta} + (1-f_d)\widehat{u}_d,
+```
 where
 
-- $f_{d} = n_{d}/N_{d}$ is the domain sampling fraction.
+- $`f_d=n_d/N_d`$ is the domain sampling fraction.
 
-- ${\overline{y}}_{dS}$ is the mean response in the sampled units.
+- $`\overline{y}_{dS}`$ is the mean response in the sampled units.
 
-- ${\overline{x}}_{dS}$ is the mean of the covariates in the sampled
+- $`\overline{x}_{dS}`$ is the mean of the covariates in the sampled
   units.
 
-- ${\overline{X}}_{d}$ is the mean of the covariates in the population.
+- $`\overline{X}_d`$ is the mean of the covariates in the population.
 
-- ${\widehat{u}}_{d}$ is the estimated random effect.
+- $`\widehat{u}_d`$ is the estimated random effect.
 
 ### Corn and Soy Production
 
 The `cornsoybean` and `cornsoybeanmeans` datasets contain info on corn
-and soy beans production in 12 Iowa counties Battese, Harter, and Fuller
-(1988). The objective here is use satellite imagery of the number of
-pixels assigned to corn and soy to estimate the hectares grown of corn.
+and soy beans production in 12 Iowa counties Battese et al. (1988). The
+objective here is use satellite imagery of the number of pixels assigned
+to corn and soy to estimate the hectares grown of corn.
 
 - `SampSegments`: sample size.
 - `PopnSegments`: population size.
@@ -591,6 +621,7 @@ the known county means of the auxiliary variables.
 We load the sample data:
 
 ``` r
+
 data("cornsoybean")
 head(cornsoybean)
 ```
@@ -606,6 +637,7 @@ head(cornsoybean)
 Next, we load the population auxiliary information:
 
 ``` r
+
 data("cornsoybeanmeans")
 Xmean <-
   data.frame(cornsoybeanmeans[, c("CountyIndex",
@@ -623,6 +655,7 @@ head(Xmean)
     ## 6           6            257.17                247.13
 
 ``` r
+
 Popn <-
   data.frame(cornsoybeanmeans[, c("CountyIndex",
                                   "PopnSegments")])
@@ -642,6 +675,7 @@ function obtains EBLUPs under the nested error model and then uses a
 parametric bootstrap approach to estimate MSEs.
 
 ``` r
+
 cornsoybean <- cornsoybean[-33, ] # remove outlier
 sae.bhf <- 
   pbmseBHF(CornHec ~ CornPix + SoyBeansPix,
@@ -659,11 +693,12 @@ area level means of each covariate for use when generating predictions.
 Note that in order to align the `SUMMER` estimates with those from the
 `sae` package, we specify a relatively flat prior on the variance of the
 area-specific random effect (`pc.u = 100, pc.alpha = 0.01` specifies a
-penalized complexity prior such that
-$P\left( \sigma_{u} > 100 \right) = 0.01$ where $\sigma_{u}$ is the
-standard deviation of the area-specific random effects).
+penalized complexity prior such that $`P(\sigma_u > 100)=0.01`$ where
+$`\sigma_u`$ is the standard deviation of the area-specific random
+effects).
 
 ``` r
+
 cornsoybean$id <- 1:dim(cornsoybean)[1]
 Xsummer <- Xmean
 colnames(Xsummer) = c("County", "CornPix", "SoyBeansPix")
@@ -682,6 +717,7 @@ summer.bhf.unit <- smoothUnit(formula = CornHec ~ CornPix + SoyBeansPix,
 Below, we plot comparisons of the `sae` and `SUMMER` results.
 
 ``` r
+
 par(mfrow = c(1, 2))
 range1 <- range(c(sae.bhf$est$eblup$eblup,summer.bhf.unit$median))
 plot(sae.bhf$est$eblup$eblup,summer.bhf.unit$iid.model.est$median,  

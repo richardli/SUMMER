@@ -17,6 +17,7 @@ standard repository, so we check if it is available and install it if it
 is not installed. For this vignette, we used INLA version 20.03.17.
 
 ``` r
+
 library(SUMMER)
 library(ggplot2)
 library(patchwork)
@@ -36,6 +37,7 @@ corresponding shapefiles from the website and save them in the local
 directory. We can load them into with packages **readstata13**.
 
 ``` r
+
 library(readstata13)
 filename <- "data/KEBR71DT/KEBR71FL.DTA"
 births <- read.dta13(filename, generate.factors = TRUE)
@@ -46,6 +48,7 @@ download DHS datasets directly from within R session. We first look up
 the DHS surveys in Kenya.
 
 ``` r
+
 sv <- dhs_surveys(countryIds = "KE", surveyType = "DHS")
 sv[, c("SurveyId", "FieldworkStart", "FieldworkEnd")]
 ```
@@ -64,6 +67,7 @@ DHS key is required from registering at DHS website and in the **rdhs**
 package.
 
 ``` r
+
 BR <- dhs_datasets(surveyIds = sv$SurveyId[6], fileFormat = "STATA", fileType = "BR")
 BRfiles <- get_datasets(BR$FileName, reformat = TRUE, download_option = "zip")
 BRfiles
@@ -79,6 +83,7 @@ We use the **haven** package to read in the birth record file from the
 downloaded zip folder and make the region variable `v024` into factors.
 
 ``` r
+
 births <- read_dta(unz(BRfiles[[1]], "KEBR72FL.DTA"))
 births$v024 <- as_factor(births$v024)
 births$b5 <- as_factor(births$b5)
@@ -91,6 +96,7 @@ adjacency matrix `Amat` using the function
 [`getAmat()`](https://richardli.github.io/SUMMER/reference/getAmat.md).
 
 ``` r
+
 mapfilename <- "data/shps/sdr_subnational_boundaries.shp"
 sf_use_s2(FALSE)
 geo <- read_sf(mapfilename)
@@ -107,7 +113,7 @@ model. It can also be created by hand if necessary.
 ### Prepare person-month data
 
 We first demonstrate the method that smooths the direct estimates of
-subnational-level U5MR. For this analysis, we consider the $8$ Admin-1
+subnational-level U5MR. For this analysis, we consider the $`8`$ Admin-1
 region groups. In order to calculate the direct estimates of U5MR, we
 need the full birth history data in the format so that every row
 corresponds to a birth and columns that contain:
@@ -136,6 +142,7 @@ observations that fall into time periods after 2014, which could exist
 in the adjusted dataset.
 
 ``` r
+
 dat <- getBirths(data = births, strata = c("v023"), surveyyear = 2014, year.cut = seq(1985,
     2020, by = 5))
 dat <- dat[, c("v001", "v002", "v024", "time", "age", "v005", "strata", "died")]
@@ -160,13 +167,13 @@ involves breaking down the age of each death into discrete intervals.
 The default option assumes a discrete survival model with six discrete
 hazards (probabilities of dying in a particular interval, given survival
 to the start of the interval) for each of the age bands:
-$\lbrack 0,1),\lbrack 1,12),\lbrack 12,24),\lbrack 24,36),\lbrack 36,48)$,
-and $\lbrack 48,60\rbrack$.
+$`[0,1), [1,12), [12,24), [24,36), [36,48)`$, and $`[48,60]`$.
 
 We may also calculate other types of mortality rates of interest using
 `getBirths`. For example, for U1MR,
 
 ``` r
+
 dat_infant <- getBirths(data = births, surveyyear = 2014, month.cut = c(1, 12), strata = c("v023"))
 ```
 
@@ -186,6 +193,7 @@ used, where strata are specified in the `strata` column, and clusters
 are specified by the cluster ID (`clusterid`) and household ID (`id`).
 
 ``` r
+
 years <- levels(dat$time)
 direct0 <- getDirect(births = dat, years = years, regionVar = "region", timeVar = "time",
     clusterVar = "~clustid + id", ageVar = "age", weightsVar = "weights")
@@ -213,12 +221,13 @@ compared to those born to HIV negative women. Thus we expect that the
 U5MR is underestimated if we do not adjust for the missing women.
 
 Suppose we can obtain the ratio of the reported U5MR to the true U5MR,
-$r_{it}$, at region $i$ and time period $t$, we can apply the adjustment
-factor to the direct estimates and the associated variances. The HIV
-adjustment factors were calculated for the 2014 Kenya DHS survey and
-included in the package.
+$`r_{it}`$, at region $`i`$ and time period $`t`$, we can apply the
+adjustment factor to the direct estimates and the associated variances.
+The HIV adjustment factors were calculated for the 2014 Kenya DHS survey
+and included in the package.
 
 ``` r
+
 data(KenData)
 direct <- getAdjusted(data = direct0, ratio = KenData$HIV2014, logit.lower = NA,
     logit.upper = NA, prob.lower = "lower", prob.upper = "upper")
@@ -227,14 +236,15 @@ direct <- getAdjusted(data = direct0, ratio = KenData$HIV2014, logit.lower = NA,
 ### National estimates of U5MR
 
 The direct estimates calculated using `getDirect` contains both national
-estimates and subnational estimates for the $8$ regions, over the $6$
-time periods and the projection period 2015-2019. We first fit a model
-with temporal random effects only to smooth the national estimates over
-time. In this part, we use the subset of data region variable being
+estimates and subnational estimates for the $`8`$ regions, over the
+$`6`$ time periods and the projection period 2015-2019. We first fit a
+model with temporal random effects only to smooth the national estimates
+over time. In this part, we use the subset of data region variable being
 “All”. We can fit a Random Walk 2 only model defined on the 5-year
 period.
 
 ``` r
+
 fit1 <- smoothDirect(data = direct, Amat = NULL, year.label = years, year.range = c(1985,
     2019), time.model = "rw2", m = 1)
 ```
@@ -243,6 +253,7 @@ We can also estimate the Random Walk 2 random effects on the yearly
 scale.
 
 ``` r
+
 fit2 <- smoothDirect(data = direct, Amat = NULL, year.label = years, year.range = c(1985,
     2019), time.model = "rw2", m = 5)
 ```
@@ -251,6 +262,7 @@ The marginal posteriors are already stored in the fitted object. We use
 the following function to extract and re-arrange them.
 
 ``` r
+
 out1 <- getSmoothed(fit1)
 out2 <- getSmoothed(fit2)
 ```
@@ -260,6 +272,7 @@ period estimates, the reference year in each period needs to be
 specified. Here we simply take the median year in each period.
 
 ``` r
+
 years.ref <- c(1987, 1992, 1997, 2002, 2007, 2012, 2017)
 g1 <- plot(out1, year_med = years.ref) + ggtitle("National period model") + ylim(c(0,
     0.17))
@@ -277,6 +290,7 @@ We can then calculate the ratio of the estimates from national models to
 the published UN estimates.
 
 ``` r
+
 data(KenData)
 UN <- KenData$IGME2019
 UN.period <- data.frame(period = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14"),
@@ -298,6 +312,7 @@ perform the benchmarking to the UN estimates similar to the HIV
 adjustment before.
 
 ``` r
+
 benchmark <- data.frame(years = c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14"),
     ratio = ratio)
 direct <- getAdjusted(data = direct, ratio = benchmark, time = "years", region = "region",
@@ -308,6 +323,7 @@ After benchmarking, we can fit the smoothing model again on the adjusted
 direct estimates, and see if they align with the UN estimates.
 
 ``` r
+
 fit2.benchmark <- smoothDirect(data = direct, Amat = NULL, year.label = years, year.range = c(1985,
     2019), time.model = "rw2", m = 5)
 out2.benchmark <- getSmoothed(fit2.benchmark)
@@ -332,6 +348,7 @@ space-time interaction terms using the `st.type` argument. The default
 hyper priors on the precision of random effects are now PC priors.
 
 ``` r
+
 fit3 <- smoothDirect(data = direct, Amat = Amat, year.label = years, year.range = c(1985,
     2019), time.model = "rw2", type.st = 4, m = 1)
 out3 <- getSmoothed(fit3)
@@ -341,6 +358,7 @@ Similarly we can also estimate the Random Walk 2 random effects on the
 yearly scale.
 
 ``` r
+
 fit4 <- smoothDirect(data = direct, Amat = Amat, year.label = years, year.range = c(1985,
     2019), time.model = "rw2", type.st = 4, m = 5)
 out4 <- getSmoothed(fit4)
@@ -355,6 +373,7 @@ g1 + g2
 We can also add back the direct estimates for comparison.
 
 ``` r
+
 plot(out4, data.add = direct, option.add = list(point = "mean", by = "survey")) +
     facet_wrap(~region, scales = "free")
 ```
@@ -365,6 +384,7 @@ We can show the estimates over time on maps. We revert the color scale
 so that higher mortality are represented by darker colors.
 
 ``` r
+
 mapPlot(data = subset(out4, is.yearly == FALSE), geo = geo, variables = "years",
     values = "median", by.data = "region", by.geo = "REGNAME", is.long = TRUE, ncol = 4,
     direction = -1, legend.label = "U5MR", per1000 = TRUE)
@@ -377,6 +397,7 @@ presented on maps, we can use hatching to indicate the width of the 94%
 posterior credible intervals.
 
 ``` r
+
 hatchPlot(data = subset(out4, is.yearly == FALSE), geo = geo, variables = "years",
     values = "median", by.data = "region", by.geo = "REGNAME", lower = "lower", upper = "upper",
     is.long = TRUE, direction = -1, legend.label = "U5MR", per1000 = TRUE, ncol = 4)
@@ -390,15 +411,16 @@ In this section, we compare models with different prior setup. We focus
 on the subnational models with yearly temporal resolution. We use random
 walk of order 2 to model the main temporal trend, and compare different
 priors for the space-time interaction term. We consider both random walk
-of order 1 and 2, and PC priors with $U = 1,5$. It can be seen that with
-RW2 interaction, the region specific U5MR are allowed to follow their
-own trends with no regulation in their slopes. On the other hand, RW1
-interaction stays constant after observation periods ends instead of
+of order 1 and 2, and PC priors with $`U = 1, 5`$. It can be seen that
+with RW2 interaction, the region specific U5MR are allowed to follow
+their own trends with no regulation in their slopes. On the other hand,
+RW1 interaction stays constant after observation periods ends instead of
 following region-specific trends. This can be seen more clearly with the
 interaction effect plots at the end. The posterior is not sensitive to
-the choice of $U$.
+the choice of $`U`$.
 
 ``` r
+
 index <- 1
 f.list <- NULL
 est.list <- NULL

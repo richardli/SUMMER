@@ -20,6 +20,7 @@ some data processing steps, and **ggplot2** and **patchwork** for
 visualization.
 
 ``` r
+
 library(SUMMER)
 data(DemoData)
 library(dplyr)
@@ -35,7 +36,7 @@ DHS website <https://dhsprogram.com/data/Download-Model-Datasets.cfm>.
 For this demo dataset, no registration is needed. For real DHS survey
 datasets, permission to access needs to be registered with DHS directly.
 `DemoData` contains a small sample of the observations in this dataset
-randomly assigned to $5$ example DHS surveys.
+randomly assigned to $`5`$ example DHS surveys.
 
 For more details, the following code snippet demonstrates how to split
 the raw demo data into person-month format from similar to that in the
@@ -52,6 +53,7 @@ place over multiple years, the later year is suggested to be used as
 `surveyyear`. If set to NA then no checking will be performed.
 
 ``` r
+
 library(readstata13)
 my_fp <- "data/ZZBR62DT/ZZBR62FL.DTA"
 dat <- getBirths(filepath = my_fp, surveyyear = 2015, strata = c("v024", "v025"))
@@ -60,12 +62,13 @@ colnames(dat) <- c("clustid", "id", "region", "time", "age", "weights", "strata"
     "died")
 ```
 
-Back to the pre-processed dataset, `DemoData` is a list of $5$ data
+Back to the pre-processed dataset, `DemoData` is a list of $`5`$ data
 frames where each row represent one person-month record and contains the
-$8$ variables as shown below. Notice that `time` variable is turned into
-5-year bins from `80-84` to `10-14`.
+$`8`$ variables as shown below. Notice that `time` variable is turned
+into 5-year bins from `80-84` to `10-14`.
 
 ``` r
+
 summary(DemoData)
 ```
 
@@ -77,6 +80,7 @@ summary(DemoData)
     ## 2015 8      data.frame list
 
 ``` r
+
 head(DemoData[[1]])
 ```
 
@@ -95,6 +99,7 @@ regions defined by DHS. It contains a SpatialPolygonsDataFrame object
 `geo` and the corresponding spatial adjacency matrix `mat`.
 
 ``` r
+
 data(DemoMap)
 geo <- DemoMap$geo
 mat <- DemoMap$Amat
@@ -104,6 +109,7 @@ The spatial adjacency matrix can also be created directly from the
 SpatialPolygonsDataFrame by
 
 ``` r
+
 mat <- getAmat(geo, geo$REGNAME)
 ```
 
@@ -119,6 +125,7 @@ where strata are specified in the `strata` column, and clusters are
 specified by both the cluster ID (`clusterid`) and household ID (`id`).
 
 ``` r
+
 years <- levels(DemoData[[1]]$time)
 data_multi <- getDirectList(births = DemoData, years = years, regionVar = "region",
     timeVar = "time", clusterVar = "~clustid+id", ageVar = "age", weightsVar = "weights",
@@ -130,12 +137,14 @@ surveys into a single set of estimates, using the inverse design-based
 variances as the weights.
 
 ``` r
+
 dim(data_multi)
 ```
 
     ## [1] 150  10
 
 ``` r
+
 data <- aggregateSurvey(data_multi)
 dim(data)
 ```
@@ -158,6 +167,7 @@ example for the case where the random walk model is specified at a
 higher resolution.
 
 ``` r
+
 years.all <- c(years, "15-19")
 fit1 <- smoothDirect(data = data, Amat = NULL, year.label = years.all, year.range = c(1985,
     2019), time.model = "rw2", m = 1)
@@ -175,6 +185,7 @@ fit1 <- smoothDirect(data = data, Amat = NULL, year.label = years.all, year.rang
     ##  - Use inla.doc(<NAME>) to access documentation
 
 ``` r
+
 summary(fit1)
 ```
 
@@ -210,6 +221,7 @@ smoothed estimator now produce estimates at both yearly and period
 resolutions.
 
 ``` r
+
 fit2 <- smoothDirect(data = data, Amat = NULL, year.label = years.all, year.range = c(1985,
     2019), time.model = "rw2", m = 5, type.st = 4)
 ```
@@ -222,6 +234,7 @@ fit2 <- smoothDirect(data = data, Amat = NULL, year.label = years.all, year.rang
     ## ----------------------------------
 
 ``` r
+
 summary(fit2)
 ```
 
@@ -252,6 +265,7 @@ The marginal posteriors are already stored in the fitted object. We use
 the following function to extract and re-arrange them.
 
 ``` r
+
 out1 <- getSmoothed(fit1)
 out2 <- getSmoothed(fit2)
 ```
@@ -259,6 +273,7 @@ out2 <- getSmoothed(fit2)
 We can compare the results visually using the function below.
 
 ``` r
+
 g1 <- plot(out1) + ggtitle("National period model")
 g2 <- plot(out2) + ggtitle("National yearly model")
 g1 + g2
@@ -272,6 +287,7 @@ Now we fit the full model on all subnational regions. First, we use the
 Random Walk 2 model defined on the 5-year period.
 
 ``` r
+
 fit3 <- smoothDirect(data = data, Amat = mat, year.label = years.all, year.range = c(1985,
     2019), time.model = "rw2", m = 1, type.st = 4)
 ```
@@ -288,6 +304,7 @@ fit3 <- smoothDirect(data = data, Amat = mat, year.label = years.all, year.range
     ## ----------------------------------
 
 ``` r
+
 out3 <- getSmoothed(fit3)
 ```
 
@@ -295,6 +312,7 @@ Similarly we can also estimate the Random Walk 2 random effects on the
 yearly scale.
 
 ``` r
+
 fit4 <- smoothDirect(data = data, Amat = mat, year.label = years.all, year.range = c(1985,
     2019), time.model = "rw2", m = 5, type.st = 4)
 ```
@@ -311,6 +329,7 @@ fit4 <- smoothDirect(data = data, Amat = mat, year.label = years.all, year.range
     ## ----------------------------------
 
 ``` r
+
 out4 <- getSmoothed(fit4)
 ```
 
@@ -318,6 +337,7 @@ The figures below shows the comparison of the subnational model with
 different temporal scales.
 
 ``` r
+
 g1 <- plot(out3, is.yearly = FALSE) + ggtitle("Subnational period model")
 g2 <- plot(out4, is.yearly = TRUE) + ggtitle("Subnational yearly model")
 g1 + g2
@@ -329,6 +349,7 @@ We can also add back the direct estimates for comparison when plotting
 the smoothed estimates.
 
 ``` r
+
 plot(out4, is.yearly = TRUE, data.add = data_multi, option.add = list(point = "mean",
     by = "surveyYears")) + facet_wrap(~region, scales = "free")
 ```
@@ -338,6 +359,7 @@ plot(out4, is.yearly = TRUE, data.add = data_multi, option.add = list(point = "m
 Finally, we show the estimates over time on maps.
 
 ``` r
+
 mapPlot(data = subset(out4, is.yearly == F), geo = DemoMap$geo, variables = c("years"),
     values = c("median"), by.data = "region", by.geo = "NAME_final", is.long = TRUE,
     ncol = 4)
@@ -348,14 +370,15 @@ mapPlot(data = subset(out4, is.yearly == F), geo = DemoMap$geo, variables = c("y
 ## Cluster-level model for U5MR
 
 We now describe the fitting of the cluster-level model for U5MR
-described in Martin et al. (2020) and Fuglstad, Li, and Wakefield
-(2021). For this simulated dataset, the strata variable is coded as
-region crossed by urban/rural status. For our analysis with urban/rural
-stratified model, we first construct a new strata variable that contains
-only the urban/rural status, i.e., the additional stratification within
-each region.
+described in Martin et al. (2020) and Fuglstad et al. (2021). For this
+simulated dataset, the strata variable is coded as region crossed by
+urban/rural status. For our analysis with urban/rural stratified model,
+we first construct a new strata variable that contains only the
+urban/rural status, i.e., the additional stratification within each
+region.
 
 ``` r
+
 for (i in 1:length(DemoData)) {
     strata <- DemoData[[i]]$strata
     DemoData[[i]]$strata[grep("urban", strata)] <- "urban"
@@ -374,6 +397,7 @@ and ‘years’. The response variable is ‘Y’ and the binomial total is
 ‘total’.
 
 ``` r
+
 counts.all <- NULL
 for (i in 1:length(DemoData)) {
     vars <- c("clustid", "region", "strata", "time", "age")
@@ -405,6 +429,7 @@ separately (specified by `strata.time.effect = TRUE`, so in total six
 random walks are used to model the main temporal effect.
 
 ``` r
+
 periods <- c("85-89", "90-94", "95-99", "00-04", "05-09", "10-14")
 fit.bb  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat, 
                     family = "betabinomial",
@@ -437,6 +462,7 @@ fit.bb  <- smoothCluster(data = counts.all, Amat = DemoMap$Amat,
     ## ----------------------------------
 
 ``` r
+
 summary(fit.bb)
 ```
 
@@ -523,6 +549,7 @@ can use them again in other functions or recompute different posterior
 credible intervals.
 
 ``` r
+
 est.bb <- getSmoothed(fit.bb, nsim = 1000, CI = 0.95, save.draws = TRUE)
 summary(est.bb)
 ```
@@ -540,6 +567,7 @@ For example, to recompute the posterior CI directly using the existing
 draws:
 
 ``` r
+
 est.bb.90CI <- getSmoothed(fit.bb, nsim = 1000, CI = 0.95, draws = est.bb$draws)
 ```
 
@@ -552,6 +580,7 @@ within regions. As an demonstration, we simulate the population totals
 over the years with
 
 ``` r
+
 pop.base <- expand.grid(region = c("central", "eastern", "northern", "western"),
     strata = c("urban", "rural"))
 pop.base$population <- round(runif(dim(pop.base)[1], 1000, 20000))
@@ -579,6 +608,7 @@ In order to compute the aggregated estimates, we need the proportion of
 urban/rural populations within each region in each time period.
 
 ``` r
+
 weight.strata <- expand.grid(region = c("central", "eastern", "northern", "western"),
     years = periods.all)
 weight.strata$urban <- weight.strata$rural <- NA
@@ -606,6 +636,7 @@ Now we can recompute the smoothed estimates with the population
 fractions.
 
 ``` r
+
 est.bb <- getSmoothed(fit.bb, nsim = 1000, CI = 0.95, save.draws = TRUE, weight.strata = weight.strata)
 head(est.bb$overall)
 ```
@@ -628,6 +659,7 @@ head(est.bb$overall)
 We can compare the stratum-specific and aggregated U5MR estimates now.
 
 ``` r
+
 g1 <- plot(est.bb$stratified, plot.CI = TRUE) + facet_wrap(~strata) + ylim(0, 0.5)
 g2 <- plot(est.bb$overall, plot.CI = TRUE) + ylim(0, 0.5) + ggtitle("Aggregated estimates")
 g1 + g2
@@ -642,6 +674,7 @@ hatching to the map visualizations to indicate uncertainty of the
 estimates using `hatchPlot` with similar syntax.
 
 ``` r
+
 hatchPlot(est.bb$overall,   
         geo = DemoMap$geo, by.data = "region", by.geo = "REGNAME", 
         is.long = TRUE, variables = "years", values = "median", 
@@ -657,6 +690,7 @@ posterior median of estimates in the last year (specified by the
 `order = -1` argument).
 
 ``` r
+
 ridgePlot(draws = est.bb, year.plot = periods.all,
                   ncol = 4, per1000 = TRUE, order = -1, direction = -1)
 ```
@@ -666,6 +700,7 @@ ridgePlot(draws = est.bb, year.plot = periods.all,
 It can also be plotted for each region over time as well.
 
 ``` r
+
 ridgePlot(draws = est.bb, year.plot = periods.all,
                   ncol = 4, per1000 = TRUE, by.year = FALSE, direction = -1)
 ```
@@ -697,6 +732,7 @@ source. Thus we expect the estimates after benchmarking will be larger
 in general.
 
 ``` r
+
 national <- data.frame(years = periods.all, est = out1$median + 0.01, sd = runif(7,
     0.01, 0.03))
 head(national)
@@ -715,6 +751,7 @@ population by region over the time periods. We can compute these from
 the simulated population before.
 
 ``` r
+
 weight.region <- expand.grid(region = c("central", "eastern", "northern", "western"),
     years = periods.all)
 weight.region$proportion <- NA
@@ -737,6 +774,7 @@ head(weight.region)
 We perform the benchmarking procedure using the `Benchmark` function
 
 ``` r
+
 est.bb.bench <- Benchmark(est.bb, national, weight.region = weight.region, estVar = "est",
     sdVar = "sd", timeVar = "years")
 ```
@@ -747,6 +785,7 @@ in this example. We recommend increasing the number of draws first,
 i.e.,
 
 ``` r
+
 est.bb <- getSmoothed(fit.bb, nsim = 20000, CI = 0.95, save.draws = TRUE, weight.strata = weight.strata)
 est.bb.bench <- Benchmark(est.bb, national, weight.region = weight.region, estVar = "est",
     sdVar = "sd", timeVar = "years")
@@ -756,6 +795,7 @@ We can compare the posterior median and variance before and after
 benchmarking.
 
 ``` r
+
 par(mfrow = c(1, 2))
 plot(est.bb$overall$median, est.bb.bench$overall$median, xlab = "Before benchmarking",
     ylab = "After benchmarking", main = "Posterior median")
@@ -774,6 +814,7 @@ higher and closer to the simulated national estimates benchmarked
 against.
 
 ``` r
+
 compare <- national
 compare$before <- NA
 compare$after <- NA
@@ -809,8 +850,7 @@ and Samuel J Clark. 2019. “Changes in the Spatial Distribution of the
 Under Five Mortality Rate: Small-Area Analysis of 122 DHS Surveys in 262
 Subregions of 35 Countries in Africa.” *PLoS One*.
 
-Martin, Bryan D, Dong Tracy Qi, Geir-Arne Fuglstad, Jessica Godwin, John
-Paige, Andrea Riebler, Samuel J Clark, and Jon Wakefield. 2020.
+Martin, Bryan D, Dong Tracy Qi, Geir-Arne Fuglstad, et al. 2020.
 “[Space-Time Smoothing of Demographic and Health Indicators Using the R
 Package SUMMER](https://arxiv.org/abs/2007.05117).” *Submitted*.
 
