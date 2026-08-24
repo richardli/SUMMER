@@ -79,7 +79,7 @@ fit2 <- smoothCluster(data = counts.all,
  
  # check plot does not give error, not correctness
  g <- plot(est$stratified, plot.CI=TRUE) + ggplot2::facet_wrap(~strata) 
- expect_equal(class(g), c("gg", "ggplot"))
+ expect_true(inherits(g, "ggplot"))
 
 })
 

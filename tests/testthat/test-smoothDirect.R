@@ -118,6 +118,6 @@ test_that("smoothDirect works for subnational space-only model", {
 
    # check plot does not give error, not correctness
     g <- plot(out3, plot.CI=TRUE)  
-    expect_equal(class(g), c("gg", "ggplot"))
+    expect_true(inherits(g, "ggplot"))
 
 })
