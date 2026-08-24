@@ -13,3 +13,5 @@ vignettes/articles/*
 ^docs$
 ^pkgdown$
 revdep/*
+^man/figures/(Workflow|SUMMER)\.png$
+^.*\.DS_Store$
