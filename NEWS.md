@@ -11,6 +11,13 @@ Version 2.0.0
 + `smoothSurvey()` now stops with an informative error for nonpositive
   sampling variances and corrects the Type II/IV interaction formulas and
   transformed upper credible limits.
++ Type IV interactions in `smoothSurvey()` now use the scaled Kronecker
+  precision and connected-component constraints used by `smoothDirect()`;
+  `smoothDirect()` also removes one redundant temporal constraint per
+  non-singleton spatial component.
++ `smoothSurvey()` now uses the same Type II and Type III labels as
+  `smoothDirect()`: IID space by structured time and Besag space by IID time,
+  respectively.
 + Improvements to existing functions.
 
 Version 1.4.0

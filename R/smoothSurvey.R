@@ -35,7 +35,9 @@
 #' @param space.model the model for spatial main random effects. It can be either "bym2" or "sar". Note that if Amat is not provided, only IID model will be used for spatial main effect.
 #' @param include_time_unstruct  `r lifecycle::badge("deprecated")` The argument has been renamed into \code{include.time.unstruct}.
 #' @param include.time.unstruct  Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates from cluster-level model. The argument only applies to the unit-level models. Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included. 
-#' @param type.st can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.
+#' @param type.st space-time interaction: 0 for none, 1 for IID space by IID
+#' time, 2 for IID space by structured time, 3 for Besag space by IID time,
+#' and 4 for Besag space by structured time.
 #' @param direct.est data frame of direct estimates, with column names of response and region specified by \code{responseVar}, \code{regionVar}, and \code{timeVar}.  When \code{direct.est} is specified, it overwrites the \code{data} input. 
 #' @param direct.est.var the column name corresponding to the variance of direct estimates.
 #' @param is.unit.level logical indicator of whether unit-level model is fitted instead of area-level model. 
@@ -772,6 +774,10 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
     regnames <- as.character(name.i)
     dat$region <- as.character(name.i)
     dat$region.unstruct <- dat$region.struct <- dat$region.int <-  match(dat$region, rownames(Amat))
+    if (!is.null(timeVar)) {
+        n.time <- max(dat$time.struct, na.rm = TRUE)
+        dat$time.area <- (dat$region.struct - 1L) * n.time + dat$time.struct
+    }
     if(!is.unit.level) dat$HT.logit.est[is.infinite(abs(dat$HT.logit.est))] <- NA  
 
     if(!is.null(timeVar)){
@@ -858,7 +864,7 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
        if(is.iid.space){
             formula <- paste(formulatext, "f(region.struct, model = 'iid', hyper = hyperpc1)", sep = "+")    
        }else if(space.model == "bym2"){
-            formula <- paste(formulatext, "f(region.struct, graph=Amat, model='bym2', hyper = hyperpc2, scale.model = TRUE, constr = constr)", sep = "+")
+            formula <- paste(formulatext, "f(region.struct, graph=Amat, model='bym2', hyper = hyperpc2, scale.model = TRUE, constr = constr, adjust.for.con.comp = TRUE)", sep = "+")
        }else if(space.model == "sar"){
        		rs <- rowSums(Amat)
        		W.sar <- Amat / rs
@@ -882,11 +888,27 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
             if(type.st == 1){
                 formula <- paste(formula, "f(region.int, model = 'iid', hyper = hyperpc1, group = time.int, control.group = list(model ='iid', hyper = hyperpc1))", sep = "+")
             }else if(type.st == 2){
-                formula <- paste(formula, "f(region.int, model = 'besag', graph = Amat, scale.model = TRUE, hyper = hyperpc1, constr = constr, group = time.int, control.group = list(model ='iid'))", sep = "+")
-            }else if(type.st == 3){
                 formula <- paste(formula, "f(region.int, model = 'iid', hyper = hyperpc1, group = time.int, control.group = list(model =tolower(time.model), scale.model = TRUE))", sep = "+")
+            }else if(type.st == 3){
+                formula <- paste(formula, "f(region.int, model = 'besag', graph = Amat, scale.model = TRUE, hyper = hyperpc1, constr = constr, adjust.for.con.comp = TRUE, group = time.int, control.group = list(model ='iid'))", sep = "+")
             }else if(type.st == 4){
-                formula <- paste(formula, "f(region.int, model = 'besag', graph = Amat, scale.model = TRUE, hyper = hyperpc1, constr = constr, group = time.int, control.group = list(model =tolower(time.model), hyper = hyperpc1, scale.model = TRUE))", sep = "+")
+                if (is.null(.backend)) {
+                    type4.inla <- .type4_inla_components(
+                        Amat = Amat, n.time = n.time,
+                        rw.order = if (tolower(time.model) == "rw1") 1L else 2L,
+                        constr = constr
+                    )
+                    R.st <- type4.inla$Q
+                    constr.st <- type4.inla$extraconstr
+                    rankdef.st <- type4.inla$rankdef
+                    formula <- paste(
+                        formula,
+                        "f(time.area, model = 'generic0', Cmatrix = R.st, constr = FALSE, extraconstr = constr.st, rankdef = rankdef.st, hyper = hyperpc1)",
+                        sep = "+"
+                    )
+                } else {
+                    formula <- paste(formula, "f(region.int, model = 'besag', graph = Amat, scale.model = TRUE, hyper = hyperpc1, constr = constr, group = time.int, control.group = list(model =tolower(time.model), hyper = hyperpc1, scale.model = TRUE))", sep = "+")
+                }
             }
         }
         formula <- as.formula(formula)

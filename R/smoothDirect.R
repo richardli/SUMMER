@@ -418,7 +418,12 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
         tmp2 = NULL
       }
 
-      tmp <- rbind(tmp, tmp2)[-1, ]
+      reference <- if (!is.null(Amat) && Q1$rankdef > 0L) {
+        apply(as.matrix(Q1$constr$A), 1L, function(x) which(x != 0)[1L])
+      } else {
+        1L
+      }
+      tmp <- rbind(tmp[-reference, , drop = FALSE], tmp2)
       
       if(is.null(tmp)){
         constr.st <- NULL
@@ -690,7 +695,11 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
                             tmp2[i + (j-1)*N , this_t_i] <- 1
                          }
                        }
-                       tmp <- rbind(tmp[-1,], tmp2)
+                       reference <- if (Q1$rankdef > 0L) {
+                         apply(as.matrix(Q1$constr$A), 1L,
+                               function(x) which(x != 0)[1L])
+                       } else integer()
+                       tmp <- rbind(tmp[-reference, , drop = FALSE], tmp2)
                        constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
                       formula <- update(formula, ~. + 
                           f(time.area,model="generic0", Cmatrix = R, extraconstr = constr.st, rankdef = N*S -(N - st.rw)*(S - Q1$rankdef), hyper = hyperpc1.interact))              
@@ -794,7 +803,11 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
                       tmp2[i + (j-1)*N , this_t_i] <- 1
                    }
                  }
-                 tmp <- rbind(tmp, tmp2)
+                 reference <- if (Q1$rankdef > 0L) {
+                   apply(as.matrix(Q1$constr$A), 1L,
+                         function(x) which(x != 0)[1L])
+                 } else integer()
+                 tmp <- rbind(tmp[-reference, , drop = FALSE], tmp2)
                  constr.st <- list(A = tmp, e = rep(0, dim(tmp)[1]))
                  
 
@@ -1019,6 +1032,4 @@ if(is.main.ar){
 fitINLA <- function(...) {
   lifecycle::deprecate_stop("2.0.0", "fitINLA()", "smoothDirect()")
 }
-
-
 

@@ -102,7 +102,9 @@ smoothSurvey(
 
 \item{include.time.unstruct}{Indicator whether to include the temporal unstructured effects (i.e., shocks) in the smoothed estimates from cluster-level model. The argument only applies to the unit-level models. Default is FALSE which excludes all unstructured temporal components. If set to TRUE all  the unstructured temporal random effects will be included.}
 
-\item{type.st}{can take values 0 (no interaction), or 1 to 4, corresponding to the type I to IV space-time interaction.}
+\item{type.st}{space-time interaction: 0 for none, 1 for IID space by IID
+time, 2 for IID space by structured time, 3 for Besag space by IID time,
+and 4 for Besag space by structured time.}
 
 \item{direct.est}{data frame of direct estimates, with column names of response and region specified by \code{responseVar}, \code{regionVar}, and \code{timeVar}.  When \code{direct.est} is specified, it overwrites the \code{data} input.}
 
@@ -173,7 +175,7 @@ clusterVar = "~clustid+id", CI = 0.95, space.model = "sar")
 summary(fit0SAR) 
 
 # Unmatched link model for binary data
-fit0_unmatch <- smoothSurvey(data=DemoData2,
+fit0_unmatch <- smoothSurvey(data=DemoData2,  
           Amat=DemoMap2$Amat, 
           response.type="binary", unmatched.link = TRUE, 
           responseVar="tobacco.use", strataVar="strata", 
@@ -231,11 +233,11 @@ plot(fit3$smooth$mean, fit0$smooth$logit.mean)
 
 # Unmatched link model for direct estimates
 fit3_unmatch <- smoothSurvey(data=NULL,
-			 direct.est = direct.logit,
+			 direct.est = direct.logit,  
           Amat=DemoMap2$Amat, regionVar="region",
-          responseVar="direct.logit.est",
+          responseVar="direct.logit.est", 
           direct.est.var = "direct.logit.var",
-          response.type = "gaussian",
+          response.type = "gaussian", 
 			 unmatched.link = TRUE)
 summary(fit3_unmatch)
 plot(fit3_unmatch$smooth$mean, fit0_unmatch$smooth$logit.mean)
