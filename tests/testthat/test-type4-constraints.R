@@ -29,6 +29,19 @@ test_that("Type IV setup accepts row-standardized undirected adjacency", {
   ))
 })
 
+test_that("Type II uses independent ANOVA constraints", {
+  skip_if_not_installed("INLA")
+
+  setup <- SUMMER:::.type2_inla_components(
+    n.region = 4, n.time = 6, rw.order = 2, constr = TRUE
+  )
+
+  expect_equal(setup$rankdef, 8)
+  expect_equal(nrow(setup$extraconstr$A), 9)
+  expect_equal(qr(setup$extraconstr$A)$rank, 9)
+  expect_equal(setup$reference, 1L)
+})
+
 test_that("smoothSurvey uses smoothDirect Type II and III labels", {
   skip_if_not_installed("INLA")
 
@@ -53,7 +66,7 @@ test_that("smoothSurvey uses smoothDirect Type II and III labels", {
   type3 <- make_formula(3)
   expect_match(
     type2,
-    'f\\(region.int, model = "iid".*control.group = list\\(model = tolower'
+    'f\\(time.area, model = "generic0".*Cmatrix = R.st'
   )
   expect_match(
     type3,

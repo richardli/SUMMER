@@ -75,3 +75,48 @@
     reference = reference
   )
 }
+
+# Construct IID-space x RW-time precision and the same ANOVA-style constraints
+# used for the Type IV interaction. The first region is the reference for the
+# redundant temporal sum; spatial sums are imposed at every time point.
+.type2_inla_components <- function(n.region, n.time, rw.order = 1L,
+                                   constr = TRUE) {
+  values <- c(n.region = n.region, n.time = n.time, rw.order = rw.order)
+  if (length(n.region) != 1L || length(n.time) != 1L ||
+      length(rw.order) != 1L || anyNA(values) ||
+      any(!is.finite(values)) || any(values != floor(values)) ||
+      n.region < 1L || n.time < 1L || !rw.order %in% c(1L, 2L)) {
+    stop("Invalid Type II interaction dimensions or RW order.", call. = FALSE)
+  }
+
+  inla.rw <- utils::getFromNamespace("inla.rw", "INLA")
+  Q.time <- inla.rw(
+    n.time, order = rw.order, scale.model = TRUE, sparse = TRUE
+  )
+
+  extra <- NULL
+  reference <- 1L
+  if (isTRUE(constr)) {
+    temporal.A <- matrix(0, max(n.region - 1L, 0L), n.time * n.region)
+    if (n.region > 1L) {
+      for (r in 2:n.region) {
+        temporal.A[r - 1L, ((r - 1L) * n.time + 1L):(r * n.time)] <- 1
+      }
+    }
+
+    spatial.A <- matrix(0, n.time, n.time * n.region)
+    for (tt in seq_len(n.time)) {
+      spatial.A[tt, (seq_len(n.region) - 1L) * n.time + tt] <- 1
+    }
+
+    A <- rbind(temporal.A, spatial.A)
+    extra <- list(A = A, e = rep(0, nrow(A)))
+  }
+
+  list(
+    Q = Matrix::Diagonal(n.region) %x% Q.time,
+    extraconstr = extra,
+    rankdef = rw.order * n.region,
+    reference = reference
+  )
+}

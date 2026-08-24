@@ -639,8 +639,17 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
                         f(time.area,model="iid", hyper = hyperpc1.interact))
                 }else if(type.st == 2){
                     if(!is.ar){
-                      formula <- update(formula, ~. + 
-                        f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", st.rw), scale.model = TRUE), hyper = hyperpc1.interact))
+                      type2.inla <- .type2_inla_components(
+                        n.region = S, n.time = N, rw.order = st.rw,
+                        constr = TRUE
+                      )
+                      R.st <- type2.inla$Q
+                      constr.st <- type2.inla$extraconstr
+                      rankdef.st <- type2.inla$rankdef
+                      formula <- update(formula, ~. +
+                        f(time.area, model = "generic0", Cmatrix = R.st,
+                          constr = FALSE, extraconstr = constr.st,
+                          rankdef = rankdef.st, hyper = hyperpc1.interact))
                     }else{
                         formula <- update(formula, ~. + 
                         f(region.int,model="iid", hyper = hyperpc1.interact, group=time.int,control.group=list(model="ar", order = st.ar, hyper = hyperar2)))
@@ -758,7 +767,17 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
                 if(type.st == 1){
                     formula <- update(formula, ~. + f(time.area,model="iid", param=c(a.iid,b.iid)))
                 }else if(type.st == 2){
-                    formula <- update(formula, ~. + f(region.int,model="iid", group=time.int,control.group=list(model=paste0("rw", st.rw), scale.model = TRUE), param=c(a.iid,b.iid)))
+                    type2.inla <- .type2_inla_components(
+                      n.region = S, n.time = N, rw.order = st.rw,
+                      constr = TRUE
+                    )
+                    R.st <- type2.inla$Q
+                    constr.st <- type2.inla$extraconstr
+                    rankdef.st <- type2.inla$rankdef
+                    formula <- update(formula, ~. +
+                      f(time.area, model = "generic0", Cmatrix = R.st,
+                        constr = FALSE, extraconstr = constr.st,
+                        rankdef = rankdef.st, param = c(a.iid, b.iid)))
                 }else if(type.st == 3){
                     formula <- update(formula, ~. + f(region.int,model="besag", graph = Amat, group=time.int,control.group=list(model="iid"),param=c(a.iid,b.iid), scale.model = TRUE, adjust.for.con.comp = TRUE))
                 }else{
@@ -1032,4 +1051,3 @@ if(is.main.ar){
 fitINLA <- function(...) {
   lifecycle::deprecate_stop("2.0.0", "fitINLA()", "smoothDirect()")
 }
-

@@ -888,7 +888,23 @@ smoothSurvey <- function(data, geo = NULL, Amat = NULL, region.list = NULL, X = 
             if(type.st == 1){
                 formula <- paste(formula, "f(region.int, model = 'iid', hyper = hyperpc1, group = time.int, control.group = list(model ='iid', hyper = hyperpc1))", sep = "+")
             }else if(type.st == 2){
-                formula <- paste(formula, "f(region.int, model = 'iid', hyper = hyperpc1, group = time.int, control.group = list(model =tolower(time.model), scale.model = TRUE))", sep = "+")
+                if (is.null(.backend)) {
+                    type2.inla <- .type2_inla_components(
+                        n.region = nrow(Amat), n.time = n.time,
+                        rw.order = if (tolower(time.model) == "rw1") 1L else 2L,
+                        constr = constr
+                    )
+                    R.st <- type2.inla$Q
+                    constr.st <- type2.inla$extraconstr
+                    rankdef.st <- type2.inla$rankdef
+                    formula <- paste(
+                        formula,
+                        "f(time.area, model = 'generic0', Cmatrix = R.st, constr = FALSE, extraconstr = constr.st, rankdef = rankdef.st, hyper = hyperpc1)",
+                        sep = "+"
+                    )
+                } else {
+                    formula <- paste(formula, "f(region.int, model = 'iid', hyper = hyperpc1, group = time.int, control.group = list(model =tolower(time.model), scale.model = TRUE))", sep = "+")
+                }
             }else if(type.st == 3){
                 formula <- paste(formula, "f(region.int, model = 'besag', graph = Amat, scale.model = TRUE, hyper = hyperpc1, constr = constr, adjust.for.con.comp = TRUE, group = time.int, control.group = list(model ='iid'))", sep = "+")
             }else if(type.st == 4){
