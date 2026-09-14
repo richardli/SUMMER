@@ -99,8 +99,27 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
         births$died <- births$died / births$n
         message("Compact input is used.")
     }
+    cluster.formula <- stats::formula(clusterVar)
+    cluster.vars <- all.vars(cluster.formula)
+    compact.by <- unique(c(cluster.vars, "region0", "time0", "age0", "weights0", "strata", "died"))
+    # Compact identical person-months using frequency weights, preserving age order.
+    if (is.null(Ntrials) && length(cluster.vars) > 0 &&
+        all(attr(stats::terms(cluster.formula), "term.labels") %in% cluster.vars) &&
+        all(compact.by %in% names(births)) &&
+        !any(cluster.vars %in% c("died", "n")) &&
+        all(births$died %in% c(0, 1))) {
+        compact <- data.table::as.data.table(births)[,
+            list(n = .N), by = compact.by]
+        # Retain the original boundary fit if an age-domain has no weighted survivors.
+        if (nrow(compact) < nrow(births) &&
+            all(compact[, any(get("died") == 0 & get("weights0") > 0, na.rm = TRUE),
+                        by = c("region0", "time0", "age0")]$V1)) {
+            births <- as.data.frame(compact)
+            Ntrials <- "n"
+        }
+    }
     options(survey.lonely.psu = "adjust")
-    my.svydesign <- survey::svydesign(ids = stats::formula(clusterVar), strata = ~strata, nest = T, weights = ~weights0, 
+    my.svydesign <- survey::svydesign(ids = cluster.formula, strata = ~strata, nest = T, weights = ~weights0,
         data = births)
     
     # get region list, sorted alphabetically
@@ -149,8 +168,8 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
                 glm.ob <- survey::svyglm(died ~ (-1) + factor(age0), design = tmp, family = stats::quasibinomial, maxit = 50, weights = tmp$variables$n)
 
             }
-            if(dim(summary(glm.ob)$coef)[1] < length(labels)){
-                bins.nodata <- length(labels) - dim(summary(glm.ob)$coef)[1] 
+            if(length(stats::coef(glm.ob)) < length(labels)){
+                bins.nodata <- length(labels) - length(stats::coef(glm.ob))
                 if(bins.nodata >= length(ns)/2){
                     message(paste0(which.area, " ", which.time, " has no observation in more than half of the age bins, set to NA"))
                     return(rep(NA, 5))
@@ -169,7 +188,7 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
                   glm.ob <- survey::svyglm(died ~ 1, design = tmp, family = stats::quasibinomial, maxit = 50, weights = tmp$variables$n)
               }
             var.est <- stats::vcov(glm.ob)
-            mean <- expit(summary(glm.ob)$coefficient[1])
+            mean <- expit(stats::coef(glm.ob)[1])
             lims <- expit(logit(mean) + stats::qnorm(c((1 - CI) / 2, 1 - (1 - CI) / 2)) * sqrt(c(var.est)))
 
             ## Alternative calculation
@@ -207,7 +226,7 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
         V[rownames(V2), colnames(V2)] <- V2
         
         ## same fill for betas under 5 child mortality for males in 00-02 ##
-        betas2 <- summary(glm.ob)$coef[, 1]
+        betas2 <- stats::coef(glm.ob)
         betas[names(betas2)] <- betas2
         
         # (removed) avoid NA by replacing with 0 This is wrong way to handle NA!  messed up the mean estimates
