@@ -2,6 +2,10 @@
 
 Version 2.0.0
 ==========================
++ `getDirect()` now supports an opt-in, target-specific synthetic-PSU variance
+  correction with `var.fix` and period-specific reference groups through
+  `refStrataVar`. We retain legacy output by default and report triggered,
+  successful, and unresolved attempts in optional audit attributes.
 + Major updates to function argument naming to improve consistency. Most of the arguments are backward compatible. 
 + New set of unit tests. 
 + New vignette on specifying cluster-level model for mortality estimation. 

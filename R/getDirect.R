@@ -12,9 +12,29 @@
 #' @param geo.recode The recode matrix to be used if region name is not consistent across different surveys. See \code{changeRegion}.
 #' @param national.only Logical indicator to obtain only the national estimates
 #' @param CI the desired confidence interval to calculate
-#' @return a matrix of period-region summary of the Horvitz-Thompson direct estimates by region and time period specified in the argument, the standard errors using delta method for a single survey, the 95% confidence interval, and the logit of the estimates.
+#' @param var.fix Logical; if \code{TRUE}, we attempt a target-specific synthetic-PSU correction when Rule 2 detects no between-PSU hazard contrast. The default preserves the usual estimates and attributes.
+#' @param refStrataVar Optional name of a reference-group column. With \code{NULL}, we pool all real observations across areas and sampling strata separately within each period and age band. An explicit column must have one nonmissing value per design stratum within each period. We never infer this column from \code{births$strata}.
+#' @return A data frame of period-region direct estimates, confidence limits, logit estimates, logit variances and precisions, and a survey placeholder. When \code{var.fix = TRUE}, we also attach \code{fixed_areas}, a character vector of triggered regions (including \code{"All"} when triggered), and \code{variance.fix}, a data frame with one row per triggered region-period. These attributes include unresolved attempts; \code{fixed_areas} does not imply successful correction.
+#' @details
+#' With \code{var.fix = TRUE}, we apply variance fix if there is a single PSU or 
+#' if every exposed PSU's weighted hazard  equals the area's weighted hazard in every exposed age band. 
+#'
+#' We construct references before converting compact death counts to proportions.
+#' Within each reference group and period, \eqn{K} counts all real PSUs with
+#' retained exposure, including PSUs without exposure in a particular age band.
+#' We average each PSU's exposure-weighted mean sampling weight to obtain
+#' \eqn{w^*}. For each age band, synthetic exposure is
+#' \eqn{E^*_a = \sum_i w_i E_{ia}/(K w^*)}, and synthetic deaths are
+#' \eqn{D^*_a = \sum_i w_i D_{ia}/(K w^*)}. 
+#' Observations with missing area labels still contribute to references and
+#' national estimates. Zero-exposure rows do not contribute to the correction.
+#'
+#' We add one synthetic PSU in each design stratum present in a triggered target,
+#' using that stratum's reference group. 
+#' We retain the zero-death guard after augmentation. Targets without data remain
+#' missing
 #' @seealso \code{\link{getDirectList}}
-#' @author Zehang Richard Li, Bryan Martin, Laina Mercer
+#' @author Zehang Richard Li, Qianyu Dong, Bryan Martin, Laina Mercer
 #' @references Li, Z., Hsiao, Y., Godwin, J., Martin, B. D., Wakefield, J., Clark, S. J., & with support from the United Nations Inter-agency Group for Child Mortality Estimation and its technical advisory group. (2019). \emph{Changes in the spatial distribution of the under-five mortality rate: Small-area analysis of 122 DHS surveys in 262 subregions of 35 countries in Africa.} PloS one, 14(1), e0210645.
 #' @references Mercer, L. D., Wakefield, J., Pantazis, A., Lutambi, A. M., Masanja, H., & Clark, S. (2015). \emph{Space-time smoothing of complex survey data: small area estimation for child mortality.} The annals of applied statistics, 9(4), 1889.
 #' @examples
@@ -26,7 +46,7 @@
 #' ageVar = "age", weightsVar = "weights", geo.recode = NULL)
 #' }
 #' @export
-getDirect <- function(births, years, regionVar = "region", timeVar = "time", clusterVar = "~v001+v002",  ageVar = "age", weightsVar = "v005",  Ntrials = NULL, geo.recode = NULL, national.only = FALSE, CI = 0.95) {
+getDirect <- function(births, years, regionVar = "region", timeVar = "time", clusterVar = "~v001+v002",  ageVar = "age", weightsVar = "v005",  Ntrials = NULL, geo.recode = NULL, national.only = FALSE, CI = 0.95, var.fix = FALSE, refStrataVar = NULL) {
     # check all elements are provided
     if (is.null(births)) {
         stop("No births file specified!")
@@ -94,6 +114,15 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
     if (is.null(clusterVar)){
         stop("Cluster not defined")
     }
+    fix <- NULL
+    audit <- .u5mr_fix_audit()
+    if (isTRUE(var.fix)) {
+        # Input: births with death counts, cluster formula, and optional exposure/reference column names (Ntrials/refStrataVar).
+        # Output: fix list: data (compact counts), reference (totals/phantom weights), stages/formula (cluster design), retain (row mask), regions.
+        fix <- .prepare_u5mr_fix(births, stats::formula(clusterVar), Ntrials, refStrataVar)
+        # We omit zero-exposure rows before dividing death counts by exposure.
+        births <- births[fix$retain, , drop = FALSE]
+    }
     if(!is.null(Ntrials)){
         births$n <- births[,Ntrials]
         births$died <- births$died / births$n
@@ -119,12 +148,17 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
         }
     }
     options(survey.lonely.psu = "adjust")
-    my.svydesign <- survey::svydesign(ids = cluster.formula, strata = ~strata, nest = T, weights = ~weights0,
+    # We retain the original design for untriggered targets. If no exposure
+    # remains, the correction path returns missing estimates without fitting.
+    my.svydesign <- if (isTRUE(var.fix) && !nrow(births)) NULL else survey::svydesign(ids = cluster.formula, strata = ~strata, nest = T, weights = ~weights0,
         data = births)
     
     # get region list, sorted alphabetically
     regions_list <- as.character(sort(names(table(births$region0))[as.vector(table(births$region0) != 0)]))
-    regions_num <- 1:length(regions_list)
+    # We retain areas whose rows had zero exposure. seq_along also permits a
+    # national-only output when all real observations have missing area labels.
+    if (isTRUE(var.fix)) regions_list <- fix$regions
+    regions_num <- if (isTRUE(var.fix)) seq_along(regions_list) else 1:length(regions_list)
     
     # add 'All' to all regions
     if(national.only){
@@ -151,18 +185,55 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
         # Address visible binding note
         time0 <- NULL
         region0 <- NULL
-        if (which.area == "All") {
-            tmp <- subset(my.svydesign, (time0 == which.time))
-        } else {
-            tmp <- subset(my.svydesign, (time0 == which.time & region0 == as.character(which.area)))
+        # We start each target with the unaugmented design and its input format.
+        design <- my.svydesign
+        trials <- !is.null(Ntrials)
+        audit.row <- NULL
+        augmented <- NULL
+        # We record the outcome on every return from a triggered fit. A target
+        # still satisfying Rule 2 is unresolved even if roundoff gives var > 0.
+        finish <- function(value) {
+            if (!is.null(audit.row)) {
+                reason <- if (augmented$degenerate) "degenerate_reference" else
+                    if (!is.finite(value[4])) "nonfinite_estimate" else
+                    if (!is.finite(value[5]) || value[5] <= 0) "nonpositive_variance" else "augmented"
+                audit$status[audit.row] <<- if (reason == "augmented") "fixed" else "unresolved"
+                audit$reason[audit.row] <<- reason
+            }
+            value
         }
+        if (isTRUE(var.fix)) {
+            # We apply Rule 2 to real observations within this area-period:
+            # one PSU, or equal PSU hazards in every exposed age band.
+            target <- .u5mr_target(fix, which.area, which.time)
+            if (!nrow(target)) return(finish(rep(NA, 5)))
+            if (.u5mr_target_rule2(target)) {
+                # We add one phantom PSU per design stratum present in the target.
+                # We rebuild a full-survey design for this target only, then subset
+                # below, so its phantoms cannot affect other target estimates.
+                augmented <- .u5mr_augment(fix, target, which.area, which.time)
+                audit.row <- nrow(audit) + 1L
+                audit <<- rbind(audit, augmented$audit)
+                design <- survey::svydesign(ids = fix$formula, strata = ~strata,
+                    nest = TRUE, weights = ~weights0, data = augmented$data)
+                # We use n as exposure weights, including fractional phantom counts.
+                trials <- TRUE
+            }
+        }
+        if (which.area == "All") {
+            tmp <- subset(design, (time0 == which.time))
+        } else {
+            tmp <- subset(design, (time0 == which.time & region0 == as.character(which.area)))
+        }
+        # We keep the existing empty/zero-death guards after augmentation. If the
+        # reference also has no deaths, the corrected target can still return NA.
         if (dim(tmp)[1] == 0) {
-            return(rep(NA, 5))
+            return(finish(rep(NA, 5)))
         } else if (sum(tmp$variables$died) == 0) {
             message(paste0(which.area, " ", which.time, " has no death, set to NA"))
-            return(rep(NA, 5))
+            return(finish(rep(NA, 5)))
         } else if(length(unique(tmp$variables$age0)) > 1){
-            if(is.null(Ntrials)){
+            if(!trials){
                 glm.ob <- survey::svyglm(died ~ (-1) + factor(age0), design = tmp, family = stats::quasibinomial, maxit = 50)
             }else{
                 glm.ob <- survey::svyglm(died ~ (-1) + factor(age0), design = tmp, family = stats::quasibinomial, maxit = 50, weights = tmp$variables$n)
@@ -172,17 +243,17 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
                 bins.nodata <- length(labels) - length(stats::coef(glm.ob))
                 if(bins.nodata >= length(ns)/2){
                     message(paste0(which.area, " ", which.time, " has no observation in more than half of the age bins, set to NA"))
-                    return(rep(NA, 5))
+                    return(finish(rep(NA, 5)))
                 }
                 # This can only happen for the last one or several bins, since person-month are cumulative
                 ns.comb <- ns
                 ns.comb[length(ns) - bins.nodata] <- sum(ns[c(length(ns) - bins.nodata) : length(ns)])
                 message(paste0(which.area, " ", which.time, " has no observations in ", bins.nodata, " age bins. They are collapsed with previous bins"))
-                return(get.est.withNA(glm.ob, labels, ns.comb))
+                return(finish(get.est.withNA(glm.ob, labels, ns.comb)))
             }
-            return(get.est.withNA(glm.ob, labels, ns))
+            return(finish(get.est.withNA(glm.ob, labels, ns)))
         } else {
-              if(is.null(Ntrials)){
+              if(!trials){
                  glm.ob <- survey::svyglm(died ~ 1, design = tmp, family = stats::quasibinomial, maxit = 50)
               }else{
                   glm.ob <- survey::svyglm(died ~ 1, design = tmp, family = stats::quasibinomial, maxit = 50, weights = tmp$variables$n)
@@ -198,7 +269,7 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
             # ht <- log(p.i/(1-p.i))
             # ht.v <- var.i/(p.i^2*(1-p.i)^2)
             # ht.prec <- 1/ht.v
-           return(c(mean, lims, logit(mean), var.est))
+           return(finish(c(mean, lims, logit(mean), var.est)))
 
         }
     }
@@ -256,5 +327,11 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
     results$logit.prec <- 1/results$var.est
     results <- results[, c("region", "years", "mean", "lower", "upper", "logit.est", "var.est", "survey", "logit.prec")]
      
+    # We preserve the usual columns. fixed_areas lists all triggered regions;
+    # variance.fix distinguishes successful and unresolved area-period attempts.
+    if (isTRUE(var.fix)) {
+        attr(results, "fixed_areas") <- unique(as.character(audit$region))
+        attr(results, "variance.fix") <- audit
+    }
     return(results)
 }

@@ -15,7 +15,9 @@ getDirect(
   Ntrials = NULL,
   geo.recode = NULL,
   national.only = FALSE,
-  CI = 0.95
+  CI = 0.95,
+  var.fix = FALSE,
+  refStrataVar = NULL
 )
 }
 \arguments{
@@ -40,12 +42,54 @@ getDirect(
 \item{national.only}{Logical indicator to obtain only the national estimates}
 
 \item{CI}{the desired confidence interval to calculate}
+
+\item{var.fix}{Logical; if \code{TRUE}, we attempt a target-specific synthetic-PSU correction when Rule 2 detects no between-PSU hazard contrast. The default preserves the usual estimates and attributes.}
+
+\item{refStrataVar}{Optional name of a reference-group column. With \code{NULL}, we pool all real observations across areas and sampling strata separately within each period and age band. An explicit column must have one nonmissing value per design stratum within each period. We never infer this column from \code{births$strata}.}
 }
 \value{
-a matrix of period-region summary of the Horvitz-Thompson direct estimates by region and time period specified in the argument, the standard errors using delta method for a single survey, the 95\% confidence interval, and the logit of the estimates.
+A data frame of period-region direct estimates, confidence limits, logit estimates, logit variances and precisions, and a survey placeholder. When \code{var.fix = TRUE}, we also attach \code{fixed_areas}, a character vector of triggered regions (including \code{"All"} when triggered), and \code{variance.fix}, a data frame with one row per triggered region-period. These attributes include unresolved attempts; \code{fixed_areas} does not imply successful correction.
 }
 \description{
 Obtain the Horvitz-Thompson direct estimates and standard errors using delta method for a single survey.
+}
+\details{
+With \code{var.fix = TRUE}, we evaluate Rule 2 separately for each area and
+period. A single real PSU triggers correction. Otherwise, correction requires
+every exposed PSU's weighted hazard to equal the area's weighted hazard in
+every exposed age band, within \eqn{10^{-12}}. PSU identities include the
+sampling stratum, so repeated PSU labels in different strata remain distinct.
+
+We construct references before converting compact death counts to proportions.
+Within each reference group and period, \eqn{K} counts all real PSUs with
+retained exposure, including PSUs without exposure in a particular age band.
+We average each PSU's exposure-weighted mean sampling weight to obtain
+\eqn{w^*}. For each age band, synthetic exposure is
+\eqn{E^*_a = \sum_i w_i E_{ia}/(K w^*)}, and synthetic deaths are
+\eqn{D^*_a = \sum_i w_i D_{ia}/(K w^*)}. Fractional counts are supported.
+Observations with missing area labels still contribute to references and
+national estimates. Zero-exposure rows do not contribute to the correction.
+
+We add one synthetic PSU in each design stratum present in a triggered target,
+using that stratum's reference group. We augment a separate full-survey design
+for each target before subsetting it and applying the existing estimator.
+We retain the original design for untriggered targets and treat the national
+estimate as its own target. Thus, another area's synthetic PSUs cannot change
+an untriggered estimate or its variance. The correction can change both the
+point estimate and variance. Simple named multistage cluster formulas, such as
+\code{~psu + household}, are supported in the correction path.
+
+We retain the zero-death guard after augmentation. Targets without data remain
+missing, and degenerate references need not produce positive variance. We do
+not impose a variance floor or pool reference periods. The audit has character
+columns \code{region}, \code{years}, \code{status}, \code{reason},
+\code{trigger}, and \code{reference.groups}; integer counts \code{real.psus},
+\code{phantom.psus}, and \code{phantom.rows}; and numeric totals
+\code{phantom.weighted.deaths} and \code{phantom.weighted.exposure}.
+We label an attempt \code{"fixed"} only when the augmented target no longer
+satisfies Rule 2 and has a finite logit estimate and finite positive variance.
+Otherwise, we label it \code{"unresolved"} and record the reason. Empty
+trigger and audit attributes retain the same types and columns.
 }
 \examples{
 \dontrun{
