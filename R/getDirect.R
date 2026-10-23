@@ -118,7 +118,7 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
     audit <- .u5mr_fix_audit()
     if (isTRUE(var.fix)) {
         # Input: births with death counts, cluster formula, and optional exposure/reference column names (Ntrials/refStrataVar).
-        # Output: fix list: data (compact counts), reference (totals/phantom weights), stages/formula (cluster design), retain (row mask), regions.
+        # Output: fix stores compact counts/references, cluster design, retained-row mask, regions, target row indexes and an unused phantom ID prefix.
         fix <- .prepare_u5mr_fix(births, stats::formula(clusterVar), Ntrials, refStrataVar)
         # We omit zero-exposure rows before dividing death counts by exposure.
         births <- births[fix$retain, , drop = FALSE]

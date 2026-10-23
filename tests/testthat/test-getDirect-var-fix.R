@@ -37,6 +37,25 @@ fix_table <- function(x) {
     x
 }
 
+test_that("indexed targets preserve row order, missing areas and empty domains", {
+    x <- fix_fixture()
+    x$region <- c("", "a.b", "a.b", NA_character_)[x$psu]
+    x$time <- ifelse(x$time == "p1", "", "p.2")
+    x <- x[rev(seq_len(nrow(x))), ]
+    p <- fix_prepare(x)
+    for (time in c("", "p.2", "absent")) {
+        for (area in c("All", "", "a.b", "absent")) {
+            expected <- p$data[p$data$time0 == time, , drop = FALSE]
+            if (area != "All")
+                expected <- expected[!is.na(expected$region0) & expected$region0 == area, , drop = FALSE]
+            expect_identical(.u5mr_target(p, area, time), expected)
+        }
+    }
+    x$total <- x$died <- 0
+    p <- fix_prepare(x)
+    expect_identical(.u5mr_target(p, "All", ""), p$data)
+})
+
 test_that("Rule 2 uses stratum-qualified PSU IDs and every exposed band", {
     x <- fix_fixture()
     x$psu[x$psu == 3] <- 2

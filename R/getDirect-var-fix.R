@@ -68,9 +68,19 @@
         list(n = sum(get("n")), died = sum(get("died"))), by = keys])
     dat$psu <- paste(match(dat$strata, unique(dat$strata)),
                      match(dat$stage1, unique(dat$stage1)), sep = ":")
+    # Cache compact-data row numbers by period and area; missing area labels
+    # remain in each period's national rows.
+    index <- lapply(split(seq_len(nrow(dat)), dat$time0), function(rows) {
+        list(all = rows, areas = split(rows, dat$region0[rows]))
+    })
+    # Choose an unused ID prefix once for all target-specific phantom PSUs.
+    prefix <- ".SUMMER.phantom."
+    real.ids <- unlist(dat[stage.vars], use.names = FALSE)
+    while (any(startsWith(real.ids, prefix))) prefix <- paste0(prefix, ".")
     list(data = dat, reference = .u5mr_reference(dat), stages = stage.vars,
         formula = stats::reformulate(stage.vars), retain = retain,
-        regions = sort(unique(as.character(births$region0[!is.na(births$region0)]))))
+        regions = sort(unique(as.character(births$region0[!is.na(births$region0)]))),
+        index = index, phantom.prefix = prefix)
 }
 
 .u5mr_reference <- function(dat) {
@@ -93,9 +103,16 @@
 }
 
 .u5mr_target <- function(fix, area, time) {
-    dat <- fix$data[fix$data$time0 == as.character(time), , drop = FALSE]
-    if (area != "All") dat <- dat[!is.na(dat$region0) & dat$region0 == area, , drop = FALSE]
-    dat
+    period <- match(as.character(time), names(fix$index))
+    if (is.na(period)) return(fix$data[integer(), , drop = FALSE])
+    index <- fix$index[[period]]
+    if (area == "All") {
+        rows <- index$all
+    } else {
+        region <- match(as.character(area), names(index$areas))
+        rows <- if (is.na(region)) integer() else index$areas[[region]]
+    }
+    fix$data[rows, , drop = FALSE]
 }
 
 .u5mr_target_rule2 <- function(dat) {
@@ -107,9 +124,7 @@
 
 .u5mr_augment <- function(fix, target, area, time) {
     strata <- unique(target[, c("strata", "reference")])
-    prefix <- ".SUMMER.phantom."
-    real.ids <- unlist(fix$data[fix$stages], use.names = FALSE)
-    while (any(startsWith(real.ids, prefix))) prefix <- paste0(prefix, ".")
+    prefix <- fix$phantom.prefix
     phantoms <- vector("list", nrow(strata))
     for (i in seq_len(nrow(strata))) {
         ref <- fix$reference[fix$reference$time0 == as.character(time) &
