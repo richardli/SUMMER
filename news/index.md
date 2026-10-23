@@ -4,6 +4,17 @@
 
 CRAN release: 2025-01-07
 
+- [`smoothDirect()`](https://richardli.github.io/SUMMER/reference/smoothDirect.md)
+  now supports optional IID area slopes with calibrated marginal PC
+  priors. RW2 interactions always exclude these slopes and retain their
+  existing constraints. Joint FH predictions include the area slopes
+  with their signed time covariates.
+- [`getDirect()`](https://richardli.github.io/SUMMER/reference/getDirect.md)
+  now supports an opt-in, target-specific synthetic-PSU variance
+  correction with `var.fix` and period-specific reference groups through
+  `refStrataVar`. We retain legacy output by default and report
+  triggered, successful, and unresolved attempts in optional audit
+  attributes.
 - Major updates to function argument naming to improve consistency. Most
   of the arguments are backward compatible.
 - New set of unit tests.

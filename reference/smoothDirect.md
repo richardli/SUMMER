@@ -37,7 +37,9 @@ smoothDirect(
   geo = NULL,
   rw = NULL,
   ar = NULL,
-  options = NULL
+  options = NULL,
+  pc.st.slope.u = NA,
+  pc.st.slope.alpha = NA
 )
 ```
 
@@ -68,9 +70,8 @@ smoothDirect(
 
   Temporal component model for the interaction term, can be rw1, rw2, or
   ar1. ar1 is not implemented for yearly model with period data input.
-  Default to be the same as time.model unless specified otherwise. For
-  ar1 interaction model, region-specific random slopes are currently not
-  implemented.
+  Default to be the same as time.model unless specified otherwise. An
+  rw2 interaction excludes the optional region-specific random slopes.
 
 - year.label:
 
@@ -190,6 +191,25 @@ smoothDirect(
 - options:
 
   Deprecated.
+
+- pc.st.slope.u:
+
+  Optional positive threshold for IID region-specific random slopes.
+  Together with `pc.st.slope.alpha`, specifies \\P(\|b_i\| \> u) =
+  alpha\\ for the marginal slope prior, as in `smoothCluster`. The
+  coefficient is the logit change over the full modeled time span. We
+  calibrate a shared PC precision prior for conditionally zero-mean
+  Gaussian slopes. Both arguments default to `NA`, excluding slopes.
+  Slopes require spatial and temporal effects and are always excluded
+  when the effective `st.time.model` is `"rw2"`, without changing its
+  constraints. For yearly models with period data, we scale annual time
+  from -0.5 to 0.5 and use period averages of this covariate.
+
+- pc.st.slope.alpha:
+
+  Marginal tail probability for the optional random slopes, strictly
+  between 0 and 1. Supply both slope-prior arguments to enable slopes
+  with a supported interaction.
 
 ## Value
 

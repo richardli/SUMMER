@@ -41,7 +41,11 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.0.0" id="version-200">Version 2.0.0<a class="anchor" aria-label="anchor" href="#version-200"></a></h2><p class="text-muted">CRAN release: 2025-01-07</p>
-<ul><li>Major updates to function argument naming to improve consistency. Most of the arguments are backward compatible.</li>
+<ul><li>
+<code><a href="../reference/smoothDirect.html">smoothDirect()</a></code> now supports optional IID area slopes with calibrated marginal PC priors. RW2 interactions always exclude these slopes and retain their existing constraints. Joint FH predictions include the area slopes with their signed time covariates.</li>
+<li>
+<code><a href="../reference/getDirect.html">getDirect()</a></code> now supports an opt-in, target-specific synthetic-PSU variance correction with <code>var.fix</code> and period-specific reference groups through <code>refStrataVar</code>. We retain legacy output by default and report triggered, successful, and unresolved attempts in optional audit attributes.</li>
+<li>Major updates to function argument naming to improve consistency. Most of the arguments are backward compatible.</li>
 <li>New set of unit tests.</li>
 <li>New vignette on specifying cluster-level model for mortality estimation.</li>
 <li>

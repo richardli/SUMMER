@@ -57,7 +57,9 @@
 <span>  Ntrials <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  geo.recode <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  national.only <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  CI <span class="op">=</span> <span class="fl">0.95</span></span>
+<span>  CI <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  var.fix <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  refStrataVar <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -108,10 +110,54 @@
 <dt id="arg-ci">CI<a class="anchor" aria-label="anchor" href="#arg-ci"></a></dt>
 <dd><p>the desired confidence interval to calculate</p></dd>
 
+
+<dt id="arg-var-fix">var.fix<a class="anchor" aria-label="anchor" href="#arg-var-fix"></a></dt>
+<dd><p>Logical; if <code>TRUE</code>, we attempt a target-specific synthetic-PSU correction when Rule 2 detects no between-PSU hazard contrast. The default preserves the usual estimates and attributes.</p></dd>
+
+
+<dt id="arg-refstratavar">refStrataVar<a class="anchor" aria-label="anchor" href="#arg-refstratavar"></a></dt>
+<dd><p>Optional name of a reference-group column. With <code>NULL</code>, we pool all real observations across areas and sampling strata separately within each period and age band. An explicit column must have one nonmissing value per design stratum within each period. We never infer this column from <code>births$strata</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>a matrix of period-region summary of the Horvitz-Thompson direct estimates by region and time period specified in the argument, the standard errors using delta method for a single survey, the 95% confidence interval, and the logit of the estimates.</p>
+    <p>A data frame of period-region direct estimates, confidence limits, logit estimates, logit variances and precisions, and a survey placeholder. When <code>var.fix = TRUE</code>, we also attach <code>fixed_areas</code>, a character vector of triggered regions (including <code>"All"</code> when triggered), and <code>variance.fix</code>, a data frame with one row per triggered region-period. These attributes include unresolved attempts; <code>fixed_areas</code> does not imply successful correction.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>With <code>var.fix = TRUE</code>, we evaluate Rule 2 separately for each area and
+period. A single real PSU triggers correction. Otherwise, correction requires
+every exposed PSU's weighted hazard to equal the area's weighted hazard in
+every exposed age band, within \(10^{-12}\). PSU identities include the
+sampling stratum, so repeated PSU labels in different strata remain distinct.</p>
+<p>We construct references before converting compact death counts to proportions.
+Within each reference group and period, \(K\) counts all real PSUs with
+retained exposure, including PSUs without exposure in a particular age band.
+We average each PSU's exposure-weighted mean sampling weight to obtain
+\(w^*\). For each age band, synthetic exposure is
+\(E^*_a = \sum_i w_i E_{ia}/(K w^*)\), and synthetic deaths are
+\(D^*_a = \sum_i w_i D_{ia}/(K w^*)\). Fractional counts are supported.
+Observations with missing area labels still contribute to references and
+national estimates. Zero-exposure rows do not contribute to the correction.</p>
+<p>We add one synthetic PSU in each design stratum present in a triggered target,
+using that stratum's reference group. We augment a separate full-survey design
+for each target before subsetting it and applying the existing estimator.
+We retain the original design for untriggered targets and treat the national
+estimate as its own target. Thus, another area's synthetic PSUs cannot change
+an untriggered estimate or its variance. The correction can change both the
+point estimate and variance. Simple named multistage cluster formulas, such as
+<code>~psu + household</code>, are supported in the correction path.</p>
+<p>We retain the zero-death guard after augmentation. Targets without data remain
+missing, and degenerate references need not produce positive variance. We do
+not impose a variance floor or pool reference periods. The audit has character
+columns <code>region</code>, <code>years</code>, <code>status</code>, <code>reason</code>,
+<code>trigger</code>, and <code>reference.groups</code>; integer counts <code>real.psus</code>,
+<code>phantom.psus</code>, and <code>phantom.rows</code>; and numeric totals
+<code>phantom.weighted.deaths</code> and <code>phantom.weighted.exposure</code>.
+We label an attempt <code>"fixed"</code> only when the augmented target no longer
+satisfies Rule 2 and has a finite logit estimate and finite positive variance.
+Otherwise, we label it <code>"unresolved"</code> and record the reason. Empty
+trigger and audit attributes retain the same types and columns.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
