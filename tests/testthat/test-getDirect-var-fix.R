@@ -49,6 +49,8 @@ test_that("indexed targets preserve row order, missing areas and empty domains",
             if (area != "All")
                 expected <- expected[!is.na(expected$region0) & expected$region0 == area, , drop = FALSE]
             expect_identical(.u5mr_target(p, area, time), expected)
+            rows <- .u5mr_target(p, area, time, rows.only = TRUE)
+            expect_identical(p$data[rows, , drop = FALSE], expected)
         }
     }
     x$total <- x$died <- 0
@@ -113,18 +115,22 @@ test_that("augmentation preserves strata, stages and unique synthetic IDs", {
     p <- fix_prepare(x, "reference")
     target <- .u5mr_target(p, "B", "p1")
     augmented <- .u5mr_augment(p, target, "B", "p1")
-    ph <- augmented$data[-seq_len(nrow(p$data)), ]
+    ph <- augmented$data
     expect_equal(length(unique(ph$psu)), 2)
     expect_equal(nrow(ph), 4)
     expect_setequal(ph$strata, c("s1", "s2"))
     expect_true(all(ph$region0 == "B" & ph$time0 == "p1"))
     expect_length(intersect(ph$stage1, p$data$stage1), 0)
     expect_length(intersect(ph$stage2, p$data$stage2), 0)
-    expect_true(all(ph$n > 0 & ph$died >= 0 & ph$died <= 1))
-    expect_equal(ph$weights0 * ph$n * ph$died,
+    expect_true(all(ph$n > 0 & ph$died >= 0 & ph$died <= ph$n))
+    expect_equal(ph$weights0 * ph$died,
         fix_prepare(x, "reference")$reference$weighted.deaths[
             match(paste(ph$time0, ph$reference, ph$age0),
                   with(p$reference, paste(time0, reference, age0)))] / 2)
+    c <- .u5mr_augment(p, .u5mr_target(p, "C", "p2"), "C", "p2")$data
+    expect_setequal(c$stage1, ph$stage1[ph$strata == "s2"])
+    expect_setequal(c$stage2, ph$stage2[ph$strata == "s2"])
+    expect_setequal(c$psu, ph$psu[ph$strata == "s2"])
 })
 
 test_that("correction agrees for expanded and compact input without changing real domains", {
@@ -156,6 +162,77 @@ test_that("unrelated target triggers do not change a corrected target", {
     a <- fix_table(fix_direct(x, var.fix = TRUE))
     b <- fix_table(fix_direct(y, var.fix = TRUE))
     expect_equal(a[a$region == "A", ], b[b$region == "A", ], tolerance = 0)
+})
+
+test_that("one shared design preserves target-local rows, PSU counts and fits", {
+    build.design <- survey::svydesign
+    fit.model <- survey::svyglm
+    designs <- list()
+    calls <- 0L
+    testthat::local_mocked_bindings(
+        svydesign = function(...) {
+            calls <<- calls + 1L
+            do.call(build.design, list(...))
+        },
+        svyglm = function(formula, design, ...) {
+            if ("stage1" %in% names(design$variables))
+                designs[[length(designs) + 1L]] <<- design
+            do.call(fit.model, c(list(formula = formula, design = design), list(...)))
+        }, .package = "survey")
+    for (setting in c("missing_phantom", "national")) {
+        x <- fix_fixture()
+        x$psu <- as.character(x$psu)
+        x$psu[x$psu == "1"] <- ".SUMMER.phantom.1.1"
+        other <- x; other$house <- 2L
+        x <- rbind(x, other)
+        x$total <- x$total / 2
+        x$died <- x$died / 2
+        if (setting == "missing_phantom") {
+            x$weights[x$strata == "s1" & x$time == "p1"] <- 0
+            x$reference[x$time == "p2"] <- "pooled"
+            x$region[x$region == "A"] <- "B"
+            x$died[x$region == "B" & x$time == "p2"] <-
+                x$total[x$region == "B" & x$time == "p2"] * 0.2
+        } else {
+            x$died <- x$total * 0.2
+        }
+        designs <- list()
+        calls <- 0L
+        result <- suppressWarnings(fix_direct(x, var.fix = TRUE, refStrataVar = "reference"))
+        expect_equal(calls, 2L)
+        p <- fix_prepare(x, "reference")
+        audit <- attr(result, "variance.fix")
+        expect_length(designs, nrow(audit))
+        for (i in seq_len(nrow(audit))) {
+            target <- .u5mr_target(p, audit$region[i], audit$years[i])
+            ph <- .u5mr_augment(p, target, audit$region[i], audit$years[i])$data
+            counts <- rbind(p$data, ph)
+            counts$died <- counts$died / counts$n
+            # Rebuild the old full-survey design with only this target's
+            # phantoms, then select real rows followed by its phantom rows.
+            rebuilt <- build.design(ids = p$formula, strata = ~strata,
+                nest = TRUE, weights = ~weights0, data = counts)
+            rows <- c(.u5mr_target(p, audit$region[i], audit$years[i], rows.only = TRUE),
+                nrow(p$data) + seq_len(nrow(ph)))
+            rebuilt <- rebuilt[rows, ]
+            shared <- designs[[i]]
+            expect_equal(unname(shared$fpc$sampsize), unname(rebuilt$fpc$sampsize), tolerance = 0)
+            expect_equal(unname(shared$prob), unname(rebuilt$prob), tolerance = 0)
+            expect_equal(shared$variables$age0, rebuilt$variables$age0, tolerance = 0)
+            expect_equal(shared$variables$died, rebuilt$variables$died, tolerance = 0)
+            expected <- suppressWarnings(fit.model(died ~ -1 + factor(age0), design = rebuilt,
+                family = quasibinomial(), weights = rebuilt$variables$n))
+            actual <- suppressWarnings(fit.model(died ~ -1 + factor(age0), design = shared,
+                family = quasibinomial(), weights = shared$variables$n))
+            expect_equal(coef(actual), coef(expected), tolerance = 1e-12)
+            expect_equal(vcov(actual), vcov(expected), tolerance = 1e-12)
+        }
+    }
+    x <- fix_fixture()
+    x$region <- "B"
+    calls <- 0L
+    fix_direct(x, var.fix = TRUE)
+    expect_equal(calls, 1L)
 })
 
 test_that("missing area labels still permit national estimation", {

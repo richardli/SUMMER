@@ -118,7 +118,7 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
     audit <- .u5mr_fix_audit()
     if (isTRUE(var.fix)) {
         # Input: births with death counts, cluster formula, and optional exposure/reference column names (Ntrials/refStrataVar).
-        # Output: fix stores compact counts/references, cluster design, retained-row mask, regions, target row indexes and an unused phantom ID prefix.
+        # Output: fix stores compact counts/references, cluster design, retained-row mask, regions, target row indexes and phantom ID prefix/strata.
         fix <- .prepare_u5mr_fix(births, stats::formula(clusterVar), Ntrials, refStrataVar)
         # We omit zero-exposure rows before dividing death counts by exposure.
         births <- births[fix$retain, , drop = FALSE]
@@ -175,12 +175,46 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
     results$years <- rep(years, length(regions_list))
     # add empty variables
     results$var.est <- results$logit.est <- results$upper <- results$lower <- results$mean <- NA
+
+    if (isTRUE(var.fix)) {
+        targets <- vector("list", nrow(results))
+        phantoms <- list()
+        augmented.n <- nrow(fix$data)
+        for (i in seq_len(nrow(results))) {
+            # Row numbers index compact counts in their original order. Rule 2
+            # uses only the real observations in this area-period.
+            rows <- .u5mr_target(fix, results$region[i], results$years[i], rows.only = TRUE)
+            target <- fix$data[rows, , drop = FALSE]
+            targets[[i]] <- list(rows = rows)
+            if (.u5mr_target_rule2(target)) {
+                # Input: real target counts and area-period labels. Output: phantom death/exposure
+                # counts, an audit row, and whether the augmented target still satisfies Rule 2.
+                augmented <- .u5mr_augment(fix, target, results$region[i], results$years[i])
+                phantoms[[length(phantoms) + 1L]] <- augmented$data
+                audit <- rbind(audit, augmented$audit)
+                targets[[i]] <- list(rows = c(rows, augmented.n + seq_len(nrow(augmented$data))),
+                    audit.row = nrow(audit), degenerate = augmented$degenerate,
+                    strata = unique(augmented$data$strata))
+                augmented.n <- augmented.n + nrow(augmented$data)
+            }
+        }
+        if (length(phantoms)) {
+            augmented <- do.call(rbind, c(list(fix$data), phantoms))
+            augmented$died <- augmented$died / augmented$n
+            augmented.design <- survey::svydesign(ids = fix$formula, strata = ~strata,
+                nest = TRUE, weights = ~weights0, data = augmented)
+            # Cache original first-stage PSU counts for strata without usable
+            # phantom exposure in a particular corrected target.
+            original.psus <- my.svydesign$fpc$sampsize[
+                match(fix$strata, as.character(my.svydesign$variables$strata)), 1L]
+        }
+    }
     
     # updated helper function: region.time.HT notes: the original function only works when the selected area-time combination has
     # data. Add a new line of codes so that when there is no data for selected combination, return a line of NA values updated
     # Aug 17, 2015: Enable area = 'All'
     
-    region.time.HT.withNA <- function(which.area, which.time) {
+    region.time.HT.withNA <- function(which.area, which.time, target.index) {
         #cat(".")
         # Address visible binding note
         time0 <- NULL
@@ -203,27 +237,28 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
             value
         }
         if (isTRUE(var.fix)) {
-            # We apply Rule 2 to real observations within this area-period:
-            # one PSU, or equal PSU hazards in every exposed age band.
-            target <- .u5mr_target(fix, which.area, which.time)
-            if (!nrow(target)) return(finish(rep(NA, 5)))
-            if (.u5mr_target_rule2(target)) {
-                # We add one phantom PSU per design stratum present in the target.
-                # We rebuild a full-survey design for this target only, then subset
-                # below, so its phantoms cannot affect other target estimates.
-                augmented <- .u5mr_augment(fix, target, which.area, which.time)
-                audit.row <- nrow(audit) + 1L
-                audit <<- rbind(audit, augmented$audit)
-                design <- survey::svydesign(ids = fix$formula, strata = ~strata,
-                    nest = TRUE, weights = ~weights0, data = augmented$data)
+            augmented <- targets[[target.index]]
+            if (!length(augmented$rows)) return(finish(rep(NA, 5)))
+            audit.row <- augmented$audit.row
+            if (!is.null(audit.row)) {
+                # Select this target's real rows and its own phantom rows,
+                # including for national targets, from the shared design.
+                tmp <- augmented.design[augmented$rows, ]
+                # Another target may have added a phantom in a stratum that
+                # has no usable reference exposure here. Restore its real count.
+                missing.phantom <- !tmp$variables$strata %in% augmented$strata
+                tmp$fpc$sampsize[missing.phantom, 1L] <- original.psus[
+                    match(tmp$variables$strata[missing.phantom], fix$strata)]
                 # We use n as exposure weights, including fractional phantom counts.
                 trials <- TRUE
             }
         }
-        if (which.area == "All") {
-            tmp <- subset(design, (time0 == which.time))
-        } else {
-            tmp <- subset(design, (time0 == which.time & region0 == as.character(which.area)))
+        if (is.null(audit.row)) {
+            if (which.area == "All") {
+                tmp <- subset(design, (time0 == which.time))
+            } else {
+                tmp <- subset(design, (time0 == which.time & region0 == as.character(which.area)))
+            }
         }
         # We keep the existing empty/zero-death guards after augmentation. If the
         # reference also has no deaths, the corrected target can still return NA.
@@ -321,7 +356,8 @@ getDirect <- function(births, years, regionVar = "region", timeVar = "time", clu
     }
     
     # run for all combinations
-    x <- mapply(region.time.HT.withNA, which.area = results$region, which.time = results$years)
+    x <- mapply(region.time.HT.withNA, which.area = results$region, which.time = results$years,
+        target.index = seq_len(nrow(results)))
     results[, 4:8] <- t(x)
     results$survey <- NA
     results$logit.prec <- 1/results$var.est

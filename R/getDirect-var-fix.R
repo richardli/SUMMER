@@ -73,14 +73,14 @@
     index <- lapply(split(seq_len(nrow(dat)), dat$time0), function(rows) {
         list(all = rows, areas = split(rows, dat$region0[rows]))
     })
-    # Choose an unused ID prefix once for all target-specific phantom PSUs.
+    # Choose an unused ID prefix for the shared phantom PSU in each stratum.
     prefix <- ".SUMMER.phantom."
     real.ids <- unlist(dat[stage.vars], use.names = FALSE)
     while (any(startsWith(real.ids, prefix))) prefix <- paste0(prefix, ".")
     list(data = dat, reference = .u5mr_reference(dat), stages = stage.vars,
         formula = stats::reformulate(stage.vars), retain = retain,
         regions = sort(unique(as.character(births$region0[!is.na(births$region0)]))),
-        index = index, phantom.prefix = prefix)
+        index = index, phantom.prefix = prefix, strata = unique(dat$strata))
 }
 
 .u5mr_reference <- function(dat) {
@@ -102,16 +102,20 @@
     ref
 }
 
-.u5mr_target <- function(fix, area, time) {
+.u5mr_target <- function(fix, area, time, rows.only = FALSE) {
     period <- match(as.character(time), names(fix$index))
-    if (is.na(period)) return(fix$data[integer(), , drop = FALSE])
-    index <- fix$index[[period]]
-    if (area == "All") {
-        rows <- index$all
+    if (is.na(period)) {
+        rows <- integer()
     } else {
-        region <- match(as.character(area), names(index$areas))
-        rows <- if (is.na(region)) integer() else index$areas[[region]]
+        index <- fix$index[[period]]
+        if (area == "All") {
+            rows <- index$all
+        } else {
+            region <- match(as.character(area), names(index$areas))
+            rows <- if (is.na(region)) integer() else index$areas[[region]]
+        }
     }
+    if (rows.only) return(rows)
     fix$data[rows, , drop = FALSE]
 }
 
@@ -127,6 +131,8 @@
     prefix <- fix$phantom.prefix
     phantoms <- vector("list", nrow(strata))
     for (i in seq_len(nrow(strata))) {
+        # Reuse the same synthetic PSU and later-stage IDs across this stratum's area-periods.
+        stratum.id <- match(strata$strata[i], fix$strata)
         ref <- fix$reference[fix$reference$time0 == as.character(time) &
             fix$reference$reference == strata$reference[i], , drop = FALSE]
         ref <- ref[is.finite(ref$exposure.ph) & ref$exposure.ph > 0, , drop = FALSE]
@@ -140,13 +146,11 @@
         ph$n <- ref$exposure.ph
         ph$died <- ref$deaths.ph
         for (j in seq_along(fix$stages))
-            ph[[fix$stages[j]]] <- rep(paste0(prefix, i, ".", j), nrow(ref))
-        ph$psu <- rep(paste0(prefix, i), nrow(ref))
+            ph[[fix$stages[j]]] <- rep(paste0(prefix, stratum.id, ".", j), nrow(ref))
+        ph$psu <- rep(paste0(prefix, stratum.id), nrow(ref))
         phantoms[[i]] <- ph
     }
     ph <- do.call(rbind, phantoms)
-    augmented <- rbind(fix$data, ph)
-    augmented$died <- augmented$died / augmented$n
     audit <- data.frame(region = as.character(area), years = as.character(time),
         status = "unresolved", reason = "pending", trigger = if (length(unique(target$psu)) == 1L)
             "single_psu" else "equal_hazards", real.psus = length(unique(target$psu)),
@@ -154,6 +158,6 @@
         reference.groups = paste(unique(strata$reference), collapse = ";"),
         phantom.weighted.deaths = sum(ph$weights0 * ph$died),
         phantom.weighted.exposure = sum(ph$weights0 * ph$n), stringsAsFactors = FALSE)
-    list(data = augmented, audit = audit,
+    list(data = ph, audit = audit,
         degenerate = .u5mr_target_rule2(rbind(target, ph)))
 }
