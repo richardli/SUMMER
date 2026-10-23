@@ -35,7 +35,9 @@ smoothDirect(
   geo = NULL,
   rw = NULL,
   ar = NULL,
-  options = NULL
+  options = NULL,
+  pc.st.slope.u = NA,
+  pc.st.slope.alpha = NA
 )
 }
 \arguments{
@@ -47,7 +49,7 @@ smoothDirect(
 
 \item{time.model}{Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale.}
 
-\item{st.time.model}{Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. For ar1 interaction model, region-specific random slopes are currently not implemented.}
+\item{st.time.model}{Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. An rw2 interaction excludes the optional region-specific random slopes.}
 
 \item{year.label}{string vector of year names}
 
@@ -98,6 +100,10 @@ smoothDirect(
 \item{ar}{Deprecated.}
 
 \item{options}{Deprecated.}
+
+\item{pc.st.slope.u}{Optional positive threshold for IID region-specific random slopes. Together with \code{pc.st.slope.alpha}, specifies \eqn{P(|b_i| > u) = alpha} for the marginal slope prior, as in \code{smoothCluster}. The coefficient is the logit change over the full modeled time span. We calibrate a shared PC precision prior for conditionally zero-mean Gaussian slopes. Both arguments default to \code{NA}, excluding slopes. Slopes require spatial and temporal effects and are always excluded when the effective \code{st.time.model} is \code{"rw2"}, without changing its constraints. For yearly models with period data, we scale annual time from -0.5 to 0.5 and use period averages of this covariate.}
+
+\item{pc.st.slope.alpha}{Marginal tail probability for the optional random slopes, strictly between 0 and 1. Supply both slope-prior arguments to enable slopes with a supported interaction.}
 }
 \value{
 List of fitted object

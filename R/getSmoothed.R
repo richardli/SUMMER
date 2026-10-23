@@ -931,6 +931,8 @@ getSmoothed <- function(fitted, inla_mod = deprecated(), nsim = 1000, weight.str
       order <- rep(NA, N*T)
       counter <- 1
       has.time.slope <- FALSE
+      st.slope.loc <- rep(NA, N*T)
+      st.slope.weight <- rep(0, N*T)
       for(i in 1:T){
         for(j in 1:N){
           index <- lincombs.info$Index[lincombs.info$District == region_nums[j] & lincombs.info$Year == i]
@@ -941,7 +943,15 @@ getSmoothed <- function(fitted, inla_mod = deprecated(), nsim = 1000, weight.str
             # for random effect, the first element is idx
             # for time.slope this is the covariate value
             AA[counter, label] <- unlist(fitted$fit$.args$lincomb[[index]][[k]])[1]
-            if(label == "time.slope"){
+            if(label == "st.slope.id"){
+              # Keep area slopes out of the unweighted sum below.
+              term <- fitted$fit$.args$lincomb[[index]][[k]][[label]]
+              if(length(term$idx)){
+                st.slope.loc[counter] <- match(paste0(label, ":", term$idx), fields)
+                st.slope.weight[counter] <- term$weight
+              }
+              AA.loc[counter, label] <- NA
+            }else if(label == "time.slope"){
               AA.loc[counter, label] <- NA
               has.time.slope <- TRUE
             }else{
@@ -959,6 +969,11 @@ getSmoothed <- function(fitted, inla_mod = deprecated(), nsim = 1000, weight.str
         draw <- sampAll[[i]]$latent
         theta[i,  ] <-  apply(AA.loc, 1, function(x, ff){sum(ff[x], na.rm=TRUE)}, draw)
         
+        # Add the area slope with its signed annual or period time covariate.
+        add.slope.st <- draw[st.slope.loc] * st.slope.weight
+        add.slope.st[is.na(add.slope.st)] <- 0
+        theta[i, ] <- theta[i, ] + add.slope.st
+
         # time slope
         if(has.time.slope){
             slope <- draw["time.slope:1", ]

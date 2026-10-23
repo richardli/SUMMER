@@ -6,7 +6,7 @@
 #' @param Amat Adjacency matrix for the regions
 #' @param formula INLA formula. See vignette for example of using customized formula.
 #' @param time.model Model for the main temporal trend, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be rw2. For ar1 main effect, a linear slope is also added with time scaled to be between -0.5 to 0.5, i.e., the slope coefficient represents the total change between the first year and the last year in the projection period on the logit scale. 
-#' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. For ar1 interaction model, region-specific random slopes are currently not implemented.
+#' @param st.time.model Temporal component model for the interaction term, can be rw1, rw2, or ar1. ar1 is not implemented for yearly model with period data input. Default to be the same as time.model unless specified otherwise. An rw2 interaction excludes the optional region-specific random slopes.
 #' @param year.label string vector of year names
 #' @param year_label `r lifecycle::badge("deprecated")` replaced by year.label
 #' @param year.range Entire range of the years (inclusive) defined in year.label.
@@ -32,6 +32,8 @@
 #' @param rw Deprecated.
 #' @param ar Deprecated.
 #' @param options Deprecated.
+#' @param pc.st.slope.u Optional positive threshold for IID region-specific random slopes. Together with \code{pc.st.slope.alpha}, specifies \eqn{P(|b_i| > u) = alpha} for the marginal slope prior, as in \code{smoothCluster}. The coefficient is the logit change over the full modeled time span. We calibrate a shared PC precision prior for conditionally zero-mean Gaussian slopes. Both arguments default to \code{NA}, excluding slopes. Slopes require spatial and temporal effects and are always excluded when the effective \code{st.time.model} is \code{"rw2"}, without changing its constraints. For yearly models with period data, we scale annual time from -0.5 to 0.5 and use period averages of this covariate.
+#' @param pc.st.slope.alpha Marginal tail probability for the optional random slopes, strictly between 0 and 1. Supply both slope-prior arguments to enable slopes with a supported interaction.
 #' @seealso \code{\link{getDirect}}
 #' @import Matrix
 #' @importFrom stats dgamma
@@ -71,7 +73,7 @@
 #'   plot(out3, plot.CI = TRUE)
 #' }
 #' @export
-smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, year.label, year_label = deprecated(), year.range = c(1980, 2014), year_range = deprecated(), is.yearly=TRUE, m = 5, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA, pc.st.alpha = NA, control.compute = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy = 'default', config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), control.fixed = list(), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, options = NULL){
+smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2", "ar1")[2], st.time.model = NULL, year.label, year_label = deprecated(), year.range = c(1980, 2014), year_range = deprecated(), is.yearly=TRUE, m = 5, type.st = 1, survey.effect = FALSE, hyper = c("pc", "gamma")[1], pc.u = 1, pc.alpha = 0.01, pc.u.phi = 0.5, pc.alpha.phi = 2/3, pc.u.cor = 0.7, pc.alpha.cor = 0.9, pc.st.u = NA, pc.st.alpha = NA, control.compute = list(dic = TRUE, mlik = TRUE, cpo = TRUE, openmp.strategy = 'default', config = TRUE), control.inla = list(strategy = "adaptive", int.strategy = "auto"), control.fixed = list(), verbose = FALSE, geo = NULL, rw = NULL, ar = NULL, options = NULL, pc.st.slope.u = NA, pc.st.slope.alpha = NA){
 
 
 
@@ -239,6 +241,24 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
   }else{
     is.spatial <- FALSE
     is.ar <- FALSE
+  }
+
+  has.st.slope <- !(length(pc.st.slope.u) == 1L && is.na(pc.st.slope.u) &&
+                    length(pc.st.slope.alpha) == 1L && is.na(pc.st.slope.alpha))
+  if(has.st.slope){
+    if(!is.spatial || !is.temporal){
+      stop("Region-specific slopes require spatial and temporal effects.")
+    }
+    if(st.time.model == "rw2"){
+      message("Region-specific slopes excluded for an rw2 interaction.")
+      has.st.slope <- FALSE
+    }else if(!is.numeric(pc.st.slope.u) || length(pc.st.slope.u) != 1L ||
+             !is.finite(pc.st.slope.u) || pc.st.slope.u <= 0 ||
+             !is.numeric(pc.st.slope.alpha) || length(pc.st.slope.alpha) != 1L ||
+             !is.finite(pc.st.slope.alpha) || pc.st.slope.alpha <= 0 ||
+             pc.st.slope.alpha >= 1){
+      stop("Supply both pc.st.slope.u > 0 and 0 < pc.st.slope.alpha < 1 as finite numbers.")
+    }
   }
 
   if(is.spatial){ 
@@ -585,6 +605,76 @@ smoothDirect <- function(data, Amat, formula = NULL, time.model = c("rw1", "rw2"
     exdat$region.slope <- exdat$region.struct
   }
 
+  if(has.st.slope){
+              # Find u* so that P(|beta| * t.range > u0) = alpha
+              #                 where beta ~ Normal(0, tau)
+              #                        tau ~ PC(u*, alpha)
+              rescale_U <- function(u0, alpha, t.range, tol = 1e-4){
+
+                  sim_alpha <- function(ustar, u0, alpha, t.range){
+                        precVal = INLA::inla.pc.rprec(1e6, u = ustar, alpha = alpha)
+                        stdDev = 1/sqrt(precVal)
+                        betaSim = stats::rnorm(1e6, mean = 0, sd = stdDev)
+                        betaSim = abs(betaSim) * t.range 
+                        alpha1 <- sum(betaSim > u0) / length(betaSim)
+                        return(alpha1)
+                  }
+
+                  ustar <- u0 / t.range 
+                  ustar.min <- 0
+                  ustar.max <- u0 * 2
+                  itr = 1
+                  while(itr < 10){
+                    alpha.max <-  sim_alpha(ustar.max, u0, alpha, t.range)
+                    if(alpha.max > alpha){
+                      break
+                    }else{
+                      ustar.max <- ustar.max * 2
+                      itr <- itr + 1
+                    }
+                  }
+
+                  # ss <- al <- seq(ustar.min, ustar.max, length = 100)
+                  # for(i in 1:length(ss)) al[i] = sim_alpha(ss[i], u0, alpha, t.range)
+                  # plot(ss, al, type = 'l')
+                  # abline(v=ustar)
+
+                  # A stupid search...
+                  alpha1 = NA
+                  while(abs(alpha - alpha1) > tol || is.na(alpha1)){
+                        
+                        alpha1 <- sim_alpha(ustar, u0, alpha, t.range)
+
+                        if(is.na(alpha1)) stop("Cannot identify the PC prior for the random slope.")
+
+                        if(alpha1 < alpha && abs(alpha - alpha1) > tol){
+                           ustar.min <- ustar
+                           ustar <- (ustar + ustar.max) / 2
+                        }else if(alpha1 > alpha && abs(alpha - alpha1) > tol){
+                           ustar.max <- ustar
+                           ustar <- (ustar + ustar.min) / 2
+                        }
+                        itr <- itr + 1
+                        if(itr > 1000) stop("Failed to find the PC prior for the random slope.")
+                  }
+
+                  return(ustar)
+              }
+
+    n.slope <- if(is.yearly) n else N
+    if(n.slope < 2L) stop("Region-specific slopes require at least two time points.")
+    slope.time <- seq(-0.5, 0.5, length.out = n.slope)
+    if(is.yearly){
+      slope.time <- c(slope.time, colMeans(matrix(slope.time, nrow = m)))
+    }
+    exdat$st.slope <- slope.time[exdat$time.struct]
+    exdat$st.slope.id <- exdat$region.struct
+
+    t.range <- 1
+    pc.st.slope.prec.u <- rescale_U(pc.st.slope.u, pc.st.slope.alpha, t.range, tol = 1e-4)
+    hyperpc.slope <-  list(prec = list(prior = "pc.prec", param = c(pc.st.slope.prec.u, pc.st.slope.alpha)))
+  }
+
 
   if(is.null(formula)){
         period.constr <- NULL
@@ -870,6 +960,10 @@ if(is.main.ar){
           f(time.struct, model = paste0("rw", rw), constr = TRUE,  extraconstr = period.constr, hyper = hyperpc1) + 
           f(time.struct, model="ar", order = ar, hyper = hyperar1, extraconstr = period.constr, constr = TRUE) + time.slope)
 }
+if(has.st.slope){
+    formula <- update(formula, ~. +
+        f(st.slope.id, st.slope, model = "iid", hyper = hyperpc.slope))
+}
 
     mod <- formula
     
@@ -921,6 +1015,12 @@ if(is.main.ar){
           }else{
             XX <- NULL
           }
+          # INLA rejects an all-zero term, so omit the slope at the midpoint.
+          if(has.st.slope && slope.time[i] != 0){
+            slope <- rep(NA, region_count)
+            slope[j] <- slope.time[i]
+            XX <- c(XX, list(st.slope.id = slope))
+          }
           
           object.name <- paste("lc", index, sep = "")
           
@@ -939,15 +1039,22 @@ if(is.main.ar){
                  if(is.main.ar) tmplin <- c(tmplin, time.slope = (i - center)/(N - 1))
                  assign(object.name, INLA::inla.make.lincomb(c(tmplin, XX)))
             }else if(is.ar){
+                group.area <- area
+                if(has.st.slope){
+                  # Grouped effects store all areas for each successive time.
+                  group.area <- rep(NA, N * region_count)
+                  group.area[j + (i - 1) * region_count] <- 1
+                }
                 tmplin <- list("(Intercept)" = 1,
-                                region.int = area,
+                                region.int = group.area,
                                 time.struct= time ,
                                 time.unstruct= time,
                                 # time.slope = (i - center)/(N - 1),
                                 region.struct = area)
                  if(is.main.ar) tmplin <- c(tmplin, time.slope = (i - center)/(N - 1))
                 assign(object.name, INLA::inla.make.lincomb(c(tmplin, XX)))
-            }else if(is.yearly || type.st %in% c(1, 4)){
+            }else if(is.yearly || type.st %in% c(1, 4) ||
+                     (has.st.slope && type.st == 2)){
                  assign(object.name, INLA::inla.make.lincomb(c(list("(Intercept)" = 1,
                                       time.area = spacetime,
                                       time.struct= time ,
@@ -1036,7 +1143,6 @@ if(is.main.ar){
     return(out)
   } 
 }
-
 
 #' Smoothed direct estimates for mortality rates 
 #' 

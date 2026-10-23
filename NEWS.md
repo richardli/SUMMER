@@ -2,6 +2,10 @@
 
 Version 2.0.0
 ==========================
++ `smoothDirect()` now supports optional IID area slopes with calibrated marginal
+  PC priors. RW2 interactions always exclude these slopes and retain their
+  existing constraints. Joint FH predictions include the area slopes with
+  their signed time covariates.
 + `getDirect()` now supports an opt-in, target-specific synthetic-PSU variance
   correction with `var.fix` and period-specific reference groups through
   `refStrataVar`. We retain legacy output by default and report triggered,
